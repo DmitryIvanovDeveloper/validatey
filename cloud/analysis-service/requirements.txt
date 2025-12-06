@@ -1,0 +1,28 @@
+# Web Framework
+fastapi==0.111.0
+uvicorn==0.30.1
+pydantic==2.7.3
+pydantic-settings==2.1.0
+
+# LLM & AI
+openai==1.12.0
+anthropic==0.18.1
+langchain==0.1.0
+langchain-openai==0.0.5
+langchain-anthropic==0.1.0
+
+# HTTP Client
+httpx==0.25.2
+requests==2.32.3
+
+# Utilities
+python-dotenv==1.0.0
+structlog==23.1.0
+
+# Testing
+pytest==7.4.0
+pytest-asyncio==0.21.1
+
+# Development
+black==23.7.0
+isort==5.12.0
