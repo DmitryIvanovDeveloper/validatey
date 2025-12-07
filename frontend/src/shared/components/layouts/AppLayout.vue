@@ -4,8 +4,8 @@
       <div class="navbar-content">
         <router-link to="/" class="logo">Validatey</router-link>
         <div class="nav-links">
-          <router-link to="/projects">Проекты</router-link>
-          <router-link to="/projects/new">Создать проект</router-link>
+          <router-link to="/projects">Projects</router-link>
+          <router-link to="/projects/new">Create Project</router-link>
         </div>
       </div>
     </nav>
@@ -80,3 +80,4 @@ const showNavbar = computed(() => {
   padding: 2rem 1.5rem;
 }
 </style>
+

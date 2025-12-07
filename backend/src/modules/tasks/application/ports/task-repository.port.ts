@@ -10,3 +10,4 @@ export interface TaskRepositoryPort {
   findPendingTasks(limit?: number): Promise<ResultEx<Task[], Error>>;
 }
 
+

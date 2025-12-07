@@ -2,37 +2,37 @@
   <div class="project-report-view">
     <div class="report-header">
       <div>
-        <router-link :to="`/projects/${projectId}`" class="back-link">← Назад к проекту</router-link>
-        <h1>Отчёт по проекту</h1>
+        <router-link :to="`/projects/${projectId}`" class="back-link">← Back to Project</router-link>
+        <h1>Project Report</h1>
       </div>
       <div class="header-actions">
         <button @click="downloadReport('html')" class="btn btn-secondary">
-          📄 Скачать HTML
+          📄 Download HTML
         </button>
         <button @click="downloadReport('pdf')" class="btn btn-secondary">
-          📑 Скачать PDF
+          📑 Download PDF
         </button>
         <button @click="shareReport" class="btn btn-primary">
-          🔗 Поделиться
+          🔗 Share
         </button>
       </div>
     </div>
 
     <div v-if="loading" class="loading-state">
       <LoadingSpinner />
-      <p>Генерация отчёта...</p>
+      <p>Generating report...</p>
     </div>
 
     <div v-else-if="error" class="error-state">
       <ErrorDisplay :message="error" />
-      <button @click="generateReport" class="btn btn-primary">Сгенерировать отчёт</button>
+      <button @click="generateReport" class="btn btn-primary">Generate Report</button>
     </div>
 
     <div v-else-if="report" class="report-content">
-      <!-- Вердикт -->
+      <!-- Verdict -->
       <Card class="verdict-card" :class="`verdict-${report.verdictType}`">
         <template #header>
-          <h2 class="verdict-title">Вердикт</h2>
+          <h2 class="verdict-title">Verdict</h2>
         </template>
         <div class="verdict-content">
           <div class="verdict-icon">{{ getVerdictIcon(report.verdictType) }}</div>
@@ -40,8 +40,8 @@
         </div>
       </Card>
 
-      <!-- Метрики -->
-      <Card title="Ключевые метрики" class="metrics-card">
+      <!-- Metrics -->
+      <Card title="Key Metrics" class="metrics-card">
         <div class="metrics-grid">
           <div v-for="(value, key) in report.metrics" :key="key" class="metric-item">
             <div class="metric-label">{{ formatMetricLabel(key) }}</div>
@@ -51,15 +51,15 @@
       </Card>
 
       <!-- WTP (Willingness to Pay) -->
-      <Card title="Готовность платить (WTP)" class="wtp-card">
+      <Card title="Willingness to Pay (WTP)" class="wtp-card">
         <div class="wtp-content">
-          <div class="wtp-value">{{ report.wtp.toFixed(2) }} ₽</div>
-          <p class="wtp-description">Средняя готовность целевой аудитории платить за решение</p>
+          <div class="wtp-value">${{ report.wtp.toFixed(2) }}</div>
+          <p class="wtp-description">Average willingness of target audience to pay for the solution</p>
         </div>
       </Card>
 
-      <!-- Кластеры -->
-      <Card title="Кластеры респондентов" class="clusters-card">
+      <!-- Clusters -->
+      <Card title="Respondent Clusters" class="clusters-card">
         <div class="clusters-list">
           <div
             v-for="(cluster, index) in Object.entries(report.clusters)"
@@ -67,8 +67,8 @@
             class="cluster-item"
           >
             <div class="cluster-header">
-              <h3 class="cluster-name">Кластер {{ index + 1 }}: {{ cluster[0] }}</h3>
-              <span class="cluster-size">{{ cluster[1].size }} респондентов</span>
+              <h3 class="cluster-name">Cluster {{ index + 1 }}: {{ cluster[0] }}</h3>
+              <span class="cluster-size">{{ cluster[1].size }} respondents</span>
             </div>
             <div class="cluster-details">
               <div v-for="(value, key) in cluster[1]" :key="key" v-if="key !== 'size'" class="cluster-stat">
@@ -80,8 +80,8 @@
         </div>
       </Card>
 
-      <!-- Альтернативы -->
-      <Card title="Альтернативные решения" class="alternatives-card">
+      <!-- Alternatives -->
+      <Card title="Alternative Solutions" class="alternatives-card">
         <ul class="alternatives-list">
           <li v-for="(alt, index) in report.alternatives" :key="index" class="alternative-item">
             {{ alt }}
@@ -89,8 +89,8 @@
         </ul>
       </Card>
 
-      <!-- Рекомендации -->
-      <Card title="Рекомендации" class="recommendations-card">
+      <!-- Recommendations -->
+      <Card title="Recommendations" class="recommendations-card">
         <ol class="recommendations-list">
           <li v-for="(rec, index) in report.recommendations" :key="index" class="recommendation-item">
             {{ rec }}
@@ -101,7 +101,7 @@
       <!-- Actions -->
       <div class="report-actions">
         <button @click="createNewHypothesis" class="btn btn-primary btn-large">
-          ✨ Создать новый раунд/гипотезу
+          ✨ Create New Round/Hypothesis
         </button>
       </div>
     </div>
@@ -155,12 +155,12 @@ const generateReport = async () => {
   loading.value = true;
   error.value = null;
   
-  // TODO: Вызов presenter для генерации отчёта
+  // TODO: Call presenter to generate report
   setTimeout(() => {
     loading.value = false;
-    // Заглушка данных
+    // Mock data
     report.value = {
-      verdict: 'Гипотеза подтверждена с положительными сигналами',
+      verdict: 'Hypothesis confirmed with positive signals',
       verdictType: 'positive',
       metrics: {
         response_rate: 0.75,
@@ -168,40 +168,40 @@ const generateReport = async () => {
         nps: 8.5,
       },
       clusters: {
-        'Энтузиасты': { size: 45, avg_score: 4.8 },
-        'Нейтральные': { size: 30, avg_score: 3.2 },
-        'Скептики': { size: 25, avg_score: 2.1 },
+        'Enthusiasts': { size: 45, avg_score: 4.8 },
+        'Neutrals': { size: 30, avg_score: 3.2 },
+        'Skeptics': { size: 25, avg_score: 2.1 },
       },
       alternatives: [
-        'Использовать существующее решение X',
-        'Разработать упрощённую версию',
+        'Use existing solution X',
+        'Develop a simplified version',
       ],
       wtp: 150.50,
       recommendations: [
-        'Фокусироваться на кластере энтузиастов',
-        'Улучшить onboarding для скептиков',
-        'Рассмотреть ценовую стратегию на основе WTP',
+        'Focus on the enthusiast cluster',
+        'Improve onboarding for skeptics',
+        'Consider pricing strategy based on WTP',
       ],
     };
   }, 2000);
 };
 
 const downloadReport = async (format: 'html' | 'pdf') => {
-  // TODO: Реализация скачивания отчёта
+  // TODO: Implement report download
   console.log(`Downloading report as ${format}`);
 };
 
 const shareReport = () => {
-  // TODO: Реализация шаринга отчёта
+  // TODO: Implement report sharing
   if (navigator.share) {
     navigator.share({
-      title: 'Отчёт по проекту',
-      text: 'Посмотрите результаты валидации гипотезы',
+      title: 'Project Report',
+      text: 'Check out the hypothesis validation results',
       url: window.location.href,
     });
   } else {
     navigator.clipboard.writeText(window.location.href);
-    alert('Ссылка скопирована в буфер обмена');
+    alert('Link copied to clipboard');
   }
 };
 

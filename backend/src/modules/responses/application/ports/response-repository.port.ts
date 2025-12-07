@@ -10,3 +10,4 @@ export interface ResponseRepositoryPort {
   update(response: Response): Promise<ResultEx<Response, ResponseNotFoundError | InvalidResponseDataError>>;
 }
 
+

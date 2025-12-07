@@ -304,3 +304,4 @@ CREATE TABLE successful_scenarios (
 - **Rate limiting:** Защита от злоупотреблений
 - **Audit log:** Полное логирование всех операций
 
+

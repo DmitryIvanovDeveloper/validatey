@@ -11,3 +11,4 @@ export function bindTelemetry(container: Container): void {
   container.bind<TelemetryPresenter>(TYPES.TelemetryPresenter).to(TelemetryPresenter);
 }
 
+

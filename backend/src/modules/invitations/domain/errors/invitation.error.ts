@@ -26,3 +26,4 @@ export class InvalidInvitationTokenError extends InvitationError {
   }
 }
 
+

@@ -13,3 +13,4 @@ export type SubmitTelemetryUseCaseResponse = {
   success: boolean;
 };
 
+

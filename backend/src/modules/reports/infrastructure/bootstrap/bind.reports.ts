@@ -25,3 +25,4 @@ export function bindReports(container: Container): void {
   container.bind<ReportPresenter>(TYPES.ReportPresenter).to(ReportPresenter);
 }
 
+

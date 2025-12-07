@@ -10,3 +10,4 @@ export interface ProjectRepositoryPort {
   delete(id: string): Promise<ResultEx<void, ProjectNotFoundError>>;
 }
 
+

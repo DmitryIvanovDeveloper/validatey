@@ -9,3 +9,4 @@ export type GenerateReportUseCaseResponse = {
   report: Report;
 };
 
+

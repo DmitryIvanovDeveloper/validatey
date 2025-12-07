@@ -52,3 +52,4 @@ export class PDFReportGeneratorService implements PDFGeneratorPort {
   }
 }
 
+

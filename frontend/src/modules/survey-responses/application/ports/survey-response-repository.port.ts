@@ -7,3 +7,4 @@ export interface SurveyResponseRepositoryPort {
   submitSurvey(token: string): Promise<Result<void, ResponseSaveError>>;
 }
 
+

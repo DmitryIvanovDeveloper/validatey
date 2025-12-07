@@ -23,3 +23,4 @@ export function bindMetrics(container: Container): void {
   container.bind<MetricsPresenter>(TYPES.MetricsPresenter).to(MetricsPresenter);
 }
 
+

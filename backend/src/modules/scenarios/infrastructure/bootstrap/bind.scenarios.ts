@@ -25,3 +25,4 @@ export function bindScenarios(container: Container): void {
   container.bind<ScenarioPresenter>(TYPES.ScenarioPresenter).to(ScenarioPresenter);
 }
 
+

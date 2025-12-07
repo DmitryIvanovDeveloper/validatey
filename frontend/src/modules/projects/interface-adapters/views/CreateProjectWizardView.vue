@@ -1,33 +1,33 @@
 <template>
   <div class="create-project-wizard">
     <div class="wizard-container">
-      <h1 class="wizard-title">Создание нового проекта</h1>
+      <h1 class="wizard-title">Create New Project</h1>
       <Wizard :steps="wizardSteps" @complete="handleComplete" @step-change="handleStepChange">
         <template #default="{ step }">
           <div class="step-content">
             <!-- Step 1: Segment -->
             <div v-if="step === 0" class="step-panel">
-              <h2>Шаг 1: Определите целевой сегмент</h2>
-              <p class="step-description">Опишите целевую аудиторию для вашей гипотезы</p>
+              <h2>Step 1: Define Target Segment</h2>
+              <p class="step-description">Describe the target audience for your hypothesis</p>
               
               <div class="form-group">
-                <label for="segment-description">Описание сегмента *</label>
+                <label for="segment-description">Segment Description *</label>
                 <textarea
                   id="segment-description"
                   v-model="formData.segmentDescription"
                   rows="4"
-                  placeholder="Например: Молодые профессионалы 25-35 лет, работающие в IT, с доходом выше среднего..."
+                  placeholder="Example: Young professionals aged 25-35 working in IT and software development, with 3-7 years of experience, located in major tech hubs. They are early adopters of new technologies and value productivity tools..."
                   class="form-input"
                 ></textarea>
               </div>
 
               <div class="form-group">
-                <label for="segment-demographics">Демография *</label>
+                <label for="segment-demographics">Demographics *</label>
                 <textarea
                   id="segment-demographics"
                   v-model="formData.segmentDemographics"
                   rows="3"
-                  placeholder="Возраст, пол, профессия, доход, география, интересы..."
+                  placeholder="Example: Age: 25-35 | Location: Major cities (SF, NYC, Austin) | Profession: Software engineers, developers | Income: $80k-$150k | Interests: Technology, coding, productivity tools"
                   class="form-input"
                 ></textarea>
               </div>
@@ -35,22 +35,22 @@
 
             <!-- Step 2: Hypothesis -->
             <div v-if="step === 1" class="step-panel">
-              <h2>Шаг 2: Сформулируйте гипотезу</h2>
-              <p class="step-description">Опишите вашу продуктовую гипотезу и предположения</p>
+              <h2>Step 2: Formulate Hypothesis</h2>
+              <p class="step-description">Describe your product hypothesis and assumptions</p>
               
               <div class="form-group">
-                <label for="hypothesis-description">Описание гипотезы *</label>
+                <label for="hypothesis-description">Hypothesis Description *</label>
                 <textarea
                   id="hypothesis-description"
                   v-model="formData.hypothesisDescription"
                   rows="5"
-                  placeholder="Например: Мы считаем, что молодые IT-специалисты хотят изучать новые технологии в игровом формате..."
+                  placeholder="Example: We believe that young IT professionals want to learn new technologies in a gamified, interactive format because traditional online courses are too passive and don't provide enough hands-on practice. They need a platform that combines short lessons with coding challenges and real-time feedback."
                   class="form-input"
                 ></textarea>
               </div>
 
               <div class="form-group">
-                <label>Предположения *</label>
+                <label>Assumptions *</label>
                 <div class="assumptions-list">
                   <div
                     v-for="(assumption, index) in formData.hypothesisAssumptions"
@@ -60,7 +60,7 @@
                     <input
                       v-model="formData.hypothesisAssumptions[index]"
                       type="text"
-                      :placeholder="`Предположение ${index + 1}`"
+                      :placeholder="`Assumption ${index + 1}: e.g., They prefer learning in short 15-30 min sessions`"
                       class="form-input"
                     />
                     <button
@@ -73,7 +73,7 @@
                     </button>
                   </div>
                   <button @click="addAssumption" class="btn-add" type="button">
-                    + Добавить предположение
+                    + Add Assumption
                   </button>
                 </div>
               </div>
@@ -85,62 +85,56 @@
                     <path d="M2 17l10 5 10-5"></path>
                     <path d="M2 12l10 5 10-5"></path>
                   </svg>
-                  AI-помощник для формулировки
+                  AI Helper for Formulation
                 </button>
               </div>
             </div>
 
             <!-- Step 3: Scenario -->
             <div v-if="step === 2" class="step-panel">
-              <h2>Шаг 3: Редактирование сценария</h2>
-              <p class="step-description">Сценарий будет автоматически сгенерирован на основе вашей гипотезы</p>
+              <h2>Step 3: Edit Scenario</h2>
+              <p class="step-description">The scenario will be automatically generated based on your hypothesis</p>
               
               <div v-if="scenarioLoading" class="scenario-generating">
                 <LoadingSpinner />
-                <p>Генерируем сценарий с помощью AI...</p>
+                <p>Generating scenario with AI...</p>
               </div>
 
               <div v-else-if="scenarioError" class="scenario-error">
                 <div class="error-message">{{ scenarioError }}</div>
-                <button @click="generateScenario" class="btn btn-secondary">Попробовать снова</button>
+                <button @click="generateScenario" class="btn btn-secondary">Try Again</button>
               </div>
 
               <div v-else-if="scenarioContent" class="scenario-editor">
-                <div class="form-group">
-                  <label for="scenario-content">Сценарий опроса *</label>
-                  <textarea
-                    id="scenario-content"
-                    v-model="scenarioContent"
-                    rows="15"
-                    class="form-input scenario-textarea"
-                    placeholder="Сценарий опроса будет сгенерирован автоматически..."
-                  ></textarea>
-                </div>
+                <ScenarioViewer
+                  :content="scenarioContent"
+                  @update:content="scenarioContent = $event"
+                />
                 <button @click="regenerateScenario" class="btn-regenerate" type="button">
-                  🔄 Сгенерировать заново
+                  🔄 Regenerate
                 </button>
               </div>
             </div>
 
             <!-- Step 4: Audience & Pricing -->
             <div v-if="step === 3" class="step-panel">
-              <h2>Шаг 4: Аудитория и оплата</h2>
-              <p class="step-description">Укажите параметры запуска проекта</p>
+              <h2>Step 4: Audience & Payment</h2>
+              <p class="step-description">Specify project launch parameters</p>
               
               <div class="form-group">
-                <label for="project-name">Название проекта *</label>
+                <label for="project-name">Project Name *</label>
                 <input
                   id="project-name"
                   v-model="formData.name"
                   type="text"
-                  placeholder="Название вашего проекта"
+                  placeholder="Example: Gamified Learning Platform - IT Professionals"
                   class="form-input"
                 />
               </div>
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="audience-size">Размер аудитории *</label>
+                  <label for="audience-size">Audience Size *</label>
                   <input
                     id="audience-size"
                     v-model.number="formData.audienceSize"
@@ -149,33 +143,33 @@
                     placeholder="100"
                     class="form-input"
                   />
-                  <span class="form-hint">Количество респондентов</span>
+                  <span class="form-hint">Recommended: 100-200 respondents for standard validation</span>
                 </div>
 
                 <div class="form-group">
-                  <label for="price-per-response">Цена за ответ *</label>
+                  <label for="price-per-response">Price per Response *</label>
                   <input
                     id="price-per-response"
                     v-model.number="formData.pricePerResponse"
                     type="number"
                     min="0"
                     step="0.01"
-                    placeholder="5.00"
+                    placeholder="8.00"
                     class="form-input"
                   />
-                  <span class="form-hint">₽ за ответ</span>
+                  <span class="form-hint">Standard: $5-10 for 10-15 min surveys</span>
                 </div>
               </div>
 
               <div class="price-summary">
                 <div class="price-row">
-                  <span>Стоимость проекта:</span>
+                  <span>Project Cost:</span>
                   <span class="price-amount">
-                    {{ totalPrice.toFixed(2) }} ₽
+                    ${{ totalPrice.toFixed(2) }}
                   </span>
                 </div>
                 <div class="price-hint">
-                  {{ formData.audienceSize || 0 }} респондентов × {{ formData.pricePerResponse || 0 }} ₽
+                  {{ formData.audienceSize || 0 }} respondents × ${{ formData.pricePerResponse || 0 }}
                 </div>
               </div>
             </div>
@@ -185,10 +179,10 @@
     </div>
 
     <!-- AI Helper Modal -->
-    <Modal v-model="showAIHelper" title="AI-помощник для формулировки гипотезы">
-      <p>Функция AI-помощника будет интегрирована с backend API.</p>
+    <Modal v-model="showAIHelper" title="AI Helper for Hypothesis Formulation">
+      <p>The AI helper feature will be integrated with the backend API.</p>
       <template #footer>
-        <button @click="showAIHelper = false" class="btn btn-secondary">Закрыть</button>
+        <button @click="showAIHelper = false" class="btn btn-secondary">Close</button>
       </template>
     </Modal>
   </div>
@@ -200,6 +194,7 @@ import { useRouter } from 'vue-router';
 import Wizard from '@/shared/components/Wizard.vue';
 import Modal from '@/shared/components/Modal.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
+import ScenarioViewer from './components/ScenarioViewer.vue';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { ProjectPresenter } from '../presenters/project.presenter';
@@ -212,10 +207,10 @@ const projectPresenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter)
 const scenarioPresenter = container.get<ScenarioPresenter>(SCENARIO_TYPES.ScenarioPresenter);
 
 const wizardSteps = [
-  { label: 'Сегмент' },
-  { label: 'Гипотеза' },
-  { label: 'Сценарий' },
-  { label: 'Аудитория' },
+  { label: 'Segment' },
+  { label: 'Hypothesis' },
+  { label: 'Scenario' },
+  { label: 'Audience' },
 ];
 
 const formData = ref({
@@ -248,7 +243,7 @@ const removeAssumption = (index: number) => {
 };
 
 const handleStepChange = async (step: number) => {
-  // При переходе на шаг 3 (сценарий) создаём проект и генерируем сценарий
+  // When moving to step 3 (scenario), create project and generate scenario
   if (step === 2 && !scenarioContent.value && formData.value.hypothesisDescription) {
     await generateScenario();
   }
@@ -260,9 +255,9 @@ const generateScenario = async () => {
   scenarioContent.value = '';
 
   try {
-    // 1. Создаём проект, если ещё не создан
+    // 1. Create project if not created yet
     if (!currentProjectId.value) {
-      const projectName = formData.value.name || `Проект ${new Date().toLocaleDateString()}`;
+      const projectName = formData.value.name || `Project ${new Date().toLocaleDateString()}`;
       const projectId = await projectPresenter.createProject(
         projectName,
         formData.value.segmentDescription,
@@ -272,14 +267,14 @@ const generateScenario = async () => {
       );
 
       if (!projectId) {
-        scenarioError.value = 'Не удалось создать проект';
+        scenarioError.value = 'Failed to create project';
         scenarioLoading.value = false;
         return;
       }
 
       currentProjectId.value = projectId;
     } else {
-      // Обновляем проект с актуальными данными
+      // Update project with current data
       await projectPresenter.updateProject(
         currentProjectId.value,
         formData.value.name || undefined,
@@ -290,15 +285,15 @@ const generateScenario = async () => {
       );
     }
 
-    // 2. Генерируем сценарий через UseCase -> Repository -> HttpClient -> Backend API
-    // Преобразуем текстовые demographics в объект
+    // 2. Generate scenario via UseCase -> Repository -> HttpClient -> Backend API
+    // Convert text demographics to object
     let demographicsParsed: Record<string, any> = {};
     if (formData.value.segmentDemographics) {
       try {
-        // Пытаемся распарсить как JSON
+        // Try to parse as JSON
         demographicsParsed = JSON.parse(formData.value.segmentDemographics);
       } catch {
-        // Если не JSON, сохраняем как текстовое поле
+        // If not JSON, save as text field
         demographicsParsed = { text: formData.value.segmentDemographics };
       }
     }
@@ -317,12 +312,26 @@ const generateScenario = async () => {
         }
       : null;
 
+    console.log('🔄 Starting scenario generation:', {
+      projectId: currentProjectId.value,
+      hasSegment: !!segment,
+      hasHypothesis: !!hypothesis,
+      segment: segment ? { description: segment.description, demographicsKeys: Object.keys(segment.demographics || {}) } : null,
+      hypothesis: hypothesis ? { description: hypothesis.description, assumptionsCount: hypothesis.assumptions?.length || 0 } : null
+    });
+
     await scenarioPresenter.generateScenario(
       currentProjectId.value!,
       scenarioViewModel,
       segment,
       hypothesis
     );
+
+    console.log('✅ Scenario generation completed:', {
+      hasScenario: !!scenarioViewModel.scenario.value,
+      hasError: !!scenarioViewModel.error.value,
+      error: scenarioViewModel.error.value
+    });
 
     if (scenarioViewModel.scenario.value) {
       scenarioContent.value = scenarioViewModel.scenario.value.content;
@@ -332,9 +341,9 @@ const generateScenario = async () => {
       scenarioLoading.value = false;
     }
   } catch (error) {
-    scenarioError.value = error instanceof Error ? error.message : 'Неизвестная ошибка при генерации сценария';
+    scenarioError.value = error instanceof Error ? error.message : 'Unknown error while generating scenario';
     scenarioLoading.value = false;
-    console.error('Failed to generate scenario:', error);
+    console.error('❌ Failed to generate scenario:', error);
   }
 };
 
@@ -344,7 +353,7 @@ const regenerateScenario = async () => {
 };
 
 const handleComplete = async () => {
-  // Обновляем название проекта, если было изменено на шаге 4
+  // Update project name if it was changed on step 4
   if (currentProjectId.value && formData.value.name) {
     await projectPresenter.updateProject(
       currentProjectId.value,
@@ -352,7 +361,7 @@ const handleComplete = async () => {
     );
   }
 
-  // Перенаправляем на список проектов
+  // Redirect to projects list
   router.push('/projects');
 };
 </script>

@@ -8,3 +8,4 @@ export interface StorageRepositoryPort {
   deleteMetadata(path: string): Promise<ResultEx<void, FileNotFoundError>>;
 }
 
+

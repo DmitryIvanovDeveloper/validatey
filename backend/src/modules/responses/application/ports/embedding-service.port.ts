@@ -15,3 +15,4 @@ export interface EmbeddingServicePort {
   saveEmbedding(responseId: string, embedding: number[]): Promise<ResultEx<void, Error>>;
 }
 
+

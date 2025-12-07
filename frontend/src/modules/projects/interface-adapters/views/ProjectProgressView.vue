@@ -1,34 +1,34 @@
 <template>
   <div class="project-progress-view">
     <div class="progress-header">
-      <router-link :to="`/projects/${projectId}`" class="back-link">← Назад к проекту</router-link>
-      <h1>Прогресс проекта</h1>
+      <router-link :to="`/projects/${projectId}`" class="back-link">← Back to Project</router-link>
+      <h1>Project Progress</h1>
     </div>
 
     <div v-if="loading" class="loading-state">
       <LoadingSpinner />
-      <p>Загрузка данных...</p>
+      <p>Loading data...</p>
     </div>
 
     <div v-else class="progress-content">
-      <!-- Статистика приглашений -->
+      <!-- Invitation Statistics -->
       <div class="stats-grid">
-        <Card title="Всего приглашений">
+        <Card title="Total Invitations">
           <div class="stat-value">{{ invitationStats.total }}</div>
         </Card>
-        <Card title="Отправлено">
+        <Card title="Sent">
           <div class="stat-value text-blue">{{ invitationStats.sent }}</div>
         </Card>
-        <Card title="Отвечено">
+        <Card title="Responded">
           <div class="stat-value text-green">{{ invitationStats.responded }}</div>
         </Card>
-        <Card title="Процент ответов">
+        <Card title="Response Rate">
           <div class="stat-value text-purple">{{ responseRate }}%</div>
         </Card>
       </div>
 
-      <!-- Статусы приглашений -->
-      <Card title="Статусы приглашений" class="invitations-card">
+      <!-- Invitation Statuses -->
+      <Card title="Invitation Statuses" class="invitations-card">
         <div class="invitations-list">
           <div
             v-for="invitation in invitations"
@@ -43,18 +43,18 @@
             </div>
             <div class="invitation-meta">
               <span v-if="invitation.sentAt" class="meta-text">
-                Отправлено: {{ formatDate(invitation.sentAt) }}
+                Sent: {{ formatDate(invitation.sentAt) }}
               </span>
               <span v-if="invitation.respondedAt" class="meta-text">
-                Отвечено: {{ formatDate(invitation.respondedAt) }}
+                Responded: {{ formatDate(invitation.respondedAt) }}
               </span>
             </div>
           </div>
         </div>
       </Card>
 
-      <!-- Ранние сигналы -->
-      <Card title="Ранние сигналы" class="signals-card">
+      <!-- Early Signals -->
+      <Card title="Early Signals" class="signals-card">
         <div class="signals-list">
           <div v-for="signal in earlySignals" :key="signal.id" class="signal-item">
             <div class="signal-icon" :class="`signal-${signal.type}`">
@@ -115,10 +115,10 @@ const responseRate = computed(() => {
 
 const getStatusLabel = (status: InvitationStatus): string => {
   const labels: Record<InvitationStatus, string> = {
-    pending: 'Ожидает',
-    sent: 'Отправлено',
-    responded: 'Отвечено',
-    expired: 'Истекло',
+    pending: 'Pending',
+    sent: 'Sent',
+    responded: 'Responded',
+    expired: 'Expired',
   };
   return labels[status] || status;
 };
@@ -134,11 +134,11 @@ const getSignalIcon = (type: string): string => {
 
 const formatDate = (date: Date | null): string => {
   if (!date) return '';
-  return new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
 
 const formatTime = (date: Date): string => {
-  return new Date(date).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  return new Date(date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 };
 
 onMounted(async () => {

@@ -11,3 +11,4 @@ export interface InvitationRepositoryPort {
   createMany(invitations: Invitation[]): Promise<ResultEx<Invitation[], InvalidInvitationDataError>>;
 }
 
+

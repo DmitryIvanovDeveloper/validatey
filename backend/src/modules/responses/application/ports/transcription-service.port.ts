@@ -15,3 +15,4 @@ export interface TranscriptionServicePort {
   transcribe(request: TranscribeAudioRequest): Promise<ResultEx<TranscribeAudioResponse, AudioProcessingError>>;
 }
 
+

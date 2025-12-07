@@ -1,10 +1,10 @@
 <template>
   <div class="dashboard-view">
-    <!-- Empty State для новых пользователей -->
+    <!-- Empty State for new users -->
     <EmptyState
       v-if="viewModel.projects.value.length === 0 && !viewModel.loading.value"
-      title="Добро пожаловать в Validatey!"
-      description="Начните с создания вашего первого проекта для валидации продуктовой гипотезы"
+      title="Welcome to Validatey!"
+      description="Start by creating your first project to validate your product hypothesis"
       :icon="true"
     >
       <template #icon>
@@ -16,26 +16,26 @@
       </template>
       <template #action>
         <router-link to="/projects/new" class="btn btn-primary btn-large">
-          Создать первый проект
+          Create First Project
         </router-link>
       </template>
     </EmptyState>
 
-    <!-- Dashboard с проектами -->
+    <!-- Dashboard with projects -->
     <div v-else>
       <div class="dashboard-header">
         <div>
-          <h1 class="dashboard-title">Мои проекты</h1>
-          <p class="dashboard-subtitle">Управляйте валидацией ваших продуктовых гипотез</p>
+          <h1 class="dashboard-title">My Projects</h1>
+          <p class="dashboard-subtitle">Manage validation of your product hypotheses</p>
         </div>
         <router-link to="/projects/new" class="btn btn-primary">
-          + Создать проект
+          + Create Project
         </router-link>
       </div>
 
       <div v-if="viewModel.loading.value" class="loading-state">
         <LoadingSpinner />
-        <p>Загрузка проектов...</p>
+        <p>Loading projects...</p>
       </div>
 
       <div v-else-if="viewModel.error.value" class="error-state">
@@ -75,10 +75,10 @@
           <template #footer>
             <div class="project-card-footer">
               <router-link :to="`/projects/${project.id}`" class="btn-link">
-                Подробнее →
+                Details →
               </router-link>
               <router-link v-if="project.status === 'active'" :to="`/projects/${project.id}/progress`" class="btn-link">
-                Прогресс
+                Progress
               </router-link>
             </div>
           </template>
@@ -115,17 +115,17 @@ const goToProject = (projectId: string) => {
 
 const getStatusLabel = (status: ProjectStatus): string => {
   const labels: Record<ProjectStatus, string> = {
-    draft: 'Черновик',
-    active: 'Активный',
-    completed: 'Завершён',
-    archived: 'Архив',
+    draft: 'Draft',
+    active: 'Active',
+    completed: 'Completed',
+    archived: 'Archived',
   };
   return labels[status] || status;
 };
 
 const formatDate = (date: Date | string): string => {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 </script>
 

@@ -8,3 +8,4 @@ export const TYPES = {
   InvitationManagerPresenter: Symbol.for('InvitationManagerPresenter'),
 } as const;
 
+

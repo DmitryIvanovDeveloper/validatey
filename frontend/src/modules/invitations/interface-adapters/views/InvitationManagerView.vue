@@ -1,21 +1,21 @@
 <template>
   <div class="invitation-manager-view">
     <div class="manager-header">
-      <h1>Управление приглашениями</h1>
+      <h1>Manage Invitations</h1>
       <button @click="showInviteModal = true" class="btn btn-primary">
-        + Отправить приглашения
+        + Send Invitations
       </button>
     </div>
 
     <!-- Invitations List -->
-    <Card title="Список приглашений">
+    <Card title="Invitations List">
       <div class="invitations-table">
         <div class="table-header">
           <div class="col-email">Email</div>
-          <div class="col-status">Статус</div>
-          <div class="col-sent">Отправлено</div>
-          <div class="col-responded">Отвечено</div>
-          <div class="col-actions">Действия</div>
+          <div class="col-status">Status</div>
+          <div class="col-sent">Sent</div>
+          <div class="col-responded">Responded</div>
+          <div class="col-actions">Actions</div>
         </div>
         <div
           v-for="invitation in invitations"
@@ -32,7 +32,7 @@
           <div class="col-responded">{{ formatDate(invitation.respondedAt) }}</div>
           <div class="col-actions">
             <button @click="resendInvitation(invitation.id)" class="btn-small btn-secondary">
-              Повторить
+              Resend
             </button>
           </div>
         </div>
@@ -40,10 +40,10 @@
     </Card>
 
     <!-- Invite Modal -->
-    <Modal v-model="showInviteModal" title="Отправить приглашения">
+    <Modal v-model="showInviteModal" title="Send Invitations">
       <div class="invite-form">
         <div class="form-group">
-          <label>Email адреса (по одному на строку)</label>
+          <label>Email addresses (one per line)</label>
           <textarea
             v-model="inviteEmails"
             rows="8"
@@ -53,9 +53,9 @@
         </div>
       </div>
       <template #footer>
-        <button @click="showInviteModal = false" class="btn btn-secondary">Отмена</button>
+        <button @click="showInviteModal = false" class="btn btn-secondary">Cancel</button>
         <button @click="sendInvitations" class="btn btn-primary" :disabled="sending">
-          {{ sending ? 'Отправка...' : 'Отправить' }}
+          {{ sending ? 'Sending...' : 'Send' }}
         </button>
       </template>
     </Modal>
@@ -87,17 +87,17 @@ const sending = ref(false);
 
 const getStatusLabel = (status: InvitationStatus): string => {
   const labels: Record<InvitationStatus, string> = {
-    pending: 'Ожидает',
-    sent: 'Отправлено',
-    responded: 'Отвечено',
-    expired: 'Истекло',
+    pending: 'Pending',
+    sent: 'Sent',
+    responded: 'Responded',
+    expired: 'Expired',
   };
   return labels[status] || status;
 };
 
 const formatDate = (date: Date | null): string => {
   if (!date) return '-';
-  return new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit' });
+  return new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit' });
 };
 
 const sendInvitations = async () => {
@@ -107,7 +107,7 @@ const sendInvitations = async () => {
     .filter(e => e && e.includes('@'));
   
   if (emails.length === 0) {
-    alert('Пожалуйста, введите хотя бы один email');
+    alert('Please enter at least one email address');
     return;
   }
 

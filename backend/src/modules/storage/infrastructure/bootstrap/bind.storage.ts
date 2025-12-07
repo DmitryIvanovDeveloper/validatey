@@ -16,3 +16,4 @@ export function bindStorage(container: Container): void {
   container.bind<StoragePresenter>(TYPES.StoragePresenter).to(StoragePresenter);
 }
 
+

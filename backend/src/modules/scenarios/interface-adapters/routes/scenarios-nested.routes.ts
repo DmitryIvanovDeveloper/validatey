@@ -8,20 +8,34 @@ const presenter = container.get<ScenarioPresenter>(TYPES.ScenarioPresenter);
 
 // POST /projects/:projectId/scenarios/generate
 router.post('/generate', async (req: Request, res: Response) => {
+  const projectId = req.params.projectId;
+  console.log('🔵 [BACKEND] Scenario generation request received:', {
+    projectId,
+    userId: req.headers['x-user-id'],
+    hasSegment: !!req.body.segment,
+    hasHypothesis: !!req.body.hypothesis,
+    hasPrompt: !!req.body.prompt,
+    body: req.body
+  });
+
   try {
     // Validate x-user-id header (required per requirements)
     const userId = req.headers['x-user-id'] as string;
     if (!userId) {
+      console.error('❌ [BACKEND] Missing x-user-id header');
       return res.status(400).json({ error: 'x-user-id header is required' });
     }
 
-    const projectId = req.params.projectId;
-    
     // Validate projectId in body matches URL parameter (if provided)
     if (req.body.projectId && req.body.projectId !== projectId) {
+      console.error('❌ [BACKEND] projectId mismatch:', {
+        urlParam: projectId,
+        bodyParam: req.body.projectId
+      });
       return res.status(400).json({ error: 'projectId in body must match URL parameter' });
     }
 
+    console.log('✅ [BACKEND] Calling presenter.generateScenario...');
     const result = await presenter.generateScenario({
       projectId,
       userId, // Pass userId for ownership validation
@@ -30,31 +44,97 @@ router.post('/generate', async (req: Request, res: Response) => {
       metadata: req.body.metadata,
       prompt: req.body.prompt, // Optional prompt override
     });
+    
+    console.log('📥 [BACKEND] Presenter result:', {
+      isSuccess: result.isSuccess
+    });
 
     if (!result.isSuccess) {
       // Check error type for appropriate status code
-      if (result.error.name === 'ProjectNotFoundError') {
-        return res.status(404).json({ error: result.error.message });
+      const error = result.error;
+      console.error('❌ [BACKEND] Scenario generation failed:', {
+        errorName: error?.name,
+        errorMessage: error?.message
+      });
+      
+      if (error?.name === 'ProjectNotFoundError') {
+        return res.status(404).json({ error: error.message });
       }
-      if (result.error.name === 'ProjectAccessDeniedError') {
-        return res.status(403).json({ error: result.error.message });
+      if (error?.name === 'ProjectAccessDeniedError') {
+        return res.status(403).json({ error: error.message });
       }
-      return res.status(400).json({ error: result.error.message });
+      return res.status(400).json({ error: error?.message || 'Unknown error' });
     }
 
     // Status is already computed in use case
     // Serialize dates to ISO 8601 format as per requirements
-    const scenarioData = result.data.scenario;
-    return res.status(201).json({
-      scenario: {
-        ...scenarioData,
-        createdAt: scenarioData.createdAt.toISOString(),
-        updatedAt: scenarioData.updatedAt.toISOString(),
-      },
+    // Safely access result.data - it should exist if isSuccess is true
+    let scenarioData;
+    try {
+      // Check if result has data before accessing it
+      if (!result.hasData()) {
+        console.error('❌ [BACKEND] Result does not have data even though isSuccess is true');
+        return res.status(500).json({ error: 'Result has no data despite success' });
+      }
+      
+      const responseData = result.data;
+      if (!responseData || !responseData.scenario) {
+        console.error('❌ [BACKEND] Missing scenario data in result:', {
+          hasData: !!responseData,
+          hasScenario: !!responseData?.scenario
+        });
+        return res.status(500).json({ error: 'Missing scenario data in response' });
+      }
+
+      scenarioData = responseData.scenario;
+    } catch (dataError) {
+      console.error('❌ [BACKEND] Error accessing result.data:', {
+        error: dataError,
+        message: dataError instanceof Error ? dataError.message : String(dataError),
+        stack: dataError instanceof Error ? dataError.stack : undefined
+      });
+      return res.status(500).json({ 
+        error: dataError instanceof Error ? dataError.message : 'Error accessing result data' 
+      });
+    }
+
+    console.log('✅ [BACKEND] Scenario generated successfully:', {
+      scenarioId: scenarioData?.id,
+      projectId: scenarioData?.projectId,
+      version: scenarioData?.version,
+      status: scenarioData?.status
     });
+    
+    try {
+      if (!scenarioData.createdAt || !scenarioData.updatedAt) {
+        console.error('❌ [BACKEND] Missing date fields in scenario data');
+        return res.status(500).json({ error: 'Missing date fields in scenario data' });
+      }
+
+      return res.status(201).json({
+        scenario: {
+          ...scenarioData,
+          createdAt: scenarioData.createdAt instanceof Date 
+            ? scenarioData.createdAt.toISOString() 
+            : new Date(scenarioData.createdAt).toISOString(),
+          updatedAt: scenarioData.updatedAt instanceof Date 
+            ? scenarioData.updatedAt.toISOString() 
+            : new Date(scenarioData.updatedAt).toISOString(),
+        },
+      });
+    } catch (serializeError) {
+      console.error('❌ [BACKEND] Error serializing scenario data:', serializeError);
+      const serializeErrorMessage = serializeError instanceof Error ? serializeError.message : 'Unknown serialization error';
+      return res.status(500).json({ error: `Error serializing scenario data: ${serializeErrorMessage}` });
+    }
   } catch (error) {
-    console.error('Generate scenario error:', error);
-    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+    console.error('❌ [BACKEND] Generate scenario error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ [BACKEND] Error details:', {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return res.status(500).json({ error: errorMessage });
   }
 });
 

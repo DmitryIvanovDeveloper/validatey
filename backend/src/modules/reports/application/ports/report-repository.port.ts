@@ -11,3 +11,4 @@ export interface ReportRepositoryPort {
   getLatestVersion(projectId: string): Promise<ResultEx<number, Error>>;
 }
 
+

@@ -11,3 +11,4 @@ export interface ScenarioRepositoryPort {
   getLatestVersion(projectId: string): Promise<ResultEx<number, Error>>;
 }
 
+

@@ -7,3 +7,4 @@ export const TYPES = {
   ScenarioEditorPresenter: Symbol.for('ScenarioEditorPresenter'),
 } as const;
 
+

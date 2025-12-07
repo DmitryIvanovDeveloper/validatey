@@ -51,3 +51,4 @@ class GenerateScenarioResponse(BaseModel):
     content: str = Field(..., description="Generated scenario content (JSON or markdown)")
     metadata: ScenarioMetadata = Field(..., description="Scenario metadata")
 
+

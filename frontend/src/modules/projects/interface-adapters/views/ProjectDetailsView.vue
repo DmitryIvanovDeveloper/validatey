@@ -1,23 +1,23 @@
 <template>
   <div class="project-details-view">
     <div class="details-header">
-      <router-link to="/projects" class="back-link">← Назад к проектам</router-link>
+      <router-link to="/projects" class="back-link">← Back to Projects</router-link>
       <div class="header-actions">
         <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-secondary">
-          Управление приглашениями
+          Manage Invitations
         </router-link>
         <router-link :to="`/projects/${projectId}/progress`" class="btn btn-secondary">
-          Прогресс
+          Progress
         </router-link>
         <router-link :to="`/projects/${projectId}/report`" class="btn btn-primary">
-          Отчёт
+          Report
         </router-link>
       </div>
     </div>
 
     <div v-if="viewModel.loading.value" class="loading-state">
       <LoadingSpinner />
-      <p>Загрузка проекта...</p>
+      <p>Loading project...</p>
     </div>
 
     <div v-else-if="viewModel.error.value" class="error-state">
@@ -28,30 +28,30 @@
       <Card :title="project.name" class="project-card">
         <div class="project-info">
           <div class="info-row">
-            <span class="info-label">Статус:</span>
+            <span class="info-label">Status:</span>
             <span :class="['status-badge', `status-${project.status}`]">
               {{ getStatusLabel(project.status) }}
             </span>
           </div>
           <div class="info-row">
-            <span class="info-label">Создан:</span>
+            <span class="info-label">Created:</span>
             <span>{{ formatDate(project.createdAt) }}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">Обновлён:</span>
+            <span class="info-label">Updated:</span>
             <span>{{ formatDate(project.updatedAt) }}</span>
           </div>
         </div>
       </Card>
 
-      <Card title="Сегмент" class="segment-card">
+      <Card title="Segment" class="segment-card">
         <div class="segment-content">
           <div class="content-item">
-            <h4>Описание</h4>
-            <p>{{ project.segment?.description || 'Не указано' }}</p>
+            <h4>Description</h4>
+            <p>{{ project.segment?.description || 'Not specified' }}</p>
           </div>
           <div class="content-item">
-            <h4>Демография</h4>
+            <h4>Demographics</h4>
             <p v-if="project.segment?.demographics">
               <template v-if="typeof project.segment.demographics === 'string'">
                 {{ project.segment.demographics }}
@@ -62,19 +62,19 @@
                 </template>
               </template>
             </p>
-            <p v-else>Не указано</p>
+            <p v-else>Not specified</p>
           </div>
         </div>
       </Card>
 
-      <Card title="Гипотеза" class="hypothesis-card">
+      <Card title="Hypothesis" class="hypothesis-card">
         <div class="hypothesis-content">
           <div class="content-item">
-            <h4>Описание</h4>
-            <p>{{ project.hypothesis?.description || 'Не указано' }}</p>
+            <h4>Description</h4>
+            <p>{{ project.hypothesis?.description || 'Not specified' }}</p>
           </div>
           <div class="content-item" v-if="project.hypothesis?.assumptions?.length">
-            <h4>Предположения</h4>
+            <h4>Assumptions</h4>
             <ul class="assumptions-list">
               <li v-for="(assumption, index) in project.hypothesis.assumptions" :key="index">
                 {{ assumption }}
@@ -110,10 +110,10 @@ const project = computed(() => {
 
 const getStatusLabel = (status: ProjectStatus): string => {
   const labels: Record<ProjectStatus, string> = {
-    draft: 'Черновик',
-    active: 'Активный',
-    completed: 'Завершён',
-    archived: 'Архив',
+    draft: 'Draft',
+    active: 'Active',
+    completed: 'Completed',
+    archived: 'Archived',
   };
   return labels[status] || status;
 };
@@ -121,7 +121,7 @@ const getStatusLabel = (status: ProjectStatus): string => {
 const formatDate = (date: Date | string): string => {
   if (!date) return '-';
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 onMounted(() => {

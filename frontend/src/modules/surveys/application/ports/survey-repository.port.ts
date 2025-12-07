@@ -6,3 +6,4 @@ export interface SurveyRepositoryPort {
   getByToken(token: string): Promise<Result<Survey, SurveyNotFoundError | SurveyExpiredError>>;
 }
 
+

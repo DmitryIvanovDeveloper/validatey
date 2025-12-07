@@ -15,3 +15,4 @@ export interface PDFGeneratorPort {
   generatePDF(request: GeneratePDFRequest): Promise<ResultEx<GeneratePDFResponse, ReportGenerationError>>;
 }
 
+

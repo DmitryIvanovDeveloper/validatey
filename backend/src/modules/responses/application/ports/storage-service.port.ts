@@ -18,3 +18,4 @@ export interface StorageServicePort {
   deleteFile(path: string): Promise<ResultEx<void, Error>>;
 }
 
+

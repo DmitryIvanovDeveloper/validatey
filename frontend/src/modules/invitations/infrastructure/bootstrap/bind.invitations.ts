@@ -10,3 +10,4 @@ export function bindInvitations(container: Container): void {
   container.bind<InvitationServicePort>(TYPES.InvitationService).to(InvitationService);
 }
 
+

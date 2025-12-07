@@ -58,3 +58,4 @@ docker run -p 8080:8080 --env-file .env llm-analysis-service
 
 Проект готов для добавления LLM функциональности.
 
+

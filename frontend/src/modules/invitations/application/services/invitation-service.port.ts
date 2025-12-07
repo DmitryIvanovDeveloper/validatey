@@ -6,3 +6,4 @@ export interface InvitationServicePort {
   validateToken(token: string): Promise<Result<Invitation, InvalidTokenError>>;
 }
 
+

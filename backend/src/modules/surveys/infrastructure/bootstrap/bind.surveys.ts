@@ -11,3 +11,4 @@ export function bindSurveys(container: Container): void {
   container.bind<SurveyPresenter>(TYPES.SurveyPresenter).to(SurveyPresenter);
 }
 
+

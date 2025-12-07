@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 export interface Scenario {
   readonly id: string;
   readonly projectId: string;
@@ -150,7 +152,8 @@ export class ScenarioEntity {
   }
 
   private static generateId(): string {
-    return `scen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use crypto.randomUUID() for proper UUID v4 generation (database compatible)
+    return randomUUID();
   }
 }
 

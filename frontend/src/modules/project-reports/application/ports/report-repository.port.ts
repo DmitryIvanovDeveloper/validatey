@@ -9,3 +9,4 @@ export interface ReportRepositoryPort {
   downloadPdf(projectId: string): Promise<Result<Blob, ReportNotFoundError>>;
 }
 
+

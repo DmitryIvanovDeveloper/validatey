@@ -7,3 +7,4 @@ export class InvitationsSentEvent implements IEvent {
   ) {}
 }
 
+

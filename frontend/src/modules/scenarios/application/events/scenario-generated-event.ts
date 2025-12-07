@@ -7,3 +7,4 @@ export class ScenarioGeneratedEvent implements IEvent {
   ) {}
 }
 
+

@@ -5,7 +5,7 @@
       <div class="survey-progress">
         <div class="progress-header">
           <span class="progress-text">
-            Вопрос {{ viewModel.currentQuestionIndex.value + 1 }} из {{ viewModel.survey.value?.questions.length || 0 }}
+            Question {{ viewModel.currentQuestionIndex.value + 1 }} of {{ viewModel.survey.value?.questions.length || 0 }}
           </span>
           <span class="progress-percent">{{ progressPercent }}%</span>
         </div>
@@ -17,15 +17,15 @@
       <!-- Loading State -->
       <div v-if="viewModel.loading.value" class="loading-state">
         <LoadingSpinner />
-        <p>Загрузка опроса...</p>
+        <p>Loading survey...</p>
       </div>
 
       <!-- Error State -->
       <div v-else-if="viewModel.error.value" class="error-state">
         <div class="error-icon">⚠️</div>
-        <h2>Ошибка загрузки</h2>
+        <h2>Loading Error</h2>
         <p>{{ viewModel.error.value }}</p>
-        <button @click="retryLoad" class="btn btn-primary">Попробовать снова</button>
+        <button @click="retryLoad" class="btn btn-primary">Try Again</button>
       </div>
 
       <!-- Survey Content -->
@@ -36,7 +36,7 @@
           <!-- Scale Question (1-5) -->
           <div v-if="currentQuestion.type === 'scale'" class="question-input">
             <ScaleInput
-              :label="'Оцените по шкале от 1 до 5'"
+              :label="'Rate on a scale from 1 to 5'"
               :model-value="typeof currentAnswer === 'number' ? currentAnswer : 0"
               @update:model-value="updateAnswer"
             />
@@ -44,19 +44,19 @@
 
           <!-- Open Text Question -->
           <div v-else-if="currentQuestion.type === 'open'" class="question-input">
-            <label class="input-label">Ваш ответ:</label>
+            <label class="input-label">Your answer:</label>
             <textarea
               :value="typeof currentAnswer === 'string' ? currentAnswer : ''"
               rows="5"
               class="text-input"
-              placeholder="Введите ваш ответ..."
+              placeholder="Enter your answer..."
               @input="updateAnswer(($event.target as HTMLTextAreaElement).value)"
             ></textarea>
           </div>
 
           <!-- Audio Question -->
           <div v-else-if="currentQuestion.type === 'audio'" class="question-input">
-            <label class="input-label">Запишите аудио-ответ:</label>
+            <label class="input-label">Record audio answer:</label>
             <AudioRecorder @recorded="handleAudioRecorded" />
             <div v-if="currentAnswer && typeof currentAnswer === 'string'" class="audio-preview">
               <audio :src="currentAnswer" controls></audio>
@@ -70,7 +70,7 @@
               @click="prevQuestion"
               class="btn btn-secondary"
             >
-              ← Назад
+              ← Back
             </button>
             <div class="spacer"></div>
             <button
@@ -78,14 +78,14 @@
               @click="nextQuestion"
               class="btn btn-primary"
             >
-              Далее →
+              Next →
             </button>
             <button
               v-else-if="isLastQuestion"
               @click="submitSurvey"
               class="btn btn-primary btn-large"
             >
-              Завершить опрос
+              Complete Survey
             </button>
           </div>
         </div>
@@ -94,8 +94,8 @@
       <!-- Completion Screen -->
       <div v-else-if="isCompleted" class="completion-screen">
         <div class="completion-icon">✅</div>
-        <h2>Спасибо за участие!</h2>
-        <p>Ваши ответы успешно отправлены.</p>
+        <h2>Thank you for participating!</h2>
+        <p>Your answers have been successfully submitted.</p>
       </div>
     </div>
   </div>

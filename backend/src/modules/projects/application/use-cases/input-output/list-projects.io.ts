@@ -8,3 +8,4 @@ export type ListProjectsUseCaseResponse = {
   projects: Project[];
 };
 
+

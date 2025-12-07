@@ -1,13 +1,13 @@
 <template>
   <div class="not-found">
     <h1>404</h1>
-    <p>Страница не найдена</p>
-    <router-link to="/" class="back-link">Вернуться на главную</router-link>
+    <p>Page not found</p>
+    <router-link to="/" class="back-link">Return to Home</router-link>
   </div>
 </template>
 
 <script setup lang="ts">
-// Страница 404
+// 404 page
 </script>
 
 <style scoped>
@@ -44,3 +44,4 @@
   color: #2b6cb0;
 }
 </style>
+

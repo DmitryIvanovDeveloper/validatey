@@ -26,3 +26,4 @@ export class ReportGenerationError extends ReportError {
   }
 }
 
+

@@ -11,3 +11,4 @@ export interface EmailServicePort {
   sendEmail(request: SendEmailRequest): Promise<ResultEx<void, Error>>;
 }
 
+

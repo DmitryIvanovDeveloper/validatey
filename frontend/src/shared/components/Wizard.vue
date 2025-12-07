@@ -24,10 +24,10 @@
       <slot :step="currentStep" :steps="steps" :goToStep="goToStep" :nextStep="nextStep" :prevStep="prevStep" />
     </div>
     <div class="wizard-footer">
-      <button v-if="currentStep > 0" @click="prevStep" class="btn btn-secondary">Назад</button>
+      <button v-if="currentStep > 0" @click="prevStep" class="btn btn-secondary">Back</button>
       <div class="spacer"></div>
-      <button v-if="currentStep < steps.length - 1" @click="nextStep" class="btn btn-primary">Далее</button>
-      <button v-else @click="$emit('complete')" class="btn btn-primary">Завершить</button>
+      <button v-if="currentStep < steps.length - 1" @click="nextStep" class="btn btn-primary">Next</button>
+      <button v-else @click="$emit('complete')" class="btn btn-primary">Complete</button>
     </div>
   </div>
 </template>
@@ -223,4 +223,5 @@ defineExpose({ currentStep, goToStep, nextStep, prevStep });
   }
 }
 </style>
+
 

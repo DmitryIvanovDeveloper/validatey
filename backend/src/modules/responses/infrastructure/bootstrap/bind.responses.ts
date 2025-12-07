@@ -27,3 +27,4 @@ export function bindResponses(container: Container): void {
   container.bind<ResponsePresenter>(TYPES.ResponsePresenter).to(ResponsePresenter);
 }
 
+

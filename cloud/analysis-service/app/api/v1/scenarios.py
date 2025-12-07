@@ -24,7 +24,11 @@ def get_claude_provider() -> ClaudeProvider:
     """Get or create Claude provider instance"""
     global claude_provider
     if claude_provider is None:
-        claude_provider = ClaudeProvider()
+        try:
+            claude_provider = ClaudeProvider()
+        except ValueError:
+            # In mock mode, provider will still be created but won't make real API calls
+            claude_provider = ClaudeProvider()
     return claude_provider
 
 
@@ -35,7 +39,11 @@ def get_openai_provider() -> OpenAIProvider:
         try:
             openai_provider = OpenAIProvider()
         except (ValueError, ImportError):
-            return None
+            # In mock mode, provider will still be created but won't make real API calls
+            try:
+                openai_provider = OpenAIProvider()
+            except:
+                return None
     return openai_provider
 
 
@@ -202,4 +210,5 @@ async def validate_scenario(content: str, metadata: Dict[str, Any] = None):
         "errors": validation_result.errors,
         "warnings": validation_result.warnings
     }
+
 

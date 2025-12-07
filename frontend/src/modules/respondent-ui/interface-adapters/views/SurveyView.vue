@@ -1,17 +1,17 @@
 <template>
   <div class="survey-view">
     <div class="survey-container">
-      <h1>Опрос</h1>
+      <h1>Survey</h1>
       <p>Token: {{ $route.params.token }}</p>
       <div class="progress-bar">
         <div class="progress-fill" :style="{ width: '0%' }"></div>
       </div>
       <div class="survey-form">
-        <p>Форма опроса будет здесь:</p>
+        <p>Survey form will be here:</p>
         <ul>
-          <li>Шкалы 1-5</li>
-          <li>Открытые вопросы</li>
-          <li>Опционально аудио</li>
+          <li>1-5 scales</li>
+          <li>Open questions</li>
+          <li>Optional audio</li>
         </ul>
       </div>
     </div>
@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-// Survey View - форма опроса для респондента
+// Survey View - survey form for respondent
 </script>
 
 <style scoped>
@@ -72,3 +72,4 @@
   color: #4a5568;
 }
 </style>
+

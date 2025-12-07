@@ -112,3 +112,4 @@ export class SupabaseMetricsRepository implements MetricsRepositoryPort {
   }
 }
 
+

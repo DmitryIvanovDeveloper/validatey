@@ -4,3 +4,4 @@ export class ProjectDeletedEvent implements IEvent {
   constructor(public readonly projectId: string) {}
 }
 
+

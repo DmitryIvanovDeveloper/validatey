@@ -31,3 +31,4 @@ export function bindTasks(container: Container): void {
   container.bind<TaskPresenter>(TYPES.TaskPresenter).to(TaskPresenter);
 }
 
+

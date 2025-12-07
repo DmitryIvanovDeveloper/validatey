@@ -28,3 +28,4 @@ export function bindInvitations(container: Container): void {
   container.bind<InvitationPresenter>(TYPES.InvitationPresenter).to(InvitationPresenter);
 }
 
+

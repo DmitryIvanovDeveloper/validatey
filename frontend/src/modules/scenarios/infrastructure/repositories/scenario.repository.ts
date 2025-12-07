@@ -21,6 +21,23 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
     prompt?: string
   ): Promise<Result<Scenario, ScenarioGenerationError>> {
     try {
+      const url = `${API_CONFIG.ENDPOINTS.SCENARIOS(projectId)}/generate`;
+      const requestData = {
+        projectId,
+        segment: segment || null,
+        hypothesis: hypothesis || null,
+        prompt: prompt || undefined,
+      };
+      
+      console.log('📋 Scenario Generation Request:', {
+        url: `${API_CONFIG.BASE_URL}${url}`,
+        projectId,
+        hasSegment: !!segment,
+        hasHypothesis: !!hypothesis,
+        hasPrompt: !!prompt,
+        data: requestData
+      });
+      
       const response = await this._httpClient.post<{
         scenario: {
           id: string;
@@ -32,12 +49,7 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
           isEdited?: boolean;
           createdAt: string;
         };
-      }>(`${API_CONFIG.ENDPOINTS.SCENARIOS(projectId)}/generate`, {
-        projectId,
-        segment: segment || null,
-        hypothesis: hypothesis || null,
-        prompt: prompt || undefined,
-      });
+      }>(url, requestData);
 
       // Вычисляем status на основе isGenerated и isEdited, если не указан явно
       let status: ScenarioStatus = 'draft';

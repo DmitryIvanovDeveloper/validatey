@@ -9,3 +9,4 @@ export interface InvitationRepositoryPort {
   send(projectId: string): Promise<Result<void, InvitationSendError>>;
 }
 
+
