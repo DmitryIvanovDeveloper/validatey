@@ -1,4 +1,4 @@
-export type InvitationStatus = 'pending' | 'sent' | 'responded' | 'expired';
+export type InvitationStatus = 'pending' | 'sent' | 'responded' | 'completed' | 'expired';
 
 export class Invitation {
   constructor(

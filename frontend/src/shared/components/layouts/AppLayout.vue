@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '@/modules/auth/infrastructure/bootstrap/types';
@@ -36,17 +36,35 @@ const authViewModel = new AuthViewModel();
 const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
 let unsubscribeAuth: (() => void) | null = null;
 
+/** True after loadSession() has completed. Prevents clearing userId on initial run (user is null before session loads). */
+const sessionLoaded = ref(false);
+
 const showNavbar = computed(() => {
   return route.meta.hideNavbar !== true;
 });
 
 watch(
   () => authViewModel.user.value,
-  (user) => {
+  async (user) => {
     if (user) {
+      const previousId = userContextService.getUserId();
+      if (previousId && previousId !== user.id) {
+        try {
+          await authPresenter.linkPreviousUser(previousId);
+        } catch (_) {
+          // Non-blocking: projects stay under old id; user can retry or continue
+        }
+      }
       userContextService.setUserId(user.id);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('validatey-user-id-synced'));
+      }
     } else {
-      userContextService.clearUserId();
+      // Only clear when we know session was loaded and user is null (e.g. sign out).
+      // Do NOT clear on first run: user is null before loadSession, and clearing would wipe stored Google id, so list projects would use a new anonymous id and show empty.
+      if (sessionLoaded.value) {
+        userContextService.clearUserId();
+      }
     }
   },
   { immediate: true }
@@ -54,6 +72,7 @@ watch(
 
 onMounted(async () => {
   await authPresenter.loadSession(authViewModel);
+  sessionLoaded.value = true;
   unsubscribeAuth = authPresenter.subscribeToAuthState(authViewModel);
 });
 

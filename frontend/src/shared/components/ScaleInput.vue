@@ -15,16 +15,31 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+
+interface Props {
   label: string;
   modelValue: number;
-}>();
+  min?: number;
+  max?: number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  min: 1,
+  max: 5,
+});
 
 defineEmits<{
   'update:modelValue': [value: number];
 }>();
 
-const scaleValues = [1, 2, 3, 4, 5];
+const scaleValues = computed(() => {
+  const values: number[] = [];
+  for (let i = props.min; i <= props.max; i++) {
+    values.push(i);
+  }
+  return values;
+});
 </script>
 
 <style scoped>

@@ -4,6 +4,7 @@ export const TYPES = {
   SMSService: Symbol.for('SMSService'),
   CreateInvitationsUseCase: Symbol.for('CreateInvitationsUseCase'),
   GetInvitationByTokenUseCase: Symbol.for('GetInvitationByTokenUseCase'),
+  GetInvitationsByProjectIdUseCase: Symbol.for('GetInvitationsByProjectIdUseCase'),
   UpdateInvitationStatusUseCase: Symbol.for('UpdateInvitationStatusUseCase'),
   InvitationPresenter: Symbol.for('InvitationPresenter'),
 } as const;

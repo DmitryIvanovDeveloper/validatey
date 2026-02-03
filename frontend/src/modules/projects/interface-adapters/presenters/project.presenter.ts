@@ -186,7 +186,7 @@ export class ProjectPresenter {
     hypothesisAssumptions?: string[],
     status?: string,
     marketContext?: MarketContext | null
-  ): Promise<boolean> {
+  ): Promise<{ ok: boolean; error?: string }> {
     try {
       let segment: Segment | undefined = undefined;
       if (segmentDescription && segmentDescription.trim().length > 0 && segmentDemographics) {
@@ -234,33 +234,20 @@ export class ProjectPresenter {
 
       if (result.isSuccess) {
         this._logger.info('Project updated', { projectId });
-        return true;
+        return { ok: true };
       } else {
-        // Безопасное извлечение сообщения об ошибке
-        let errorMessage = 'Unknown error';
-        if (result.error instanceof Error) {
-          errorMessage = result.error.message;
-        } else if (typeof result.error === 'string') {
-          errorMessage = result.error;
-        } else {
-          errorMessage = JSON.stringify(result.error);
-        }
-        
-        this._logger.error('Failed to update project', { 
-          projectId, 
-          error: errorMessage,
-          errorDetails: result.error 
-        });
-        return false;
+        const errorMessage = result.error instanceof Error
+          ? result.error.message
+          : typeof result.error === 'string'
+            ? result.error
+            : 'Failed to update project';
+        this._logger.error('Failed to update project', { projectId, error: errorMessage, errorDetails: result.error });
+        return { ok: false, error: errorMessage };
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this._logger.error('Unexpected error during project update', { 
-        projectId, 
-        error: errorMessage,
-        errorDetails: error 
-      });
-      return false;
+      this._logger.error('Unexpected error during project update', { projectId, error: errorMessage, errorDetails: error });
+      return { ok: false, error: errorMessage };
     }
   }
 
@@ -268,9 +255,9 @@ export class ProjectPresenter {
     viewModel.loading.value = true;
     viewModel.error.value = null;
 
-    const success = await this.updateProject(projectId, updates.name, updates.segmentDescription, updates.segmentDemographics, updates.hypothesisDescription, updates.hypothesisAssumptions, updates.status, updates.marketContext);
+    const result = await this.updateProject(projectId, updates.name, updates.segmentDescription, updates.segmentDemographics, updates.hypothesisDescription, updates.hypothesisAssumptions, updates.status, updates.marketContext);
 
-    if (success) {
+    if (result.ok) {
       viewModel.loading.value = false;
       this._logger.info('Project updated', { projectId });
     } else {

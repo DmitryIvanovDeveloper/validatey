@@ -18,40 +18,77 @@ export class SurveyRepository implements SurveyRepositoryPort {
   async getByToken(token: string): Promise<Result<Survey, SurveyNotFoundError | SurveyExpiredError>> {
     try {
       const response = await this._httpClient.get<{
-        id: string;
-        token: string;
-        projectId: string;
-        questions: Array<{
+        invitation: {
           id: string;
-          type: string;
-          text: string;
-          required: boolean;
-        }>;
-        status: string;
-        startedAt: string | null;
-        completedAt: string | null;
+          projectId: string;
+          token: string;
+          email: string | null;
+          status: string;
+          sentAt: string | null;
+          respondedAt: string | null;
+        };
+        survey: {
+          id: string;
+          token: string;
+          projectId: string;
+          questions: Array<{
+            id: string;
+            type: string;
+            text: string;
+            required: boolean;
+            options?: {
+              min?: number;
+              max?: number;
+              label?: string;
+              choices?: string[];
+              multiple?: boolean;
+            };
+          }>;
+          status: string;
+          startedAt: string | null;
+          completedAt: string | null;
+        };
       }>(API_CONFIG.ENDPOINTS.SURVEY_BY_TOKEN(token));
 
-      const questions = response.questions.map(q => new SurveyQuestion(
-        q.id,
-        q.type as any,
-        q.text,
-        q.required
-      ));
+      // Extract survey from response
+      const surveyData = response.survey;
+
+      const questions = surveyData.questions.map(q => 
+        new SurveyQuestion(
+          q.id,
+          q.type as any,
+          q.text,
+          q.required,
+          q.options
+        )
+      );
 
       const survey = new Survey(
-        response.id,
-        response.token,
-        response.projectId,
+        surveyData.id,
+        surveyData.token,
+        surveyData.projectId,
         questions,
-        response.status as SurveyStatus,
-        response.startedAt ? new Date(response.startedAt) : null,
-        response.completedAt ? new Date(response.completedAt) : null
+        surveyData.status as SurveyStatus,
+        surveyData.startedAt ? new Date(surveyData.startedAt) : null,
+        surveyData.completedAt ? new Date(surveyData.completedAt) : null
       );
 
       return Result.success(survey);
     } catch (error) {
       return Result.failure(new SurveyNotFoundError(token));
+    }
+  }
+
+  async submitResponse(token: string, answers: Record<string, any>): Promise<Result<void, Error>> {
+    try {
+      await this._httpClient.post(API_CONFIG.ENDPOINTS.SUBMIT_RESPONSE(token), {
+        token,
+        answers,
+      });
+      return Result.success(undefined);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit response';
+      return Result.failure(new Error(errorMessage));
     }
   }
 }

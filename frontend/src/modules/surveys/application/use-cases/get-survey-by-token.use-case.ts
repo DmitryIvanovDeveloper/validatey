@@ -59,7 +59,8 @@ export class GetSurveyByTokenUseCase {
           id: q.id,
           type: q.type,
           text: q.text,
-          required: q.required
+          required: q.required,
+          options: q.options
         })),
         status: survey.status
       }

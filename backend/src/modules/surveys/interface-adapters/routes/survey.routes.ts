@@ -10,17 +10,36 @@ const presenter = container.get<SurveyPresenter>(TYPES.SurveyPresenter);
 router.get('/:token', async (req: Request, res: Response) => {
   try {
     const token = req.params.token;
+    console.log('📋 GET /survey/:token', { token: token.substring(0, 10) + '...' });
+    
     const result = await presenter.getSurveyByToken({ token });
 
     if (!result.isSuccess) {
+      console.error('❌ Survey not found:', {
+        token: token.substring(0, 10) + '...',
+        errorName: result.error.name,
+        errorMessage: result.error.message
+      });
+      
       if (result.error.name === 'SurveyNotFoundError') {
         return res.status(404).json({ error: result.error.message });
       }
       return res.status(400).json({ error: result.error.message });
     }
 
+    console.log('✅ Survey loaded:', {
+      token: token.substring(0, 10) + '...',
+      surveyId: result.data.survey.id,
+      questionsCount: result.data.survey.questions.length
+    });
+
     return res.status(200).json(result.data);
   } catch (error) {
+    console.error('❌ Survey route exception:', {
+      token: req.params.token?.substring(0, 10) + '...',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });

@@ -13,7 +13,7 @@ import compression from 'compression';
 const app = express();
 
 // CORS: exact origin(s), never * (required when credentials: true from frontend)
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').split(',').map((s) => s.trim());
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173,http://localhost:5174').split(',').map((s) => s.trim());
 app.use(
   cors({
     origin(origin, cb) {
@@ -74,7 +74,7 @@ import storageRoutes from './modules/storage/interface-adapters/routes/storage.r
 import audioUploadRoutes from './modules/storage/interface-adapters/routes/audio-upload.routes';
 import telemetryRoutes from './modules/telemetry/interface-adapters/routes/telemetry.routes';
 import surveyRoutes from './modules/surveys/interface-adapters/routes/survey.routes';
-import aiRoutes from './modules/ai/routes/hypothesis-suggest.routes';
+import aiRoutes from './modules/ai/routes';
 import authRoutes from './modules/auth/interface-adapters/routes/auth.routes';
 
 app.use('/api/projects', projectsRoutes);

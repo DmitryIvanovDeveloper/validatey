@@ -17,23 +17,29 @@ export class InvitationRepository implements InvitationRepositoryPort {
   async getByToken(token: string): Promise<Result<Invitation, InvalidTokenError>> {
     try {
       const response = await this._httpClient.get<{
-        id: string;
-        projectId: string;
-        token: string;
-        email: string;
-        status: string;
-        sentAt: string | null;
-        respondedAt: string | null;
+        invitation: {
+          id: string;
+          projectId: string;
+          token: string;
+          email: string | null;
+          status: string;
+          sentAt: string | null;
+          respondedAt: string | null;
+        };
+        survey: any;
       }>(API_CONFIG.ENDPOINTS.SURVEY_BY_TOKEN(token));
 
+      // Extract invitation from response
+      const invitationData = response.invitation;
+
       const invitation = new Invitation(
-        response.id,
-        response.projectId,
-        response.token,
-        response.email,
-        response.status as InvitationStatus,
-        response.sentAt ? new Date(response.sentAt) : null,
-        response.respondedAt ? new Date(response.respondedAt) : null
+        invitationData.id,
+        invitationData.projectId,
+        invitationData.token,
+        invitationData.email,
+        invitationData.status as InvitationStatus,
+        invitationData.sentAt ? new Date(invitationData.sentAt) : null,
+        invitationData.respondedAt ? new Date(invitationData.respondedAt) : null
       );
 
       return Result.success(invitation);

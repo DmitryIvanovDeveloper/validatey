@@ -17,6 +17,8 @@ import { bindReports } from '../../modules/reports/infrastructure/bootstrap/bind
 import { bindStorage } from '../../modules/storage/infrastructure/bootstrap/bind.storage';
 import { bindTelemetry } from '../../modules/telemetry/infrastructure/bootstrap/bind.telemetry';
 import { bindSurveys } from '../../modules/surveys/infrastructure/bootstrap/bind.surveys';
+import { bindAi } from '../../modules/ai/infrastructure/bootstrap/bind.ai';
+import { bindSignals } from '../../modules/signals/infrastructure/bootstrap/bind.signals';
 
 const container = new Container();
 
@@ -36,6 +38,8 @@ bindReports(container);
 bindStorage(container);
 bindTelemetry(container);
 bindSurveys(container);
+bindAi(container);
+bindSignals(container);
 
 export { container, TYPES };
 

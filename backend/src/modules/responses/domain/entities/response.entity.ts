@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 export interface Response {
   readonly id: string;
   readonly invitationId: string;
@@ -84,7 +86,8 @@ export class ResponseEntity {
   }
 
   private static generateId(): string {
-    return `resp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Generate UUID v4 using Node.js crypto.randomUUID() for database compatibility
+    return randomUUID();
   }
 }
 

@@ -1,11 +1,22 @@
 export type SurveyStatus = 'pending' | 'started' | 'completed' | 'expired';
-export type QuestionType = 'scale' | 'open' | 'audio';
+export type QuestionType = 'scale' | 'open' | 'audio' | 'multiple_choice';
+
+export interface QuestionOptions {
+  // For scale questions
+  min?: number;
+  max?: number;
+  label?: string;
+  // For multiple_choice questions
+  choices?: string[];
+  multiple?: boolean; // true for multiple selection, false for single
+}
 
 export interface SurveyQuestion {
   readonly id: string;
   readonly type: QuestionType;
   readonly text: string;
   readonly required: boolean;
+  readonly options?: QuestionOptions;
 }
 
 export interface Survey {

@@ -4,6 +4,7 @@ export const TYPES = {
   TranscriptionService: Symbol.for('TranscriptionService'),
   EmbeddingService: Symbol.for('EmbeddingService'),
   SubmitResponseUseCase: Symbol.for('SubmitResponseUseCase'),
+  GetResponsesByProjectIdUseCase: Symbol.for('GetResponsesByProjectIdUseCase'),
   ResponsePresenter: Symbol.for('ResponsePresenter'),
 } as const;
 

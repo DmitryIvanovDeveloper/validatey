@@ -25,7 +25,12 @@ export class UpdateProjectUseCase {
     const findResult = await this._repository.findById(request.projectId);
 
     if (!findResult.isSuccess) {
-      this._logger.error('update-project.not-found', { projectId: request.projectId });
+      this._logger.error('update-project.not-found', { 
+        projectId: request.projectId,
+        userId: request.userId,
+        error: findResult.error instanceof Error ? findResult.error.message : String(findResult.error),
+        errorName: findResult.error?.name || 'Unknown'
+      });
       return ResultEx.failure(findResult.error);
     }
 

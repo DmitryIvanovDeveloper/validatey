@@ -58,4 +58,9 @@ export class AuthPresenter {
     await this._signOutUseCase.execute();
     viewModel.user.value = null;
   }
+
+  /** Call after login to reassign projects from anonymous userId to current user. */
+  async linkPreviousUser(previousUserId: string): Promise<{ linked: number }> {
+    return this._authService.linkPreviousUser(previousUserId);
+  }
 }

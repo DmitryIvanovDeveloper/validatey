@@ -37,8 +37,18 @@ router.post('/', async (req: Request, res: Response) => {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const projectId = req.params.projectId;
-    // TODO: Add GetInvitationsByProjectIdUseCase
-    return res.status(501).json({ error: 'List invitations not implemented yet', projectId });
+    
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+    
+    const result = await presenter.getInvitationsByProjectId({ projectId });
+    
+    if (!result.isSuccess) {
+      return res.status(500).json({ error: result.error.message });
+    }
+    
+    return res.status(200).json(result.data.invitations);
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }

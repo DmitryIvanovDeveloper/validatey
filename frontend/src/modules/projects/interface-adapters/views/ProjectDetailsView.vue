@@ -25,6 +25,7 @@
     </div>
 
     <div v-else-if="project" class="details-content">
+      <p v-if="formatError" class="format-error">{{ formatError }}</p>
       <Card :title="project.name" class="project-card">
         <div class="project-info">
           <div class="info-row">
@@ -44,68 +45,173 @@
         </div>
       </Card>
 
-      <Card title="Segment" class="segment-card">
-        <div class="segment-content">
-          <div class="content-item">
-            <h4>Description</h4>
-            <p>{{ project.segment?.description || 'Not specified' }}</p>
+      <Card class="segment-card">
+        <template #header>
+          <div class="card-header-row">
+            <h3 class="card-title">Segment</h3>
+            <button
+              type="button"
+              class="btn btn-format"
+              :disabled="!project.segment?.description?.trim() || project.segment.description === 'Not specified' || formatLoadingKey !== null"
+              @click="onFormatSegmentDescription"
+            >
+              {{ formatLoadingKey === 'segment-description' ? 'Formatting…' : 'AI-Format' }}
+            </button>
           </div>
-          <div class="content-item">
-            <h4>Demographics</h4>
-            <p v-if="project.segment?.demographics">
-              <template v-if="typeof project.segment.demographics === 'string'">
-                {{ project.segment.demographics }}
-              </template>
-              <template v-else>
-                <template v-for="(value, key) in project.segment.demographics" :key="key">
-                  <strong>{{ key }}:</strong> {{ value }}<br />
-                </template>
-              </template>
-            </p>
-            <p v-else>Not specified</p>
+        </template>
+        <div class="segment-content">
+          <p class="formatted-text">{{ project.segment?.description || 'Not specified' }}</p>
+        </div>
+      </Card>
+
+      <Card class="demographics-card">
+        <template #header>
+          <div class="card-header-row">
+            <h3 class="card-title">Demographics</h3>
+            <button
+              type="button"
+              class="btn btn-format"
+              :disabled="!getSegmentDemographicsText().trim() || getSegmentDemographicsText() === 'Not specified' || formatLoadingKey !== null"
+              @click="onFormatSegmentDemographics"
+            >
+              {{ formatLoadingKey === 'segment-demographics' ? 'Formatting…' : 'AI-Format' }}
+            </button>
           </div>
-        </div>
-      </Card>
-
-      <Card title="Market Picture" class="market-context-card">
+        </template>
         <div class="segment-content">
-          <p>{{ project.marketContext?.marketPicture || 'Not specified' }}</p>
+          <p v-if="project.segment?.demographics" class="formatted-text">
+            <template v-if="typeof project.segment.demographics === 'string'">
+              {{ project.segment.demographics }}
+            </template>
+            <template v-else>
+              <template v-for="(value, key) in project.segment.demographics" :key="key">
+                <strong>{{ key }}:</strong> {{ value }}<br />
+              </template>
+            </template>
+          </p>
+          <p v-else>Not specified</p>
         </div>
       </Card>
 
-      <Card title="Market Fit" class="market-context-card">
+      <Card class="market-context-card">
+        <template #header>
+          <div class="card-header-row">
+            <h3 class="card-title">Market Picture</h3>
+            <button
+              type="button"
+              class="btn btn-format"
+              :disabled="!project.marketContext?.marketPicture?.trim() || project.marketContext.marketPicture === 'Not specified' || formatLoadingKey !== null"
+              @click="onFormatMarketPicture"
+            >
+              {{ formatLoadingKey === 'market-picture' ? 'Formatting…' : 'AI-Format' }}
+            </button>
+          </div>
+        </template>
         <div class="segment-content">
-          <p>{{ project.marketContext?.marketFit || 'Not specified' }}</p>
+          <p class="formatted-text">{{ project.marketContext?.marketPicture || 'Not specified' }}</p>
         </div>
       </Card>
 
-      <Card title="Differentiation" class="market-context-card">
+      <Card class="market-context-card">
+        <template #header>
+          <div class="card-header-row">
+            <h3 class="card-title">Market Fit</h3>
+            <button
+              type="button"
+              class="btn btn-format"
+              :disabled="!project.marketContext?.marketFit?.trim() || project.marketContext.marketFit === 'Not specified' || formatLoadingKey !== null"
+              @click="onFormatMarketFit"
+            >
+              {{ formatLoadingKey === 'market-fit' ? 'Formatting…' : 'AI-Format' }}
+            </button>
+          </div>
+        </template>
         <div class="segment-content">
-          <p>{{ project.marketContext?.differentiation || 'Not specified' }}</p>
+          <p class="formatted-text">{{ project.marketContext?.marketFit || 'Not specified' }}</p>
         </div>
       </Card>
 
-      <Card title="Hypothesis" class="hypothesis-card">
+      <Card class="market-context-card">
+        <template #header>
+          <div class="card-header-row">
+            <h3 class="card-title">Differentiation</h3>
+            <button
+              type="button"
+              class="btn btn-format"
+              :disabled="!project.marketContext?.differentiation?.trim() || project.marketContext.differentiation === 'Not specified' || formatLoadingKey !== null"
+              @click="onFormatDifferentiation"
+            >
+              {{ formatLoadingKey === 'differentiation' ? 'Formatting…' : 'AI-Format' }}
+            </button>
+          </div>
+        </template>
+        <div class="segment-content">
+          <p class="formatted-text">{{ project.marketContext?.differentiation || 'Not specified' }}</p>
+        </div>
+      </Card>
+
+      <Card class="hypothesis-card">
+        <template #header>
+          <div class="card-header-row">
+            <h3 class="card-title">Hypothesis</h3>
+            <button
+              type="button"
+              class="btn btn-format"
+              :disabled="!project.hypothesis?.description?.trim() || project.hypothesis.description === 'Not specified' || formatLoadingKey !== null"
+              @click="onFormatHypothesisDescription"
+            >
+              {{ formatLoadingKey === 'hypothesis-description' ? 'Formatting…' : 'AI-Format' }}
+            </button>
+          </div>
+        </template>
         <div class="hypothesis-content">
           <div class="content-item">
             <h4>Description</h4>
-            <p>{{ project.hypothesis?.description || 'Not specified' }}</p>
+            <p class="formatted-text">{{ project.hypothesis?.description || 'Not specified' }}</p>
           </div>
-          <div class="content-item" v-if="project.hypothesis?.assumptions?.length">
-            <h4>Assumptions</h4>
-            <ul class="assumptions-list">
-              <li v-for="(assumption, index) in project.hypothesis.assumptions" :key="index">
-                {{ assumption }}
-              </li>
-            </ul>
+        </div>
+      </Card>
+
+      <Card v-if="project.hypothesis?.assumptions?.length" class="hypothesis-card assumptions-card">
+        <template #header>
+          <div class="card-header-row">
+            <h3 class="card-title">Assumptions</h3>
+            <button
+              type="button"
+              class="btn btn-format"
+              :disabled="!project.hypothesis?.assumptions?.length || formatLoadingKey !== null"
+              @click="onFormatHypothesisAssumptions"
+            >
+              {{ formatLoadingKey === 'hypothesis-assumptions' ? 'Formatting…' : 'AI-Format' }}
+            </button>
           </div>
+        </template>
+        <div class="segment-content">
+          <ul class="assumptions-list">
+            <li v-for="(assumption, index) in project.hypothesis.assumptions" :key="index" class="formatted-text">
+              {{ assumption }}
+            </li>
+          </ul>
         </div>
       </Card>
 
       <Card v-if="scenarioLoading" title="Scenario" class="scenario-card">
         <p class="scenario-loading">Loading scenario...</p>
       </Card>
-      <Card v-else-if="scenarioContent" title="Scenario" class="scenario-card">
+      <Card v-else-if="scenarioContent" class="scenario-card">
+        <template #header>
+          <div class="card-header-row">
+            <h3 class="card-title">Scenario</h3>
+            <button
+              type="button"
+              class="btn btn-format"
+              :disabled="!scenarioContent?.trim() || !scenarioId || formatLoadingKey !== null"
+              @click="onFormatScenario"
+            >
+              {{ formatLoadingKey === 'scenario' ? 'Formatting…' : 'AI-Format' }}
+            </button>
+          </div>
+        </template>
         <ScenarioViewer :content="scenarioContent" />
       </Card>
       <Card v-else-if="scenarioError" title="Scenario" class="scenario-card">
@@ -134,19 +240,27 @@ import { ProjectViewModel } from '../view-models/project.view-model';
 import { ProjectPresenter } from '../presenters/project.presenter';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
 import type { ScenarioRepositoryPort } from '../../../scenarios/application/ports/scenario-repository.port';
+import type { HttpClientPort } from '@/infrastructure/http/ports/http-client.port';
 import { ProjectStatus } from '../../domain/entities/project.entity';
+import { API_CONFIG } from '@/infrastructure/config/api.config';
 
 const route = useRoute();
 const projectId = route.params.projectId as string;
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 const scenarioRepository = container.get<ScenarioRepositoryPort>(SCENARIO_TYPES.ScenarioRepository);
+const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
 const scenarioContent = ref<string>('');
+const scenarioId = ref<string | null>(null);
 const scenarioLoading = ref(false);
 const scenarioError = ref<string | null>(null);
+
+const formatLoadingKey = ref<string | null>(null);
+const formatError = ref<string | null>(null);
 
 const project = computed(() => {
   return viewModel.project.value;
@@ -173,10 +287,12 @@ async function loadScenario() {
   scenarioLoading.value = true;
   scenarioError.value = null;
   scenarioContent.value = '';
+  scenarioId.value = null;
   const result = await scenarioRepository.getLatestByProjectId(projectId);
   scenarioLoading.value = false;
   if (result.isSuccess) {
     scenarioContent.value = result.data.content;
+    scenarioId.value = result.data.id;
     scenarioError.value = null;
   } else {
     // 404 / not found = no scenario yet → show empty state, not error
@@ -186,6 +302,240 @@ async function loadScenario() {
     scenarioContent.value = '';
     scenarioError.value = isNotFound ? null : result.error.message;
   }
+}
+
+async function callFormatText(text: string): Promise<string | null> {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return null;
+  try {
+    const res = await httpClient.post<{ formatted: string }>(
+      API_CONFIG.ENDPOINTS.AI_FORMAT_TEXT,
+      { text: trimmed }
+    );
+    return res?.formatted != null ? String(res.formatted).trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function getSegmentDemographicsText(): string {
+  const p = project.value;
+  if (!p?.segment?.demographics) return '';
+  const d = p.segment.demographics;
+  if (typeof d === 'string') return d;
+  return Object.entries(d)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join('\n');
+}
+
+async function onFormatSegmentDescription() {
+  const p = project.value;
+  const text = p?.segment?.description?.trim() || '';
+  if (!text || text === 'Not specified') return;
+  formatLoadingKey.value = 'segment-description';
+  formatError.value = null;
+  const formatted = await callFormatText(text);
+  if (formatted != null) {
+    const result = await presenter.updateProject(
+      projectId,
+      undefined,
+      formatted,
+      p?.segment?.demographics,
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    );
+    if (result.ok) await presenter.loadProject(projectId, viewModel);
+    else formatError.value = result.error || 'Failed to save';
+  } else {
+    formatError.value = 'Formatting failed';
+  }
+  formatLoadingKey.value = null;
+}
+
+async function onFormatSegmentDemographics() {
+  const text = getSegmentDemographicsText();
+  if (!text || text === 'Not specified') return;
+  formatLoadingKey.value = 'segment-demographics';
+  formatError.value = null;
+  const formatted = await callFormatText(text);
+  const p = project.value;
+  if (formatted != null && p) {
+    const demographics = formatted.trim() ? { text: formatted } : p.segment?.demographics;
+    const result = await presenter.updateProject(
+      projectId,
+      undefined,
+      p.segment?.description,
+      demographics,
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    );
+    if (result.ok) await presenter.loadProject(projectId, viewModel);
+    else formatError.value = result.error || 'Failed to save';
+  } else if (formatted == null) {
+    formatError.value = 'Formatting failed';
+  }
+  formatLoadingKey.value = null;
+}
+
+async function onFormatMarketPicture() {
+  const text = (project.value?.marketContext?.marketPicture || '').trim();
+  if (!text || text === 'Not specified') return;
+  formatLoadingKey.value = 'market-picture';
+  formatError.value = null;
+  const formatted = await callFormatText(text);
+  const p = project.value;
+  if (formatted != null && p) {
+    const mc = { ...p.marketContext, marketPicture: formatted };
+    const result = await presenter.updateProject(
+      projectId,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      mc
+    );
+    if (result.ok) await presenter.loadProject(projectId, viewModel);
+    else formatError.value = result.error || 'Failed to save';
+  } else if (formatted == null) {
+    formatError.value = 'Formatting failed';
+  }
+  formatLoadingKey.value = null;
+}
+
+async function onFormatMarketFit() {
+  const text = (project.value?.marketContext?.marketFit || '').trim();
+  if (!text || text === 'Not specified') return;
+  formatLoadingKey.value = 'market-fit';
+  formatError.value = null;
+  const formatted = await callFormatText(text);
+  const p = project.value;
+  if (formatted != null && p) {
+    const mc = { ...p.marketContext, marketFit: formatted };
+    const ok = await presenter.updateProject(
+      projectId,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      mc
+    );
+    if (ok) await presenter.loadProject(projectId, viewModel);
+    else formatError.value = 'Failed to save';
+  } else if (formatted == null) {
+    formatError.value = 'Formatting failed';
+  }
+  formatLoadingKey.value = null;
+}
+
+async function onFormatDifferentiation() {
+  const text = (project.value?.marketContext?.differentiation || '').trim();
+  if (!text || text === 'Not specified') return;
+  formatLoadingKey.value = 'differentiation';
+  formatError.value = null;
+  const formatted = await callFormatText(text);
+  const p = project.value;
+  if (formatted != null && p) {
+    const mc = { ...p.marketContext, differentiation: formatted };
+    const result = await presenter.updateProject(
+      projectId,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      mc
+    );
+    if (result.ok) await presenter.loadProject(projectId, viewModel);
+    else formatError.value = result.error || 'Failed to save';
+  } else if (formatted == null) {
+    formatError.value = 'Formatting failed';
+  }
+  formatLoadingKey.value = null;
+}
+
+async function onFormatHypothesisDescription() {
+  const text = (project.value?.hypothesis?.description || '').trim();
+  if (!text || text === 'Not specified') return;
+  formatLoadingKey.value = 'hypothesis-description';
+  formatError.value = null;
+  const formatted = await callFormatText(text);
+  const p = project.value;
+  if (formatted != null && p) {
+    const ok = await presenter.updateProject(
+      projectId,
+      undefined,
+      undefined,
+      undefined,
+      formatted,
+      p.hypothesis?.assumptions,
+      undefined,
+      undefined
+    );
+    if (ok) await presenter.loadProject(projectId, viewModel);
+    else formatError.value = 'Failed to save';
+  } else if (formatted == null) {
+    formatError.value = 'Formatting failed';
+  }
+  formatLoadingKey.value = null;
+}
+
+async function onFormatHypothesisAssumptions() {
+  const assumptions = project.value?.hypothesis?.assumptions;
+  const text = Array.isArray(assumptions) ? assumptions.filter(Boolean).join('\n') : '';
+  if (!text.trim()) return;
+  formatLoadingKey.value = 'hypothesis-assumptions';
+  formatError.value = null;
+  const formatted = await callFormatText(text);
+  const p = project.value;
+  if (formatted != null && p) {
+    const lines = formatted
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const result = await presenter.updateProject(
+      projectId,
+      undefined,
+      undefined,
+      undefined,
+      p.hypothesis?.description,
+      lines.length ? lines : undefined,
+      undefined,
+      undefined
+    );
+    if (result.ok) await presenter.loadProject(projectId, viewModel);
+    else formatError.value = result.error || 'Failed to save';
+  } else if (formatted == null) {
+    formatError.value = 'Formatting failed';
+  }
+  formatLoadingKey.value = null;
+}
+
+async function onFormatScenario() {
+  const text = (scenarioContent.value || '').trim();
+  if (!text || !scenarioId.value) return;
+  formatLoadingKey.value = 'scenario';
+  formatError.value = null;
+  const formatted = await callFormatText(text);
+  if (formatted != null && scenarioId.value) {
+    const result = await scenarioRepository.update(projectId, scenarioId.value, formatted);
+    if (result.isSuccess) {
+      scenarioContent.value = result.data.content;
+    } else {
+      formatError.value = 'Failed to save scenario';
+    }
+  } else if (formatted == null) {
+    formatError.value = 'Formatting failed';
+  }
+  formatLoadingKey.value = null;
 }
 
 onMounted(() => {
@@ -230,6 +580,7 @@ watch(project, (p) => {
 
 .project-card,
 .segment-card,
+.demographics-card,
 .market-context-card,
 .hypothesis-card {
   margin-bottom: 2rem;
@@ -323,6 +674,14 @@ watch(project, (p) => {
   margin: 0;
 }
 
+/* Preserve paragraphs and bullet lines from AI-formatted text */
+.formatted-text {
+  white-space: pre-line;
+  margin: 0;
+  color: #4a5568;
+  line-height: 1.6;
+}
+
 .assumptions-list {
   list-style: none;
   padding: 0;
@@ -381,6 +740,50 @@ watch(project, (p) => {
 
 .btn-secondary:hover {
   background: #cbd5e0;
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.card-header-row .card-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.card-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-format {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  background: #e6fffa;
+  color: #234e52;
+  border: 1px solid #81e6d9;
+}
+
+.btn-format:hover:not(:disabled) {
+  background: #b2f5ea;
+}
+
+.btn-format:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.format-error {
+  color: #c53030;
+  margin: 0 0 1rem 0;
+  padding: 0.5rem 0;
 }
 
 @media (max-width: 768px) {

@@ -29,16 +29,29 @@
       </div>
 
       <!-- Survey Content -->
-      <div v-else-if="viewModel.survey.value && currentQuestion" class="survey-content">
+      <div v-else-if="viewModel.survey.value && currentQuestion && !isCompleted" class="survey-content">
         <div class="question-card">
           <h2 class="question-title">{{ currentQuestion.text }}</h2>
           
           <!-- Scale Question (1-5) -->
           <div v-if="currentQuestion.type === 'scale'" class="question-input">
             <ScaleInput
-              :label="'Rate on a scale from 1 to 5'"
-              :model-value="typeof currentAnswer === 'number' ? currentAnswer : 0"
+              :label="currentQuestion.options?.label || `Rate on a scale from ${currentQuestion.options?.min || 1} to ${currentQuestion.options?.max || 5}`"
+              :model-value="typeof currentAnswer === 'number' ? currentAnswer : (currentQuestion.options?.min || 1)"
+              :min="currentQuestion.options?.min || 1"
+              :max="currentQuestion.options?.max || 5"
               @update:model-value="updateAnswer"
+            />
+          </div>
+
+          <!-- Multiple Choice Question -->
+          <div v-else-if="currentQuestion.type === 'multiple_choice'" class="question-input">
+            <MultipleChoiceInput
+              :question-id="currentQuestion.id"
+              :choices="currentQuestion.options?.choices || []"
+              :multiple="currentQuestion.options?.multiple || false"
+              :model-value="getMultipleChoiceValue()"
+              @update:model-value="handleMultipleChoiceUpdate"
             />
           </div>
 
@@ -74,19 +87,26 @@
             </button>
             <div class="spacer"></div>
             <button
-              v-if="canGoNext"
+              v-if="canGoNext && !isLastQuestion"
               @click="nextQuestion"
               class="btn btn-primary"
             >
               Next →
             </button>
             <button
-              v-else-if="isLastQuestion"
+              v-else-if="isLastQuestion && canGoNext"
               @click="submitSurvey"
               class="btn btn-primary btn-large"
+              :disabled="isSubmitting"
             >
-              Complete Survey
+              {{ isSubmitting ? 'Submitting...' : 'Complete Survey' }}
             </button>
+          </div>
+          
+          <!-- Submit Error -->
+          <div v-if="submitError" class="submit-error">
+            <p class="error-text">{{ submitError }}</p>
+            <button @click="submitSurvey" class="btn btn-primary">Try Again</button>
           </div>
         </div>
       </div>
@@ -105,6 +125,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import ScaleInput from '@/shared/components/ScaleInput.vue';
+import MultipleChoiceInput from '@/shared/components/MultipleChoiceInput.vue';
 import AudioRecorder from '@/shared/components/AudioRecorder.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import { trackSurveyStart, trackSurveyComplete, trackSurveyDropoff } from '@/infrastructure/router/middleware/telemetry-middleware';
@@ -118,8 +139,24 @@ const route = useRoute();
 const viewModel = new SurveyViewModel();
 const presenter = container.get<SurveyPresenter>(TYPES.SurveyPresenter);
 
-const currentAnswer = ref<string | number>('');
+// Store all answers by question ID
+const answers = ref<Record<string, string | number | string[]>>({});
+const currentAnswer = computed({
+  get: () => {
+    const question = currentQuestion.value;
+    if (!question) return '';
+    return answers.value[question.id] || '';
+  },
+  set: (value) => {
+    const question = currentQuestion.value;
+    if (question) {
+      answers.value[question.id] = value;
+    }
+  }
+});
 const isCompleted = ref(false);
+const isSubmitting = ref(false);
+const submitError = ref<string | null>(null);
 
 const currentQuestion = computed(() => {
   const survey = viewModel.survey.value;
@@ -137,7 +174,12 @@ const progressPercent = computed(() => {
 const canGoNext = computed(() => {
   const question = currentQuestion.value;
   if (!question) return false;
-  if (question.required && !currentAnswer.value) return false;
+  if (question.required) {
+    const answer = currentAnswer.value;
+    if (!answer) return false;
+    if (Array.isArray(answer) && answer.length === 0) return false;
+    if (typeof answer === 'string' && answer.trim().length === 0) return false;
+  }
   return true;
 });
 
@@ -147,9 +189,30 @@ const isLastQuestion = computed(() => {
   return viewModel.currentQuestionIndex.value === survey.questions.length - 1;
 });
 
-const updateAnswer = (value: string | number) => {
+const updateAnswer = (value: string | number | string[]) => {
   currentAnswer.value = value;
-  // TODO: Автосохранение ответа через presenter
+  const question = currentQuestion.value;
+  if (question) {
+    presenter.saveAnswer(route.params.token as string, question.id, value);
+  }
+};
+
+const getMultipleChoiceValue = (): string | string[] => {
+  const question = currentQuestion.value;
+  if (!question) {
+    return '';
+  }
+  
+  const answer = answers.value[question.id];
+  if (question.options?.multiple) {
+    return Array.isArray(answer) ? answer : [];
+  } else {
+    return typeof answer === 'string' ? answer : '';
+  }
+};
+
+const handleMultipleChoiceUpdate = (value: string | string[]) => {
+  updateAnswer(value);
 };
 
 const handleAudioRecorded = async (blob: Blob) => {
@@ -161,44 +224,41 @@ const handleAudioRecorded = async (blob: Blob) => {
 const nextQuestion = () => {
   if (!canGoNext.value) return;
   
-  // TODO: Сохранение ответа
-  saveAnswer();
-  
   const survey = viewModel.survey.value;
   if (survey && viewModel.currentQuestionIndex.value < survey.questions.length - 1) {
     viewModel.currentQuestionIndex.value++;
-    currentAnswer.value = '';
   }
 };
 
 const prevQuestion = () => {
   if (viewModel.currentQuestionIndex.value > 0) {
     viewModel.currentQuestionIndex.value--;
-    currentAnswer.value = ''; // TODO: Загрузить сохранённый ответ
   }
 };
 
-const saveAnswer = async () => {
-  const question = currentQuestion.value;
-  if (!question || !currentAnswer.value) return;
-  
-  // TODO: Вызов presenter для сохранения ответа
-  // await presenter.submitAnswer(token, question.id, currentAnswer.value);
-};
-
 const submitSurvey = async () => {
-  await saveAnswer();
-  
   const token = route.params.token as string;
   const startTime = Date.now();
   
-  // TODO: Завершение опроса через presenter
-  // await presenter.completeSurvey(token);
+  isSubmitting.value = true;
+  submitError.value = null;
   
-  const duration = Math.round((Date.now() - startTime) / 1000);
-  trackSurveyComplete(token, duration);
-  
-  isCompleted.value = true;
+  try {
+    // Submit all answers
+    const result = await presenter.submitAnswers(token, answers.value);
+    
+    if (result.success) {
+      const duration = Math.round((Date.now() - startTime) / 1000);
+      trackSurveyComplete(token, duration);
+      isCompleted.value = true;
+    } else {
+      submitError.value = result.error || 'Failed to submit survey';
+    }
+  } catch (error) {
+    submitError.value = error instanceof Error ? error.message : 'Unknown error occurred';
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 const retryLoad = () => {
@@ -396,6 +456,21 @@ onBeforeUnmount(() => {
 .btn-large {
   padding: 1rem 2rem;
   font-size: 1.125rem;
+}
+
+.submit-error {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #fed7d7;
+  border: 1px solid #fc8181;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.submit-error .error-text {
+  color: #c53030;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {

@@ -18,9 +18,16 @@ export type GetSurveyByTokenUseCaseResponse = {
     projectId: string;
     questions: Array<{
       id: string;
-      type: 'scale' | 'open' | 'audio';
+      type: 'scale' | 'open' | 'audio' | 'multiple_choice';
       text: string;
       required: boolean;
+      options?: {
+        min?: number;
+        max?: number;
+        label?: string;
+        choices?: string[];
+        multiple?: boolean;
+      };
     }>;
     status: 'pending' | 'started' | 'completed' | 'expired';
     startedAt: Date | null;

@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Card from '@/shared/components/Card.vue';
 import EmptyState from '@/shared/components/EmptyState.vue';
@@ -105,8 +105,17 @@ const router = useRouter();
 const viewModel = new ProjectListViewModel();
 const presenter = container.get<ProjectListPresenter>(TYPES.ProjectListPresenter);
 
-onMounted(() => {
+function refetchProjects() {
   presenter.loadProjects(viewModel);
+}
+
+onMounted(() => {
+  refetchProjects();
+  window.addEventListener('validatey-user-id-synced', refetchProjects);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('validatey-user-id-synced', refetchProjects);
 });
 
 const goToProject = (projectId: string) => {

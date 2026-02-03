@@ -47,6 +47,17 @@
                   class="form-input"
                 ></textarea>
               </div>
+              <div class="market-context-ai-helper">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  :disabled="marketContextSuggestLoading"
+                  @click="fetchMarketContextSuggestion"
+                >
+                  {{ marketContextSuggestLoading ? 'Loading...' : 'Подсказать с помощью ИИ' }}
+                </button>
+                <p v-if="marketContextSuggestError" class="market-context-ai-error">{{ marketContextSuggestError }}</p>
+              </div>
             </div>
 
             <!-- Step 3: Market Fit -->
@@ -308,6 +319,8 @@ const showAIHelper = ref(false);
 const aiHelperLoading = ref(false);
 const aiHelperError = ref<string | null>(null);
 const aiHelperSuggestion = ref<{ description: string; assumptions: string[] } | null>(null);
+const marketContextSuggestLoading = ref(false);
+const marketContextSuggestError = ref<string | null>(null);
 const currentProjectId = ref<string | null>(null);
 const scenarioViewModel = new ScenarioViewModel();
 
@@ -362,6 +375,35 @@ const applyAISuggestion = () => {
   showAIHelper.value = false;
   aiHelperSuggestion.value = null;
   aiHelperError.value = null;
+};
+
+const fetchMarketContextSuggestion = async () => {
+  marketContextSuggestLoading.value = true;
+  marketContextSuggestError.value = null;
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AI_MARKET_CONTEXT_SUGGEST}`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        segmentDescription: formData.value.segmentDescription || '',
+        segmentDemographics: formData.value.segmentDemographics || '',
+        productDescription: formData.value.name?.trim() || formData.value.hypothesisDescription?.trim() || undefined,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      marketContextSuggestError.value = data?.error || data?.message || `Request failed (${res.status})`;
+      return;
+    }
+    if (data.marketPicture != null) formData.value.marketPicture = data.marketPicture;
+    if (data.marketFit != null) formData.value.marketFit = data.marketFit;
+    if (data.differentiation != null) formData.value.differentiation = data.differentiation;
+  } catch (e) {
+    marketContextSuggestError.value = e instanceof Error ? e.message : 'Network error';
+  } finally {
+    marketContextSuggestLoading.value = false;
+  }
 };
 
 const onAIHelperClose = (open: boolean) => {
@@ -690,6 +732,16 @@ const handleComplete = async () => {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
+}
+
+.market-context-ai-helper {
+  margin-top: 1rem;
+}
+
+.market-context-ai-error {
+  margin-top: 0.75rem;
+  color: #c53030;
+  font-size: 0.875rem;
 }
 
 .btn-ai-helper {

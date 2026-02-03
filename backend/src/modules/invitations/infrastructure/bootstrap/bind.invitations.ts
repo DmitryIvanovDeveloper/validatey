@@ -8,6 +8,7 @@ import { SMSServicePort } from '../../application/ports/sms-service.port';
 import { SMSProviderService } from '../services/sms-provider.service';
 import { CreateInvitationsUseCase } from '../../application/use-cases/create-invitations.use-case';
 import { GetInvitationByTokenUseCase } from '../../application/use-cases/get-invitation-by-token.use-case';
+import { GetInvitationsByProjectIdUseCase } from '../../application/use-cases/get-invitations-by-project-id.use-case';
 import { UpdateInvitationStatusUseCase } from '../../application/use-cases/update-invitation-status.use-case';
 import { InvitationPresenter } from '../../interface-adapters/presenters/invitation.presenter';
 
@@ -22,6 +23,7 @@ export function bindInvitations(container: Container): void {
   // Use Cases
   container.bind<CreateInvitationsUseCase>(TYPES.CreateInvitationsUseCase).to(CreateInvitationsUseCase);
   container.bind<GetInvitationByTokenUseCase>(TYPES.GetInvitationByTokenUseCase).to(GetInvitationByTokenUseCase);
+  container.bind<GetInvitationsByProjectIdUseCase>(TYPES.GetInvitationsByProjectIdUseCase).to(GetInvitationsByProjectIdUseCase);
   container.bind<UpdateInvitationStatusUseCase>(TYPES.UpdateInvitationStatusUseCase).to(UpdateInvitationStatusUseCase);
 
   // Presenter

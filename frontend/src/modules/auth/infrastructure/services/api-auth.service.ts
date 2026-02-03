@@ -55,4 +55,19 @@ export class ApiAuthService implements AuthServicePort {
       this._onChange = null;
     };
   }
+
+  async linkPreviousUser(previousUserId: string): Promise<{ linked: number }> {
+    const res = await fetch(`${BASE}${API_CONFIG.ENDPOINTS.AUTH_LINK_PREVIOUS_USER}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ previousUserId }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error ?? `Link previous user: ${res.status}`);
+    }
+    const data = await res.json().catch(() => ({ linked: 0 }));
+    return { linked: typeof data?.linked === 'number' ? data.linked : 0 };
+  }
 }

@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Modal from '../../../../shared/components/Modal.vue';
 import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { ProjectListViewModel } from '../view-models/project-list.view-model';
@@ -98,8 +98,17 @@ async function confirmDelete() {
   projectToDelete.value = null;
 }
 
-onMounted(() => {
+function refetchProjects() {
   presenter.loadProjects(viewModel);
+}
+
+onMounted(() => {
+  refetchProjects();
+  window.addEventListener('validatey-user-id-synced', refetchProjects);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('validatey-user-id-synced', refetchProjects);
 });
 </script>
 

@@ -137,32 +137,78 @@ export class ProjectRepository implements ProjectRepositoryPort {
 
   async update(id: string, updates: UpdateProjectData): Promise<Result<Project, ProjectNotFoundError | InvalidProjectDataError>> {
     try {
+      console.log('🔄 ProjectRepository.update:', { id, updates });
       const response = await this._httpClient.put<{
-        id: string;
-        name: string;
-        segment: { description: string; demographics: Record<string, any> } | null;
-        hypothesis: { description: string; assumptions: string[] } | null;
-        marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
-        status: string;
-        createdAt: string;
-        updatedAt: string;
+        project: {
+          id: string;
+          userId: string;
+          name: string;
+          segment: { description: string; demographics: Record<string, any> } | null;
+          hypothesis: { description: string; assumptions: string[] } | null;
+          marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
+          status: string;
+          createdAt: string | Date;
+          updatedAt: string | Date;
+        };
       }>(API_CONFIG.ENDPOINTS.PROJECT(id), updates);
 
-      const createdAt = response.createdAt != null ? new Date(response.createdAt) : new Date();
-      const updatedAt = response.updatedAt != null ? new Date(response.updatedAt) : new Date();
+      console.log('✅ ProjectRepository.update success:', { id, response });
+
+      // Extract project from response (backend returns { project: { ... } })
+      const projectData = response?.project || response as any;
+      
+      if (!projectData || !projectData.id) {
+        console.error('❌ ProjectRepository.update: invalid response format:', response);
+        return Result.failure(new ProjectNotFoundError(id));
+      }
+
+      // Handle date conversion (backend may return Date objects or ISO strings)
+      const createdAt = projectData.createdAt 
+        ? (typeof projectData.createdAt === 'string' ? new Date(projectData.createdAt) : new Date(projectData.createdAt))
+        : new Date();
+      const updatedAt = projectData.updatedAt 
+        ? (typeof projectData.updatedAt === 'string' ? new Date(projectData.updatedAt) : new Date(projectData.updatedAt))
+        : new Date();
+
       const domainProject = new Project(
-        response.id,
-        response.name,
-        response.segment ? new Segment(response.segment.description, response.segment.demographics) : null,
-        response.hypothesis ? new Hypothesis(response.hypothesis.description, response.hypothesis.assumptions) : null,
-        response.marketContext ?? null,
-        response.status as ProjectStatus,
+        projectData.id,
+        projectData.name,
+        projectData.segment ? new Segment(projectData.segment.description, projectData.segment.demographics) : null,
+        projectData.hypothesis ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions) : null,
+        projectData.marketContext ?? null,
+        projectData.status as ProjectStatus,
         createdAt,
         updatedAt
       );
 
       return Result.success(domainProject);
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error('❌ ProjectRepository.update error:', { id, error: msg, updates });
+      
+      // Check for 404 specifically
+      if (msg.includes('404') || msg.includes('not found')) {
+        console.error('❌ Project not found:', id);
+        return Result.failure(new ProjectNotFoundError(id));
+      }
+      
+      if (msg.includes('400')) {
+        const jsonStart = msg.indexOf('{');
+        if (jsonStart !== -1) {
+          try {
+            const body = JSON.parse(msg.slice(jsonStart));
+            const backendError = typeof body?.error === 'string' ? body.error : msg;
+            console.error('❌ Invalid project data:', backendError);
+            return Result.failure(new InvalidProjectDataError(backendError));
+          } catch {
+            return Result.failure(new InvalidProjectDataError(msg));
+          }
+        }
+        return Result.failure(new InvalidProjectDataError(msg));
+      }
+      
+      // Default to ProjectNotFoundError for other errors (might be 404, 403, etc.)
+      console.error('❌ ProjectRepository.update: defaulting to ProjectNotFoundError for:', { id, msg });
       return Result.failure(new ProjectNotFoundError(id));
     }
   }

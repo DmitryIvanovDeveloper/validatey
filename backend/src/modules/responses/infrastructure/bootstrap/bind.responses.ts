@@ -9,6 +9,7 @@ import { TranscriptionService } from '../services/transcription.service';
 import { EmbeddingServicePort } from '../../application/ports/embedding-service.port';
 import { EmbeddingService } from '../services/embedding.service';
 import { SubmitResponseUseCase } from '../../application/use-cases/submit-response.use-case';
+import { GetResponsesByProjectIdUseCase } from '../../application/use-cases/get-responses-by-project-id.use-case';
 import { ResponsePresenter } from '../../interface-adapters/presenters/response.presenter';
 
 export function bindResponses(container: Container): void {
@@ -22,6 +23,7 @@ export function bindResponses(container: Container): void {
 
   // Use Cases
   container.bind<SubmitResponseUseCase>(TYPES.SubmitResponseUseCase).to(SubmitResponseUseCase);
+  container.bind<GetResponsesByProjectIdUseCase>(TYPES.GetResponsesByProjectIdUseCase).to(GetResponsesByProjectIdUseCase);
 
   // Presenter
   container.bind<ResponsePresenter>(TYPES.ResponsePresenter).to(ResponsePresenter);

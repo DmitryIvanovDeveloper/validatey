@@ -58,7 +58,7 @@ export class SubmitResponseUseCase {
       }
 
       // Create response entity
-      const response = ResponseEntity.create(invitation.projectId, invitation.id, request.answers, audioUrl || undefined);
+      const response = ResponseEntity.create(invitation.id, invitation.projectId, request.answers, audioUrl || undefined);
 
       // Save response
       const saveResult = await this._repository.create(response.toData());

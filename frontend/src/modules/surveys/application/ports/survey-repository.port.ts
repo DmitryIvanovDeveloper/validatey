@@ -4,6 +4,7 @@ import { SurveyNotFoundError, SurveyExpiredError } from '../../domain/errors/sur
 
 export interface SurveyRepositoryPort {
   getByToken(token: string): Promise<Result<Survey, SurveyNotFoundError | SurveyExpiredError>>;
+  submitResponse(token: string, answers: Record<string, any>): Promise<Result<void, Error>>;
 }
 
 

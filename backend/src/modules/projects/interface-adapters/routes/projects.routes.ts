@@ -145,8 +145,24 @@ router.put('/:id', async (req: Request, res: Response) => {
       });
     }
 
+    const projectId = req.params.id;
+    
+    // Log request details (without full data to avoid log spam)
+    console.log('📝 Update project request:', {
+      projectId,
+      userId,
+      hasName: !!req.body?.name,
+      hasStatus: !!req.body?.status,
+      hasSegment: !!req.body?.segment,
+      hasHypothesis: !!req.body?.hypothesis,
+      hasMarketContext: !!req.body?.marketContext,
+      marketContextKeys: req.body?.marketContext ? Object.keys(req.body.marketContext) : [],
+      hasTargetAudience: !!req.body?.targetAudience,
+      hasCost: req.body?.cost !== undefined,
+    });
+
     const result = await presenter.updateProject({
-      projectId: req.params.id,
+      projectId,
       userId,
       name: req.body?.name,
       status: req.body?.status,
@@ -158,6 +174,12 @@ router.put('/:id', async (req: Request, res: Response) => {
     });
 
     if (!result.isSuccess) {
+      console.error('❌ Update project failed:', {
+        projectId,
+        errorName: result.error?.name,
+        errorMessage: result.error instanceof Error ? result.error.message : String(result.error),
+      });
+
       if (result.error.name === 'ProjectNotFoundError') {
         return res.status(404).json({ error: result.error.message });
       }
@@ -167,8 +189,27 @@ router.put('/:id', async (req: Request, res: Response) => {
       return res.status(400).json({ error: result.error.message });
     }
 
-    return res.status(200).json(result.data);
+    // Serialize dates to ISO strings for JSON response
+    const responseData = {
+      project: {
+        ...result.data.project,
+        createdAt: result.data.project.createdAt instanceof Date 
+          ? result.data.project.createdAt.toISOString() 
+          : result.data.project.createdAt,
+        updatedAt: result.data.project.updatedAt instanceof Date 
+          ? result.data.project.updatedAt.toISOString() 
+          : result.data.project.updatedAt,
+      }
+    };
+
+    console.log('✅ Update project success:', { projectId, projectName: result.data.project.name });
+    return res.status(200).json(responseData);
   } catch (error) {
+    console.error('❌ Update project exception:', {
+      projectId: req.params.id,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });

@@ -15,4 +15,6 @@ export interface AuthServicePort {
   signOut(): Promise<void>;
   getSession(): Promise<AuthSession | null>;
   onAuthStateChange(callback: (session: AuthSession | null) => void): () => void;
+  /** Reassign projects from anonymous userId to current session user (call after login). */
+  linkPreviousUser(previousUserId: string): Promise<{ linked: number }>;
 }

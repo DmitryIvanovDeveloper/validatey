@@ -73,16 +73,45 @@ export class SupabaseInvitationRepository implements InvitationRepositoryPort {
     try {
       const supabase = getSupabaseClient();
 
+      this._logger.info('supabase-invitation-repository.find-by-token-start', { 
+        token: token.substring(0, 10) + '...',
+        tokenLength: token.length 
+      });
+
       const { data, error } = await supabase.from('invitations').select('*').eq('token', token).single();
 
-      if (error || !data) {
-        this._logger.error('supabase-invitation-repository.find-by-token-error', { token: token.substring(0, 10) + '...', error });
+      if (error) {
+        this._logger.error('supabase-invitation-repository.find-by-token-error', { 
+          token: token.substring(0, 10) + '...', 
+          error: {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          }
+        });
         return ResultEx.failure(new InvitationNotFoundError(token));
       }
 
+      if (!data) {
+        this._logger.warn('supabase-invitation-repository.find-by-token-no-data', { 
+          token: token.substring(0, 10) + '...' 
+        });
+        return ResultEx.failure(new InvitationNotFoundError(token));
+      }
+
+      this._logger.info('supabase-invitation-repository.find-by-token-success', { 
+        invitationId: data.id,
+        projectId: data.project_id
+      });
+
       return ResultEx.success(this.mapToDomain(data));
     } catch (error) {
-      this._logger.error('supabase-invitation-repository.find-by-token-exception', { token: token.substring(0, 10) + '...', error });
+      this._logger.error('supabase-invitation-repository.find-by-token-exception', { 
+        token: token.substring(0, 10) + '...', 
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       return ResultEx.failure(new InvitationNotFoundError(token));
     }
   }
