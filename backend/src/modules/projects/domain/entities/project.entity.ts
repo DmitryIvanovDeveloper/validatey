@@ -2,6 +2,12 @@ import { randomUUID } from 'crypto';
 
 export type ProjectStatus = 'draft' | 'active' | 'completed' | 'archived';
 
+export interface MarketContext {
+  readonly marketPicture?: string;
+  readonly marketFit?: string;
+  readonly differentiation?: string;
+}
+
 export interface Project {
   readonly id: string;
   readonly userId: string;
@@ -9,6 +15,7 @@ export interface Project {
   readonly status: ProjectStatus;
   readonly segment: Segment | null;
   readonly hypothesis: Hypothesis | null;
+  readonly marketContext: MarketContext | null;
   readonly targetAudience: string | null;
   readonly cost: number | null;
   readonly createdAt: Date;
@@ -35,6 +42,7 @@ export class ProjectEntity {
     public readonly status: ProjectStatus,
     public readonly segment: Segment | null,
     public readonly hypothesis: Hypothesis | null,
+    public readonly marketContext: MarketContext | null,
     public readonly targetAudience: string | null,
     public readonly cost: number | null,
     public readonly createdAt: Date,
@@ -46,6 +54,7 @@ export class ProjectEntity {
     name: string,
     segment?: Segment,
     hypothesis?: Hypothesis,
+    marketContext?: MarketContext | null,
     targetAudience?: string,
     cost?: number
   ): ProjectEntity {
@@ -65,6 +74,7 @@ export class ProjectEntity {
       'draft',
       segment || null,
       hypothesis || null,
+      marketContext ?? null,
       targetAudience || null,
       cost || null,
       now,
@@ -80,6 +90,7 @@ export class ProjectEntity {
       data.status,
       data.segment,
       data.hypothesis,
+      data.marketContext ?? null,
       data.targetAudience,
       data.cost,
       data.createdAt,
@@ -95,6 +106,7 @@ export class ProjectEntity {
       status,
       this.segment,
       this.hypothesis,
+      this.marketContext,
       this.targetAudience,
       this.cost,
       this.createdAt,
@@ -110,6 +122,7 @@ export class ProjectEntity {
       this.status,
       segment,
       this.hypothesis,
+      this.marketContext,
       this.targetAudience,
       this.cost,
       this.createdAt,
@@ -125,6 +138,23 @@ export class ProjectEntity {
       this.status,
       this.segment,
       hypothesis,
+      this.marketContext,
+      this.targetAudience,
+      this.cost,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withMarketContext(marketContext: MarketContext | null): ProjectEntity {
+    return new ProjectEntity(
+      this.id,
+      this.userId,
+      this.name,
+      this.status,
+      this.segment,
+      this.hypothesis,
+      marketContext,
       this.targetAudience,
       this.cost,
       this.createdAt,
@@ -140,6 +170,7 @@ export class ProjectEntity {
       this.status,
       this.segment,
       this.hypothesis,
+      this.marketContext,
       targetAudience,
       this.cost,
       this.createdAt,
@@ -161,6 +192,7 @@ export class ProjectEntity {
       this.status,
       this.segment,
       this.hypothesis,
+      this.marketContext,
       this.targetAudience,
       this.cost,
       this.createdAt,
@@ -179,6 +211,7 @@ export class ProjectEntity {
       this.status,
       this.segment,
       this.hypothesis,
+      this.marketContext,
       this.targetAudience,
       cost,
       this.createdAt,
@@ -194,6 +227,7 @@ export class ProjectEntity {
       status: this.status,
       segment: this.segment,
       hypothesis: this.hypothesis,
+      marketContext: this.marketContext,
       targetAudience: this.targetAudience,
       cost: this.cost,
       createdAt: this.createdAt,

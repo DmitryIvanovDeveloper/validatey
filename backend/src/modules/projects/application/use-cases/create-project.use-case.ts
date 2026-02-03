@@ -28,6 +28,7 @@ export class CreateProjectUseCase {
         request.name,
         request.segment,
         request.hypothesis,
+        request.marketContext,
         request.targetAudience,
         request.cost
       );
@@ -53,5 +54,6 @@ export class CreateProjectUseCase {
     }
   }
 }
+
 
 

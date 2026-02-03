@@ -1,3 +1,9 @@
+export type MarketContextForScenario = {
+  marketPicture?: string;
+  marketFit?: string;
+  differentiation?: string;
+} | null;
+
 export type GenerateScenarioUseCaseRequest = {
   projectId: string;
   segment?: {
@@ -8,6 +14,7 @@ export type GenerateScenarioUseCaseRequest = {
     description: string;
     assumptions: string[];
   } | null;
+  marketContext?: MarketContextForScenario;
   prompt?: string;
 };
 

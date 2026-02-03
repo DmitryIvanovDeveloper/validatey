@@ -13,6 +13,7 @@ import { bindInvitations } from '../../modules/invitations/infrastructure/bootst
 import { bindProjectReports } from '../../modules/project-reports/infrastructure/bootstrap/bind.project-reports';
 import { bindSurveys } from '../../modules/surveys/infrastructure/bootstrap/bind.surveys';
 import { bindSurveyResponses } from '../../modules/survey-responses/infrastructure/bootstrap/bind.survey-responses';
+import { bindAuth } from '../../modules/auth/infrastructure/bootstrap/bind.auth';
 import { TelemetryPort } from '../../shared/services/ports/telemetry.port';
 import { TelemetryService } from '../../shared/services/telemetry.service';
 
@@ -31,5 +32,6 @@ bindInvitations(container);
 bindProjectReports(container);
 bindSurveys(container);
 bindSurveyResponses(container);
+bindAuth(container);
 
 export { container, TYPES };

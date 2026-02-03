@@ -6,6 +6,7 @@ import { CreateProjectUseCase } from '../../application/use-cases/create-project
 import { GetProjectUseCase } from '../../application/use-cases/get-project.use-case';
 import { UpdateProjectUseCase } from '../../application/use-cases/update-project.use-case';
 import { ListProjectsUseCase } from '../../application/use-cases/list-projects.use-case';
+import { DeleteProjectUseCase } from '../../application/use-cases/delete-project.use-case';
 import { ProjectPresenter } from '../../interface-adapters/presenters/project.presenter';
 
 export function bindProjects(container: Container): void {
@@ -17,6 +18,7 @@ export function bindProjects(container: Container): void {
   container.bind<GetProjectUseCase>(TYPES.GetProjectUseCase).to(GetProjectUseCase);
   container.bind<UpdateProjectUseCase>(TYPES.UpdateProjectUseCase).to(UpdateProjectUseCase);
   container.bind<ListProjectsUseCase>(TYPES.ListProjectsUseCase).to(ListProjectsUseCase);
+  container.bind<DeleteProjectUseCase>(TYPES.DeleteProjectUseCase).to(DeleteProjectUseCase);
 
   // Presenter
   container.bind<ProjectPresenter>(TYPES.ProjectPresenter).to(ProjectPresenter);

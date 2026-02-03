@@ -22,6 +22,7 @@ router.post('/', async (req: Request, res: Response) => {
       name: req.body?.name,
       segment: req.body?.segment,
       hypothesis: req.body?.hypothesis,
+      marketContext: req.body?.marketContext,
       targetAudience: req.body?.targetAudience,
       cost: req.body?.cost,
     });
@@ -32,17 +33,72 @@ router.post('/', async (req: Request, res: Response) => {
 
     // Возвращаем проект напрямую, не обернутый в объект
     const project = result.data.project;
+    const createdAt = project.createdAt != null && typeof project.createdAt.toISOString === 'function'
+      ? project.createdAt.toISOString()
+      : new Date().toISOString();
+    const updatedAt = project.updatedAt != null && typeof project.updatedAt.toISOString === 'function'
+      ? project.updatedAt.toISOString()
+      : new Date().toISOString();
     return res.status(201).json({
       id: project.id,
       name: project.name,
       segment: project.segment,
       hypothesis: project.hypothesis,
+      marketContext: project.marketContext,
       status: project.status,
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString(),
+      createdAt,
+      updatedAt,
     });
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// List projects for user (must be before GET /:id so that GET / is matched first)
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const userId = (req.body?.userId || req.headers['x-user-id']) as string | undefined;
+    const listAll = process.env.NODE_ENV === 'development' && req.query.list === 'all';
+
+    if (!listAll && !userId) {
+      return res.status(400).json({
+        error: 'userId is required',
+        hint: 'Provide x-user-id header or userId in request body'
+      });
+    }
+
+    const result = await presenter.listProjects({
+      userId: userId || '',
+      listAll,
+    });
+
+    if (!result.isSuccess) {
+      console.error('List projects error:', result.error);
+      if (result.error instanceof Error) {
+        console.error('Error stack:', result.error.stack);
+      }
+      return res.status(500).json({
+        error: result.error.message || 'Failed to list projects',
+        details: process.env.NODE_ENV === 'development' ? result.error.toString() : undefined
+      });
+    }
+
+    const projects = result.data.projects.map(p => {
+      const createdAt = p.createdAt != null && typeof p.createdAt.toISOString === 'function' ? p.createdAt.toISOString() : new Date().toISOString();
+      const updatedAt = p.updatedAt != null && typeof p.updatedAt.toISOString === 'function' ? p.updatedAt.toISOString() : new Date().toISOString();
+      return { id: p.id, name: p.name, status: p.status, createdAt, updatedAt };
+    });
+
+    return res.status(200).json(projects);
+  } catch (error) {
+    console.error('List projects exception:', error);
+    if (error instanceof Error) {
+      console.error('Exception stack:', error.stack);
+    }
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error',
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : String(error)) : undefined
+    });
   }
 });
 
@@ -51,7 +107,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req.body?.userId || req.headers['x-user-id']) as string | undefined;
     if (!userId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'userId is required',
         hint: 'Provide x-user-id header or userId in request body'
       });
@@ -78,56 +134,6 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 });
 
-// List projects for user
-router.get('/', async (req: Request, res: Response) => {
-  try {
-    const userId = (req.body?.userId || req.headers['x-user-id']) as string | undefined;
-    
-    // For now, require userId. In production, this should come from auth token
-    if (!userId) {
-      return res.status(400).json({ 
-        error: 'userId is required',
-        hint: 'Provide x-user-id header or userId in request body'
-      });
-    }
-
-    const result = await presenter.listProjects({ userId });
-
-    if (!result.isSuccess) {
-      console.error('List projects error:', result.error);
-      // Log full error for debugging
-      if (result.error instanceof Error) {
-        console.error('Error stack:', result.error.stack);
-      }
-      return res.status(500).json({ 
-        error: result.error.message || 'Failed to list projects',
-        details: process.env.NODE_ENV === 'development' ? result.error.toString() : undefined
-      });
-    }
-
-    // Return just the projects array as per requirements (not wrapped in object)
-    // Format: [{ id, name, status, createdAt, updatedAt }, ...]
-    const projects = result.data.projects.map(p => ({
-      id: p.id,
-      name: p.name,
-      status: p.status,
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-    }));
-
-    return res.status(200).json(projects);
-  } catch (error) {
-    console.error('List projects exception:', error);
-    if (error instanceof Error) {
-      console.error('Exception stack:', error.stack);
-    }
-    return res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : String(error)) : undefined
-    });
-  }
-});
-
 // Update project
 router.put('/:id', async (req: Request, res: Response) => {
   try {
@@ -146,6 +152,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       status: req.body?.status,
       segment: req.body?.segment,
       hypothesis: req.body?.hypothesis,
+      marketContext: req.body?.marketContext,
       targetAudience: req.body?.targetAudience,
       cost: req.body?.cost,
     });
@@ -171,30 +178,28 @@ router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const userId = (req.body?.userId || req.headers['x-user-id']) as string | undefined;
     if (!userId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'userId is required',
         hint: 'Provide x-user-id header or userId in request body'
       });
     }
 
-    // First check access
-    const getResult = await presenter.getProject({
+    const result = await presenter.deleteProject({
       projectId: req.params.id,
       userId,
     });
 
-    if (!getResult.isSuccess) {
-      if (getResult.error.name === 'ProjectNotFoundError') {
-        return res.status(404).json({ error: getResult.error.message });
+    if (!result.isSuccess) {
+      if (result.error.name === 'ProjectNotFoundError') {
+        return res.status(404).json({ error: result.error.message });
       }
-      if (getResult.error.name === 'ProjectAccessDeniedError') {
-        return res.status(403).json({ error: getResult.error.message });
+      if (result.error.name === 'ProjectAccessDeniedError') {
+        return res.status(403).json({ error: result.error.message });
       }
-      return res.status(400).json({ error: getResult.error.message });
+      return res.status(400).json({ error: result.error.message });
     }
 
-    // TODO: Add delete use case
-    return res.status(501).json({ error: 'Delete not implemented yet' });
+    return res.status(204).send();
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }

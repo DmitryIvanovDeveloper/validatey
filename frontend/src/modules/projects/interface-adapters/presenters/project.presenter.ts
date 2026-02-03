@@ -8,7 +8,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import { Segment } from '../../domain/value-objects/segment.vo';
 import { Hypothesis } from '../../domain/value-objects/hypothesis.vo';
-import { Project, ProjectStatus } from '../../domain/entities/project.entity';
+import { Project, ProjectStatus, MarketContext } from '../../domain/entities/project.entity';
 
 @injectable()
 export class ProjectPresenter {
@@ -28,8 +28,9 @@ export class ProjectPresenter {
     segmentDescription?: string,
     segmentDemographics?: string,
     hypothesisDescription?: string,
-    hypothesisAssumptions?: string[]
-  ): Promise<string | null> {
+    hypothesisAssumptions?: string[],
+    marketContext?: MarketContext | null
+  ): Promise<{ projectId: string | null; error?: string }> {
     try {
       // Валидация и создание Segment
       let segment: Segment | null = null;
@@ -80,8 +81,6 @@ export class ProjectPresenter {
           errorMessage = result.error.message;
         } else if (typeof result.error === 'string') {
           errorMessage = result.error;
-        } else if (result.error && typeof result.error === 'object' && 'message' in result.error) {
-          errorMessage = String(result.error.message);
         } else {
           errorMessage = JSON.stringify(result.error);
         }
@@ -91,21 +90,21 @@ export class ProjectPresenter {
           errorDetails: result.error 
         });
         console.error('❌ Failed to create project. Error:', errorMessage);
-        console.error('❌ Full error object:', result.error);
-        return null;
+        return { projectId: null, error: errorMessage };
       }
 
       const projectId = result.data.project.id;
       console.log('✅ Project created with ID:', projectId);
       
-      // Обновляем проект с segment и hypothesis, если они есть
-      if (segment || hypothesis) {
-        console.log('🔄 Updating project with segment/hypothesis');
+      // Обновляем проект с segment, hypothesis и marketContext, если есть
+      if (segment || hypothesis || marketContext) {
+        console.log('🔄 Updating project with segment/hypothesis/marketContext');
         const updateResult = await this._updateProjectUseCase.execute({
           projectId,
           updates: {
-            segment,
-            hypothesis,
+            segment: segment || undefined,
+            hypothesis: hypothesis || undefined,
+            marketContext: marketContext ?? undefined,
           },
         });
 
@@ -121,7 +120,7 @@ export class ProjectPresenter {
       }
       
       this._logger.info('Project created successfully', { projectId });
-      return projectId;
+      return { projectId };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this._logger.error('Unexpected error during project creation', { 
@@ -129,10 +128,7 @@ export class ProjectPresenter {
         errorDetails: error 
       });
       console.error('❌ Unexpected error:', error);
-      if (error instanceof Error) {
-        console.error('Error stack:', error.stack);
-      }
-      return null;
+      return { projectId: null, error: errorMessage };
     }
   }
 
@@ -159,6 +155,7 @@ export class ProjectPresenter {
         projectData.name,
         segment,
         hypothesis,
+        projectData.marketContext ?? null,
         projectData.status as ProjectStatus,
         new Date(projectData.createdAt),
         new Date(projectData.updatedAt)
@@ -169,13 +166,11 @@ export class ProjectPresenter {
       this._logger.info('Project loaded', { projectId });
     } else {
       // Безопасное извлечение сообщения об ошибке
-      const errorMessage = result.error instanceof Error 
-        ? result.error.message 
-        : typeof result.error === 'string' 
-          ? result.error 
-          : result.error && typeof result.error === 'object' && 'message' in result.error
-            ? String(result.error.message)
-            : 'Failed to load project';
+      const errorMessage = result.error instanceof Error
+        ? result.error.message
+        : typeof result.error === 'string'
+          ? result.error
+          : 'Failed to load project';
       viewModel.error.value = errorMessage;
       viewModel.loading.value = false;
       this._logger.error('Failed to load project', { projectId, error: result.error });
@@ -189,7 +184,8 @@ export class ProjectPresenter {
     segmentDemographics?: string | Record<string, any>,
     hypothesisDescription?: string,
     hypothesisAssumptions?: string[],
-    status?: string
+    status?: string,
+    marketContext?: MarketContext | null
   ): Promise<boolean> {
     try {
       let segment: Segment | undefined = undefined;
@@ -232,6 +228,7 @@ export class ProjectPresenter {
           segment,
           hypothesis,
           status: status as any,
+          marketContext: marketContext ?? undefined,
         },
       });
 
@@ -245,8 +242,6 @@ export class ProjectPresenter {
           errorMessage = result.error.message;
         } else if (typeof result.error === 'string') {
           errorMessage = result.error;
-        } else if (result.error && typeof result.error === 'object' && 'message' in result.error) {
-          errorMessage = String(result.error.message);
         } else {
           errorMessage = JSON.stringify(result.error);
         }
@@ -273,7 +268,7 @@ export class ProjectPresenter {
     viewModel.loading.value = true;
     viewModel.error.value = null;
 
-    const success = await this.updateProject(projectId, updates.name, updates.segmentDescription, updates.segmentDemographics, updates.hypothesisDescription, updates.hypothesisAssumptions, updates.status);
+    const success = await this.updateProject(projectId, updates.name, updates.segmentDescription, updates.segmentDemographics, updates.hypothesisDescription, updates.hypothesisAssumptions, updates.status, updates.marketContext);
 
     if (success) {
       viewModel.loading.value = false;

@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
 import Result from '../../../../infrastructure/result/result';
 import type { SurveyRepositoryPort } from '../ports/survey-repository.port';
-import type { InvitationServicePort } from '../../invitations/application/services/invitation-service.port';
+import type { InvitationServicePort } from '../../../invitations/application/services/invitation-service.port';
 import { SurveyNotFoundError, SurveyExpiredError } from '../../domain/errors/survey.error';
-import { InvalidTokenError } from '../../invitations/domain/errors/invitation.error';
+import { InvalidTokenError } from '../../../invitations/domain/errors/invitation.error';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
 

@@ -41,6 +41,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       userId, // Pass userId for ownership validation
       segment: req.body.segment,
       hypothesis: req.body.hypothesis,
+      marketContext: req.body.marketContext,
       metadata: req.body.metadata,
       prompt: req.body.prompt, // Optional prompt override
     });
@@ -52,18 +53,29 @@ router.post('/generate', async (req: Request, res: Response) => {
     if (!result.isSuccess) {
       // Check error type for appropriate status code
       const error = result.error;
+      const rawMessage = error?.message || 'Unknown error';
       console.error('❌ [BACKEND] Scenario generation failed:', {
         errorName: error?.name,
-        errorMessage: error?.message
+        errorMessage: rawMessage
       });
-      
+
+      const isBlocked =
+        rawMessage.includes('403') ||
+        rawMessage.includes('Cloudflare') ||
+        rawMessage.includes('<!DOCTYPE') ||
+        rawMessage.includes('ByteString') ||
+        rawMessage.length > 400;
+      const errorMessage = isBlocked
+        ? 'Scenario generation failed: AI service unavailable (blocked or 403). Try again later or set CEREBRAS_API_KEY / LLM_SERVICE_URL.'
+        : rawMessage;
+
       if (error?.name === 'ProjectNotFoundError') {
         return res.status(404).json({ error: error.message });
       }
       if (error?.name === 'ProjectAccessDeniedError') {
         return res.status(403).json({ error: error.message });
       }
-      return res.status(400).json({ error: error?.message || 'Unknown error' });
+      return res.status(400).json({ error: errorMessage });
     }
 
     // Status is already computed in use case
@@ -106,20 +118,20 @@ router.post('/generate', async (req: Request, res: Response) => {
     });
     
     try {
-      if (!scenarioData.createdAt || !scenarioData.updatedAt) {
-        console.error('❌ [BACKEND] Missing date fields in scenario data');
-        return res.status(500).json({ error: 'Missing date fields in scenario data' });
-      }
+      const toIso = (d: unknown): string => {
+        if (d == null) return new Date().toISOString();
+        if (typeof (d as Date).toISOString === 'function') return (d as Date).toISOString();
+        const parsed = new Date(d as string);
+        return isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+      };
+      const createdAt = toIso(scenarioData.createdAt);
+      const updatedAt = toIso(scenarioData.updatedAt);
 
       return res.status(201).json({
         scenario: {
           ...scenarioData,
-          createdAt: scenarioData.createdAt instanceof Date 
-            ? scenarioData.createdAt.toISOString() 
-            : new Date(scenarioData.createdAt).toISOString(),
-          updatedAt: scenarioData.updatedAt instanceof Date 
-            ? scenarioData.updatedAt.toISOString() 
-            : new Date(scenarioData.updatedAt).toISOString(),
+          createdAt,
+          updatedAt,
         },
       });
     } catch (serializeError) {
@@ -160,9 +172,33 @@ router.get('/', async (req: Request, res: Response) => {
 
       return res.status(200).json(result.data);
     } else {
-      // List all scenarios for project
-      // TODO: Add ListScenariosByProjectIdUseCase
-      return res.status(501).json({ error: 'List scenarios not implemented yet' });
+      // Get latest scenario for project (so "select project" view can show step 3 LLM output)
+      const result = await presenter.getScenario({ projectId });
+      if (!result.isSuccess) {
+        if (result.error.name === 'ScenarioNotFoundError') {
+          return res.status(404).json({ error: result.error.message });
+        }
+        return res.status(400).json({ error: result.error.message });
+      }
+      const scenario = result.data.scenario;
+      const toIso = (d: unknown): string => {
+        if (d == null) return new Date().toISOString();
+        if (typeof (d as Date).toISOString === 'function') return (d as Date).toISOString();
+        const parsed = new Date(d as string);
+        return isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+      };
+      return res.status(200).json({
+        scenario: {
+          id: scenario.id,
+          projectId: scenario.projectId,
+          content: scenario.content ?? '',
+          version: scenario.version,
+          isGenerated: scenario.isGenerated,
+          isEdited: scenario.isEdited,
+          createdAt: toIso(scenario.createdAt),
+          updatedAt: toIso(scenario.updatedAt),
+        },
+      });
     }
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });

@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import type { ScenarioRepositoryPort } from '../../application/ports/scenario-repository.port';
+import type { ScenarioRepositoryPort, MarketContextForScenario } from '../../application/ports/scenario-repository.port';
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import Result from '../../../../infrastructure/result/result';
@@ -18,22 +18,25 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
     projectId: string,
     segment?: { description: string; demographics: Record<string, any> } | null,
     hypothesis?: { description: string; assumptions: string[] } | null,
+    marketContext?: MarketContextForScenario,
     prompt?: string
   ): Promise<Result<Scenario, ScenarioGenerationError>> {
     try {
       const url = `${API_CONFIG.ENDPOINTS.SCENARIOS(projectId)}/generate`;
       const requestData = {
         projectId,
-        segment: segment || null,
-        hypothesis: hypothesis || null,
-        prompt: prompt || undefined,
+        segment: segment ?? null,
+        hypothesis: hypothesis ?? null,
+        marketContext: marketContext ?? null,
+        prompt: prompt ?? undefined,
       };
-      
+
       console.log('📋 Scenario Generation Request:', {
         url: `${API_CONFIG.BASE_URL}${url}`,
         projectId,
         hasSegment: !!segment,
         hasHypothesis: !!hypothesis,
+        hasMarketContext: !!marketContext,
         hasPrompt: !!prompt,
         data: requestData
       });
@@ -66,13 +69,18 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
         }
       }
 
+      const createdAt =
+        response.scenario.createdAt != null
+          ? new Date(response.scenario.createdAt)
+          : new Date();
+      const content = (response.scenario.content ?? '').trim() || '(No content)';
       const scenario = new Scenario(
         response.scenario.id,
         response.scenario.projectId,
-        response.scenario.content,
-        response.scenario.version,
+        content,
+        response.scenario.version ?? 1,
         status,
-        new Date(response.scenario.createdAt)
+        isNaN(createdAt.getTime()) ? new Date() : createdAt
       );
 
       return Result.success(scenario);
@@ -89,21 +97,61 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
         content: string;
         version: number;
         status: string;
-        createdAt: string;
+        createdAt?: string | null;
       }>(API_CONFIG.ENDPOINTS.SCENARIO(projectId, scenarioId));
 
+      const createdAt = response.createdAt != null ? new Date(response.createdAt) : new Date();
+      const content = (response.content ?? '').trim() || '(No content)';
       const scenario = new Scenario(
         response.id,
         response.projectId,
-        response.content,
+        content,
         response.version,
         response.status as ScenarioStatus,
-        new Date(response.createdAt)
+        isNaN(createdAt.getTime()) ? new Date() : createdAt
       );
 
       return Result.success(scenario);
     } catch (error) {
       return Result.failure(new ScenarioNotFoundError(scenarioId));
+    }
+  }
+
+  async getLatestByProjectId(projectId: string): Promise<Result<Scenario, ScenarioNotFoundError>> {
+    try {
+      const response = await this._httpClient.get<{
+        scenario: {
+          id: string;
+          projectId: string;
+          content: string;
+          version: number;
+          isGenerated?: boolean;
+          isEdited?: boolean;
+          createdAt: string;
+          updatedAt?: string;
+        };
+      }>(API_CONFIG.ENDPOINTS.SCENARIOS(projectId));
+
+      const s = response.scenario;
+      let status: ScenarioStatus = 'draft';
+      if (s.isGenerated !== undefined || s.isEdited !== undefined) {
+        status = s.isGenerated && !s.isEdited ? 'generated' : s.isGenerated && s.isEdited ? 'approved' : 'draft';
+      }
+
+      const scenario = new Scenario(
+        s.id,
+        s.projectId,
+        s.content,
+        s.version,
+        status,
+        new Date(s.createdAt)
+      );
+
+      return Result.success(scenario);
+    } catch (error) {
+      return Result.failure(
+        new ScenarioNotFoundError(projectId, 'No scenario found for this project.')
+      );
     }
   }
 
@@ -115,16 +163,18 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
         content: string;
         version: number;
         status: string;
-        createdAt: string;
+        createdAt?: string | null;
       }>(API_CONFIG.ENDPOINTS.SCENARIO(projectId, scenarioId), { content });
 
+      const createdAt = response.createdAt != null ? new Date(response.createdAt) : new Date();
+      const responseContent = (response.content ?? '').trim() || '(No content)';
       const scenario = new Scenario(
         response.id,
         response.projectId,
-        response.content,
+        responseContent,
         response.version,
         response.status as ScenarioStatus,
-        new Date(response.createdAt)
+        isNaN(createdAt.getTime()) ? new Date() : createdAt
       );
 
       return Result.success(scenario);

@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import * as https from 'https';
 import * as http from 'http';
 
+// Load .env from backend root (same as painkiller-assistent scripts)
 dotenv.config();
 
 async function applyMigrationViaAPI() {

@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 
+// Load .env from backend root (same as painkiller-assistent scripts)
 dotenv.config();
 
 async function applyMigration() {

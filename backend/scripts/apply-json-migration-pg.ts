@@ -3,6 +3,7 @@ import { Client } from 'pg';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Load .env from backend root (same as painkiller-assistent scripts)
 dotenv.config();
 
 async function applyMigration() {

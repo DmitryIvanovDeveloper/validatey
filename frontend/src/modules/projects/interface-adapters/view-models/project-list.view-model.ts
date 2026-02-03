@@ -5,6 +5,9 @@ export class ProjectListViewModel {
   projects = ref<Project[]>([]);
   loading = ref(false);
   error = ref<string | null>(null);
+  /** ID of project currently being deleted */
+  deletingId = ref<string | null>(null);
 }
+
 
 

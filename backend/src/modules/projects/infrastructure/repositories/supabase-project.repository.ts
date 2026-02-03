@@ -18,6 +18,14 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     try {
       const supabase = getSupabaseClient();
 
+      const nowIso = new Date().toISOString();
+      const created_at = project.createdAt != null && typeof project.createdAt.toISOString === 'function'
+        ? project.createdAt.toISOString()
+        : nowIso;
+      const updated_at = project.updatedAt != null && typeof project.updatedAt.toISOString === 'function'
+        ? project.updatedAt.toISOString()
+        : nowIso;
+
       const { data, error } = await supabase
         .from('projects')
         .insert({
@@ -27,10 +35,11 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
           status: project.status,
           segment: project.segment,
           hypothesis: project.hypothesis,
+          market_context: project.marketContext,
           target_audience: project.targetAudience,
           cost: project.cost,
-          created_at: project.createdAt.toISOString(),
-          updated_at: project.updatedAt.toISOString(),
+          created_at,
+          updated_at,
         })
         .select()
         .single();
@@ -123,6 +132,29 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     }
   }
 
+  async findAll(): Promise<ResultEx<Project[], Error>> {
+    try {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this._logger.error('supabase-project-repository.find-all-error', { error: error.message });
+        return ResultEx.failure(new Error(error.message));
+      }
+      if (!data || !Array.isArray(data)) {
+        return ResultEx.success([]);
+      }
+      const projects = data.map((item) => this.mapToDomain(item));
+      return ResultEx.success(projects);
+    } catch (error) {
+      this._logger.error('supabase-project-repository.find-all-exception', { error });
+      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
   async update(project: Project): Promise<ResultEx<Project, ProjectNotFoundError | InvalidProjectDataError>> {
     try {
       const supabase = getSupabaseClient();
@@ -134,9 +166,12 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
           status: project.status,
           segment: project.segment,
           hypothesis: project.hypothesis,
+          market_context: project.marketContext,
           target_audience: project.targetAudience,
           cost: project.cost,
-          updated_at: project.updatedAt.toISOString(),
+          updated_at: project.updatedAt != null && typeof project.updatedAt.toISOString === 'function'
+            ? project.updatedAt.toISOString()
+            : new Date().toISOString(),
         })
         .eq('id', project.id)
         .select()
@@ -200,9 +235,11 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         cost = isNaN(parsed) ? null : parsed;
       }
 
-      // Parse dates safely
-      const createdAt = data.created_at ? new Date(data.created_at) : new Date();
-      const updatedAt = data.updated_at ? new Date(data.updated_at) : new Date();
+      // Parse dates safely (Supabase may return snake_case or camelCase)
+      const created_at_raw = data.created_at ?? data.createdAt;
+      const updated_at_raw = data.updated_at ?? data.updatedAt;
+      const createdAt = created_at_raw ? new Date(created_at_raw) : new Date();
+      const updatedAt = updated_at_raw ? new Date(updated_at_raw) : new Date();
 
       // Validate dates
       if (isNaN(createdAt.getTime())) {
@@ -219,6 +256,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         status: String(data.status) as 'draft' | 'active' | 'completed' | 'archived',
         segment: data.segment || null,
         hypothesis: data.hypothesis || null,
+        marketContext: data.market_context || null,
         targetAudience: data.target_audience || null,
         cost,
         createdAt,

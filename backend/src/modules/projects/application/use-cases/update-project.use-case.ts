@@ -61,6 +61,10 @@ export class UpdateProjectUseCase {
         updatedProject = updatedProject.withHypothesis(request.hypothesis);
       }
 
+      if (request.marketContext !== undefined) {
+        updatedProject = updatedProject.withMarketContext(request.marketContext);
+      }
+
       if (request.targetAudience !== undefined) {
         updatedProject = updatedProject.withTargetAudience(request.targetAudience);
       }

@@ -37,13 +37,19 @@ export class CreateProjectUseCase {
       // Публикация события
       this._eventBus.publish(new ProjectCreatedEvent(createdProject.id));
 
+      const createdAt = createdProject.createdAt != null && typeof createdProject.createdAt.toISOString === 'function'
+        ? createdProject.createdAt.toISOString()
+        : new Date().toISOString();
+      const updatedAt = createdProject.updatedAt != null && typeof createdProject.updatedAt.toISOString === 'function'
+        ? createdProject.updatedAt.toISOString()
+        : new Date().toISOString();
       return Result.success({
         project: {
           id: createdProject.id,
           name: createdProject.name,
           status: createdProject.status,
-          createdAt: createdProject.createdAt.toISOString(),
-          updatedAt: createdProject.updatedAt.toISOString()
+          createdAt,
+          updatedAt
         }
       });
     } catch (error) {

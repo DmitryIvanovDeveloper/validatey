@@ -14,10 +14,12 @@ export type GetProjectUseCaseResponse = {
       description: string;
       assumptions: string[];
     } | null;
+    marketContext: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
     status: string;
     createdAt: string;
     updatedAt: string;
   };
 };
+
 
 

@@ -40,6 +40,12 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/modules/invitations/interface-adapters/views/InvitationManagerView.vue'),
   },
   {
+    path: '/auth/callback',
+    name: 'auth-callback',
+    component: () => import('@/modules/auth/interface-adapters/views/AuthCallbackView.vue'),
+    meta: { requiresAuth: false, layout: 'empty' },
+  },
+  {
     path: '/survey/:token',
     name: 'respondent-survey',
     component: () => import('@/modules/surveys/interface-adapters/views/SurveyView.vue'),

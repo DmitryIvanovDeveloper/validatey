@@ -46,9 +46,10 @@ export class GenerateScenarioUseCase {
         return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, request.userId));
       }
 
-      // Step 2: Get segment and hypothesis from request, or fallback to project data
+      // Step 2: Get segment, hypothesis, and marketContext from request or fallback to project
       const segment = request.segment ?? project.segment;
       const hypothesis = request.hypothesis ?? project.hypothesis;
+      const marketContext = request.marketContext ?? project.marketContext ?? null;
 
       // Step 3: Get latest version to increment (for versioning)
       const versionResult = await this._repository.getLatestVersion(request.projectId);
@@ -63,6 +64,7 @@ export class GenerateScenarioUseCase {
         projectId: request.projectId,
         segment: segment,
         hypothesis: hypothesis,
+        marketContext,
         metadata: request.metadata,
         prompt: request.prompt, // Pass custom prompt if provided
       });

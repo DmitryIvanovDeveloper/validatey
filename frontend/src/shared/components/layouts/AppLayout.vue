@@ -6,6 +6,13 @@
         <div class="nav-links">
           <router-link to="/projects">Projects</router-link>
           <router-link to="/projects/new">Create Project</router-link>
+          <template v-if="authViewModel.user.value">
+            <span class="user-email">{{ authViewModel.user.value.email ?? authViewModel.user.value.displayName ?? 'User' }}</span>
+            <button type="button" class="btn-sign-out" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
+          </template>
+          <template v-else>
+            <button type="button" class="btn-sign-in" :disabled="authViewModel.loading.value" @click="handleSignIn">Sign in with Google</button>
+          </template>
         </div>
       </div>
     </nav>
@@ -16,14 +23,52 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { container } from '@/infrastructure/bootstrap/container';
+import { TYPES } from '@/modules/auth/infrastructure/bootstrap/types';
+import type { AuthPresenter } from '@/modules/auth/interface-adapters/presenters/auth.presenter';
+import { AuthViewModel } from '@/modules/auth/interface-adapters/view-models/auth.view-model';
+import { userContextService } from '@/shared/services/user-context.service';
 
 const route = useRoute();
+const authViewModel = new AuthViewModel();
+const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
+let unsubscribeAuth: (() => void) | null = null;
 
 const showNavbar = computed(() => {
   return route.meta.hideNavbar !== true;
 });
+
+watch(
+  () => authViewModel.user.value,
+  (user) => {
+    if (user) {
+      userContextService.setUserId(user.id);
+    } else {
+      userContextService.clearUserId();
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(async () => {
+  await authPresenter.loadSession(authViewModel);
+  unsubscribeAuth = authPresenter.subscribeToAuthState(authViewModel);
+});
+
+onUnmounted(() => {
+  unsubscribeAuth?.();
+});
+
+async function handleSignIn() {
+  await authPresenter.signInWithGoogle(authViewModel);
+}
+
+async function handleSignOut() {
+  await authPresenter.signOut(authViewModel);
+  userContextService.clearUserId();
+}
 </script>
 
 <style scoped>
@@ -70,6 +115,44 @@ const showNavbar = computed(() => {
 .nav-links a:hover,
 .nav-links a.router-link-active {
   color: #2d3748;
+}
+
+.user-email {
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.btn-sign-in,
+.btn-sign-out {
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-sign-in {
+  background: #1a73e8;
+  color: #fff;
+}
+
+.btn-sign-in:hover:not(:disabled) {
+  background: #1557b0;
+}
+
+.btn-sign-out {
+  background: transparent;
+  color: #4a5568;
+}
+
+.btn-sign-out:hover:not(:disabled) {
+  color: #2d3748;
+}
+
+.btn-sign-in:disabled,
+.btn-sign-out:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .main-content {

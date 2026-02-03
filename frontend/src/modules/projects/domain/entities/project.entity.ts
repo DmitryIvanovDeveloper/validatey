@@ -3,12 +3,19 @@ import { Hypothesis } from '../value-objects/hypothesis.vo';
 
 export type ProjectStatus = 'draft' | 'in-progress' | 'completed' | 'archived';
 
+export interface MarketContext {
+  marketPicture?: string;
+  marketFit?: string;
+  differentiation?: string;
+}
+
 export class Project {
   constructor(
     public readonly id: string,
     public readonly name: string,
     public readonly segment: Segment | null,
     public readonly hypothesis: Hypothesis | null,
+    public readonly marketContext: MarketContext | null,
     public readonly status: ProjectStatus,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
@@ -27,6 +34,7 @@ export class Project {
       this.name,
       segment,
       this.hypothesis,
+      this.marketContext,
       this.status,
       this.createdAt,
       new Date()
@@ -39,6 +47,7 @@ export class Project {
       this.name,
       this.segment,
       hypothesis,
+      this.marketContext,
       this.status,
       this.createdAt,
       new Date()
@@ -51,11 +60,13 @@ export class Project {
       this.name,
       this.segment,
       this.hypothesis,
+      this.marketContext,
       status,
       this.createdAt,
       new Date()
     );
   }
 }
+
 
 

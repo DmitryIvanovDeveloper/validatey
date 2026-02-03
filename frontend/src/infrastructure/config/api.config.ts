@@ -29,6 +29,14 @@ export const API_CONFIG = {
     
     // Analytics/Telemetry
     TELEMETRY: '/telemetry',
+
+    // AI Helper (hypothesis suggestions)
+    AI_HYPOTHESIS_SUGGEST: '/ai/hypothesis-suggest',
+
+    // Auth (via backend; no Supabase on frontend)
+    AUTH_GOOGLE_URL: '/auth/google-url',
+    AUTH_SESSION: '/auth/session',
+    AUTH_SIGN_OUT: '/auth/sign-out',
   },
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,

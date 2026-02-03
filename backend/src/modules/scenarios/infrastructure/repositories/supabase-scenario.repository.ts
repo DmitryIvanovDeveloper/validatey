@@ -17,6 +17,15 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
   async create(scenario: Scenario): Promise<ResultEx<Scenario, InvalidScenarioDataError>> {
     try {
       const supabase = getSupabaseClient();
+      const nowIso = new Date().toISOString();
+      const created_at =
+        scenario.createdAt != null && typeof scenario.createdAt.toISOString === 'function'
+          ? scenario.createdAt.toISOString()
+          : nowIso;
+      const updated_at =
+        scenario.updatedAt != null && typeof scenario.updatedAt.toISOString === 'function'
+          ? scenario.updatedAt.toISOString()
+          : nowIso;
 
       const { data, error } = await supabase
         .from('scenarios')
@@ -28,8 +37,8 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
           is_generated: scenario.isGenerated,
           is_edited: scenario.isEdited,
           metadata: scenario.metadata,
-          created_at: scenario.createdAt.toISOString(),
-          updated_at: scenario.updatedAt.toISOString(),
+          created_at,
+          updated_at,
         })
         .select()
         .single();
@@ -125,6 +134,11 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
   async update(scenario: Scenario): Promise<ResultEx<Scenario, ScenarioNotFoundError | InvalidScenarioDataError>> {
     try {
       const supabase = getSupabaseClient();
+      const nowIso = new Date().toISOString();
+      const updated_at =
+        scenario.updatedAt != null && typeof scenario.updatedAt.toISOString === 'function'
+          ? scenario.updatedAt.toISOString()
+          : nowIso;
 
       const { data, error } = await supabase
         .from('scenarios')
@@ -133,7 +147,7 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
           is_generated: scenario.isGenerated,
           is_edited: scenario.isEdited,
           metadata: scenario.metadata,
-          updated_at: scenario.updatedAt.toISOString(),
+          updated_at,
         })
         .eq('id', scenario.id)
         .select()
@@ -186,18 +200,21 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
   }
 
   private mapToDomain(data: any): Scenario {
+    const created_at = data?.created_at ?? data?.createdAt;
+    const updated_at = data?.updated_at ?? data?.updatedAt;
     return {
       id: data.id,
       projectId: data.project_id,
       version: data.version,
-      content: data.content,
-      isGenerated: data.is_generated,
-      isEdited: data.is_edited,
-      metadata: data.metadata as ScenarioMetadata | null,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      content: data.content ?? '',
+      isGenerated: data.is_generated ?? false,
+      isEdited: data.is_edited ?? false,
+      metadata: (data.metadata as ScenarioMetadata) ?? null,
+      createdAt: created_at ? new Date(created_at) : new Date(),
+      updatedAt: updated_at ? new Date(updated_at) : new Date(),
     };
   }
 }
+
 
 

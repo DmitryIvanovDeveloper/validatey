@@ -13,10 +13,17 @@ export interface Hypothesis {
   readonly assumptions: string[];
 }
 
+export interface MarketContextForScenario {
+  marketPicture?: string;
+  marketFit?: string;
+  differentiation?: string;
+}
+
 export interface GenerateScenarioRequest {
   projectId: string;
   segment?: Segment | null;
   hypothesis?: Hypothesis | null;
+  marketContext?: MarketContextForScenario | null;
   metadata?: {
     tone?: string;
     length?: number;

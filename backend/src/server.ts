@@ -1,6 +1,8 @@
+// Load .env from project root (same as painkiller-assistent)
 import 'dotenv/config';
 import { createServer } from 'http';
 import app from './app';
+import { logEnvStatus } from './infrastructure/config/env-check';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
@@ -10,6 +12,7 @@ const server = createServer(app);
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Validatey Backend Server running on port ${PORT}`);
   console.log(`🌐 API endpoint: http://localhost:${PORT}`);
+  logEnvStatus();
 });
 
 server.on('error', (error: Error) => {

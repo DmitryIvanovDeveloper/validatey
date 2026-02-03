@@ -22,6 +22,7 @@ export class GenerateScenarioUseCase {
       input.projectId,
       input.segment || null,
       input.hypothesis || null,
+      input.marketContext ?? null,
       input.prompt
     );
 
@@ -34,6 +35,10 @@ export class GenerateScenarioUseCase {
     // Публикация события
     this._eventBus.publish(new ScenarioGeneratedEvent(scenario.id, scenario.projectId));
 
+    const createdAt =
+      scenario.createdAt != null && typeof scenario.createdAt.toISOString === 'function'
+        ? scenario.createdAt.toISOString()
+        : new Date().toISOString();
     return Result.success({
       scenario: {
         id: scenario.id,
@@ -41,7 +46,7 @@ export class GenerateScenarioUseCase {
         content: scenario.content,
         version: scenario.version,
         status: scenario.status,
-        createdAt: scenario.createdAt.toISOString()
+        createdAt
       }
     });
   }

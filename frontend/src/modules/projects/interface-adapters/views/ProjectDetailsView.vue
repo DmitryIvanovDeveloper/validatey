@@ -67,6 +67,24 @@
         </div>
       </Card>
 
+      <Card title="Market Picture" class="market-context-card">
+        <div class="segment-content">
+          <p>{{ project.marketContext?.marketPicture || 'Not specified' }}</p>
+        </div>
+      </Card>
+
+      <Card title="Market Fit" class="market-context-card">
+        <div class="segment-content">
+          <p>{{ project.marketContext?.marketFit || 'Not specified' }}</p>
+        </div>
+      </Card>
+
+      <Card title="Differentiation" class="market-context-card">
+        <div class="segment-content">
+          <p>{{ project.marketContext?.differentiation || 'Not specified' }}</p>
+        </div>
+      </Card>
+
       <Card title="Hypothesis" class="hypothesis-card">
         <div class="hypothesis-content">
           <div class="content-item">
@@ -83,26 +101,52 @@
           </div>
         </div>
       </Card>
+
+      <Card v-if="scenarioLoading" title="Scenario" class="scenario-card">
+        <p class="scenario-loading">Loading scenario...</p>
+      </Card>
+      <Card v-else-if="scenarioContent" title="Scenario" class="scenario-card">
+        <ScenarioViewer :content="scenarioContent" />
+      </Card>
+      <Card v-else-if="scenarioError" title="Scenario" class="scenario-card">
+        <p class="scenario-error">{{ scenarioError }}</p>
+      </Card>
+      <Card v-else title="Scenario" class="scenario-card">
+        <p class="scenario-empty">No scenario generated yet. Create the project via the wizard to generate one.</p>
+      </Card>
+
+      <Card title="Audience" class="audience-card">
+        <p class="audience-description">Manage your target audience and send invitations from the Invitations page.</p>
+        <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-secondary">Manage Invitations</router-link>
+      </Card>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import Card from '@/shared/components/Card.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
+import ScenarioViewer from './components/ScenarioViewer.vue';
 import { ProjectViewModel } from '../view-models/project.view-model';
 import { ProjectPresenter } from '../presenters/project.presenter';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
+import type { ScenarioRepositoryPort } from '../../../scenarios/application/ports/scenario-repository.port';
 import { ProjectStatus } from '../../domain/entities/project.entity';
 
 const route = useRoute();
 const projectId = route.params.projectId as string;
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
+const scenarioRepository = container.get<ScenarioRepositoryPort>(SCENARIO_TYPES.ScenarioRepository);
+
+const scenarioContent = ref<string>('');
+const scenarioLoading = ref(false);
+const scenarioError = ref<string | null>(null);
 
 const project = computed(() => {
   return viewModel.project.value;
@@ -111,7 +155,7 @@ const project = computed(() => {
 const getStatusLabel = (status: ProjectStatus): string => {
   const labels: Record<ProjectStatus, string> = {
     draft: 'Draft',
-    active: 'Active',
+    'in-progress': 'In progress',
     completed: 'Completed',
     archived: 'Archived',
   };
@@ -124,11 +168,37 @@ const formatDate = (date: Date | string): string => {
   return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
+async function loadScenario() {
+  if (!projectId) return;
+  scenarioLoading.value = true;
+  scenarioError.value = null;
+  scenarioContent.value = '';
+  const result = await scenarioRepository.getLatestByProjectId(projectId);
+  scenarioLoading.value = false;
+  if (result.isSuccess) {
+    scenarioContent.value = result.data.content;
+    scenarioError.value = null;
+  } else {
+    // 404 / not found = no scenario yet → show empty state, not error
+    const isNotFound =
+      result.error.name === 'ScenarioNotFoundError' ||
+      (result.error.message && result.error.message.includes('No scenario found'));
+    scenarioContent.value = '';
+    scenarioError.value = isNotFound ? null : result.error.message;
+  }
+}
+
 onMounted(() => {
   if (projectId) {
     presenter.loadProject(projectId, viewModel);
   }
 });
+
+watch(project, (p) => {
+  if (p && projectId) {
+    loadScenario();
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -160,6 +230,7 @@ onMounted(() => {
 
 .project-card,
 .segment-card,
+.market-context-card,
 .hypothesis-card {
   margin-bottom: 2rem;
 }
@@ -194,7 +265,8 @@ onMounted(() => {
   color: #4a5568;
 }
 
-.status-active {
+.status-active,
+.status-in-progress {
   background: #c6f6d5;
   color: #22543d;
 }
@@ -207,6 +279,28 @@ onMounted(() => {
 .status-archived {
   background: #f7fafc;
   color: #718096;
+}
+
+.scenario-card {
+  margin-bottom: 2rem;
+}
+
+.audience-description {
+  color: #4a5568;
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.scenario-loading,
+.scenario-error,
+.scenario-empty {
+  color: #4a5568;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.scenario-error {
+  color: #c53030;
 }
 
 .segment-content,

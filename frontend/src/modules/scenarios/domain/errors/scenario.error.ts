@@ -6,8 +6,8 @@ export abstract class ScenarioError extends Error {
 }
 
 export class ScenarioNotFoundError extends ScenarioError {
-  constructor(scenarioId: string) {
-    super(`Scenario with id ${scenarioId} not found`);
+  constructor(scenarioId: string, customMessage?: string) {
+    super(customMessage ?? `Scenario with id ${scenarioId} not found`);
     this.name = 'ScenarioNotFoundError';
   }
 }
@@ -18,5 +18,6 @@ export class ScenarioGenerationError extends ScenarioError {
     this.name = 'ScenarioGenerationError';
   }
 }
+
 
 

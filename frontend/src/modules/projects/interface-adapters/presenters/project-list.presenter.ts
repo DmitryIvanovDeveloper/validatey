@@ -1,5 +1,6 @@
 import { injectable, inject } from 'inversify';
 import type { ListProjectsUseCase } from '../../application/use-cases/list-projects.use-case';
+import type { DeleteProjectUseCase } from '../../application/use-cases/delete-project.use-case';
 import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { Project, ProjectStatus } from '../../domain/entities/project.entity';
 import { TYPES } from '../../infrastructure/bootstrap/types';
@@ -11,6 +12,8 @@ export class ProjectListPresenter {
   constructor(
     @inject(TYPES.ListProjectsUseCase)
     private readonly _listProjectsUseCase: ListProjectsUseCase,
+    @inject(TYPES.DeleteProjectUseCase)
+    private readonly _deleteProjectUseCase: DeleteProjectUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort
   ) {}
@@ -23,10 +26,11 @@ export class ProjectListPresenter {
 
     if (result.isSuccess) {
       // Map response to Project entities
-      const projects = result.data.projects.map(p => 
+      const projects = result.data.projects.map(p =>
         new Project(
           p.id,
           p.name,
+          null,
           null,
           null,
           p.status as ProjectStatus,
@@ -38,10 +42,31 @@ export class ProjectListPresenter {
       viewModel.loading.value = false;
       this._logger.info('Projects loaded', { count: result.data.projects.length });
     } else {
-      viewModel.error.value = 'Failed to load projects';
+      const message = result.error instanceof Error ? result.error.message : String(result.error);
+      viewModel.error.value = message || 'Failed to load projects';
       viewModel.loading.value = false;
       this._logger.error('Failed to load projects', { error: result.error });
     }
+  }
+
+  async deleteProject(viewModel: ProjectListViewModel, projectId: string): Promise<boolean> {
+    viewModel.deletingId.value = projectId;
+    viewModel.error.value = null;
+
+    const result = await this._deleteProjectUseCase.execute({ projectId });
+
+    viewModel.deletingId.value = null;
+
+    if (result.isSuccess) {
+      this._logger.info('Project deleted', { projectId });
+      await this.loadProjects(viewModel);
+      return true;
+    }
+
+    const message = result.error instanceof Error ? result.error.message : String(result.error);
+    viewModel.error.value = message || 'Failed to delete project';
+    this._logger.error('Failed to delete project', { projectId, error: result.error });
+    return false;
   }
 }
 

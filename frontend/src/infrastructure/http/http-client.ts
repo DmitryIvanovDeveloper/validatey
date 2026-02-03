@@ -74,7 +74,7 @@ export class HttpClient implements HttpClientPort {
       console.log('📤 POST Request details:', JSON.stringify({
         url: fullUrl,
         headers: Object.keys(requestHeaders),
-        bodySize: isFormData ? '[FormData]' : (body ? body.length : 0)
+        bodySize: isFormData ? '[FormData]' : (body && typeof body === 'string' ? body.length : 0)
       }, null, 2));
       
       const response = await fetch(fullUrl, { 

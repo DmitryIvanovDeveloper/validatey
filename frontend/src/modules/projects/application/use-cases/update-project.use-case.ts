@@ -17,6 +17,7 @@ export class UpdateProjectUseCase {
       name: input.updates.name,
       segment: input.updates.segment,
       hypothesis: input.updates.hypothesis,
+      marketContext: input.updates.marketContext,
       status: input.updates.status
     });
 

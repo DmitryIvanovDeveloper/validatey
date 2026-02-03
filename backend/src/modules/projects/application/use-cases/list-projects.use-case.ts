@@ -16,9 +16,11 @@ export class ListProjectsUseCase {
   ) {}
 
   async execute(request: ListProjectsUseCaseRequest): Promise<ResultEx<ListProjectsUseCaseResponse, Error>> {
-    this._logger.info('list-projects.start', { userId: request.userId });
+    this._logger.info('list-projects.start', { userId: request.userId, listAll: request.listAll });
 
-    const findResult = await this._repository.findByUserId(request.userId);
+    const findResult = request.listAll
+      ? await this._repository.findAll()
+      : await this._repository.findByUserId(request.userId);
 
     if (!findResult.isSuccess) {
       this._logger.error('list-projects.error', { error: findResult.error });
@@ -32,5 +34,6 @@ export class ListProjectsUseCase {
     });
   }
 }
+
 
 

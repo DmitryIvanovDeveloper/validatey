@@ -19,4 +19,12 @@ export class InvalidProjectDataError extends ProjectError {
   }
 }
 
+export class ProjectListError extends ProjectError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ProjectListError';
+  }
+}
+
+
 

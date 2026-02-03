@@ -1,11 +1,12 @@
 import { ScenarioMetadata } from '../../../domain/entities/scenario.entity';
-import { Segment, Hypothesis } from '../../../application/ports/llm-service.port';
+import { Segment, Hypothesis, MarketContextForScenario } from '../../../application/ports/llm-service.port';
 
 export type GenerateScenarioUseCaseRequest = {
   projectId: string;
   userId: string; // Required for project ownership validation
   segment?: Segment | null;
   hypothesis?: Hypothesis | null;
+  marketContext?: MarketContextForScenario | null;
   metadata?: {
     tone?: string;
     length?: number;

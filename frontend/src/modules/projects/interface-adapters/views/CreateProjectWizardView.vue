@@ -33,9 +33,57 @@
               </div>
             </div>
 
-            <!-- Step 2: Hypothesis -->
+            <!-- Step 2: Market Picture -->
             <div v-if="step === 1" class="step-panel">
-              <h2>Step 2: Formulate Hypothesis</h2>
+              <h2>Step 2: Current Market Picture</h2>
+              <p class="step-description">Who are the players, what do they offer, who buys from them?</p>
+              <div class="form-group">
+                <label for="market-picture">Market Picture</label>
+                <textarea
+                  id="market-picture"
+                  v-model="formData.marketPicture"
+                  rows="4"
+                  placeholder="Describe the current market: main players, their offerings, typical buyers..."
+                  class="form-input"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Step 3: Market Fit -->
+            <div v-if="step === 2" class="step-panel">
+              <h2>Step 3: How Your Product Fits in the Market</h2>
+              <p class="step-description">Share of paying audience, positioning, etc.</p>
+              <div class="form-group">
+                <label for="market-fit">Market Fit</label>
+                <textarea
+                  id="market-fit"
+                  v-model="formData.marketFit"
+                  rows="4"
+                  placeholder="How does your product fit in the market? Share of paying audience, positioning..."
+                  class="form-input"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Step 4: Differentiation -->
+            <div v-if="step === 3" class="step-panel">
+              <h2>Step 4: How Your Product Differs</h2>
+              <p class="step-description">Qualities that attract and win new buyers</p>
+              <div class="form-group">
+                <label for="differentiation">Differentiation</label>
+                <textarea
+                  id="differentiation"
+                  v-model="formData.differentiation"
+                  rows="4"
+                  placeholder="How does your product differ? What qualities attract and win new buyers?"
+                  class="form-input"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Step 5: Hypothesis -->
+            <div v-if="step === 4" class="step-panel">
+              <h2>Step 5: Formulate Hypothesis</h2>
               <p class="step-description">Describe your product hypothesis and assumptions</p>
               
               <div class="form-group">
@@ -90,9 +138,9 @@
               </div>
             </div>
 
-            <!-- Step 3: Scenario -->
-            <div v-if="step === 2" class="step-panel">
-              <h2>Step 3: Edit Scenario</h2>
+            <!-- Step 6: Scenario -->
+            <div v-if="step === 5" class="step-panel">
+              <h2>Step 6: Edit Scenario</h2>
               <p class="step-description">The scenario will be automatically generated based on your hypothesis</p>
               
               <div v-if="scenarioLoading" class="scenario-generating">
@@ -116,9 +164,9 @@
               </div>
             </div>
 
-            <!-- Step 4: Audience & Pricing -->
-            <div v-if="step === 3" class="step-panel">
-              <h2>Step 4: Audience & Payment</h2>
+            <!-- Step 7: Audience & Pricing -->
+            <div v-if="step === 6" class="step-panel">
+              <h2>Step 7: Audience & Payment</h2>
               <p class="step-description">Specify project launch parameters</p>
               
               <div class="form-group">
@@ -179,10 +227,33 @@
     </div>
 
     <!-- AI Helper Modal -->
-    <Modal v-model="showAIHelper" title="AI Helper for Hypothesis Formulation">
-      <p>The AI helper feature will be integrated with the backend API.</p>
+    <Modal v-model="showAIHelper" title="AI Helper for Hypothesis Formulation" @update:modelValue="onAIHelperClose">
+      <p class="ai-helper-intro">Based on your target segment (Step 1), AI suggests a hypothesis and testable assumptions. Fill Step 1 first for better results.</p>
+      <div v-if="aiHelperLoading" class="ai-helper-loading">
+        <LoadingSpinner />
+        <p>Generating suggestion...</p>
+      </div>
+      <div v-else-if="aiHelperError" class="ai-helper-error">
+        <p>{{ aiHelperError }}</p>
+      </div>
+      <div v-else-if="aiHelperSuggestion" class="ai-helper-result">
+        <div class="form-group">
+          <label>Suggested hypothesis</label>
+          <p class="suggestion-text">{{ aiHelperSuggestion.description }}</p>
+        </div>
+        <div class="form-group">
+          <label>Suggested assumptions</label>
+          <ul class="assumptions-preview">
+            <li v-for="(a, i) in aiHelperSuggestion.assumptions" :key="i">{{ a }}</li>
+          </ul>
+        </div>
+      </div>
       <template #footer>
+        <template v-if="aiHelperSuggestion && !aiHelperLoading">
+          <button @click="applyAISuggestion" class="btn btn-primary">Apply to form</button>
+        </template>
         <button @click="showAIHelper = false" class="btn btn-secondary">Close</button>
+        <button v-if="!aiHelperLoading && (!aiHelperSuggestion || aiHelperError)" @click="fetchAISuggestion" class="btn btn-primary" type="button">Get suggestion</button>
       </template>
     </Modal>
   </div>
@@ -195,6 +266,7 @@ import Wizard from '@/shared/components/Wizard.vue';
 import Modal from '@/shared/components/Modal.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import ScenarioViewer from './components/ScenarioViewer.vue';
+import { API_CONFIG } from '@/infrastructure/config/api.config';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { ProjectPresenter } from '../presenters/project.presenter';
@@ -208,6 +280,9 @@ const scenarioPresenter = container.get<ScenarioPresenter>(SCENARIO_TYPES.Scenar
 
 const wizardSteps = [
   { label: 'Segment' },
+  { label: 'Market Picture' },
+  { label: 'Market Fit' },
+  { label: 'Differentiation' },
   { label: 'Hypothesis' },
   { label: 'Scenario' },
   { label: 'Audience' },
@@ -217,6 +292,9 @@ const formData = ref({
   name: '',
   segmentDescription: '',
   segmentDemographics: '',
+  marketPicture: '',
+  marketFit: '',
+  differentiation: '',
   hypothesisDescription: '',
   hypothesisAssumptions: [''],
   audienceSize: 100,
@@ -227,6 +305,9 @@ const scenarioContent = ref<string>('');
 const scenarioLoading = ref(false);
 const scenarioError = ref<string | null>(null);
 const showAIHelper = ref(false);
+const aiHelperLoading = ref(false);
+const aiHelperError = ref<string | null>(null);
+const aiHelperSuggestion = ref<{ description: string; assumptions: string[] } | null>(null);
 const currentProjectId = ref<string | null>(null);
 const scenarioViewModel = new ScenarioViewModel();
 
@@ -242,9 +323,69 @@ const removeAssumption = (index: number) => {
   formData.value.hypothesisAssumptions.splice(index, 1);
 };
 
+const fetchAISuggestion = async () => {
+  aiHelperLoading.value = true;
+  aiHelperError.value = null;
+  aiHelperSuggestion.value = null;
+  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AI_HYPOTHESIS_SUGGEST}`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        segmentDescription: formData.value.segmentDescription || '',
+        segmentDemographics: formData.value.segmentDemographics || '',
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      aiHelperError.value = data?.error || data?.message || `Request failed (${res.status})`;
+      return;
+    }
+    aiHelperSuggestion.value = {
+      description: data.description ?? '',
+      assumptions: Array.isArray(data.assumptions) ? data.assumptions : [],
+    };
+  } catch (e) {
+    aiHelperError.value = e instanceof Error ? e.message : 'Network error';
+  } finally {
+    aiHelperLoading.value = false;
+  }
+};
+
+const applyAISuggestion = () => {
+  if (!aiHelperSuggestion.value) return;
+  formData.value.hypothesisDescription = aiHelperSuggestion.value.description;
+  formData.value.hypothesisAssumptions = aiHelperSuggestion.value.assumptions.length
+    ? [...aiHelperSuggestion.value.assumptions]
+    : [''];
+  showAIHelper.value = false;
+  aiHelperSuggestion.value = null;
+  aiHelperError.value = null;
+};
+
+const onAIHelperClose = (open: boolean) => {
+  if (!open) {
+    aiHelperSuggestion.value = null;
+    aiHelperError.value = null;
+  }
+};
+
+function buildMarketContextFromForm(): { marketPicture?: string; marketFit?: string; differentiation?: string } | null {
+  const p = formData.value.marketPicture?.trim();
+  const f = formData.value.marketFit?.trim();
+  const d = formData.value.differentiation?.trim();
+  if (!p && !f && !d) return null;
+  return {
+    ...(p ? { marketPicture: p } : {}),
+    ...(f ? { marketFit: f } : {}),
+    ...(d ? { differentiation: d } : {}),
+  };
+}
+
 const handleStepChange = async (step: number) => {
-  // When moving to step 3 (scenario), create project and generate scenario
-  if (step === 2 && !scenarioContent.value && formData.value.hypothesisDescription) {
+  // When moving to step 6 (Scenario), create project and generate scenario
+  if (step === 5 && !scenarioContent.value && formData.value.hypothesisDescription) {
     await generateScenario();
   }
 };
@@ -255,24 +396,27 @@ const generateScenario = async () => {
   scenarioContent.value = '';
 
   try {
+    const marketContext = buildMarketContextFromForm();
+
     // 1. Create project if not created yet
     if (!currentProjectId.value) {
       const projectName = formData.value.name || `Project ${new Date().toLocaleDateString()}`;
-      const projectId = await projectPresenter.createProject(
+      const createResult = await projectPresenter.createProject(
         projectName,
         formData.value.segmentDescription,
         formData.value.segmentDemographics,
         formData.value.hypothesisDescription,
-        formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0)
+        formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
+        marketContext
       );
 
-      if (!projectId) {
-        scenarioError.value = 'Failed to create project';
+      if (!createResult.projectId) {
+        scenarioError.value = createResult.error || 'Failed to create project';
         scenarioLoading.value = false;
         return;
       }
 
-      currentProjectId.value = projectId;
+      currentProjectId.value = createResult.projectId;
     } else {
       // Update project with current data
       await projectPresenter.updateProject(
@@ -281,7 +425,9 @@ const generateScenario = async () => {
         formData.value.segmentDescription || undefined,
         formData.value.segmentDemographics || undefined,
         formData.value.hypothesisDescription || undefined,
-        formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0) || undefined
+        formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0) || undefined,
+        undefined,
+        marketContext
       );
     }
 
@@ -324,7 +470,8 @@ const generateScenario = async () => {
       currentProjectId.value!,
       scenarioViewModel,
       segment,
-      hypothesis
+      hypothesis,
+      marketContext
     );
 
     console.log('✅ Scenario generation completed:', {
@@ -334,18 +481,34 @@ const generateScenario = async () => {
     });
 
     if (scenarioViewModel.scenario.value) {
-      scenarioContent.value = scenarioViewModel.scenario.value.content;
-      scenarioLoading.value = false;
+      scenarioContent.value = scenarioViewModel.scenario.value.content ?? '';
     } else if (scenarioViewModel.error.value) {
-      scenarioError.value = scenarioViewModel.error.value;
-      scenarioLoading.value = false;
+      scenarioError.value = sanitizeScenarioError(scenarioViewModel.error.value);
     }
   } catch (error) {
-    scenarioError.value = error instanceof Error ? error.message : 'Unknown error while generating scenario';
-    scenarioLoading.value = false;
+    const msg = error instanceof Error ? error.message : 'Unknown error while generating scenario';
+    scenarioError.value = sanitizeScenarioError(msg);
     console.error('❌ Failed to generate scenario:', error);
+  } finally {
+    scenarioLoading.value = false;
   }
 };
+
+function sanitizeScenarioError(message: string): string {
+  if (
+    message.includes('403') ||
+    message.includes('Cloudflare') ||
+    message.includes('<!DOCTYPE') ||
+    message.includes('ByteString') ||
+    message.length > 400
+  ) {
+    return 'Scenario generation failed: AI service unavailable (blocked or 403). Try again later or check backend CEREBRAS_API_KEY / LLM_SERVICE_URL.';
+  }
+  if (message.includes('toISOString') || message.includes('Invalid project data')) {
+    return 'Server error while saving project. Please try again or refresh the page.';
+  }
+  return message;
+}
 
 const regenerateScenario = async () => {
   scenarioContent.value = '';
@@ -353,11 +516,18 @@ const regenerateScenario = async () => {
 };
 
 const handleComplete = async () => {
-  // Update project name if it was changed on step 4
-  if (currentProjectId.value && formData.value.name) {
+  // Update project with final name and market context (e.g. if changed on last steps)
+  if (currentProjectId.value) {
+    const marketContext = buildMarketContextFromForm();
     await projectPresenter.updateProject(
       currentProjectId.value,
-      formData.value.name
+      formData.value.name || undefined,
+      formData.value.segmentDescription || undefined,
+      formData.value.segmentDemographics || undefined,
+      formData.value.hypothesisDescription || undefined,
+      formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0) || undefined,
+      undefined,
+      marketContext ?? undefined
     );
   }
 
@@ -390,10 +560,13 @@ const handleComplete = async () => {
 
 .step-content {
   min-height: 400px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .step-panel {
   animation: fadeIn 0.3s;
+  min-width: 0;
 }
 
 @keyframes fadeIn {
@@ -562,6 +735,8 @@ const handleComplete = async () => {
 
 .scenario-editor {
   margin-top: 1rem;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .btn-regenerate {
@@ -623,6 +798,60 @@ const handleComplete = async () => {
 
 .btn-secondary:hover {
   background: #cbd5e0;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  opacity: 0.95;
+}
+
+.ai-helper-intro {
+  color: #718096;
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+}
+
+.ai-helper-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  color: #718096;
+}
+
+.ai-helper-error {
+  padding: 1rem;
+  background: #fed7d7;
+  color: #c53030;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ai-helper-result {
+  margin-bottom: 1rem;
+}
+
+.ai-helper-result .suggestion-text {
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.assumptions-preview {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #2d3748;
+  font-size: 0.9375rem;
+  line-height: 1.6;
 }
 
 @media (max-width: 768px) {

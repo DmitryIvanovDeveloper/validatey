@@ -20,6 +20,7 @@ export class ScenarioPresenter {
     viewModel: ScenarioViewModel,
     segment?: { description: string; demographics: Record<string, any> } | null,
     hypothesis?: { description: string; assumptions: string[] } | null,
+    marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null,
     prompt?: string
   ): Promise<void> {
     viewModel.loading.value = true;
@@ -29,20 +30,26 @@ export class ScenarioPresenter {
       projectId,
       segment,
       hypothesis,
+      marketContext: marketContext ?? null,
       prompt,
     });
 
     if (result.isSuccess) {
       const scenarioData = result.data.scenario;
+      const createdAt =
+        scenarioData.createdAt != null
+          ? new Date(scenarioData.createdAt)
+          : new Date();
+      const content = (scenarioData.content ?? '').trim() || '(No content)';
       const scenario = new Scenario(
         scenarioData.id,
         scenarioData.projectId,
-        scenarioData.content,
-        scenarioData.version,
-        scenarioData.status as ScenarioStatus,
-        new Date(scenarioData.createdAt) // ISO 8601 string -> Date
+        content,
+        scenarioData.version ?? 1,
+        (scenarioData.status as ScenarioStatus) ?? 'generated',
+        isNaN(createdAt.getTime()) ? new Date() : createdAt
       );
-      
+
       viewModel.scenario.value = scenario;
       viewModel.loading.value = false;
       this._logger.info('Scenario generated', { projectId, scenarioId: scenarioData.id });

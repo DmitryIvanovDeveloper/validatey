@@ -1,5 +1,6 @@
 import { Segment } from '../../../domain/value-objects/segment.vo';
 import { Hypothesis } from '../../../domain/value-objects/hypothesis.vo';
+import { ProjectStatus, MarketContext } from '../../../domain/entities/project.entity';
 
 export type UpdateProjectUseCaseRequest = {
   projectId: string;
@@ -7,7 +8,8 @@ export type UpdateProjectUseCaseRequest = {
     name?: string;
     segment?: Segment;
     hypothesis?: Hypothesis;
-    status?: string;
+    marketContext?: MarketContext | null;
+    status?: ProjectStatus;
   };
 };
 
@@ -23,10 +25,12 @@ export type UpdateProjectUseCaseResponse = {
       description: string;
       assumptions: string[];
     } | null;
+    marketContext: MarketContext | null;
     status: string;
     createdAt: string;
     updatedAt: string;
   };
 };
+
 
 

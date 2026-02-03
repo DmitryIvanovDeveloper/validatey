@@ -3,7 +3,7 @@ import { TYPES } from './types';
 import { ScenarioRepositoryPort } from '../../application/ports/scenario-repository.port';
 import { SupabaseScenarioRepository } from '../repositories/supabase-scenario.repository';
 import { LLMServicePort } from '../../application/ports/llm-service.port';
-import { HttpLLMService } from '../services/http-llm.service';
+import { ProxyScenarioService } from '../services/proxy-scenario.service';
 import { GenerateScenarioUseCase } from '../../application/use-cases/generate-scenario.use-case';
 import { SaveScenarioVersionUseCase } from '../../application/use-cases/save-scenario-version.use-case';
 import { GetScenarioUseCase } from '../../application/use-cases/get-scenario.use-case';
@@ -13,8 +13,8 @@ export function bindScenarios(container: Container): void {
   // Repository
   container.bind<ScenarioRepositoryPort>(TYPES.ScenarioRepository).to(SupabaseScenarioRepository);
 
-  // LLM Service
-  container.bind<LLMServicePort>(TYPES.LLMService).to(HttpLLMService);
+  // LLM Service: only proxy API (cerebras-api.vercel.app/api/prompt)
+  container.bind<LLMServicePort>(TYPES.LLMService).to(ProxyScenarioService);
 
   // Use Cases
   container.bind<GenerateScenarioUseCase>(TYPES.GenerateScenarioUseCase).to(GenerateScenarioUseCase);
@@ -24,5 +24,6 @@ export function bindScenarios(container: Container): void {
   // Presenter
   container.bind<ScenarioPresenter>(TYPES.ScenarioPresenter).to(ScenarioPresenter);
 }
+
 
 

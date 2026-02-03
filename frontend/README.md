@@ -66,8 +66,10 @@ modules/[module-name]/
 
 ## Environment Variables
 
-Создайте файл `.env` в корне проекта:
+Создайте файл `.env` в корне проекта (см. `.env.example`):
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000/api
 ```
+
+Авторизация через Google идёт через бэкенд; ключи Supabase нужны только на бэкенде.

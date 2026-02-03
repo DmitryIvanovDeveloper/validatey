@@ -3,6 +3,7 @@ import Result from '../../../../infrastructure/result/result';
 import type { ProjectRepositoryPort } from '../ports/project-repository.port';
 import { ListProjectsUseCaseRequest, ListProjectsUseCaseResponse } from './input-output/list-projects.io';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import type { ProjectListError } from '../../domain/errors/project.error';
 
 @injectable()
 export class ListProjectsUseCase {
@@ -11,7 +12,7 @@ export class ListProjectsUseCase {
     private readonly _repository: ProjectRepositoryPort
   ) {}
 
-  async execute(input: ListProjectsUseCaseRequest): Promise<Result<ListProjectsUseCaseResponse, never>> {
+  async execute(input: ListProjectsUseCaseRequest): Promise<Result<ListProjectsUseCaseResponse, ProjectListError>> {
     const result = await this._repository.list();
 
     if (!result.isSuccess) {

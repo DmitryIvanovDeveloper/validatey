@@ -23,6 +23,7 @@
     "validate:full": "node scripts/validate-all.cjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.93.3",
     "axios": "^1.11.0",
     "inversify": "^7.9.1",
     "reflect-metadata": "^0.2.2",
