@@ -25,9 +25,32 @@
       <p>Generating report...</p>
     </div>
 
-    <div v-else-if="error" class="error-state">
-      <ErrorDisplay :message="error" />
-      <button @click="generateReport" class="btn btn-primary">Generate Report</button>
+    <div v-else-if="error" class="report-state">
+      <EmptyState
+        v-if="error === NOT_ENOUGH_RESPONSES_MESSAGE"
+        :title="'Not enough responses yet'"
+        :description="'Collect more survey responses to generate your validation report. Then try again or go back to the project to track progress.'"
+        :icon="true"
+      >
+        <template #icon>
+          <svg class="report-empty-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="8" y="32" width="12" height="24" rx="2" fill="currentColor" opacity="0.3"/>
+            <rect x="26" y="20" width="12" height="36" rx="2" fill="currentColor" opacity="0.5"/>
+            <rect x="44" y="12" width="12" height="44" rx="2" fill="currentColor" opacity="0.8"/>
+            <path d="M14 32v24M32 20v36M50 12v44" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+          </svg>
+        </template>
+        <template #action>
+          <div class="report-empty-actions">
+            <button @click="generateReport" class="btn btn-primary btn-lg">Try again</button>
+            <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">← Back to project</router-link>
+          </div>
+        </template>
+      </EmptyState>
+      <div v-else class="error-state">
+        <ErrorDisplay :message="error" />
+        <button @click="generateReport" class="btn btn-primary">Retry</button>
+      </div>
     </div>
 
     <div v-else-if="report" class="report-content">
@@ -107,6 +130,12 @@
         </button>
       </div>
     </div>
+
+    <Toast
+      :show="showCopyToast"
+      :message="copyToastMessage"
+      @dismiss="showCopyToast = false"
+    />
   </div>
 </template>
 
@@ -116,22 +145,21 @@ import { useRoute, useRouter } from 'vue-router';
 import Card from '@/shared/components/Card.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
+import EmptyState from '@/shared/components/EmptyState.vue';
+import Toast from '@/shared/components/Toast.vue';
+import { container } from '@/infrastructure/bootstrap/container';
+import { TYPES } from '@/modules/project-reports/infrastructure/bootstrap/types';
+import type { ReportRepositoryPort, ReportViewData } from '@/modules/project-reports/application/ports/report-repository.port';
 
 const route = useRoute();
 const router = useRouter();
 const projectId = route.params.projectId as string;
 
+const reportRepository = container.get<ReportRepositoryPort>(TYPES.ReportRepository);
+
 const loading = ref(true);
 const error = ref<string | null>(null);
-const report = ref<{
-  verdict: string;
-  verdictType: 'positive' | 'negative' | 'neutral';
-  metrics: Record<string, any>;
-  clusters: Record<string, any>;
-  alternatives: string[];
-  wtp: number;
-  recommendations: string[];
-} | null>(null);
+const report = ref<ReportViewData | null>(null);
 
 const getVerdictIcon = (type: string): string => {
   const icons: Record<string, string> = {
@@ -160,39 +188,19 @@ function clusterStatEntries(obj: Record<string, unknown> | null | undefined): { 
     .map(([key, value]) => ({ key, value }));
 }
 
+const NOT_ENOUGH_RESPONSES_MESSAGE = 'Not enough responses for report';
+
 const generateReport = async () => {
   loading.value = true;
   error.value = null;
-  
-  // TODO: Call presenter to generate report
-  setTimeout(() => {
-    loading.value = false;
-    // Mock data
-    report.value = {
-      verdict: 'Hypothesis confirmed with positive signals',
-      verdictType: 'positive',
-      metrics: {
-        response_rate: 0.75,
-        satisfaction_score: 4.2,
-        nps: 8.5,
-      },
-      clusters: {
-        'Enthusiasts': { size: 45, avg_score: 4.8 },
-        'Neutrals': { size: 30, avg_score: 3.2 },
-        'Skeptics': { size: 25, avg_score: 2.1 },
-      },
-      alternatives: [
-        'Use existing solution X',
-        'Develop a simplified version',
-      ],
-      wtp: 150.50,
-      recommendations: [
-        'Focus on the enthusiast cluster',
-        'Improve onboarding for skeptics',
-        'Consider pricing strategy based on WTP',
-      ],
-    };
-  }, 2000);
+  report.value = null;
+  const result = await reportRepository.get(projectId);
+  loading.value = false;
+  if (result.isSuccess) {
+    report.value = result.data;
+  } else {
+    error.value = NOT_ENOUGH_RESPONSES_MESSAGE;
+  }
 };
 
 const downloadReport = async (format: 'html' | 'pdf') => {
@@ -200,17 +208,27 @@ const downloadReport = async (format: 'html' | 'pdf') => {
   console.log(`Downloading report as ${format}`);
 };
 
-const shareReport = () => {
-  // TODO: Implement report sharing
+const shareReport = async () => {
   if (navigator.share) {
-    navigator.share({
-      title: 'Project Report',
-      text: 'Check out the hypothesis validation results',
-      url: window.location.href,
-    });
+    try {
+      await navigator.share({
+        title: 'Project Report',
+        text: 'Check out the hypothesis validation results',
+        url: window.location.href,
+      });
+      copyToastMessage.value = 'Share dialog opened';
+      showCopyToast.value = true;
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        copyToastMessage.value = 'Link copied to clipboard';
+        await navigator.clipboard.writeText(window.location.href).catch(() => {});
+        showCopyToast.value = true;
+      }
+    }
   } else {
-    navigator.clipboard.writeText(window.location.href);
-    alert('Link copied to clipboard');
+    await navigator.clipboard.writeText(window.location.href);
+    copyToastMessage.value = 'Link copied to clipboard';
+    showCopyToast.value = true;
   }
 };
 
@@ -287,6 +305,30 @@ onMounted(() => {
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
+}
+
+.report-state {
+  padding: 2rem 0;
+}
+
+.report-empty-icon {
+  width: 80px;
+  height: 80px;
+  color: var(--color-accent, #0d9488);
+  opacity: 0.85;
+}
+
+.report-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.report-empty-actions .btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
 }
 
 .report-content {

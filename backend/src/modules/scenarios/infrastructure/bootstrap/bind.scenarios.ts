@@ -13,6 +13,7 @@ import { SaveScenarioVersionUseCase } from '../../application/use-cases/save-sce
 import { SaveScenarioRatingUseCase } from '../../application/use-cases/save-scenario-rating.use-case';
 import { GetScenarioUseCase } from '../../application/use-cases/get-scenario.use-case';
 import { GetScenarioTemplatesUseCase } from '../../application/use-cases/get-scenario-templates.use-case';
+import { ValidateScenarioStructureUseCase } from '../../application/use-cases/validate-scenario-structure.use-case';
 import { ScenarioPresenter } from '../../interface-adapters/presenters/scenario.presenter';
 
 export function bindScenarios(container: Container): void {
@@ -30,6 +31,7 @@ export function bindScenarios(container: Container): void {
   container.bind<SaveScenarioRatingUseCase>(TYPES.SaveScenarioRatingUseCase).to(SaveScenarioRatingUseCase);
   container.bind<GetScenarioUseCase>(TYPES.GetScenarioUseCase).to(GetScenarioUseCase);
   container.bind<GetScenarioTemplatesUseCase>(TYPES.GetScenarioTemplatesUseCase).to(GetScenarioTemplatesUseCase);
+  container.bind<ValidateScenarioStructureUseCase>(TYPES.ValidateScenarioStructureUseCase).to(ValidateScenarioStructureUseCase);
 
   // Presenter
   container.bind<ScenarioPresenter>(TYPES.ScenarioPresenter).to(ScenarioPresenter);

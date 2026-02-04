@@ -2,8 +2,10 @@ import { injectable, inject } from 'inversify';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { GenerateReportUseCase } from '../../application/use-cases/generate-report.use-case';
 import { GetReportByTokenUseCase } from '../../application/use-cases/get-report-by-token.use-case';
+import { GetReportDataUseCase } from '../../application/use-cases/get-report-data.use-case';
 import { GenerateReportUseCaseRequest } from '../../application/use-cases/input-output/generate-report.io';
 import { GetReportByTokenUseCaseRequest } from '../../application/use-cases/input-output/get-report-by-token.io';
+import { GetReportDataRequest } from '../../application/use-cases/input-output/get-report-data.io';
 
 @injectable()
 export class ReportPresenter {
@@ -11,7 +13,9 @@ export class ReportPresenter {
     @inject(TYPES.GenerateReportUseCase)
     private readonly _generateReportUseCase: GenerateReportUseCase,
     @inject(TYPES.GetReportByTokenUseCase)
-    private readonly _getReportByTokenUseCase: GetReportByTokenUseCase
+    private readonly _getReportByTokenUseCase: GetReportByTokenUseCase,
+    @inject(TYPES.GetReportDataUseCase)
+    private readonly _getReportDataUseCase: GetReportDataUseCase
   ) {}
 
   async generateReport(request: GenerateReportUseCaseRequest) {
@@ -20,6 +24,10 @@ export class ReportPresenter {
 
   async getReportByToken(request: GetReportByTokenUseCaseRequest) {
     return await this._getReportByTokenUseCase.execute(request);
+  }
+
+  async getReportData(request: GetReportDataRequest) {
+    return await this._getReportDataUseCase.execute(request);
   }
 }
 

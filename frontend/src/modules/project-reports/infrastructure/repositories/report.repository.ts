@@ -1,9 +1,9 @@
 import { injectable, inject } from 'inversify';
-import type { ReportRepositoryPort } from '../../application/ports/report-repository.port';
+import type { ReportRepositoryPort, ReportViewData } from '../../application/ports/report-repository.port';
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import Result from '../../../../infrastructure/result/result';
-import { ProjectReport, Verdict } from '../../domain/entities/project-report.entity';
+import { ProjectReport } from '../../domain/entities/project-report.entity';
 import { ReportNotFoundError, ReportGenerationError } from '../../domain/errors/project-report.error';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { userContextService } from '../../../../shared/services/user-context.service';
@@ -15,11 +15,13 @@ export class ReportRepository implements ReportRepositoryPort {
     private readonly _httpClient: HttpClientPort
   ) {}
 
-  async get(projectId: string): Promise<Result<ProjectReport, ReportNotFoundError>> {
+  async get(projectId: string): Promise<Result<ReportViewData, ReportNotFoundError>> {
     try {
-      const response = await this._httpClient.get<any>(API_CONFIG.ENDPOINTS.REPORT(projectId));
-      // TODO: Map response to ProjectReport entity
-      return Result.failure(new ReportNotFoundError(projectId));
+      const response = await this._httpClient.get<ReportViewData>(API_CONFIG.ENDPOINTS.REPORT(projectId));
+      if (!response || typeof response.verdict !== 'string') {
+        return Result.failure(new ReportNotFoundError(projectId));
+      }
+      return Result.success(response);
     } catch (error) {
       return Result.failure(new ReportNotFoundError(projectId));
     }

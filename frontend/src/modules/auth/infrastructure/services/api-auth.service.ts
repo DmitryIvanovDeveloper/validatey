@@ -31,6 +31,44 @@ export class ApiAuthService implements AuthServicePort {
     return { redirectUrl: url };
   }
 
+  async registerWithEmail(email: string, password: string): Promise<{ session: AuthSession | null; requiresEmailConfirmation?: boolean }> {
+    const res = await fetch(`${BASE}${API_CONFIG.ENDPOINTS.AUTH_REGISTER}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email: email.trim(), password }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error ?? 'Registration failed');
+    }
+    const data = await res.json().catch(() => null);
+    if (!data?.user) return { session: null };
+    const session = toAuthSession(data);
+    if (!data.requiresEmailConfirmation) {
+      this._onChange?.(session);
+    }
+    return { session, requiresEmailConfirmation: data.requiresEmailConfirmation };
+  }
+
+  async signInWithEmail(email: string, password: string): Promise<AuthSession | null> {
+    const res = await fetch(`${BASE}${API_CONFIG.ENDPOINTS.AUTH_LOGIN}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email: email.trim(), password }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error ?? 'Sign in failed');
+    }
+    const data = await res.json().catch(() => null);
+    if (!data?.user) return null;
+    const session = toAuthSession(data);
+    this._onChange?.(session);
+    return session;
+  }
+
   async signOut(): Promise<void> {
     await fetch(`${BASE}${API_CONFIG.ENDPOINTS.AUTH_SIGN_OUT}`, {
       method: 'POST',

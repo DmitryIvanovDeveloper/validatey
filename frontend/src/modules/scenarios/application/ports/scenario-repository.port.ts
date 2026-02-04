@@ -25,5 +25,7 @@ export interface ScenarioRepositoryPort {
   getTemplates(): Promise<Result<Array<{ slug: string; name: string; content: string }>, ScenarioNotFoundError>>;
   /** Save scenario quality rating (1-5) after AI generation */
   rateScenario(projectId: string, scenarioId: string, rating: number): Promise<Result<{ id: string }, ScenarioNotFoundError>>;
+  /** Validate scenario structure for template (POST /scenarios/validate). Returns { valid, warnings }. */
+  validateScenarioStructure(scenarioContent: string, templateSlug: string): Promise<{ valid: boolean; warnings: string[] }>;
 }
 

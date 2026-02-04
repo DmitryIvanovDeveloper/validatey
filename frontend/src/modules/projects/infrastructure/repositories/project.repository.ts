@@ -97,10 +97,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
 
   async list(): Promise<Result<Project[], ProjectListError>> {
     try {
-      const url =
-        import.meta.env.DEV && typeof API_CONFIG.ENDPOINTS.PROJECTS === 'string'
-          ? `${API_CONFIG.ENDPOINTS.PROJECTS}?list=all`
-          : API_CONFIG.ENDPOINTS.PROJECTS;
+      const url = API_CONFIG.ENDPOINTS.PROJECTS;
       const response = await this._httpClient.get<Array<{
         id: string;
         name: string;

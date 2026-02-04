@@ -4,6 +4,8 @@ import invitationsNestedRoutes from '../../../invitations/interface-adapters/rou
 import reportsNestedRoutes from '../../../reports/interface-adapters/routes/reports-nested.routes';
 import responsesNestedRoutes from '../../../responses/interface-adapters/routes/responses-nested.routes';
 import earlySignalsNestedRoutes from '../../../signals/interface-adapters/routes/early-signals-nested.routes';
+import deletionRequestsNestedRoutes from '../../../deletion-requests/interface-adapters/routes/deletion-requests-nested.routes';
+import consentsNestedRoutes from '../../../consents/interface-adapters/routes/consents-nested.routes';
 
 const router = Router({ mergeParams: true });
 
@@ -21,6 +23,12 @@ router.use('/:projectId/responses', responsesNestedRoutes);
 
 // Nested routes: /projects/:projectId/early-signals
 router.use('/:projectId/early-signals', earlySignalsNestedRoutes);
+
+// Nested routes: /projects/:projectId/deletion-requests
+router.use('/:projectId/deletion-requests', deletionRequestsNestedRoutes);
+
+// Nested routes: /projects/:projectId/consents
+router.use('/:projectId/consents', consentsNestedRoutes);
 
 export default router;
 

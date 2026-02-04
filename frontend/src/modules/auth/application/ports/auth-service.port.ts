@@ -12,6 +12,8 @@ export interface AuthSession {
  */
 export interface AuthServicePort {
   signInWithGoogle(redirectTo?: string): Promise<{ redirectUrl: string }>;
+  registerWithEmail(email: string, password: string): Promise<{ session: AuthSession | null; requiresEmailConfirmation?: boolean }>;
+  signInWithEmail(email: string, password: string): Promise<AuthSession | null>;
   signOut(): Promise<void>;
   getSession(): Promise<AuthSession | null>;
   onAuthStateChange(callback: (session: AuthSession | null) => void): () => void;

@@ -26,9 +26,9 @@ export class SurveyPresenter {
     const result = await this._getSurveyByTokenUseCase.execute({ token });
 
     if (result.isSuccess) {
-      // Map response to Survey entity
-      const surveyData = result.data.survey;
-      const questions = surveyData.questions.map(q => 
+      const data = result.data;
+      const surveyData = data.survey;
+      const questions = surveyData.questions.map(q =>
         new SurveyQuestion(
           q.id,
           q.type as QuestionType,
@@ -37,7 +37,7 @@ export class SurveyPresenter {
           q.options
         )
       );
-      
+
       const survey = new Survey(
         surveyData.id,
         surveyData.token,
@@ -47,8 +47,13 @@ export class SurveyPresenter {
         null,
         null
       );
-      
+
       viewModel.survey.value = survey;
+      viewModel.consentRequired.value = data.consentRequired ?? false;
+      viewModel.consentText.value = data.consentText ?? '';
+      viewModel.dataUsageText.value = data.dataUsageText ?? '';
+      viewModel.alreadyConsented.value = data.alreadyConsented ?? false;
+      viewModel.consentGiven.value = data.alreadyConsented ?? false;
       viewModel.loading.value = false;
       this._logger.info('Survey loaded', { token });
     } else {
@@ -78,8 +83,21 @@ export class SurveyPresenter {
 
   async saveAnswer(token: string, questionId: string, answer: any): Promise<void> {
     // Auto-save is optional - for now just log
-    // In future, could implement draft saving to localStorage or backend
     this._logger.debug('Answer saved locally', { token, questionId });
+  }
+
+  async submitConsent(token: string, consentText?: string | null): Promise<{ success: boolean; error?: string }> {
+    try {
+      const result = await this._surveyRepository.recordConsent(token, consentText);
+      if (result.isSuccess) {
+        this._logger.info('Consent recorded', { token });
+        return { success: true };
+      }
+      return { success: false, error: result.error?.message };
+    } catch (error) {
+      this._logger.error('Failed to record consent', { token, error });
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
 }
 

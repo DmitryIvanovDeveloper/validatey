@@ -10,6 +10,8 @@ export type UpdateProjectUseCaseRequest = {
   marketContext?: MarketContext;
   targetAudience?: string;
   cost?: number;
+  /** Scenario template slug (wtp | feature-demand | value-prop). */
+  scenarioTemplateSlug?: string | null;
 };
 
 export type UpdateProjectUseCaseResponse = {

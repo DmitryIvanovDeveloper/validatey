@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import type { SurveyRepositoryPort } from '../../application/ports/survey-repository.port';
+import type { SurveyRepositoryPort, SurveyWithConsent } from '../../application/ports/survey-repository.port';
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import Result from '../../../../infrastructure/result/result';
@@ -73,9 +73,26 @@ export class SurveyRepository implements SurveyRepositoryPort {
         surveyData.completedAt ? new Date(surveyData.completedAt) : null
       );
 
-      return Result.success(survey);
+      const withConsent: SurveyWithConsent = {
+        survey,
+        consentRequired: (response as any).consentRequired ?? false,
+        consentText: (response as any).consentText ?? '',
+        dataUsageText: (response as any).dataUsageText ?? '',
+        alreadyConsented: (response as any).alreadyConsented ?? false,
+      };
+      return Result.success(withConsent);
     } catch (error) {
       return Result.failure(new SurveyNotFoundError(token));
+    }
+  }
+
+  async recordConsent(token: string, consentText?: string | null): Promise<Result<void, Error>> {
+    try {
+      const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api').replace('/api', '');
+      await this._httpClient.post(`${baseUrl}/survey/${token}/consent`, { consentText: consentText ?? null });
+      return Result.success(undefined);
+    } catch (error) {
+      return Result.failure(error instanceof Error ? error : new Error('Failed to record consent'));
     }
   }
 

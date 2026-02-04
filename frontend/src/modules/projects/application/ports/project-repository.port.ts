@@ -18,6 +18,7 @@ export interface UpdateProjectData {
   hypothesis?: Hypothesis | null;
   marketContext?: MarketContext | null;
   status?: ProjectStatus;
+  scenarioTemplateSlug?: string | null;
 }
 
 export interface ProjectRepositoryPort {

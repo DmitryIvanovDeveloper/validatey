@@ -108,6 +108,23 @@ router.post('/rate', async (req: Request, res: Response) => {
   }
 });
 
+/** POST /api/scenarios/validate — validate scenario structure for template (returns warnings, does not block save). */
+router.post('/validate', async (req: Request, res: Response) => {
+  try {
+    const { scenarioContent, templateSlug } = req.body || {};
+    if (templateSlug == null || templateSlug === '') {
+      return res.status(400).json({ error: 'templateSlug is required' });
+    }
+    const result = presenter.validateScenarioStructure({
+      scenarioContent: scenarioContent ?? '',
+      templateSlug: String(templateSlug),
+    });
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 // Save scenario version (manual edit)
 router.post('/', async (req: Request, res: Response) => {
   try {

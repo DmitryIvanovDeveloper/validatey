@@ -11,3 +11,18 @@ export type SignInWithGoogleInput = {
 export type SignInWithGoogleOutput = {
   redirectUrl: string;
 };
+
+export type RegisterWithEmailInput = {
+  email: string;
+  password: string;
+};
+
+export type SignInWithEmailInput = {
+  email: string;
+  password: string;
+};
+
+export type EmailAuthOutput = {
+  session: { user: AuthUser };
+  requiresEmailConfirmation?: boolean;
+};

@@ -18,6 +18,12 @@ export interface Project {
   readonly marketContext: MarketContext | null;
   readonly targetAudience: string | null;
   readonly cost: number | null;
+  /** Consent text shown before survey (GDPR). */
+  readonly consentText: string | null;
+  /** How we use data (GDPR). */
+  readonly dataUsageText: string | null;
+  /** Selected scenario template: wtp | feature-demand | value-prop. */
+  readonly scenarioTemplateSlug: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -45,6 +51,9 @@ export class ProjectEntity {
     public readonly marketContext: MarketContext | null,
     public readonly targetAudience: string | null,
     public readonly cost: number | null,
+    public readonly consentText: string | null,
+    public readonly dataUsageText: string | null,
+    public readonly scenarioTemplateSlug: string | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
@@ -77,6 +86,9 @@ export class ProjectEntity {
       marketContext ?? null,
       targetAudience || null,
       cost || null,
+      null,
+      null,
+      null,
       now,
       now
     );
@@ -93,6 +105,9 @@ export class ProjectEntity {
       data.marketContext ?? null,
       data.targetAudience,
       data.cost,
+      data.consentText ?? null,
+      data.dataUsageText ?? null,
+      data.scenarioTemplateSlug ?? null,
       data.createdAt,
       data.updatedAt
     );
@@ -109,6 +124,9 @@ export class ProjectEntity {
       this.marketContext,
       this.targetAudience,
       this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
     );
@@ -125,6 +143,9 @@ export class ProjectEntity {
       this.marketContext,
       this.targetAudience,
       this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
     );
@@ -141,6 +162,9 @@ export class ProjectEntity {
       this.marketContext,
       this.targetAudience,
       this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
     );
@@ -157,6 +181,9 @@ export class ProjectEntity {
       marketContext,
       this.targetAudience,
       this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
     );
@@ -173,6 +200,9 @@ export class ProjectEntity {
       this.marketContext,
       targetAudience,
       this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
     );
@@ -195,6 +225,9 @@ export class ProjectEntity {
       this.marketContext,
       this.targetAudience,
       this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
     );
@@ -214,6 +247,66 @@ export class ProjectEntity {
       this.marketContext,
       this.targetAudience,
       cost,
+      this.consentText,
+      this.dataUsageText,
+      this.scenarioTemplateSlug,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withConsentText(consentText: string | null): ProjectEntity {
+    return new ProjectEntity(
+      this.id,
+      this.userId,
+      this.name,
+      this.status,
+      this.segment,
+      this.hypothesis,
+      this.marketContext,
+      this.targetAudience,
+      this.cost,
+      consentText,
+      this.dataUsageText,
+      this.scenarioTemplateSlug,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withDataUsageText(dataUsageText: string | null): ProjectEntity {
+    return new ProjectEntity(
+      this.id,
+      this.userId,
+      this.name,
+      this.status,
+      this.segment,
+      this.hypothesis,
+      this.marketContext,
+      this.targetAudience,
+      this.cost,
+      this.consentText,
+      dataUsageText,
+      this.scenarioTemplateSlug,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withScenarioTemplateSlug(scenarioTemplateSlug: string | null): ProjectEntity {
+    return new ProjectEntity(
+      this.id,
+      this.userId,
+      this.name,
+      this.status,
+      this.segment,
+      this.hypothesis,
+      this.marketContext,
+      this.targetAudience,
+      this.cost,
+      this.consentText,
+      this.dataUsageText,
+      scenarioTemplateSlug,
       this.createdAt,
       new Date()
     );
@@ -230,6 +323,9 @@ export class ProjectEntity {
       marketContext: this.marketContext,
       targetAudience: this.targetAudience,
       cost: this.cost,
+      consentText: this.consentText,
+      dataUsageText: this.dataUsageText,
+      scenarioTemplateSlug: this.scenarioTemplateSlug,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

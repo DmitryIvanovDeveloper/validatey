@@ -7,6 +7,7 @@ import { PDFReportGeneratorService } from '../services/pdf-report-generator.serv
 import { HTMLReportGeneratorService } from '../services/html-report-generator.service';
 import { GenerateReportUseCase } from '../../application/use-cases/generate-report.use-case';
 import { GetReportByTokenUseCase } from '../../application/use-cases/get-report-by-token.use-case';
+import { GetReportDataUseCase } from '../../application/use-cases/get-report-data.use-case';
 import { ReportPresenter } from '../../interface-adapters/presenters/report.presenter';
 
 export function bindReports(container: Container): void {
@@ -20,6 +21,7 @@ export function bindReports(container: Container): void {
   // Use Cases
   container.bind<GenerateReportUseCase>(TYPES.GenerateReportUseCase).to(GenerateReportUseCase);
   container.bind<GetReportByTokenUseCase>(TYPES.GetReportByTokenUseCase).to(GetReportByTokenUseCase);
+  container.bind<GetReportDataUseCase>(TYPES.GetReportDataUseCase).to(GetReportDataUseCase);
 
   // Presenter
   container.bind<ReportPresenter>(TYPES.ReportPresenter).to(ReportPresenter);

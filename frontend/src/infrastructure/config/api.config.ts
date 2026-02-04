@@ -20,7 +20,9 @@ export const API_CONFIG = {
     SCENARIOS_TEMPLATES: '/scenarios/templates',
     /** POST body: { projectId, scenarioId, rating } - save scenario quality rating (1-5) */
     SCENARIOS_RATE: '/scenarios/rate',
-    
+    /** POST body: { scenarioContent, templateSlug } - validate scenario structure (returns { valid, warnings }) */
+    SCENARIOS_VALIDATE: '/scenarios/validate',
+
     // Invitations
     INVITATIONS: (projectId: string) => `/projects/${projectId}/invitations`,
     INVITATION: (projectId: string, invitationId: string) => `/projects/${projectId}/invitations/${invitationId}`,
@@ -29,7 +31,14 @@ export const API_CONFIG = {
     // Responses
     RESPONSES: (projectId: string) => `/responses/project/${projectId}`, // Using direct endpoint until nested route works
     RESPONSE: (projectId: string, responseId: string) => `/projects/${projectId}/responses/${responseId}`,
-    
+    /** GET ?format=json|csv - export raw responses (attachment) */
+    RESPONSES_EXPORT: (projectId: string, format: 'json' | 'csv') => `/projects/${projectId}/responses/export?format=${format}`,
+    /** GET ?format=json|csv - export consents for audit (attachment) */
+    CONSENTS_EXPORT: (projectId: string, format: 'json' | 'csv') => `/projects/${projectId}/consents/export?format=${format}`,
+    /** GET - list deletion requests for project; POST to execute: .../deletion-requests/:requestId/execute */
+    DELETION_REQUESTS: (projectId: string) => `/projects/${projectId}/deletion-requests`,
+    DELETION_REQUEST_EXECUTE: (projectId: string, requestId: string) => `/projects/${projectId}/deletion-requests/${requestId}/execute`,
+
     // Early Signals
     EARLY_SIGNALS: (projectId: string) => `/projects/${projectId}/early-signals`,
 
@@ -40,6 +49,7 @@ export const API_CONFIG = {
     
     // Survey (Respondent UI) - Note: /survey route is mounted directly, not under /api
     SURVEY_BY_TOKEN: (token: string) => `${getSurveyBaseUrl()}/survey/${token}`,
+    SURVEY_CONSENT: (token: string) => `${getSurveyBaseUrl()}/survey/${token}/consent`,
     SUBMIT_RESPONSE: (token: string) => `/public/responses`,
     
     // Analytics/Telemetry
@@ -52,6 +62,8 @@ export const API_CONFIG = {
 
     // Auth (via backend; no Supabase on frontend)
     AUTH_GOOGLE_URL: '/auth/google-url',
+    AUTH_REGISTER: '/auth/register',
+    AUTH_LOGIN: '/auth/login',
     AUTH_SESSION: '/auth/session',
     AUTH_LINK_PREVIOUS_USER: '/auth/link-previous-user',
     AUTH_SIGN_OUT: '/auth/sign-out',

@@ -1,23 +1,30 @@
 <template>
   <div class="app-layout">
-    <nav v-if="showNavbar" class="navbar" role="navigation" aria-label="Main">
-      <div class="navbar-content">
-        <router-link to="/" class="logo" aria-label="Validatey home">Validatey</router-link>
-        <ul class="nav-links">
-          <li><router-link to="/projects" class="nav-link" active-class="nav-link-active">Projects</router-link></li>
-          <li><router-link to="/projects/new" class="nav-link nav-link-cta">+ New Project</router-link></li>
-        </ul>
-        <div class="nav-user">
+    <header v-if="showNavbar" class="header" role="banner">
+      <div class="header-inner">
+        <router-link to="/projects" class="brand" aria-label="Validatey home">
+          <span class="brand-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7l10 5 10-5L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="brand-text">Validatey</span>
+        </router-link>
+        <div class="header-actions">
           <template v-if="authViewModel.user.value">
-            <span class="user-email" :title="authViewModel.user.value.email ?? undefined">{{ userDisplayName }}</span>
-            <button type="button" class="btn btn-ghost" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
+            <div class="user-badge" :title="authViewModel.user.value.email ?? undefined">
+              <span class="user-avatar" aria-hidden="true">{{ userInitial }}</span>
+              <span class="user-name">{{ userDisplayName }}</span>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
           </template>
           <template v-else>
             <button type="button" class="btn btn-primary" :disabled="authViewModel.loading.value" @click="handleSignIn">Sign in with Google</button>
           </template>
         </div>
       </div>
-    </nav>
+    </header>
     <main class="main-content">
       <slot />
     </main>
@@ -42,6 +49,13 @@ const userDisplayName = computed(() => {
   const u = authViewModel.user.value;
   if (!u) return '';
   return u.email ?? u.displayName ?? 'User';
+});
+
+const userInitial = computed(() => {
+  const name = userDisplayName.value;
+  if (!name) return '?';
+  const part = name.trim().split(/[\s@]/).find(Boolean) ?? '';
+  return part.charAt(0).toUpperCase() || '?';
 });
 let unsubscribeAuth: (() => void) | null = null;
 
@@ -105,90 +119,90 @@ async function handleSignOut() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--color-bg, #fafafa);
 }
 
-.navbar {
-  background: var(--color-bg);
-  box-shadow: var(--shadow-sm);
-  border-bottom: 1px solid var(--color-border);
-  padding: 0.875rem 0;
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.navbar-content {
+.header-inner {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
+  height: 3.5rem;
   display: flex;
   align-items: center;
   gap: 2rem;
 }
 
-.logo {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--color-accent);
-  text-decoration: none;
-  letter-spacing: -0.03em;
-  transition: color 0.2s;
-}
-
-.logo:hover {
-  color: var(--color-accent-hover);
-}
-
-.nav-links {
-  display: flex;
+.brand {
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.nav-link {
-  padding: 0.5rem 0.75rem;
-  color: var(--color-text-muted);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 0.9375rem;
-  border-radius: var(--radius-md);
-  transition: color 0.15s, background 0.15s;
+  color: var(--color-accent, #0d9488);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  transition: color 0.2s, opacity 0.2s;
 }
 
-.nav-link:hover {
-  color: var(--color-accent);
-  background: var(--color-accent-light);
+.brand:hover {
+  color: var(--color-accent-hover, #0f766e);
+  opacity: 0.9;
 }
 
-.nav-link-active {
-  color: var(--color-accent);
-  background: var(--color-accent-light);
-  font-weight: 600;
+.brand-icon {
+  display: flex;
+  color: var(--color-accent, #0d9488);
 }
 
-.nav-link-cta {
-  color: white;
-  background: var(--color-accent);
-  padding: 0.5rem 1rem;
-  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.3);
+.brand-text {
+  font-weight: 700;
 }
 
-.nav-link-cta:hover {
-  background: var(--color-accent-hover);
-  color: white;
-  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.35);
-}
-
-.nav-user {
+.header-actions {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.user-email {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  max-width: 180px;
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  background: var(--color-bg-subtle, #f1f5f9);
+  border-radius: 9999px;
+}
+
+.user-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--color-accent, #0d9488);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-size: 0.8125rem;
+  color: var(--color-text, #334155);
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -196,33 +210,38 @@ async function handleSignOut() {
 
 .btn {
   padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
+  border-radius: 0.5rem;
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
   border: none;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .btn-primary {
-  background: var(--color-accent);
+  background: var(--color-accent, #0d9488);
   color: white;
-  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
+  box-shadow: 0 1px 2px rgba(13, 148, 136, 0.25);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-accent-hover);
-  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
+  background: var(--color-accent-hover, #0f766e);
+  box-shadow: 0 2px 4px rgba(13, 148, 136, 0.3);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted, #64748b);
 }
 
 .btn-ghost:hover:not(:disabled) {
-  color: var(--color-text);
-  background: var(--color-bg-subtle);
+  color: var(--color-text, #334155);
+  background: var(--color-bg-subtle, #f1f5f9);
 }
 
 .btn:disabled {

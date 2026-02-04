@@ -28,37 +28,32 @@
       </EmptyState>
     </div>
     <div v-else class="projects-grid">
-      <Card
+      <ProjectCard
         v-for="project in viewModel.projects.value"
         :key="project.id"
-        hover
-        clickable
+        :project="project"
         @click="goToProject(project.id)"
       >
-        <template #header>
-          <div class="project-card-header">
-            <h3 class="project-name">{{ project.name }}</h3>
-            <span :class="['status-badge', `status-${project.status}`]">{{ getStatusLabel(project.status) }}</span>
-          </div>
-        </template>
-        <div class="project-meta">
-          <span class="meta-item">{{ formatDate(project.createdAt) }}</span>
-        </div>
         <template #footer>
-          <div class="project-card-footer">
-            <router-link :to="`/projects/${project.id}`" class="btn-link">Details →</router-link>
-            <button
-              type="button"
-              class="btn-delete"
-              :disabled="viewModel.deletingId.value === project.id"
-              :aria-label="`Delete ${project.name}`"
-              @click.stop="openDeleteModal(project)"
-            >
-              Delete
-            </button>
-          </div>
+          <router-link :to="`/projects/${project.id}`" class="project-card__link" @click.stop>
+            View project
+            <svg class="project-card__link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </router-link>
         </template>
-      </Card>
+        <template #actions>
+          <button
+            type="button"
+            class="project-card-delete"
+            :disabled="viewModel.deletingId.value === project.id"
+            :aria-label="`Delete ${project.name}`"
+            @click.stop="openDeleteModal(project)"
+          >
+            Delete
+          </button>
+        </template>
+      </ProjectCard>
     </div>
 
     <Modal
@@ -107,7 +102,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import PageHeader from '@/shared/components/PageHeader.vue';
-import Card from '@/shared/components/Card.vue';
+import ProjectCard from './components/ProjectCard.vue';
 import EmptyState from '@/shared/components/EmptyState.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
@@ -148,21 +143,6 @@ const goToProject = (projectId: string) => {
   router.push(`/projects/${projectId}`);
 };
 
-const getStatusLabel = (status: ProjectStatus): string => {
-  const labels: Record<ProjectStatus, string> = {
-    draft: 'Draft',
-    'in-progress': 'Active',
-    completed: 'Completed',
-    archived: 'Archived',
-  };
-  return labels[status] || status;
-};
-
-const formatDate = (date: Date | string): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-};
-
 function refetchProjects() {
   presenter.loadProjects(viewModel);
 }
@@ -198,74 +178,26 @@ onUnmounted(() => {
   gap: 1.5rem;
 }
 
-.project-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.project-name {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.status-draft { background: var(--color-bg-subtle); color: var(--color-text-muted); }
-.status-active,
-.status-in-progress { background: var(--color-success-bg); color: var(--color-success); }
-.status-completed { background: var(--color-info-bg); color: var(--color-info); }
-.status-archived { background: var(--color-bg-subtle); color: var(--color-text-subtle); }
-
-.project-meta {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.project-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-}
-
-.btn-link {
-  color: var(--color-accent);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.btn-link:hover { color: var(--color-accent-hover); text-decoration: underline; }
-
-.btn-delete {
+.project-card-delete {
   padding: 0.35rem 0.75rem;
   font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--color-error);
   background: transparent;
   border: 1px solid var(--color-error-bg);
   border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 
-.btn-delete:hover:not(:disabled) {
+.project-card-delete:hover:not(:disabled) {
   background: var(--color-error-bg);
 }
 
-.btn-delete:disabled { opacity: 0.6; cursor: not-allowed; }
+.project-card-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 .btn {
   padding: 0.75rem 1.5rem;

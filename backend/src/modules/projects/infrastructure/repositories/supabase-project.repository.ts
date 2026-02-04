@@ -38,6 +38,9 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
           market_context: project.marketContext,
           target_audience: project.targetAudience,
           cost: project.cost,
+          consent_text: project.consentText ?? null,
+          consent_data_usage_text: project.dataUsageText ?? null,
+          scenario_template_slug: project.scenarioTemplateSlug ?? null,
           created_at,
           updated_at,
         })
@@ -278,6 +281,9 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         market_context: sanitizeValue(project.marketContext),
         target_audience: sanitizeValue(project.targetAudience),
         cost: project.cost !== null && project.cost !== undefined ? Number(project.cost) : null,
+        scenario_template_slug: project.scenarioTemplateSlug != null && String(project.scenarioTemplateSlug).trim() !== ''
+          ? String(project.scenarioTemplateSlug).trim()
+          : null,
         updated_at: project.updatedAt != null && typeof project.updatedAt.toISOString === 'function'
           ? project.updatedAt.toISOString()
           : new Date().toISOString(),
@@ -547,6 +553,9 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         marketContext: data.market_context || null,
         targetAudience: data.target_audience || null,
         cost,
+        consentText: data.consent_text ?? null,
+        dataUsageText: data.consent_data_usage_text ?? null,
+        scenarioTemplateSlug: data.scenario_template_slug ?? null,
         createdAt,
         updatedAt,
       };

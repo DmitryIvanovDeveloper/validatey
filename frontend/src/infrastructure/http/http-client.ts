@@ -52,6 +52,17 @@ export class HttpClient implements HttpClientPort {
     return response.json();
   }
 
+  async getBlob(url: string, headers?: Record<string, string>): Promise<Blob> {
+    const fullUrl = this.buildUrl(url);
+    const requestHeaders = this.getHeaders(headers);
+    const response = await fetch(fullUrl, { method: 'GET', headers: requestHeaders });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+    return response.blob();
+  }
+
   async post<T>(url: string, data?: any, headers?: Record<string, string>): Promise<T> {
     const fullUrl = this.buildUrl(url);
     

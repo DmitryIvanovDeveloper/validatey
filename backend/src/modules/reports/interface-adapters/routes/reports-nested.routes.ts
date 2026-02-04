@@ -6,13 +6,18 @@ import { ReportPresenter } from '../presenters/report.presenter';
 const router = Router({ mergeParams: true });
 const presenter = container.get<ReportPresenter>(TYPES.ReportPresenter);
 
-// GET /projects/:projectId/report
+// GET /projects/:projectId/report — report view data from live metrics (template-aware)
 router.get('/', async (req: Request, res: Response) => {
   try {
     const projectId = req.params.projectId;
-    // TODO: Add GetReportByProjectIdUseCase
-    // If report doesn't exist, should trigger generation
-    return res.status(501).json({ error: 'Get report not implemented yet', projectId });
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+    const result = await presenter.getReportData({ projectId });
+    if (!result.isSuccess) {
+      return res.status(400).json({ error: result.error.message });
+    }
+    return res.status(200).json(result.data);
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }

@@ -35,38 +35,46 @@ export class CalculateMetricsUseCase {
       }
 
       const data = dataResult.data;
+      const templateSlug = request.templateSlug ?? 'wtp';
+      const isWtp = templateSlug === 'wtp';
+      const isFeatureDemand = templateSlug === 'feature-demand';
+      const isValueProp = templateSlug === 'value-prop';
 
-      // Calculate problem severity metrics
-      if (data.problemSeverityScores.length === 0) {
-        return ResultEx.failure(new InsufficientDataError('No problem severity scores available'));
+      // Scale scores: used for problem severity (wtp), feature importance (feature-demand), or value match (value-prop)
+      const scaleScores = data.problemSeverityScores.length > 0
+        ? data.problemSeverityScores
+        : [];
+
+      if (scaleScores.length === 0) {
+        return ResultEx.failure(new InsufficientDataError('No scale scores available for metrics'));
       }
 
-      const sortedScores = [...data.problemSeverityScores].sort((a, b) => a - b);
+      const sortedScores = [...scaleScores].sort((a, b) => a - b);
       const average = sortedScores.reduce((sum, score) => sum + score, 0) / sortedScores.length;
       const median = this.calculateMedian(sortedScores);
       const highScoresCount = sortedScores.filter((score) => score >= 4).length;
       const criticalScoresCount = sortedScores.filter((score) => score >= 4.5).length;
 
-      // Calculate WTP statistics
-      if (data.wtpValues.length === 0) {
-        return ResultEx.failure(new InsufficientDataError('No WTP values available'));
-      }
+      let wtpMedian: number | undefined;
+      let wtpMean: number | undefined;
+      let wtpPercentile25: number | undefined;
+      let wtpPercentile75: number | undefined;
+      let confidenceInterval: { lower: number; upper: number } | undefined;
 
-      const sortedWTP = [...data.wtpValues].sort((a, b) => a - b);
-      const wtpMedian = this.calculateMedian(sortedWTP);
-      const wtpMean = sortedWTP.reduce((sum, val) => sum + val, 0) / sortedWTP.length;
-      const wtpPercentile25 = this.calculatePercentile(sortedWTP, 25);
-      const wtpPercentile75 = this.calculatePercentile(sortedWTP, 75);
-
-      // Calculate confidence interval for WTP (if enough data)
-      let confidenceInterval;
-      if (sortedWTP.length >= 30) {
-        const stdDev = this.calculateStandardDeviation(sortedWTP, wtpMean);
-        const margin = 1.96 * (stdDev / Math.sqrt(sortedWTP.length)); // 95% confidence
-        confidenceInterval = {
-          lower: wtpMean - margin,
-          upper: wtpMean + margin,
-        };
+      if (isWtp) {
+        if (data.wtpValues.length === 0) {
+          return ResultEx.failure(new InsufficientDataError('No WTP values available'));
+        }
+        const sortedWTP = [...data.wtpValues].sort((a, b) => a - b);
+        wtpMedian = this.calculateMedian(sortedWTP);
+        wtpMean = sortedWTP.reduce((sum, val) => sum + val, 0) / sortedWTP.length;
+        wtpPercentile25 = this.calculatePercentile(sortedWTP, 25);
+        wtpPercentile75 = this.calculatePercentile(sortedWTP, 75);
+        if (sortedWTP.length >= 30) {
+          const stdDev = this.calculateStandardDeviation(sortedWTP, wtpMean);
+          const margin = 1.96 * (stdDev / Math.sqrt(sortedWTP.length));
+          confidenceInterval = { lower: wtpMean - margin, upper: wtpMean + margin };
+        }
       }
 
       // Cluster quotes
@@ -95,17 +103,20 @@ export class CalculateMetricsUseCase {
         }
       }
 
-      // Save calculated metrics
-      await this._repository.saveProblemSeverity(
-        request.projectId,
-        ProblemSeverityScore.create(average)
-      );
-      await this._repository.saveWTPStatistics(request.projectId, {
-        median: wtpMedian,
-        mean: wtpMean,
-        percentile25: wtpPercentile25,
-        percentile75: wtpPercentile75,
-      });
+      if (isWtp) {
+        await this._repository.saveProblemSeverity(
+          request.projectId,
+          ProblemSeverityScore.create(average)
+        );
+        if (wtpMedian !== undefined && wtpMean !== undefined && wtpPercentile25 !== undefined && wtpPercentile75 !== undefined) {
+          await this._repository.saveWTPStatistics(request.projectId, {
+            median: wtpMedian,
+            mean: wtpMean,
+            percentile25: wtpPercentile25,
+            percentile75: wtpPercentile75,
+          });
+        }
+      }
 
       if (clusters.length > 0) {
         const ClusterVO = (await import('../../domain/value-objects/cluster.vo')).ClusterVO;
@@ -113,7 +124,7 @@ export class CalculateMetricsUseCase {
           ClusterVO.create(
             c.id || `cluster_${Date.now()}_${idx}`,
             request.projectId,
-            [], // quoteIds will be populated by clustering service
+            [],
             c.theme,
             c.representativeQuote
           )
@@ -124,26 +135,44 @@ export class CalculateMetricsUseCase {
         );
       }
 
-      this._logger.info('calculate-metrics.success', { projectId: request.projectId });
+      this._logger.info('calculate-metrics.success', { projectId: request.projectId, templateSlug });
 
-      return ResultEx.success({
-        metrics: {
-          problemSeverity: {
-            average,
-            median,
-            highScoresCount,
-            criticalScoresCount,
-          },
-          wtp: {
+      const metrics: CalculateMetricsUseCaseResponse['metrics'] = {
+        clusters,
+      };
+
+      if (isWtp) {
+        metrics.problemSeverity = { average, median, highScoresCount, criticalScoresCount };
+        if (wtpMedian !== undefined && wtpMean !== undefined && wtpPercentile25 !== undefined && wtpPercentile75 !== undefined) {
+          metrics.wtp = {
             median: wtpMedian,
             mean: wtpMean,
             percentile25: wtpPercentile25,
             percentile75: wtpPercentile75,
             confidenceInterval,
-          },
-          clusters,
-        },
-      });
+          };
+        }
+      }
+
+      if (isFeatureDemand) {
+        metrics.problemSeverity = { average, median, highScoresCount, criticalScoresCount };
+        metrics.featureScore = {
+          average,
+          median,
+          responseCount: scaleScores.length,
+        };
+      }
+
+      if (isValueProp) {
+        metrics.problemSeverity = { average, median, highScoresCount, criticalScoresCount };
+        metrics.valueMatchScore = {
+          average,
+          median,
+          responseCount: scaleScores.length,
+        };
+      }
+
+      return ResultEx.success({ metrics });
     } catch (error) {
       this._logger.error('calculate-metrics.error', { error });
       if (error instanceof InvalidMetricsDataError || error instanceof InsufficientDataError) {

@@ -345,6 +345,17 @@
         <button v-if="!aiHelperLoading && (!aiHelperSuggestion || aiHelperError)" @click="fetchAISuggestion" class="btn btn-primary" type="button">Get suggestion</button>
       </template>
     </Modal>
+
+    <Modal v-model="showValidationModal" title="Scenario structure warnings">
+      <p class="validation-intro">The scenario may not fully match the selected template. You can still save or go back to edit.</p>
+      <ul class="validation-warnings-list">
+        <li v-for="(w, i) in validationWarnings" :key="i">{{ w }}</li>
+      </ul>
+      <template #footer>
+        <button @click="saveAnyway" class="btn btn-primary">Save anyway</button>
+        <button @click="closeValidationModal" class="btn btn-secondary">Back to scenario</button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -699,35 +710,35 @@ const regenerateScenario = async () => {
   await generateScenario();
 };
 
-const handleComplete = async () => {
-  // Update project with final name and market context (e.g. if changed on last steps)
-  if (currentProjectId.value) {
-    const marketContext = buildMarketContextFromForm();
-    await projectPresenter.updateProject(
-      currentProjectId.value,
-      formData.value.name || undefined,
-      formData.value.segmentDescription || undefined,
-      formData.value.segmentDemographics || undefined,
-      formData.value.hypothesisDescription || undefined,
-      formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0) || undefined,
-      undefined,
-      marketContext ?? undefined
-    );
+const validationWarnings = ref<string[]>([]);
+const showValidationModal = ref(false);
 
-    // Save scenario if we have content and it was edited or from template (not already saved by generate)
-    let content = (scenarioContent.value ?? '').trim();
-    if (!content && scenarioSource.value === 'manual') content = defaultManualScenario.trim();
-    const generatedContent = scenarioViewModel.scenario.value?.content?.trim() ?? '';
-    const needsSave = content.length > 0 && content !== generatedContent;
-    if (needsSave) {
-      const saveResult = await scenarioPresenter.saveScenarioVersion(currentProjectId.value, content);
-      if (saveResult.error) {
-        console.error('Failed to save scenario version:', saveResult.error);
-      }
+async function doComplete() {
+  if (!currentProjectId.value) return;
+  const marketContext = buildMarketContextFromForm();
+  await projectPresenter.updateProject(
+    currentProjectId.value,
+    formData.value.name || undefined,
+    formData.value.segmentDescription || undefined,
+    formData.value.segmentDemographics || undefined,
+    formData.value.hypothesisDescription || undefined,
+    formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0) || undefined,
+    undefined,
+    marketContext ?? undefined,
+    selectedTemplateSlug.value || undefined
+  );
+
+  let content = (scenarioContent.value ?? '').trim();
+  if (!content && scenarioSource.value === 'manual') content = defaultManualScenario.trim();
+  const generatedContent = scenarioViewModel.scenario.value?.content?.trim() ?? '';
+  const needsSave = content.length > 0 && content !== generatedContent;
+  if (needsSave) {
+    const saveResult = await scenarioPresenter.saveScenarioVersion(currentProjectId.value, content);
+    if (saveResult.error) {
+      console.error('Failed to save scenario version:', saveResult.error);
     }
   }
 
-  // Redirect: invitations page for email list or share link; panel stub for "Buy audience"
   const choice = audienceChoice.value;
   if (currentProjectId.value && (choice === 'email' || choice === 'share')) {
     router.push(`/projects/${currentProjectId.value}/invitations`);
@@ -736,7 +747,38 @@ const handleComplete = async () => {
   } else {
     router.push('/projects');
   }
+}
+
+const handleComplete = async () => {
+  if (!currentProjectId.value) return;
+
+  const slug = selectedTemplateSlug.value?.trim();
+  const content = (scenarioContent.value ?? '').trim() || (scenarioSource.value === 'manual' ? defaultManualScenario.trim() : '');
+  if (slug && content) {
+    try {
+      const validation = await scenarioPresenter.validateScenarioStructure(content, slug);
+      if (validation.warnings && validation.warnings.length > 0) {
+        validationWarnings.value = validation.warnings;
+        showValidationModal.value = true;
+        return;
+      }
+    } catch {
+      // On validation API error, proceed without blocking
+    }
+  }
+
+  await doComplete();
 };
+
+function closeValidationModal() {
+  showValidationModal.value = false;
+  validationWarnings.value = [];
+}
+
+function saveAnyway() {
+  closeValidationModal();
+  doComplete();
+}
 </script>
 
 <style scoped>
@@ -786,6 +828,20 @@ const handleComplete = async () => {
 .step-description {
   color: var(--color-text-muted);
   margin-bottom: 2rem;
+}
+
+.validation-intro {
+  color: var(--color-text-muted);
+  margin-bottom: 1rem;
+}
+
+.validation-warnings-list {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.validation-warnings-list li {
+  margin-bottom: 0.25rem;
 }
 
 .form-group {

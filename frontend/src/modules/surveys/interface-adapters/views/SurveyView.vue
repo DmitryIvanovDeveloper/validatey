@@ -1,8 +1,8 @@
 <template>
   <div class="survey-view">
     <div class="survey-container">
-      <!-- Progress Bar -->
-      <div class="survey-progress">
+      <!-- Progress Bar (only when showing questions) -->
+      <div v-if="viewModel.survey.value && (!viewModel.consentRequired.value || viewModel.consentGiven.value)" class="survey-progress">
         <div class="progress-header">
           <span class="progress-text">
             Question {{ viewModel.currentQuestionIndex.value + 1 }} of {{ viewModel.survey.value?.questions.length || 0 }}
@@ -26,6 +26,33 @@
         <h2>Loading Error</h2>
         <p>{{ viewModel.error.value }}</p>
         <button @click="retryLoad" class="btn btn-primary">Try Again</button>
+      </div>
+
+      <!-- Consent Screen (block survey until consent given) -->
+      <div
+        v-else-if="viewModel.survey.value && viewModel.consentRequired.value && !viewModel.consentGiven.value"
+        class="consent-screen"
+      >
+        <h2 class="consent-title">Consent and data use</h2>
+        <div v-if="viewModel.consentText.value" class="consent-text" v-html="viewModel.consentText.value"></div>
+        <div v-else class="consent-text"><p>By continuing you agree to participate in this survey.</p></div>
+        <div v-if="viewModel.dataUsageText.value" class="data-usage-text">
+          <strong>How we use your data</strong>
+          <p v-html="viewModel.dataUsageText.value"></p>
+        </div>
+        <label class="consent-checkbox">
+          <input v-model="consentChecked" type="checkbox" />
+          <span>I have read and agree to the above</span>
+        </label>
+        <div v-if="consentError" class="consent-error">{{ consentError }}</div>
+        <button
+          type="button"
+          class="btn btn-primary btn-large"
+          :disabled="!consentChecked || consentSubmitting"
+          @click="onConsentContinue"
+        >
+          {{ consentSubmitting ? 'Sending…' : 'Continue' }}
+        </button>
       </div>
 
       <!-- Survey Content -->
@@ -157,6 +184,9 @@ const currentAnswer = computed({
 const isCompleted = ref(false);
 const isSubmitting = ref(false);
 const submitError = ref<string | null>(null);
+const consentChecked = ref(false);
+const consentSubmitting = ref(false);
+const consentError = ref<string | null>(null);
 
 const currentQuestion = computed(() => {
   const survey = viewModel.survey.value;
@@ -261,6 +291,25 @@ const submitSurvey = async () => {
   }
 };
 
+const onConsentContinue = async () => {
+  const token = route.params.token as string;
+  if (!token) return;
+  consentSubmitting.value = true;
+  consentError.value = null;
+  try {
+    const result = await presenter.submitConsent(token, viewModel.consentText.value || undefined);
+    if (result.success) {
+      viewModel.consentGiven.value = true;
+    } else {
+      consentError.value = result.error ?? 'Failed to record consent';
+    }
+  } catch (e) {
+    consentError.value = e instanceof Error ? e.message : 'Unknown error';
+  } finally {
+    consentSubmitting.value = false;
+  }
+};
+
 const retryLoad = () => {
   const token = route.params.token as string;
   if (token) {
@@ -341,6 +390,48 @@ onBeforeUnmount(() => {
   background: linear-gradient(90deg, #4299e1, #667eea);
   transition: width 0.3s ease;
   border-radius: 9999px;
+}
+
+.consent-screen {
+  padding: 2rem;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.consent-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 1.25rem;
+}
+.consent-text,
+.data-usage-text {
+  font-size: 1rem;
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+.data-usage-text strong {
+  display: block;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+.consent-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #2d3748;
+}
+.consent-checkbox input {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.consent-error {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
 }
 
 .loading-state,

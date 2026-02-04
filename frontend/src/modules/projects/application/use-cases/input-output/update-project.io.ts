@@ -10,6 +10,7 @@ export type UpdateProjectUseCaseRequest = {
     hypothesis?: Hypothesis;
     marketContext?: MarketContext | null;
     status?: ProjectStatus;
+    scenarioTemplateSlug?: string | null;
   };
 };
 

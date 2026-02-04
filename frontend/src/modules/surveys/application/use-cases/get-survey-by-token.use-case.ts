@@ -48,7 +48,8 @@ export class GetSurveyByTokenUseCase {
       return Result.failure(result.error);
     }
 
-    const survey = result.data;
+    const data = result.data;
+    const survey = data.survey;
 
     return Result.success({
       survey: {
@@ -63,7 +64,11 @@ export class GetSurveyByTokenUseCase {
           options: q.options
         })),
         status: survey.status
-      }
+      },
+      consentRequired: data.consentRequired,
+      consentText: data.consentText,
+      dataUsageText: data.dataUsageText,
+      alreadyConsented: data.alreadyConsented,
     });
   }
 }

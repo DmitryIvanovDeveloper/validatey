@@ -57,7 +57,8 @@ router.post('/', async (req: Request, res: Response) => {
 // List projects for user (must be before GET /:id so that GET / is matched first)
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const userId = (req.body?.userId || req.headers['x-user-id']) as string | undefined;
+    const rawUserId = (req.body?.userId ?? req.headers['x-user-id']) as string | undefined;
+    const userId = typeof rawUserId === 'string' ? rawUserId.trim() : '';
     const listAll = process.env.NODE_ENV === 'development' && req.query.list === 'all';
 
     if (!listAll && !userId) {
@@ -68,7 +69,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     const result = await presenter.listProjects({
-      userId: userId || '',
+      userId,
       listAll,
     });
 
@@ -171,6 +172,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       marketContext: req.body?.marketContext,
       targetAudience: req.body?.targetAudience,
       cost: req.body?.cost,
+      scenarioTemplateSlug: req.body?.scenarioTemplateSlug,
     });
 
     if (!result.isSuccess) {

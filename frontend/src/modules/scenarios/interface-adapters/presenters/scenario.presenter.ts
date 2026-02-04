@@ -96,5 +96,10 @@ export class ScenarioPresenter {
     }
     return {};
   }
+
+  /** Validate scenario structure for the selected template. Returns { valid, warnings }. */
+  async validateScenarioStructure(scenarioContent: string, templateSlug: string): Promise<{ valid: boolean; warnings: string[] }> {
+    return this._scenarioRepository.validateScenarioStructure(scenarioContent, templateSlug);
+  }
 }
 

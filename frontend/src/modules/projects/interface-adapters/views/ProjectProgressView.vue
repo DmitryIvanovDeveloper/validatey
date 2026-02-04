@@ -115,6 +115,14 @@
             <div class="panel-head">
               <h3 id="responses-heading" class="panel-title">Responses</h3>
               <span v-if="responses.length > 0" class="panel-count">{{ responses.length }} total</span>
+              <div v-if="responses.length > 0" class="panel-actions">
+                <button type="button" class="btn btn-ghost btn-sm" :disabled="exportLoading" @click="exportResponses('json')">
+                  {{ exportLoading ? 'Exporting…' : 'Export JSON' }}
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" :disabled="exportLoading" @click="exportResponses('csv')">
+                  Export CSV
+                </button>
+              </div>
             </div>
             <p class="panel-desc">Individual answers by respondent</p>
             <div v-if="responses.length === 0" class="panel-empty">
@@ -167,9 +175,73 @@
               </div>
             </div>
           </section>
+
+          <!-- Compliance: Export consents -->
+          <section class="panel compliance-panel" aria-labelledby="compliance-heading">
+            <h3 id="compliance-heading" class="panel-title">Compliance</h3>
+            <p class="panel-desc">Export consent records for audit</p>
+            <div class="panel-actions">
+              <button type="button" class="btn btn-ghost btn-sm" :disabled="consentExportLoading" @click="exportConsents('json')">
+                {{ consentExportLoading ? 'Exporting…' : 'Export consents (JSON)' }}
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" :disabled="consentExportLoading" @click="exportConsents('csv')">
+                Export consents (CSV)
+              </button>
+            </div>
+          </section>
+
+          <!-- Deletion requests -->
+          <section class="panel deletion-requests-panel" aria-labelledby="deletion-requests-heading">
+            <h3 id="deletion-requests-heading" class="panel-title">Deletion requests</h3>
+            <p class="panel-desc">Data deletion / anonymization requests from respondents</p>
+            <div v-if="deletionRequests.length === 0" class="panel-empty">
+              No deletion requests.
+            </div>
+            <div v-else class="deletion-requests-table-wrap">
+              <table class="deletion-requests-table" role="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Identifier</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Requested</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="req in deletionRequests" :key="req.id">
+                    <td>{{ req.identifier }}</td>
+                    <td><span :class="['deletion-status', `status-${req.status}`]">{{ req.status }}</span></td>
+                    <td>{{ formatDate(req.requestedAt) }}</td>
+                    <td>
+                      <button
+                        v-if="req.status === 'pending'"
+                        type="button"
+                        class="btn btn-ghost btn-sm btn-danger"
+                        :disabled="executingRequestId === req.id"
+                        @click="confirmExecuteDeletion(req)"
+                      >
+                        {{ executingRequestId === req.id ? 'Executing…' : 'Execute' }}
+                      </button>
+                      <span v-else class="deletion-done">—</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
         </main>
       </div>
     </div>
+
+    <ConfirmDialog
+      v-model="showDeletionConfirm"
+      title="Execute deletion request?"
+      message="Remove or anonymize data for this request? This action cannot be undone."
+      confirm-label="Execute"
+      cancel-label="Cancel"
+      variant="danger"
+      @confirm="onConfirmExecuteDeletion"
+    />
   </div>
 </template>
 
@@ -178,6 +250,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import PageHeader from '@/shared/components/PageHeader.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
+import ConfirmDialog from '@/shared/components/ConfirmDialog.vue';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES as INVITATION_TYPES } from '@/modules/invitations/infrastructure/bootstrap/types';
 import type { InvitationRepositoryPort } from '@/modules/invitations/application/ports/invitation-repository.port';
@@ -209,6 +282,20 @@ const earlySignals = ref<Array<{
 
 const questionLabels = ref<Record<string, string>>({});
 const expandedResponses = ref<Set<string>>(new Set());
+const exportLoading = ref(false);
+const consentExportLoading = ref(false);
+
+type DeletionRequestItem = {
+  id: string;
+  identifier: string;
+  status: string;
+  requestedAt: Date;
+  completedAt: Date | null;
+};
+const deletionRequests = ref<DeletionRequestItem[]>([]);
+const executingRequestId = ref<string | null>(null);
+const showDeletionConfirm = ref(false);
+const deletionRequestToExecute = ref<DeletionRequestItem | null>(null);
 
 const responses = ref<Array<{
   id: string;
@@ -292,9 +379,12 @@ const getQuestionLabel = (questionId: string): string => {
   const labels = questionLabels.value;
   const direct = labels[questionId];
   if (direct) return direct;
-  // Try normalized variants (q1 <-> q_1)
   const alt = questionId.startsWith('q_') ? questionId.replace('q_', 'q') : `q_${questionId.replace(/^q/, '')}`;
-  return labels[alt] || questionId;
+  if (labels[alt]) return labels[alt];
+  // Fallback: "Question 1" instead of "q_1" when no scenario labels loaded
+  const match = questionId.match(/^q_?(\d+)$/i);
+  if (match) return `Question ${match[1]}`;
+  return questionId;
 };
 
 const formatAnswerValue = (value: unknown): string => {
@@ -307,18 +397,123 @@ const formatAnswerValue = (value: unknown): string => {
   return JSON.stringify(value, null, 2);
 };
 
+async function exportResponses(format: 'json' | 'csv') {
+  if (exportLoading.value) return;
+  try {
+    exportLoading.value = true;
+    const url = API_CONFIG.ENDPOINTS.RESPONSES_EXPORT(projectId, format);
+    const blob = await httpClient.getBlob(url);
+    const filename = `responses-${projectId}-${new Date().toISOString().slice(0, 10)}.${format}`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (err) {
+    console.error('Export failed:', err);
+    error.value = err instanceof Error ? err.message : 'Export failed';
+  } finally {
+    exportLoading.value = false;
+  }
+}
+
+async function exportConsents(format: 'json' | 'csv') {
+  if (consentExportLoading.value) return;
+  try {
+    consentExportLoading.value = true;
+    const url = API_CONFIG.ENDPOINTS.CONSENTS_EXPORT(projectId, format);
+    const blob = await httpClient.getBlob(url);
+    const filename = `consents-${projectId}-${new Date().toISOString().slice(0, 10)}.${format}`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (err) {
+    console.error('Export consents failed:', err);
+    error.value = err instanceof Error ? err.message : 'Export consents failed';
+  } finally {
+    consentExportLoading.value = false;
+  }
+}
+
+async function loadDeletionRequests() {
+  try {
+    const url = API_CONFIG.ENDPOINTS.DELETION_REQUESTS(projectId);
+    const data = await httpClient.get<{ requests: Array<{
+      id: string;
+      identifier: string;
+      status: string;
+      requestedAt: string;
+      completedAt: string | null;
+    }> }>(url);
+    const list = data?.requests ?? [];
+    deletionRequests.value = list.map((r) => ({
+      id: r.id,
+      identifier: r.identifier,
+      status: r.status,
+      requestedAt: new Date(r.requestedAt),
+      completedAt: r.completedAt ? new Date(r.completedAt) : null,
+    }));
+  } catch {
+    deletionRequests.value = [];
+  }
+}
+
+function confirmExecuteDeletion(req: DeletionRequestItem) {
+  deletionRequestToExecute.value = req;
+  showDeletionConfirm.value = true;
+}
+
+function onConfirmExecuteDeletion() {
+  const req = deletionRequestToExecute.value;
+  deletionRequestToExecute.value = null;
+  if (req) executeDeletionRequest(req.id);
+}
+
+async function executeDeletionRequest(requestId: string) {
+  if (executingRequestId.value) return;
+  try {
+    executingRequestId.value = requestId;
+    const url = API_CONFIG.ENDPOINTS.DELETION_REQUEST_EXECUTE(projectId, requestId);
+    await httpClient.post<{ requestId: string; status: string; completedAt: string }>(url, {});
+    const idx = deletionRequests.value.findIndex((r) => r.id === requestId);
+    if (idx >= 0) {
+      const next = [...deletionRequests.value];
+      next[idx] = { ...next[idx], status: 'completed', completedAt: new Date() };
+      deletionRequests.value = next;
+    }
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to execute deletion request';
+  } finally {
+    executingRequestId.value = null;
+  }
+}
+
 function parseQuestionsFromScenario(content: string): Record<string, string> {
   const labels: Record<string, string> = {};
   if (!content?.trim()) return labels;
   const trimmed = content.trim();
   if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return labels;
   try {
-    const parsed = JSON.parse(trimmed) as { questions?: Array<{ id?: string; text?: string }> };
+    const parsed = JSON.parse(trimmed) as {
+      questions?: Array<{ id?: string; text?: string; label?: string; question?: string }>;
+    };
     if (parsed.questions && Array.isArray(parsed.questions)) {
       parsed.questions.forEach((q, i) => {
-        const id = q.id || `q_${i + 1}`;
-        const text = typeof q.text === 'string' ? q.text.trim() : '';
-        if (text) labels[id] = text;
+        const text =
+          (typeof q.text === 'string' && q.text.trim()) ||
+          (typeof q.label === 'string' && q.label.trim()) ||
+          (typeof q.question === 'string' && q.question.trim()) ||
+          '';
+        if (!text) return;
+        const id = (q.id && q.id.trim()) || `q_${i + 1}`;
+        labels[id] = text;
+        // Store under alternate keys so q_1 / q1 both resolve
+        const normalized = id.startsWith('q_') ? id.replace('q_', 'q') : `q_${id.replace(/^q/, '')}`;
+        if (normalized !== id) labels[normalized] = text;
+        labels[`q_${i + 1}`] = text;
+        if (i >= 0) labels[`q${i + 1}`] = text;
       });
     }
   } catch {
@@ -348,12 +543,13 @@ onMounted(async () => {
       invitations.value = [];
     }
 
-    // Load scenario to get question labels (q1, q2 -> question text)
+    // Load scenario to get question labels (q_1, q_2 -> question text)
     try {
       const scenarioUrl = API_CONFIG.ENDPOINTS.SCENARIOS(projectId);
-      const scenarioData = await httpClient.get<{ scenario: { content: string } }>(scenarioUrl);
-      if (scenarioData?.scenario?.content) {
-        questionLabels.value = parseQuestionsFromScenario(scenarioData.scenario.content);
+      const scenarioData = await httpClient.get<{ scenario?: { content?: string }; data?: { scenario?: { content?: string } } }>(scenarioUrl);
+      const content = scenarioData?.scenario?.content ?? scenarioData?.data?.scenario?.content ?? '';
+      if (content) {
+        questionLabels.value = parseQuestionsFromScenario(content);
       }
     } catch {
       questionLabels.value = {};
@@ -414,6 +610,8 @@ onMounted(async () => {
       console.error('Failed to load early signals:', err);
       earlySignals.value = [];
     }
+
+    await loadDeletionRequests();
 
     // Expand first response by default
     if (responses.value.length > 0) {
@@ -665,6 +863,31 @@ onMounted(async () => {
 .status-completed { background: #dcfce7; color: #15803d; }
 .status-expired { background: #fee2e2; color: #dc2626; }
 
+.btn-danger { color: #dc2626; }
+.btn-danger:hover { background: #fee2e2; color: #b91c1c; }
+
+.deletion-requests-panel { margin-bottom: 1.5rem; }
+.deletion-requests-table-wrap { overflow-x: auto; }
+.deletion-requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.deletion-requests-table th,
+.deletion-requests-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+.deletion-requests-table th { font-weight: 600; color: #64748b; }
+.deletion-status {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+.deletion-done { color: #94a3b8; }
+
 /* Right column: insights */
 .col-insights { min-width: 0; }
 
@@ -729,6 +952,8 @@ onMounted(async () => {
 }
 
 .panel-count { font-size: 0.75rem; color: #94a3b8; }
+.panel-actions { margin-left: auto; display: flex; gap: 0.5rem; }
+.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
 
 .responses-accordion { display: flex; flex-direction: column; gap: 0.5rem; }
 

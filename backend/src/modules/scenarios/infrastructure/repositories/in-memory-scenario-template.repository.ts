@@ -26,9 +26,9 @@ const VALUE_PROP_CONTENT = JSON.stringify({
 });
 
 const TEMPLATES: ScenarioTemplate[] = [
-  { slug: 'wtp', name: 'WTP (Willingness to Pay)', content: WTP_CONTENT },
-  { slug: 'feature-demand', name: 'Feature Demand', content: FEATURE_DEMAND_CONTENT },
-  { slug: 'value-prop', name: 'Value Proposition', content: VALUE_PROP_CONTENT },
+  { slug: 'wtp', name: 'Problem Validation (WTP)', content: WTP_CONTENT },
+  { slug: 'feature-demand', name: 'Feature Validation', content: FEATURE_DEMAND_CONTENT },
+  { slug: 'value-prop', name: 'Value Proposition Test', content: VALUE_PROP_CONTENT },
 ];
 
 @injectable()

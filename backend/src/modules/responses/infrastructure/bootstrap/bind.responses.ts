@@ -10,6 +10,7 @@ import { EmbeddingServicePort } from '../../application/ports/embedding-service.
 import { EmbeddingService } from '../services/embedding.service';
 import { SubmitResponseUseCase } from '../../application/use-cases/submit-response.use-case';
 import { GetResponsesByProjectIdUseCase } from '../../application/use-cases/get-responses-by-project-id.use-case';
+import { ExportResponsesUseCase } from '../../application/use-cases/export-responses.use-case';
 import { ResponsePresenter } from '../../interface-adapters/presenters/response.presenter';
 
 export function bindResponses(container: Container): void {
@@ -24,6 +25,7 @@ export function bindResponses(container: Container): void {
   // Use Cases
   container.bind<SubmitResponseUseCase>(TYPES.SubmitResponseUseCase).to(SubmitResponseUseCase);
   container.bind<GetResponsesByProjectIdUseCase>(TYPES.GetResponsesByProjectIdUseCase).to(GetResponsesByProjectIdUseCase);
+  container.bind<ExportResponsesUseCase>(TYPES.ExportResponsesUseCase).to(ExportResponsesUseCase);
 
   // Presenter
   container.bind<ResponsePresenter>(TYPES.ResponsePresenter).to(ResponsePresenter);

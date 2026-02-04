@@ -38,4 +38,26 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+// Export responses (JSON or CSV)
+router.get('/export', async (req: Request, res: Response) => {
+  try {
+    const projectId = req.params.projectId;
+    const format = (req.query.format as string) === 'csv' ? 'csv' : 'json';
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+    const result = await presenter.exportResponses({ projectId, format });
+    if (!result.isSuccess) {
+      return res.status(400).json({ error: result.error.message });
+    }
+    const contentType = format === 'csv' ? 'text/csv' : 'application/json';
+    const filename = `responses-${projectId}-${new Date().toISOString().slice(0, 10)}.${format}`;
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.status(200).send(result.data.content);
+  } catch (error) {
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 export default router;

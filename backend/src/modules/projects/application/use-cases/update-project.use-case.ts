@@ -78,6 +78,10 @@ export class UpdateProjectUseCase {
         updatedProject = updatedProject.withCost(request.cost);
       }
 
+      if (request.scenarioTemplateSlug !== undefined) {
+        updatedProject = updatedProject.withScenarioTemplateSlug(request.scenarioTemplateSlug ?? null);
+      }
+
       const updateResult = await this._repository.update(updatedProject.toData());
 
       if (!updateResult.isSuccess) {

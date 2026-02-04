@@ -1,5 +1,7 @@
 import { injectable, inject } from 'inversify';
 import type { SignInWithGoogleUseCase } from '../../application/use-cases/sign-in-with-google.use-case';
+import type { RegisterWithEmailUseCase } from '../../application/use-cases/register-with-email.use-case';
+import type { SignInWithEmailUseCase } from '../../application/use-cases/sign-in-with-email.use-case';
 import type { SignOutUseCase } from '../../application/use-cases/sign-out.use-case';
 import type { GetCurrentSessionUseCase } from '../../application/use-cases/get-current-session.use-case';
 import type { AuthServicePort } from '../../application/ports/auth-service.port';
@@ -12,6 +14,10 @@ export class AuthPresenter {
   constructor(
     @inject(TYPES.SignInWithGoogleUseCase)
     private readonly _signInWithGoogleUseCase: SignInWithGoogleUseCase,
+    @inject(TYPES.RegisterWithEmailUseCase)
+    private readonly _registerWithEmailUseCase: RegisterWithEmailUseCase,
+    @inject(TYPES.SignInWithEmailUseCase)
+    private readonly _signInWithEmailUseCase: SignInWithEmailUseCase,
     @inject(TYPES.SignOutUseCase)
     private readonly _signOutUseCase: SignOutUseCase,
     @inject(TYPES.GetCurrentSessionUseCase)
@@ -50,6 +56,34 @@ export class AuthPresenter {
     }
     const err = result as AuthSignInError;
     viewModel.error.value = err.message;
+    return false;
+  }
+
+  async registerWithEmail(viewModel: AuthViewModel, email: string, password: string): Promise<boolean> {
+    viewModel.error.value = null;
+    viewModel.registrationSuccessMessage.value = null;
+    const result = await this._registerWithEmailUseCase.execute({ email, password });
+    if ('session' in result && result.session?.user) {
+      if (result.requiresEmailConfirmation) {
+        viewModel.registrationSuccessMessage.value = 'Check your email to confirm your account, then sign in.';
+        viewModel.user.value = null;
+      } else {
+        viewModel.user.value = result.session.user;
+      }
+      return true;
+    }
+    viewModel.error.value = (result as AuthSignInError).message;
+    return false;
+  }
+
+  async signInWithEmail(viewModel: AuthViewModel, email: string, password: string): Promise<boolean> {
+    viewModel.error.value = null;
+    const result = await this._signInWithEmailUseCase.execute({ email, password });
+    if ('session' in result && result.session?.user) {
+      viewModel.user.value = result.session.user;
+      return true;
+    }
+    viewModel.error.value = (result as AuthSignInError).message;
     return false;
   }
 

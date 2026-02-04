@@ -4,6 +4,7 @@ export const TYPES = {
   HTMLReportGenerator: Symbol.for('HTMLReportGenerator'),
   GenerateReportUseCase: Symbol.for('GenerateReportUseCase'),
   GetReportByTokenUseCase: Symbol.for('GetReportByTokenUseCase'),
+  GetReportDataUseCase: Symbol.for('GetReportDataUseCase'),
   ReportPresenter: Symbol.for('ReportPresenter'),
 } as const;
 

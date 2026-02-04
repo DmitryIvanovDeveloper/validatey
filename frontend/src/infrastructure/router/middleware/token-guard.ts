@@ -20,7 +20,7 @@ export async function tokenGuard(
     return;
   }
 
-  // Home: unauthenticated → show landing; authenticated → redirect to /projects
+  // Root: unauthenticated → /login; authenticated → /projects
   if (to.name === 'home') {
     const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
     const session = await authService.getSession();
@@ -28,7 +28,7 @@ export async function tokenGuard(
       next({ path: '/projects', replace: true });
       return;
     }
-    next();
+    next({ name: 'login', replace: true });
     return;
   }
 

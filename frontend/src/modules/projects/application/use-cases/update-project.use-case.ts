@@ -18,7 +18,8 @@ export class UpdateProjectUseCase {
       segment: input.updates.segment,
       hypothesis: input.updates.hypothesis,
       marketContext: input.updates.marketContext,
-      status: input.updates.status
+      status: input.updates.status,
+      scenarioTemplateSlug: input.updates.scenarioTemplateSlug,
     });
 
     if (!result.isSuccess) {

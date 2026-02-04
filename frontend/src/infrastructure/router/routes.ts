@@ -16,7 +16,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    component: () => import('@/shared/components/LandingView.vue'),
+    component: () => import('@/shared/components/RootRedirectView.vue'),
     meta: { requiresAuth: false },
   },
   {

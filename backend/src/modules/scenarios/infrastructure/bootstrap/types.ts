@@ -8,6 +8,7 @@ export const TYPES = {
   SaveScenarioRatingUseCase: Symbol.for('SaveScenarioRatingUseCase'),
   GetScenarioUseCase: Symbol.for('GetScenarioUseCase'),
   GetScenarioTemplatesUseCase: Symbol.for('GetScenarioTemplatesUseCase'),
+  ValidateScenarioStructureUseCase: Symbol.for('ValidateScenarioStructureUseCase'),
   ScenarioPresenter: Symbol.for('ScenarioPresenter'),
 } as const;
 

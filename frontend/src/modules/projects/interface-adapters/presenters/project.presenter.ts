@@ -185,7 +185,8 @@ export class ProjectPresenter {
     hypothesisDescription?: string,
     hypothesisAssumptions?: string[],
     status?: string,
-    marketContext?: MarketContext | null
+    marketContext?: MarketContext | null,
+    scenarioTemplateSlug?: string | null
   ): Promise<{ ok: boolean; error?: string }> {
     try {
       let segment: Segment | undefined = undefined;
@@ -229,6 +230,7 @@ export class ProjectPresenter {
           hypothesis,
           status: status as any,
           marketContext: marketContext ?? undefined,
+          scenarioTemplateSlug: scenarioTemplateSlug ?? undefined,
         },
       });
 

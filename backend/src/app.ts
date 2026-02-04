@@ -76,6 +76,7 @@ import telemetryRoutes from './modules/telemetry/interface-adapters/routes/telem
 import surveyRoutes from './modules/surveys/interface-adapters/routes/survey.routes';
 import aiRoutes from './modules/ai/routes';
 import authRoutes from './modules/auth/interface-adapters/routes/auth.routes';
+import deletionRequestsRoutes from './modules/deletion-requests/interface-adapters/routes/deletion-requests.routes';
 
 app.use('/api/projects', projectsRoutes);
 app.use('/api/projects', projectsNestedRoutes); // Nested routes: /projects/:projectId/scenarios, /invitations, /report
@@ -93,6 +94,7 @@ app.use('/api/audio-upload', audioUploadRoutes);
 app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/deletion-requests', deletionRequestsRoutes);
 app.use('/survey', surveyRoutes);
 
 app.get('/api', (req: Request, res: Response) => {

@@ -4,6 +4,8 @@ import { SubmitResponseUseCase } from '../../application/use-cases/submit-respon
 import { SubmitResponseUseCaseRequest } from '../../application/use-cases/input-output/submit-response.io';
 import { GetResponsesByProjectIdUseCase } from '../../application/use-cases/get-responses-by-project-id.use-case';
 import { GetResponsesByProjectIdUseCaseRequest } from '../../application/use-cases/input-output/get-responses-by-project-id.io';
+import { ExportResponsesUseCase } from '../../application/use-cases/export-responses.use-case';
+import { ExportResponsesUseCaseRequest } from '../../application/use-cases/input-output/export-responses.io';
 
 @injectable()
 export class ResponsePresenter {
@@ -11,7 +13,9 @@ export class ResponsePresenter {
     @inject(TYPES.SubmitResponseUseCase)
     private readonly _submitResponseUseCase: SubmitResponseUseCase,
     @inject(TYPES.GetResponsesByProjectIdUseCase)
-    private readonly _getResponsesByProjectIdUseCase: GetResponsesByProjectIdUseCase
+    private readonly _getResponsesByProjectIdUseCase: GetResponsesByProjectIdUseCase,
+    @inject(TYPES.ExportResponsesUseCase)
+    private readonly _exportResponsesUseCase: ExportResponsesUseCase
   ) {}
 
   async submitResponse(request: SubmitResponseUseCaseRequest) {
@@ -20,6 +24,10 @@ export class ResponsePresenter {
 
   async getResponsesByProjectId(request: GetResponsesByProjectIdUseCaseRequest) {
     return await this._getResponsesByProjectIdUseCase.execute(request);
+  }
+
+  async exportResponses(request: ExportResponsesUseCaseRequest) {
+    return await this._exportResponsesUseCase.execute(request);
   }
 }
 

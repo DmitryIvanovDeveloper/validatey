@@ -1,10 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { TYPES as CONSENT_TYPES } from '../../../consents/infrastructure/bootstrap/types';
 import { SurveyPresenter } from '../presenters/survey.presenter';
+import { ConsentPresenter } from '../../../consents/interface-adapters/presenters/consent.presenter';
 
 const router = Router();
 const presenter = container.get<SurveyPresenter>(TYPES.SurveyPresenter);
+const consentPresenter = container.get<ConsentPresenter>(CONSENT_TYPES.ConsentPresenter);
 
 // GET /survey/:token
 router.get('/:token', async (req: Request, res: Response) => {
@@ -40,6 +43,35 @@ router.get('/:token', async (req: Request, res: Response) => {
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
     });
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// POST /survey/:token/consent — record consent for invitation (before survey questions)
+router.post('/:token/consent', async (req: Request, res: Response) => {
+  try {
+    const token = req.params.token;
+    const { consentTextId, consentText } = req.body || {};
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.socket?.remoteAddress ?? undefined;
+    const userAgent = (req.headers['user-agent'] as string) ?? undefined;
+
+    const result = await consentPresenter.recordConsent({
+      invitationToken: token,
+      consentTextId: consentTextId ?? null,
+      consentText: consentText ?? null,
+      ip: ip ?? null,
+      userAgent: userAgent ?? null,
+    });
+
+    if (!result.isSuccess) {
+      const err = result.error;
+      if (err.name === 'ConsentAlreadyGivenError') {
+        return res.status(409).json({ error: err.message });
+      }
+      return res.status(400).json({ error: err.message });
+    }
+    return res.status(204).send();
+  } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });

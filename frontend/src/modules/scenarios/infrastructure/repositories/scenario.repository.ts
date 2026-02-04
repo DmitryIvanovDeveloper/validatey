@@ -234,5 +234,17 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
       return Result.failure(new ScenarioNotFoundError(scenarioId, 'Failed to save rating'));
     }
   }
+
+  async validateScenarioStructure(scenarioContent: string, templateSlug: string): Promise<{ valid: boolean; warnings: string[] }> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SCENARIOS_VALIDATE}`;
+    const response = await this._httpClient.post<{ valid: boolean; warnings: string[] }>(url, {
+      scenarioContent: scenarioContent ?? '',
+      templateSlug,
+    });
+    return {
+      valid: response?.valid ?? true,
+      warnings: Array.isArray(response?.warnings) ? response.warnings : [],
+    };
+  }
 }
 

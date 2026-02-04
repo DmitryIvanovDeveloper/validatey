@@ -43,46 +43,31 @@
       </div>
 
       <div v-else class="projects-grid">
-        <Card
+        <ProjectCard
           v-for="project in viewModel.projects.value"
           :key="project.id"
-          :title="project.name"
-          hover
-          clickable
+          :project="project"
           @click="goToProject(project.id)"
         >
-          <template #header>
-            <div class="project-card-header">
-              <h3>{{ project.name }}</h3>
-              <span :class="['status-badge', `status-${project.status}`]">
-                {{ getStatusLabel(project.status) }}
-              </span>
-            </div>
-          </template>
-
-          <div class="project-card-body">
-            <div class="project-meta">
-              <span class="meta-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                {{ formatDate(project.createdAt) }}
-              </span>
-            </div>
-          </div>
-
           <template #footer>
-            <div class="project-card-footer">
-              <router-link :to="`/projects/${project.id}`" class="btn-link">
-                Details →
+            <div class="dashboard-card-footer">
+              <router-link :to="`/projects/${project.id}`" class="project-card__link" @click.stop>
+                Details
+                <svg class="project-card__link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
               </router-link>
-              <router-link v-if="project.status === 'in-progress'" :to="`/projects/${project.id}/progress`" class="btn-link">
+              <router-link
+                v-if="project.status === 'in-progress'"
+                :to="`/projects/${project.id}/progress`"
+                class="dashboard-card-progress"
+                @click.stop
+              >
                 Progress
               </router-link>
             </div>
           </template>
-        </Card>
+        </ProjectCard>
       </div>
     </div>
   </div>
@@ -99,8 +84,6 @@ import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ProjectStatus } from '../../domain/entities/project.entity';
-
 const router = useRouter();
 const viewModel = new ProjectListViewModel();
 const presenter = container.get<ProjectListPresenter>(TYPES.ProjectListPresenter);
@@ -122,20 +105,6 @@ const goToProject = (projectId: string) => {
   router.push(`/projects/${projectId}`);
 };
 
-const getStatusLabel = (status: ProjectStatus): string => {
-  const labels: Record<ProjectStatus, string> = {
-    draft: 'Draft',
-    'in-progress': 'In progress',
-    completed: 'Completed',
-    archived: 'Archived',
-  };
-  return labels[status] || status;
-};
-
-const formatDate = (date: Date | string): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
-};
 </script>
 
 <style scoped>
@@ -159,68 +128,24 @@ const formatDate = (date: Date | string): string => {
   gap: 1.5rem;
 }
 
-.project-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.project-card-header h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0;
-  flex: 1;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.status-draft { background: var(--color-bg-subtle); color: var(--color-text-muted); }
-.status-active,
-.status-in-progress { background: var(--color-success-bg); color: var(--color-success); }
-.status-completed { background: var(--color-info-bg); color: var(--color-info); }
-.status-archived { background: var(--color-bg-subtle); color: var(--color-text-subtle); }
-
-.project-card-body {
-  margin-top: 1rem;
-}
-
-.project-meta {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.meta-item {
+.dashboard-card-footer {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.dashboard-card-progress {
   font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.project-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-link {
-  color: var(--color-accent);
-  text-decoration: none;
   font-weight: 600;
-  transition: color 0.2s;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
 }
 
-.btn-link:hover {
-  color: var(--color-accent-hover);
+.dashboard-card-progress:hover {
+  color: var(--color-accent);
 }
 
 .btn {

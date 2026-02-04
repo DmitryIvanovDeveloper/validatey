@@ -6,6 +6,13 @@ export class SurveyViewModel {
   loading = ref(false);
   error = ref<string | null>(null);
   currentQuestionIndex = ref(0);
+  /** Consent: from API */
+  consentRequired = ref(false);
+  consentText = ref('');
+  dataUsageText = ref('');
+  alreadyConsented = ref(false);
+  /** Set true after user clicks Continue on consent screen (or if alreadyConsented). */
+  consentGiven = ref(false);
 }
 
 
