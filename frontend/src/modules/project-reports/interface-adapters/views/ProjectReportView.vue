@@ -160,6 +160,8 @@ const reportRepository = container.get<ReportRepositoryPort>(TYPES.ReportReposit
 const loading = ref(true);
 const error = ref<string | null>(null);
 const report = ref<ReportViewData | null>(null);
+const showCopyToast = ref(false);
+const copyToastMessage = ref('');
 
 const getVerdictIcon = (type: string): string => {
   const icons: Record<string, string> = {

@@ -40,6 +40,7 @@ export class UpdateProjectUseCase {
           description: project.hypothesis.description,
           assumptions: project.hypothesis.assumptions
         } : null,
+        marketContext: project.marketContext ?? null,
         status: project.status,
         createdAt: project.createdAt.toISOString(),
         updatedAt: project.updatedAt.toISOString()

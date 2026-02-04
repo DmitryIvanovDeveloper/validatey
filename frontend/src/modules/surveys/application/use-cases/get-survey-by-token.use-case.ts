@@ -2,6 +2,7 @@ import { injectable, inject } from 'inversify';
 import Result from '../../../../infrastructure/result/result';
 import type { SurveyRepositoryPort } from '../ports/survey-repository.port';
 import type { InvitationServicePort } from '../../../invitations/application/services/invitation-service.port';
+import type { QuestionOptions } from '../../domain/value-objects/survey-question.vo';
 import { SurveyNotFoundError, SurveyExpiredError } from '../../domain/errors/survey.error';
 import { InvalidTokenError } from '../../../invitations/domain/errors/invitation.error';
 import { TYPES } from '../../infrastructure/bootstrap/types';
@@ -21,9 +22,14 @@ export type GetSurveyByTokenUseCaseResponse = {
       type: string;
       text: string;
       required: boolean;
+      options?: QuestionOptions;
     }>;
     status: string;
   };
+  consentRequired?: boolean;
+  consentText?: string;
+  dataUsageText?: string;
+  alreadyConsented?: boolean;
 };
 
 @injectable()
