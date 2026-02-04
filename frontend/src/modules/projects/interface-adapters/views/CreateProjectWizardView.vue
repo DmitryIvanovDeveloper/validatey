@@ -1,7 +1,14 @@
 <template>
   <div class="create-project-wizard">
+    <PageHeader
+      title="Create New Project"
+      subtitle="Define segment, market context, and hypothesis"
+      :breadcrumbs="[
+        { label: 'Projects', path: '/projects' },
+        { label: 'New Project' }
+      ]"
+    />
     <div class="wizard-container">
-      <h1 class="wizard-title">Create New Project</h1>
       <Wizard :steps="wizardSteps" @complete="handleComplete" @step-change="handleStepChange">
         <template #default="{ step }">
           <div class="step-content">
@@ -273,6 +280,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import PageHeader from '@/shared/components/PageHeader.vue';
 import Wizard from '@/shared/components/Wizard.vue';
 import Modal from '@/shared/components/Modal.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
@@ -587,17 +595,10 @@ const handleComplete = async () => {
 
 .wizard-container {
   background: white;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl, 1rem);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--color-border);
   padding: 2rem;
-}
-
-.wizard-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 2rem;
-  text-align: center;
 }
 
 .step-content {
@@ -623,14 +624,14 @@ const handleComplete = async () => {
 }
 
 .step-panel h2 {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   font-weight: 600;
-  color: #1a202c;
+  color: var(--color-text);
   margin-bottom: 0.5rem;
 }
 
 .step-description {
-  color: #718096;
+  color: var(--color-text-muted);
   margin-bottom: 2rem;
 }
 
@@ -641,23 +642,23 @@ const handleComplete = async () => {
 .form-group label {
   display: block;
   font-weight: 500;
-  color: #2d3748;
+  color: var(--color-text);
   margin-bottom: 0.5rem;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   font-size: 1rem;
   transition: border-color 0.2s;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
 }
 
 .scenario-textarea {
@@ -698,9 +699,9 @@ const handleComplete = async () => {
   width: 40px;
   height: 40px;
   border: none;
-  background: #fed7d7;
-  color: #c53030;
-  border-radius: 0.5rem;
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-size: 1.5rem;
   line-height: 1;
@@ -708,30 +709,30 @@ const handleComplete = async () => {
 }
 
 .btn-remove:hover {
-  background: #fc8181;
+  background: var(--color-error);
   color: white;
 }
 
 .btn-add {
   padding: 0.75rem;
-  border: 2px dashed #cbd5e0;
+  border: 2px dashed var(--color-border);
   background: transparent;
-  color: #718096;
-  border-radius: 0.5rem;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s;
 }
 
 .btn-add:hover {
-  border-color: #4299e1;
-  color: #4299e1;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .ai-helper {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
 }
 
 .market-context-ai-helper {
@@ -740,8 +741,8 @@ const handleComplete = async () => {
 
 .market-context-ai-error {
   margin-top: 0.75rem;
-  color: #c53030;
-  font-size: 0.875rem;
+  color: var(--color-error);
+  font-size: var(--text-sm);
 }
 
 .btn-ai-helper {
@@ -769,7 +770,7 @@ const handleComplete = async () => {
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
-  color: #718096;
+  color: var(--color-text-muted);
 }
 
 .scenario-error {
@@ -778,11 +779,11 @@ const handleComplete = async () => {
 }
 
 .error-message {
-  color: #e53e3e;
+  color: var(--color-error);
   margin-bottom: 1rem;
   padding: 1rem;
-  background: #fed7d7;
-  border-radius: 0.5rem;
+  background: var(--color-error-bg);
+  border-radius: var(--radius-md);
 }
 
 .scenario-editor {
@@ -794,24 +795,24 @@ const handleComplete = async () => {
 .btn-regenerate {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  background: #edf2f7;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-regenerate:hover {
-  background: #e2e8f0;
+  background: var(--color-border);
 }
 
 .price-summary {
   margin-top: 2rem;
   padding: 1.5rem;
-  background: #f7fafc;
-  border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
 }
 
 .price-row {
@@ -825,13 +826,13 @@ const handleComplete = async () => {
 
 .price-amount {
   font-size: 1.5rem;
-  color: #4299e1;
+  color: var(--color-accent);
 }
 
 .price-hint {
   margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #718096;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .btn {
@@ -862,7 +863,7 @@ const handleComplete = async () => {
 }
 
 .ai-helper-intro {
-  color: #718096;
+  color: var(--color-text-muted);
   margin-bottom: 1rem;
   font-size: 0.9375rem;
 }
@@ -890,9 +891,9 @@ const handleComplete = async () => {
 
 .ai-helper-result .suggestion-text {
   padding: 0.75rem;
-  background: #f7fafc;
-  border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   margin: 0;
   font-size: 0.9375rem;
   line-height: 1.5;
@@ -901,7 +902,7 @@ const handleComplete = async () => {
 .assumptions-preview {
   margin: 0;
   padding-left: 1.25rem;
-  color: #2d3748;
+  color: var(--color-text);
   font-size: 0.9375rem;
   line-height: 1.6;
 }

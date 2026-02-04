@@ -23,15 +23,15 @@
 
     <!-- Dashboard with projects -->
     <div v-else>
-      <div class="dashboard-header">
-        <div>
-          <h1 class="dashboard-title">My Projects</h1>
-          <p class="dashboard-subtitle">Manage validation of your product hypotheses</p>
-        </div>
-        <router-link to="/projects/new" class="btn btn-primary">
-          + Create Project
-        </router-link>
-      </div>
+      <PageHeader
+        title="My Projects"
+        subtitle="Manage validation of your product hypotheses"
+        :breadcrumbs="[{ label: 'Home', path: '/' }]"
+      >
+        <template #actions>
+          <router-link to="/projects/new" class="btn btn-primary">+ Create Project</router-link>
+        </template>
+      </PageHeader>
 
       <div v-if="viewModel.loading.value" class="loading-state">
         <LoadingSpinner />
@@ -39,7 +39,7 @@
       </div>
 
       <div v-else-if="viewModel.error.value" class="error-state">
-        <ErrorDisplay :message="viewModel.error.value" />
+        <ErrorDisplay :error="viewModel.error.value" />
       </div>
 
       <div v-else class="projects-grid">
@@ -77,7 +77,7 @@
               <router-link :to="`/projects/${project.id}`" class="btn-link">
                 Details →
               </router-link>
-              <router-link v-if="project.status === 'active'" :to="`/projects/${project.id}/progress`" class="btn-link">
+              <router-link v-if="project.status === 'in-progress'" :to="`/projects/${project.id}/progress`" class="btn-link">
                 Progress
               </router-link>
             </div>
@@ -140,27 +140,7 @@ const formatDate = (date: Date | string): string => {
 
 <style scoped>
 .dashboard-view {
-  padding: 2rem 0;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-}
-
-.dashboard-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0 0 0.5rem 0;
-}
-
-.dashboard-subtitle {
-  font-size: 1rem;
-  color: #718096;
-  margin: 0;
+  padding: 0;
 }
 
 .loading-state,
@@ -187,9 +167,9 @@ const formatDate = (date: Date | string): string => {
 }
 
 .project-card-header h3 {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--color-text);
   margin: 0;
   flex: 1;
 }
@@ -202,25 +182,11 @@ const formatDate = (date: Date | string): string => {
   white-space: nowrap;
 }
 
-.status-draft {
-  background: #edf2f7;
-  color: #4a5568;
-}
-
-.status-active {
-  background: #c6f6d5;
-  color: #22543d;
-}
-
-.status-completed {
-  background: #bee3f8;
-  color: #2c5282;
-}
-
-.status-archived {
-  background: #f7fafc;
-  color: #718096;
-}
+.status-draft { background: var(--color-bg-subtle); color: var(--color-text-muted); }
+.status-active,
+.status-in-progress { background: var(--color-success-bg); color: var(--color-success); }
+.status-completed { background: var(--color-info-bg); color: var(--color-info); }
+.status-archived { background: var(--color-bg-subtle); color: var(--color-text-subtle); }
 
 .project-card-body {
   margin-top: 1rem;
@@ -237,7 +203,7 @@ const formatDate = (date: Date | string): string => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #718096;
+  color: var(--color-text-muted);
 }
 
 .project-card-footer {
@@ -247,19 +213,19 @@ const formatDate = (date: Date | string): string => {
 }
 
 .btn-link {
-  color: #4299e1;
+  color: var(--color-accent);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   transition: color 0.2s;
 }
 
 .btn-link:hover {
-  color: #3182ce;
+  color: var(--color-accent-hover);
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-weight: 500;
   text-decoration: none;
   display: inline-block;
@@ -269,12 +235,14 @@ const formatDate = (date: Date | string): string => {
 }
 
 .btn-primary {
-  background: #4299e1;
+  background: var(--color-accent);
   color: white;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
 }
 
 .btn-primary:hover {
-  background: #3182ce;
+  background: var(--color-accent-hover);
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
 }
 
 .btn-large {
@@ -283,11 +251,6 @@ const formatDate = (date: Date | string): string => {
 }
 
 @media (max-width: 768px) {
-  .dashboard-header {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
   .projects-grid {
     grid-template-columns: 1fr;
   }

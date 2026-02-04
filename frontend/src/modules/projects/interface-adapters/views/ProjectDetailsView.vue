@@ -1,19 +1,20 @@
 <template>
   <div class="project-details-view">
-    <div class="details-header">
-      <router-link to="/projects" class="back-link">← Back to Projects</router-link>
-      <div class="header-actions">
-        <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-secondary">
-          Manage Invitations
-        </router-link>
-        <router-link :to="`/projects/${projectId}/progress`" class="btn btn-secondary">
-          Progress
-        </router-link>
-        <router-link :to="`/projects/${projectId}/report`" class="btn btn-primary">
-          Report
-        </router-link>
+    <header class="page-header" v-if="project">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <router-link to="/projects" class="breadcrumb-link">Projects</router-link>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{{ project.name }}</span>
+      </nav>
+      <div class="header-main">
+        <h1 class="page-title">{{ project.name }}</h1>
+        <div class="header-actions">
+          <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-secondary">Manage Invitations</router-link>
+          <router-link :to="`/projects/${projectId}/progress`" class="btn btn-secondary">Progress</router-link>
+          <router-link :to="`/projects/${projectId}/report`" class="btn btn-primary">Report</router-link>
+        </div>
       </div>
-    </div>
+    </header>
 
     <div v-if="viewModel.loading.value" class="loading-state">
       <LoadingSpinner />
@@ -556,27 +557,15 @@ watch(project, (p) => {
   padding: 2rem 0;
 }
 
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  gap: 1rem;
-}
-
-.back-link {
-  color: #4299e1;
-  text-decoration: none;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  display: inline-block;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
+.page-header { margin-bottom: 2rem; }
+.breadcrumb { display: flex; align-items: center; gap: 0.375rem; font-size: 0.8125rem; color: var(--color-text-muted, #64748b); margin-bottom: 0.5rem; }
+.breadcrumb-link { color: var(--color-text-muted); text-decoration: none; }
+.breadcrumb-link:hover { color: var(--color-accent); }
+.breadcrumb-sep { opacity: 0.5; }
+.breadcrumb-current { color: var(--color-text); font-weight: 600; }
+.header-main { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.page-title { font-size: 1.5rem; font-weight: 700; color: var(--color-text); margin: 0; }
+.header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 .project-card,
 .segment-card,
@@ -600,7 +589,7 @@ watch(project, (p) => {
 
 .info-label {
   font-weight: 500;
-  color: #4a5568;
+  color: var(--color-text-muted);
   min-width: 120px;
 }
 
@@ -611,26 +600,11 @@ watch(project, (p) => {
   font-weight: 500;
 }
 
-.status-draft {
-  background: #edf2f7;
-  color: #4a5568;
-}
-
+.status-draft { background: var(--color-bg-subtle); color: var(--color-text-muted); }
 .status-active,
-.status-in-progress {
-  background: #c6f6d5;
-  color: #22543d;
-}
-
-.status-completed {
-  background: #bee3f8;
-  color: #2c5282;
-}
-
-.status-archived {
-  background: #f7fafc;
-  color: #718096;
-}
+.status-in-progress { background: var(--color-success-bg); color: var(--color-success); }
+.status-completed { background: var(--color-info-bg); color: var(--color-info); }
+.status-archived { background: var(--color-bg-subtle); color: var(--color-text-subtle); }
 
 .scenario-card {
   margin-bottom: 2rem;
@@ -662,14 +636,14 @@ watch(project, (p) => {
 }
 
 .content-item h4 {
-  font-size: 1rem;
+  font-size: var(--text-md);
   font-weight: 600;
-  color: #2d3748;
+  color: var(--color-text);
   margin: 0 0 0.5rem 0;
 }
 
 .content-item p {
-  color: #4a5568;
+  color: var(--color-text-muted);
   line-height: 1.6;
   margin: 0;
 }
@@ -678,7 +652,7 @@ watch(project, (p) => {
 .formatted-text {
   white-space: pre-line;
   margin: 0;
-  color: #4a5568;
+  color: var(--color-text-muted);
   line-height: 1.6;
 }
 
@@ -725,21 +699,24 @@ watch(project, (p) => {
 }
 
 .btn-primary {
-  background: #4299e1;
+  background: var(--color-accent);
   color: white;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
 }
 
 .btn-primary:hover {
-  background: #3182ce;
+  background: var(--color-accent-hover);
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
 }
 
 .btn-secondary {
-  background: #e2e8f0;
-  color: #4a5568;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
 }
 
 .btn-secondary:hover {
-  background: #cbd5e0;
+  background: var(--color-border);
+  color: var(--color-text);
 }
 
 .card-header-row {
@@ -766,13 +743,14 @@ watch(project, (p) => {
 .btn-format {
   font-size: 0.875rem;
   padding: 0.5rem 1rem;
-  background: #e6fffa;
-  color: #234e52;
-  border: 1px solid #81e6d9;
+  background: var(--color-accent-light);
+  color: var(--color-accent-hover);
+  border: 1px solid var(--color-accent);
 }
 
 .btn-format:hover:not(:disabled) {
-  background: #b2f5ea;
+  background: var(--color-accent);
+  color: white;
 }
 
 .btn-format:disabled {
@@ -781,20 +759,12 @@ watch(project, (p) => {
 }
 
 .format-error {
-  color: #c53030;
+  color: var(--color-error);
   margin: 0 0 1rem 0;
   padding: 0.5rem 0;
 }
 
 @media (max-width: 768px) {
-  .details-header {
-    flex-direction: column;
-  }
-
-  .header-actions {
-    width: 100%;
-  }
-
   .header-actions .btn {
     flex: 1;
     text-align: center;

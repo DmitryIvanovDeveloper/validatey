@@ -1,27 +1,20 @@
 <template>
   <div class="project-progress-view">
-    <!-- Header: context + actions -->
-    <header class="page-header">
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <router-link to="/projects" class="breadcrumb-link">Projects</router-link>
-        <span class="breadcrumb-sep" aria-hidden="true">/</span>
-        <router-link :to="`/projects/${projectId}`" class="breadcrumb-link">Project</router-link>
-        <span class="breadcrumb-sep" aria-hidden="true">/</span>
-        <span class="breadcrumb-current">Progress</span>
-      </nav>
-      <div class="header-main">
-        <h1 class="page-title">Project Progress</h1>
-        <div class="header-actions">
-          <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-secondary">
-            Manage Invitations
-          </router-link>
-          <router-link :to="`/projects/${projectId}/report`" class="btn btn-primary">
-            View Report
-          </router-link>
-          <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">← Back</router-link>
-        </div>
-      </div>
-    </header>
+    <PageHeader
+      title="Project Progress"
+      subtitle="Response metrics and early signals"
+      :breadcrumbs="[
+        { label: 'Projects', path: '/projects' },
+        { label: 'Project', path: `/projects/${projectId}` },
+        { label: 'Progress' }
+      ]"
+    >
+      <template #actions>
+        <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-secondary">Manage Invitations</router-link>
+        <router-link :to="`/projects/${projectId}/report`" class="btn btn-primary">View Report</router-link>
+        <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">← Back</router-link>
+      </template>
+    </PageHeader>
 
     <div v-if="loading" class="loading-state">
       <LoadingSpinner />
@@ -183,6 +176,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import PageHeader from '@/shared/components/PageHeader.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES as INVITATION_TYPES } from '@/modules/invitations/infrastructure/bootstrap/types';
@@ -442,53 +436,6 @@ onMounted(async () => {
   padding: 0 1.5rem 4rem;
 }
 
-/* Header */
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  color: #64748b;
-  margin-bottom: 0.5rem;
-}
-
-.breadcrumb-link {
-  color: #64748b;
-  text-decoration: none;
-}
-
-.breadcrumb-link:hover { color: #0f172a; }
-
-.breadcrumb-sep { opacity: 0.5; }
-
-.breadcrumb-current { color: #0f172a; font-weight: 600; }
-
-.header-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -501,25 +448,26 @@ onMounted(async () => {
 }
 
 .btn-primary {
-  background: #0f172a;
+  background: var(--color-accent);
   color: white;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
 }
 
-.btn-primary:hover { background: #1e293b; }
+.btn-primary:hover { background: var(--color-accent-hover); box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3); }
 
 .btn-secondary {
-  background: #f1f5f9;
-  color: #334155;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
 }
 
-.btn-secondary:hover { background: #e2e8f0; }
+.btn-secondary:hover { background: var(--color-border); color: var(--color-text); }
 
 .btn-ghost {
   background: transparent;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
-.btn-ghost:hover { color: #0f172a; background: #f8fafc; }
+.btn-ghost:hover { color: var(--color-accent); background: var(--color-accent-light); }
 
 /* Loading / Error */
 .loading-state,
@@ -552,11 +500,12 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 2rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 0.75rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, var(--color-accent-light) 0%, #e0f2fe 50%, #f0fdfa 100%);
+  border-radius: var(--radius-xl);
   margin-bottom: 2rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(13, 148, 136, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .progress-visual {
@@ -569,27 +518,28 @@ onMounted(async () => {
 
 .progress-ring {
   position: relative;
-  width: 96px;
-  height: 96px;
+  width: 112px;
+  height: 112px;
   border-radius: 50%;
-  background: conic-gradient(#22c55e calc(var(--p, 0) * 3.6deg), #e2e8f0 0);
+  background: conic-gradient(var(--color-accent) calc(var(--p, 0) * 3.6deg), var(--color-border) 0);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 0 4px white, 0 2px 8px rgba(13, 148, 136, 0.2);
 }
 
 .progress-ring::before {
   content: '';
   position: absolute;
-  inset: 6px;
+  inset: 8px;
   border-radius: 50%;
   background: white;
 }
 
 .progress-value {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-accent);
   position: relative;
   z-index: 1;
 }
@@ -598,17 +548,17 @@ onMounted(async () => {
 
 .hero-stat { margin-bottom: 0.25rem; }
 
-.hero-stat-value { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
+.hero-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--color-accent); }
 
-.hero-stat-label { font-size: 0.875rem; color: #64748b; margin-left: 0.25rem; }
+.hero-stat-label { font-size: 0.9375rem; color: var(--color-text-muted); margin-left: 0.25rem; }
 
 .hero-hint {
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
   margin: 0.5rem 0 0;
 }
 
-.hero-hint.success { color: #15803d; }
+.hero-hint.success { color: var(--color-success); font-weight: 500; }
 
 /* Two-column layout */
 .two-col {
@@ -649,9 +599,10 @@ onMounted(async () => {
 
 .panel {
   background: white;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .panel + .panel { margin-top: 1rem; }
@@ -781,22 +732,23 @@ onMounted(async () => {
 
 .responses-accordion { display: flex; flex-direction: column; gap: 0.5rem; }
 
-.response-block { border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden; }
+.response-block { border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
 
 .response-trigger {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: #f8fafc;
+  padding: 0.875rem 1.25rem;
+  background: var(--color-bg-page);
   border: none;
   font-size: 0.875rem;
   text-align: left;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
-.response-trigger:hover { background: #f1f5f9; }
+.response-trigger:hover { background: var(--color-accent-light); }
 
 .response-num { font-weight: 600; color: #64748b; min-width: 2ch; }
 

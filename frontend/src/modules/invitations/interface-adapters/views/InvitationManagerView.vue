@@ -1,11 +1,22 @@
 <template>
   <div class="invitation-manager-view">
-    <div class="manager-header">
-      <h1>Manage Invitations</h1>
-      <button @click="showInviteModal = true" class="btn btn-primary">
-        + Send Invitations
-      </button>
-    </div>
+    <header class="page-header">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <router-link to="/projects" class="breadcrumb-link">Projects</router-link>
+        <span class="breadcrumb-sep">/</span>
+        <router-link :to="`/projects/${projectId}`" class="breadcrumb-link">Project</router-link>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Invitations</span>
+      </nav>
+      <div class="header-main">
+        <h1 class="page-title">Manage Invitations</h1>
+        <div class="header-actions">
+          <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">← Back</router-link>
+          <button type="button" @click="showInviteModal = true" class="btn btn-primary">+ Send Invitations</button>
+        </div>
+      </div>
+      <p class="page-subtitle">Send and track survey invitations</p>
+    </header>
 
     <!-- Invitations List -->
     <Card title="Invitations List">
@@ -136,22 +147,58 @@ onMounted(async () => {
 
 <style scoped>
 .invitation-manager-view {
-  padding: 2rem 0;
+  padding: 0;
 }
 
-.manager-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.page-header {
   margin-bottom: 2rem;
 }
 
-.manager-header h1 {
-  font-size: 2rem;
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #64748b);
+  margin-bottom: 0.5rem;
+}
+
+.breadcrumb-link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover { color: var(--color-accent); }
+.breadcrumb-sep { opacity: 0.5; }
+.breadcrumb-current { color: var(--color-text); font-weight: 600; }
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--color-text);
   margin: 0;
 }
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0.5rem 0 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 
 .invitations-table {
   display: flex;
@@ -162,22 +209,25 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 1rem;
-  padding: 1rem;
-  background: #f7fafc;
-  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
   font-weight: 600;
-  color: #4a5568;
+  color: var(--color-text-muted);
   font-size: 0.875rem;
+  border: 1px solid var(--color-border);
 }
 
 .table-row {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 1rem;
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
   align-items: center;
 }
+
+.table-row:last-child { border-bottom: none; }
 
 .status-badge {
   padding: 0.25rem 0.75rem;
@@ -186,25 +236,10 @@ onMounted(async () => {
   font-weight: 500;
 }
 
-.status-pending {
-  background: #edf2f7;
-  color: #4a5568;
-}
-
-.status-sent {
-  background: #bee3f8;
-  color: #2c5282;
-}
-
-.status-responded {
-  background: #c6f6d5;
-  color: #22543d;
-}
-
-.status-expired {
-  background: #fed7d7;
-  color: #c53030;
-}
+.status-pending { background: var(--color-bg-subtle); color: var(--color-text-muted); }
+.status-sent { background: var(--color-info-bg); color: var(--color-info); }
+.status-responded { background: var(--color-success-bg); color: var(--color-success); }
+.status-expired { background: var(--color-error-bg); color: var(--color-error); }
 
 .btn-small {
   padding: 0.5rem 1rem;
@@ -222,17 +257,23 @@ onMounted(async () => {
 .form-group label {
   display: block;
   font-weight: 500;
-  color: #2d3748;
+  color: var(--color-text);
   margin-bottom: 0.5rem;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-family: inherit;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
 }
 
 .btn {
@@ -245,27 +286,27 @@ onMounted(async () => {
 }
 
 .btn-primary {
-  background: #4299e1;
+  background: var(--color-accent);
   color: white;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: #3182ce;
-}
-
-.btn-primary:disabled {
-  background: #cbd5e0;
-  cursor: not-allowed;
-}
+.btn-primary:hover:not(:disabled) { background: var(--color-accent-hover); box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-secondary {
-  background: #e2e8f0;
-  color: #4a5568;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
 }
 
-.btn-secondary:hover {
-  background: #cbd5e0;
+.btn-secondary:hover { background: var(--color-border); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
 }
+
+.btn-ghost:hover { color: var(--color-text); background: var(--color-bg-subtle); }
 
 @media (max-width: 768px) {
   .table-header,

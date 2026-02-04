@@ -32,16 +32,18 @@ const handleClick = () => {
 
 <style scoped>
 .card {
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--color-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
   padding: 1.5rem;
-  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
 }
 
 .card-hover:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
+  transform: translateY(-3px);
+  border-color: rgba(13, 148, 136, 0.3);
 }
 
 .card-clickable {
@@ -51,24 +53,24 @@ const handleClick = () => {
 .card-header {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .card-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--color-text);
   margin: 0;
 }
 
 .card-body {
-  color: #4a5568;
+  color: var(--color-text-muted);
 }
 
 .card-footer {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
 }
 </style>
 

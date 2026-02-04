@@ -1,17 +1,19 @@
 <template>
   <div class="app-layout">
-    <nav class="navbar" v-if="showNavbar">
+    <nav v-if="showNavbar" class="navbar" role="navigation" aria-label="Main">
       <div class="navbar-content">
-        <router-link to="/" class="logo">Validatey</router-link>
-        <div class="nav-links">
-          <router-link to="/projects">Projects</router-link>
-          <router-link to="/projects/new">Create Project</router-link>
+        <router-link to="/" class="logo" aria-label="Validatey home">Validatey</router-link>
+        <ul class="nav-links">
+          <li><router-link to="/projects" class="nav-link" active-class="nav-link-active">Projects</router-link></li>
+          <li><router-link to="/projects/new" class="nav-link nav-link-cta">+ New Project</router-link></li>
+        </ul>
+        <div class="nav-user">
           <template v-if="authViewModel.user.value">
-            <span class="user-email">{{ authViewModel.user.value.email ?? authViewModel.user.value.displayName ?? 'User' }}</span>
-            <button type="button" class="btn-sign-out" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
+            <span class="user-email" :title="authViewModel.user.value.email">{{ userDisplayName }}</span>
+            <button type="button" class="btn btn-ghost" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
           </template>
           <template v-else>
-            <button type="button" class="btn-sign-in" :disabled="authViewModel.loading.value" @click="handleSignIn">Sign in with Google</button>
+            <button type="button" class="btn btn-primary" :disabled="authViewModel.loading.value" @click="handleSignIn">Sign in with Google</button>
           </template>
         </div>
       </div>
@@ -34,6 +36,12 @@ import { userContextService } from '@/shared/services/user-context.service';
 const route = useRoute();
 const authViewModel = new AuthViewModel();
 const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
+
+const userDisplayName = computed(() => {
+  const u = authViewModel.user.value;
+  if (!u) return '';
+  return u.email ?? u.displayName ?? 'User';
+});
 let unsubscribeAuth: (() => void) | null = null;
 
 /** True after loadSession() has completed. Prevents clearing userId on initial run (user is null before session loads). */
@@ -98,9 +106,10 @@ async function handleSignOut() {
 }
 
 .navbar {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 1rem 0;
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.875rem 0;
 }
 
 .navbar-content {
@@ -108,78 +117,123 @@ async function handleSignOut() {
   margin: 0 auto;
   padding: 0 1.5rem;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 2rem;
 }
 
 .logo {
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 700;
-  color: #1a202c;
+  color: var(--color-accent);
   text-decoration: none;
+  letter-spacing: -0.03em;
+  transition: color 0.2s;
+}
+
+.logo:hover {
+  color: var(--color-accent-hover);
 }
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.nav-links a {
-  color: #4a5568;
+.nav-link {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-muted);
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-md);
+  transition: color 0.15s, background 0.15s;
 }
 
-.nav-links a:hover,
-.nav-links a.router-link-active {
-  color: #2d3748;
+.nav-link:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.nav-link-active {
+  color: var(--color-accent);
+  background: var(--color-accent-light);
+  font-weight: 600;
+}
+
+.nav-link-cta {
+  color: white;
+  background: var(--color-accent);
+  padding: 0.5rem 1rem;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.3);
+}
+
+.nav-link-cta:hover {
+  background: var(--color-accent-hover);
+  color: white;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.35);
+}
+
+.nav-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .user-email {
-  color: #4a5568;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.btn-sign-in,
-.btn-sign-out {
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
   font-weight: 500;
+  font-size: 0.875rem;
   cursor: pointer;
   border: none;
+  transition: background 0.15s;
 }
 
-.btn-sign-in {
-  background: #1a73e8;
-  color: #fff;
+.btn-primary {
+  background: var(--color-accent);
+  color: white;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
 }
 
-.btn-sign-in:hover:not(:disabled) {
-  background: #1557b0;
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
 }
 
-.btn-sign-out {
+.btn-ghost {
   background: transparent;
-  color: #4a5568;
+  color: var(--color-text-muted);
 }
 
-.btn-sign-out:hover:not(:disabled) {
-  color: #2d3748;
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-bg-subtle);
 }
 
-.btn-sign-in:disabled,
-.btn-sign-out:disabled {
+.btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 .main-content {
   flex: 1;
-  max-width: 1200px;
+  max-width: 1120px;
   width: 100%;
   margin: 0 auto;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem;
 }
 </style>
 

@@ -299,16 +299,17 @@ onBeforeUnmount(() => {
 .survey-container {
   max-width: 700px;
   width: 100%;
-  background: white;
-  border-radius: 1rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  background: var(--color-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
   overflow: hidden;
 }
 
 .survey-progress {
   padding: 1.5rem;
-  background: #f7fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--color-bg-page);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .progress-header {
@@ -358,7 +359,7 @@ onBeforeUnmount(() => {
 .loading-state p,
 .error-state p,
 .completion-screen p {
-  color: #718096;
+  color: var(--color-text-muted);
   margin-top: 1rem;
 }
 
@@ -381,15 +382,15 @@ onBeforeUnmount(() => {
 .input-label {
   display: block;
   font-weight: 500;
-  color: #2d3748;
+  color: var(--color-text);
   margin-bottom: 0.75rem;
 }
 
 .text-input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-family: inherit;
   resize: vertical;
@@ -398,15 +399,15 @@ onBeforeUnmount(() => {
 
 .text-input:focus {
   outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
 }
 
 .audio-preview {
   margin-top: 1rem;
   padding: 1rem;
-  background: #f7fafc;
-  border-radius: 0.5rem;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
 }
 
 .question-footer {
@@ -414,7 +415,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 1rem;
   padding-top: 2rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
 }
 
 .spacer {
@@ -461,14 +462,14 @@ onBeforeUnmount(() => {
 .submit-error {
   margin-top: 1.5rem;
   padding: 1rem;
-  background: #fed7d7;
-  border: 1px solid #fc8181;
-  border-radius: 0.5rem;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
   text-align: center;
 }
 
 .submit-error .error-text {
-  color: #c53030;
+  color: var(--color-error);
   margin-bottom: 0.75rem;
   font-weight: 500;
 }

@@ -1,22 +1,24 @@
 <template>
   <div class="project-report-view">
-    <div class="report-header">
-      <div>
-        <router-link :to="`/projects/${projectId}`" class="back-link">← Back to Project</router-link>
-        <h1>Project Report</h1>
+    <header class="page-header">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <router-link to="/projects" class="breadcrumb-link">Projects</router-link>
+        <span class="breadcrumb-sep">/</span>
+        <router-link :to="`/projects/${projectId}`" class="breadcrumb-link">Project</router-link>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Report</span>
+      </nav>
+      <div class="header-main">
+        <h1 class="page-title">Project Report</h1>
+        <div class="header-actions">
+          <button type="button" @click="downloadReport('html')" class="btn btn-secondary">Download HTML</button>
+          <button type="button" @click="downloadReport('pdf')" class="btn btn-secondary">Download PDF</button>
+          <button type="button" @click="shareReport" class="btn btn-primary">Share</button>
+          <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">← Back</router-link>
+        </div>
       </div>
-      <div class="header-actions">
-        <button @click="downloadReport('html')" class="btn btn-secondary">
-          📄 Download HTML
-        </button>
-        <button @click="downloadReport('pdf')" class="btn btn-secondary">
-          📑 Download PDF
-        </button>
-        <button @click="shareReport" class="btn btn-primary">
-          🔗 Share
-        </button>
-      </div>
-    </div>
+      <p class="page-subtitle">Validation results and recommendations</p>
+    </header>
 
     <div v-if="loading" class="loading-state">
       <LoadingSpinner />
@@ -71,9 +73,9 @@
               <span class="cluster-size">{{ cluster[1].size }} respondents</span>
             </div>
             <div class="cluster-details">
-              <div v-for="(value, key) in cluster[1]" :key="key" v-if="key !== 'size'" class="cluster-stat">
-                <span class="stat-label">{{ key }}:</span>
-                <span class="stat-value">{{ value }}</span>
+              <div v-for="stat in clusterStatEntries(cluster[1])" :key="stat.key" class="cluster-stat">
+                <span class="stat-label">{{ stat.key }}:</span>
+                <span class="stat-value">{{ stat.value }}</span>
               </div>
             </div>
           </div>
@@ -151,6 +153,13 @@ const formatMetricValue = (value: any): string => {
   return String(value);
 };
 
+function clusterStatEntries(obj: Record<string, unknown> | null | undefined): { key: string; value: unknown }[] {
+  if (obj == null || typeof obj !== 'object' || Array.isArray(obj)) return [];
+  return Object.entries(obj)
+    .filter(([k]) => k !== 'size')
+    .map(([key, value]) => ({ key, value }));
+}
+
 const generateReport = async () => {
   loading.value = true;
   error.value = null;
@@ -218,37 +227,57 @@ onMounted(() => {
 .project-report-view {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 0 var(--space-4) var(--space-8);
 }
 
-.report-header {
+.page-header {
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-6);
+  border-bottom: 2px solid var(--color-border-light);
+}
+
+.breadcrumb {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  gap: 1rem;
-}
-
-.report-header h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0.5rem 0 0 0;
-}
-
-.back-link {
-  color: #4299e1;
-  text-decoration: none;
-  font-weight: 500;
-  display: inline-block;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
   margin-bottom: 0.5rem;
 }
 
-.header-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+.breadcrumb-link {
+  color: var(--color-text-muted);
+  text-decoration: none;
 }
+
+.breadcrumb-link:hover { color: var(--color-accent); }
+
+.breadcrumb-sep { opacity: 0.5; }
+
+.breadcrumb-current { color: var(--color-text); font-weight: 600; }
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0.5rem 0 0;
+}
+
+.header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 .loading-state,
 .error-state {
@@ -263,26 +292,29 @@ onMounted(() => {
 .report-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-8);
 }
 
+
 .verdict-card {
-  border-left: 4px solid #e2e8f0;
+  border-left: 6px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
 }
 
 .verdict-positive {
-  border-left-color: #48bb78;
-  background: linear-gradient(to right, #f0fff4, white);
+  border-left-color: var(--color-success);
+  background: linear-gradient(135deg, var(--color-success-bg) 0%, var(--color-bg) 50%);
 }
 
 .verdict-negative {
-  border-left-color: #f56565;
-  background: linear-gradient(to right, #fff5f5, white);
+  border-left-color: var(--color-error);
+  background: linear-gradient(135deg, var(--color-error-bg) 0%, var(--color-bg) 50%);
 }
 
 .verdict-neutral {
-  border-left-color: #ed8936;
-  background: linear-gradient(to right, #fffaf0, white);
+  border-left-color: var(--color-warning);
+  background: linear-gradient(135deg, var(--color-warning-bg) 0%, var(--color-bg) 50%);
 }
 
 .verdict-content {
@@ -354,9 +386,10 @@ onMounted(() => {
 
 .cluster-item {
   padding: 1.5rem;
-  background: #f7fafc;
-  border-radius: 0.5rem;
-  border-left: 4px solid #4299e1;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-accent);
 }
 
 .cluster-header {
@@ -369,16 +402,17 @@ onMounted(() => {
 .cluster-name {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1a202c;
+  color: var(--color-text);
   margin: 0;
 }
 
 .cluster-size {
-  font-size: 0.875rem;
-  color: #718096;
-  background: white;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  background: var(--color-bg);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
+  font-weight: 500;
 }
 
 .cluster-details {
@@ -393,14 +427,14 @@ onMounted(() => {
 }
 
 .stat-label {
-  font-size: 0.875rem;
-  color: #718096;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .stat-value {
-  font-size: 1rem;
+  font-size: var(--text-md);
   font-weight: 600;
-  color: #2d3748;
+  color: var(--color-text);
 }
 
 .alternatives-list,
@@ -412,17 +446,18 @@ onMounted(() => {
 
 .alternative-item,
 .recommendation-item {
-  padding: 1rem;
+  padding: 1.25rem;
   margin-bottom: 0.75rem;
-  background: #f7fafc;
-  border-radius: 0.5rem;
-  border-left: 4px solid #ed8936;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-warning);
 }
 
 .recommendation-item {
   counter-increment: recommendation;
   position: relative;
-  padding-left: 3rem;
+  padding-left: 3.5rem;
 }
 
 .recommendations-list {
@@ -434,9 +469,9 @@ onMounted(() => {
   position: absolute;
   left: 1rem;
   top: 1rem;
-  width: 24px;
-  height: 24px;
-  background: #4299e1;
+  width: 26px;
+  height: 26px;
+  background: var(--color-accent);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -447,13 +482,13 @@ onMounted(() => {
 }
 
 .report-actions {
-  margin-top: 2rem;
+  margin-top: 2.5rem;
   text-align: center;
 }
 
 .btn {
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-weight: 500;
   cursor: pointer;
   border: none;
@@ -461,39 +496,40 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #4299e1;
+  background: var(--color-accent);
   color: white;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
 }
 
 .btn-primary:hover {
-  background: #3182ce;
+  background: var(--color-accent-hover);
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
 }
 
 .btn-secondary {
-  background: #e2e8f0;
-  color: #4a5568;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
 }
 
 .btn-secondary:hover {
-  background: #cbd5e0;
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.btn-ghost:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-light);
 }
 
 .btn-large {
   padding: 1rem 2rem;
   font-size: 1.125rem;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
 }
 
-@media (max-width: 768px) {
-  .report-header {
-    flex-direction: column;
-  }
-
-  .header-actions {
-    width: 100%;
-  }
-
-  .header-actions .btn {
-    flex: 1;
-  }
-}
 </style>

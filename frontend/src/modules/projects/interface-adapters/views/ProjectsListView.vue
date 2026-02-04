@@ -1,26 +1,64 @@
 <template>
   <div class="projects-list-view">
-    <h1>Projects</h1>
-    <div v-if="viewModel.loading.value">Loading...</div>
-    <div v-else-if="viewModel.error.value" class="error">{{ viewModel.error.value }}</div>
-    <div v-else-if="viewModel.projects.value.length === 0" class="empty-state">
-      <p class="empty-state-text">No projects yet.</p>
-      <p class="empty-state-hint">Create your first project to validate a hypothesis.</p>
-      <router-link to="/projects/new" class="empty-state-cta">Create project</router-link>
+    <PageHeader
+      title="Projects"
+      subtitle="Manage and validate your product hypotheses"
+      :breadcrumbs="[{ label: 'Projects' }]"
+    >
+      <template #actions>
+        <router-link to="/projects/new" class="btn btn-primary">+ New Project</router-link>
+      </template>
+    </PageHeader>
+
+    <div v-if="viewModel.loading.value" class="loading-state">
+      <LoadingSpinner />
+      <p>Loading projects...</p>
     </div>
-    <div v-else>
-      <div v-for="project in viewModel.projects.value" :key="project.id" class="project-item">
-        <router-link :to="`/projects/${project.id}`" class="project-link">{{ project.name }}</router-link>
-        <button
-          type="button"
-          class="delete-btn"
-          :disabled="viewModel.deletingId.value === project.id"
-          :aria-label="`Delete ${project.name}`"
-          @click="openDeleteModal(project)"
-        >
-          {{ viewModel.deletingId.value === project.id ? '…' : 'Delete' }}
-        </button>
-      </div>
+    <div v-else-if="viewModel.error.value" class="error-state">
+      <ErrorDisplay :error="viewModel.error.value" />
+    </div>
+    <div v-else-if="viewModel.projects.value.length === 0" class="empty-state">
+      <EmptyState
+        title="No projects yet"
+        description="Create your first project to validate a hypothesis and collect feedback."
+      >
+        <template #action>
+          <router-link to="/projects/new" class="btn btn-primary btn-large">Create project</router-link>
+        </template>
+      </EmptyState>
+    </div>
+    <div v-else class="projects-grid">
+      <Card
+        v-for="project in viewModel.projects.value"
+        :key="project.id"
+        hover
+        clickable
+        @click="goToProject(project.id)"
+      >
+        <template #header>
+          <div class="project-card-header">
+            <h3 class="project-name">{{ project.name }}</h3>
+            <span :class="['status-badge', `status-${project.status}`]">{{ getStatusLabel(project.status) }}</span>
+          </div>
+        </template>
+        <div class="project-meta">
+          <span class="meta-item">{{ formatDate(project.createdAt) }}</span>
+        </div>
+        <template #footer>
+          <div class="project-card-footer">
+            <router-link :to="`/projects/${project.id}`" class="btn-link">Details →</router-link>
+            <button
+              type="button"
+              class="btn-delete"
+              :disabled="viewModel.deletingId.value === project.id"
+              :aria-label="`Delete ${project.name}`"
+              @click.stop="openDeleteModal(project)"
+            >
+              Delete
+            </button>
+          </div>
+        </template>
+      </Card>
     </div>
 
     <Modal
@@ -67,13 +105,21 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import Modal from '../../../../shared/components/Modal.vue';
+import { useRouter } from 'vue-router';
+import PageHeader from '@/shared/components/PageHeader.vue';
+import Card from '@/shared/components/Card.vue';
+import EmptyState from '@/shared/components/EmptyState.vue';
+import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
+import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
+import Modal from '@/shared/components/Modal.vue';
 import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import type { Project } from '../../domain/entities/project.entity';
+import { ProjectStatus } from '../../domain/entities/project.entity';
 
+const router = useRouter();
 const viewModel = new ProjectListViewModel();
 const presenter = container.get<ProjectListPresenter>(TYPES.ProjectListPresenter);
 
@@ -98,6 +144,25 @@ async function confirmDelete() {
   projectToDelete.value = null;
 }
 
+const goToProject = (projectId: string) => {
+  router.push(`/projects/${projectId}`);
+};
+
+const getStatusLabel = (status: ProjectStatus): string => {
+  const labels: Record<ProjectStatus, string> = {
+    draft: 'Draft',
+    'in-progress': 'Active',
+    completed: 'Completed',
+    archived: 'Archived',
+  };
+  return labels[status] || status;
+};
+
+const formatDate = (date: Date | string): string => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
 function refetchProjects() {
   presenter.loadProjects(viewModel);
 }
@@ -114,82 +179,117 @@ onUnmounted(() => {
 
 <style scoped>
 .projects-list-view {
-  padding: 2rem;
+  padding: 0;
 }
 
-.project-item {
+.loading-state,
+.error-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.project-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 1rem;
-  padding: 1rem;
-  margin: 0.5rem 0;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.project-link {
+.project-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
   flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.delete-btn {
-  padding: 0.35rem 0.75rem;
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-draft { background: var(--color-bg-subtle); color: var(--color-text-muted); }
+.status-active,
+.status-in-progress { background: var(--color-success-bg); color: var(--color-success); }
+.status-completed { background: var(--color-info-bg); color: var(--color-info); }
+.status-archived { background: var(--color-bg-subtle); color: var(--color-text-subtle); }
+
+.project-meta {
+  margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: #b91c1c;
+  color: var(--color-text-muted);
+}
+
+.project-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.btn-link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.btn-link:hover { color: var(--color-accent-hover); text-decoration: underline; }
+
+.btn-delete {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--color-error);
   background: transparent;
-  border: 1px solid #fecaca;
-  border-radius: 0.375rem;
+  border: 1px solid var(--color-error-bg);
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
-.delete-btn:hover:not(:disabled) {
-  background: #fef2f2;
+.btn-delete:hover:not(:disabled) {
+  background: var(--color-error-bg);
 }
 
-.delete-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-delete:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.error {
-  color: red;
-  padding: 1rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: #f8fafc;
-  border-radius: 0.75rem;
-  border: 1px dashed #e2e8f0;
-}
-
-.empty-state-text {
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: #334155;
-  margin: 0 0 0.5rem;
-}
-
-.empty-state-hint {
-  color: #64748b;
-  margin: 0 0 1.5rem;
-  font-size: 0.9375rem;
-}
-
-.empty-state-cta {
-  display: inline-block;
-  padding: 0.5rem 1.25rem;
-  background: #4299e1;
-  color: white;
-  border-radius: 0.5rem;
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.2s;
+  display: inline-block;
+  transition: background 0.15s;
+  border: none;
+  cursor: pointer;
 }
 
-.empty-state-cta:hover {
-  background: #3182ce;
+.btn-primary {
+  background: var(--color-accent);
+  color: white;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
+}
+
+.btn-primary:hover { background: var(--color-accent-hover); box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3); }
+
+.btn-large { padding: 1rem 2rem; font-size: 1.0625rem; }
+
+.empty-state {
+  padding: 2rem;
 }
 
 /* Delete confirmation modal content */
@@ -214,26 +314,26 @@ onUnmounted(() => {
 .delete-modal-text {
   margin: 0 0 0.5rem;
   font-size: 1.0625rem;
-  color: #374151;
+  color: var(--color-text-muted);
   line-height: 1.5;
 }
 
 .delete-modal-project-name {
-  color: #111827;
+  color: var(--color-text);
   font-weight: 600;
 }
 
 .delete-modal-warning {
   margin: 0;
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
 }
 
 .delete-modal-btn {
   padding: 0.5rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
@@ -244,17 +344,17 @@ onUnmounted(() => {
 }
 
 .delete-modal-btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
 }
 
 .delete-modal-btn-cancel:hover:not(:disabled) {
-  background: #e5e7eb;
+  background: var(--color-border);
 }
 
 .delete-modal-btn-confirm {
-  background: #dc2626;
+  background: var(--color-error);
   color: white;
   border: none;
 }

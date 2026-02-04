@@ -29,18 +29,18 @@ defineProps<{
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: #718096;
+  color: var(--color-text-muted);
 }
 
 .empty-state-icon {
   margin-bottom: 1.5rem;
-  color: #cbd5e0;
+  color: var(--color-text-subtle);
 }
 
 .empty-state-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2d3748;
+  color: var(--color-text);
   margin: 0 0 0.5rem 0;
 }
 
@@ -50,6 +50,7 @@ defineProps<{
   max-width: 400px;
   margin-left: auto;
   margin-right: auto;
+  color: var(--color-text-muted);
 }
 
 .empty-state-action {
