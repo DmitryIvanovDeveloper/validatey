@@ -2,7 +2,7 @@
   <div class="create-project-wizard">
     <PageHeader
       title="Create New Project"
-      subtitle="Define segment, market context, and hypothesis"
+      subtitle="Define segment, hypothesis, scenario, and audience"
       :breadcrumbs="[
         { label: 'Projects', path: '/projects' },
         { label: 'New Project' }
@@ -12,7 +12,7 @@
       <Wizard :steps="wizardSteps" @complete="handleComplete" @step-change="handleStepChange">
         <template #default="{ step }">
           <div class="step-content">
-            <!-- Step 1: Segment -->
+            <!-- Step 0: Segment -->
             <div v-if="step === 0" class="step-panel">
               <h2>Step 1: Define Target Segment</h2>
               <p class="step-description">Describe the target audience for your hypothesis</p>
@@ -23,7 +23,7 @@
                   id="segment-description"
                   v-model="formData.segmentDescription"
                   rows="4"
-                  placeholder="Example: Young professionals aged 25-35 working in IT and software development, with 3-7 years of experience, located in major tech hubs. They are early adopters of new technologies and value productivity tools..."
+                  placeholder="Example: Young professionals aged 25-35 working in IT and software development..."
                   class="form-input"
                 ></textarea>
               </div>
@@ -34,89 +34,30 @@
                   id="segment-demographics"
                   v-model="formData.segmentDemographics"
                   rows="3"
-                  placeholder="Example: Age: 25-35 | Location: Major cities (SF, NYC, Austin) | Profession: Software engineers, developers | Income: $80k-$150k | Interests: Technology, coding, productivity tools"
+                  placeholder="Example: Age: 25-35 | Location: Major cities | Profession: Software engineers..."
                   class="form-input"
                 ></textarea>
               </div>
             </div>
 
-            <!-- Step 2: Market Picture -->
+            <!-- Step 1: Hypothesis + optional context -->
             <div v-if="step === 1" class="step-panel">
-              <h2>Step 2: Current Market Picture</h2>
-              <p class="step-description">Who are the players, what do they offer, who buys from them?</p>
-              <div class="form-group">
-                <label for="market-picture">Market Picture</label>
-                <textarea
-                  id="market-picture"
-                  v-model="formData.marketPicture"
-                  rows="4"
-                  placeholder="Describe the current market: main players, their offerings, typical buyers..."
-                  class="form-input"
-                ></textarea>
-              </div>
-              <div class="market-context-ai-helper">
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  :disabled="marketContextSuggestLoading"
-                  @click="fetchMarketContextSuggestion"
-                >
-                  {{ marketContextSuggestLoading ? 'Loading...' : 'Подсказать с помощью ИИ' }}
-                </button>
-                <p v-if="marketContextSuggestError" class="market-context-ai-error">{{ marketContextSuggestError }}</p>
-              </div>
-            </div>
-
-            <!-- Step 3: Market Fit -->
-            <div v-if="step === 2" class="step-panel">
-              <h2>Step 3: How Your Product Fits in the Market</h2>
-              <p class="step-description">Share of paying audience, positioning, etc.</p>
-              <div class="form-group">
-                <label for="market-fit">Market Fit</label>
-                <textarea
-                  id="market-fit"
-                  v-model="formData.marketFit"
-                  rows="4"
-                  placeholder="How does your product fit in the market? Share of paying audience, positioning..."
-                  class="form-input"
-                ></textarea>
-              </div>
-            </div>
-
-            <!-- Step 4: Differentiation -->
-            <div v-if="step === 3" class="step-panel">
-              <h2>Step 4: How Your Product Differs</h2>
-              <p class="step-description">Qualities that attract and win new buyers</p>
-              <div class="form-group">
-                <label for="differentiation">Differentiation</label>
-                <textarea
-                  id="differentiation"
-                  v-model="formData.differentiation"
-                  rows="4"
-                  placeholder="How does your product differ? What qualities attract and win new buyers?"
-                  class="form-input"
-                ></textarea>
-              </div>
-            </div>
-
-            <!-- Step 5: Hypothesis -->
-            <div v-if="step === 4" class="step-panel">
-              <h2>Step 5: Formulate Hypothesis</h2>
-              <p class="step-description">Describe your product hypothesis and assumptions</p>
+              <h2>Step 2: Formulate Hypothesis</h2>
+              <p class="step-description">Describe your product hypothesis and assumptions (optional)</p>
               
               <div class="form-group">
-                <label for="hypothesis-description">Hypothesis Description *</label>
+                <label for="hypothesis-description">Hypothesis Description</label>
                 <textarea
                   id="hypothesis-description"
                   v-model="formData.hypothesisDescription"
                   rows="5"
-                  placeholder="Example: We believe that young IT professionals want to learn new technologies in a gamified, interactive format because traditional online courses are too passive and don't provide enough hands-on practice. They need a platform that combines short lessons with coding challenges and real-time feedback."
+                  placeholder="Example: We believe that young IT professionals want to learn in a gamified format..."
                   class="form-input"
                 ></textarea>
               </div>
 
               <div class="form-group">
-                <label>Assumptions *</label>
+                <label>Assumptions</label>
                 <div class="assumptions-list">
                   <div
                     v-for="(assumption, index) in formData.hypothesisAssumptions"
@@ -126,7 +67,7 @@
                     <input
                       v-model="formData.hypothesisAssumptions[index]"
                       type="text"
-                      :placeholder="`Assumption ${index + 1}: e.g., They prefer learning in short 15-30 min sessions`"
+                      :placeholder="`Assumption ${index + 1}`"
                       class="form-input"
                     />
                     <button
@@ -154,38 +95,153 @@
                   AI Helper for Formulation
                 </button>
               </div>
+
+              <!-- Optional: Project context (collapsed by default) -->
+              <div class="context-accordion">
+                <button
+                  type="button"
+                  class="context-accordion-trigger"
+                  :aria-expanded="showContextSection"
+                  @click="showContextSection = !showContextSection"
+                >
+                  {{ showContextSection ? '▼' : '▶' }} Project context (optional, for report)
+                </button>
+                <div v-show="showContextSection" class="context-accordion-content">
+                  <div class="form-group">
+                    <label for="market-picture">Market Picture</label>
+                    <textarea
+                      id="market-picture"
+                      v-model="formData.marketPicture"
+                      rows="3"
+                      placeholder="Current market: main players, offerings, typical buyers..."
+                      class="form-input"
+                    ></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="market-fit">Market Fit</label>
+                    <textarea
+                      id="market-fit"
+                      v-model="formData.marketFit"
+                      rows="3"
+                      placeholder="How your product fits in the market..."
+                      class="form-input"
+                    ></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="differentiation">Differentiation</label>
+                    <textarea
+                      id="differentiation"
+                      v-model="formData.differentiation"
+                      rows="3"
+                      placeholder="How your product differs..."
+                      class="form-input"
+                    ></textarea>
+                  </div>
+                  <div class="market-context-ai-helper">
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      :disabled="marketContextSuggestLoading"
+                      @click="fetchMarketContextSuggestion"
+                    >
+                      {{ marketContextSuggestLoading ? 'Loading...' : 'Suggest with AI' }}
+                    </button>
+                    <p v-if="marketContextSuggestError" class="market-context-ai-error">{{ marketContextSuggestError }}</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Step 6: Scenario -->
-            <div v-if="step === 5" class="step-panel">
-              <h2>Step 6: Edit Scenario</h2>
-              <p class="step-description">The scenario will be automatically generated based on your hypothesis</p>
+            <!-- Step 2: Scenario (template / AI / manual) -->
+            <div v-if="step === 2" class="step-panel">
+              <h2>Step 3: Scenario</h2>
+              <p class="step-description">Choose a template, generate with AI, or edit manually</p>
               
-              <div v-if="scenarioLoading" class="scenario-generating">
-                <LoadingSpinner />
-                <p>Generating scenario with AI...</p>
+              <div class="scenario-source-options">
+                <label class="radio-option">
+                  <input v-model="scenarioSource" type="radio" value="template" />
+                  <span>Choose template</span>
+                </label>
+                <label class="radio-option">
+                  <input v-model="scenarioSource" type="radio" value="ai" />
+                  <span>Generate with AI [Beta]</span>
+                </label>
+                <label class="radio-option">
+                  <input v-model="scenarioSource" type="radio" value="manual" />
+                  <span>Edit manually</span>
+                </label>
               </div>
 
-              <div v-else-if="scenarioError" class="scenario-error">
-                <div class="error-message">{{ scenarioError }}</div>
-                <button @click="generateScenario" class="btn btn-secondary">Try Again</button>
+              <!-- Template: select + load -->
+              <div v-if="scenarioSource === 'template'" class="template-section">
+                <div class="form-group">
+                  <label>Template</label>
+                  <select v-model="selectedTemplateSlug" class="form-input" @change="loadSelectedTemplate">
+                    <option value="">— Select template —</option>
+                    <option v-for="t in scenarioTemplates" :key="t.slug" :value="t.slug">{{ t.name }}</option>
+                  </select>
+                </div>
+                <div v-if="scenarioContent" class="scenario-editor">
+                  <ScenarioViewer
+                    :content="scenarioContent"
+                    @update:content="scenarioContent = $event"
+                  />
+                </div>
               </div>
 
-              <div v-else-if="scenarioContent" class="scenario-editor">
-                <ScenarioViewer
-                  :content="scenarioContent"
+              <!-- AI: generate -->
+              <div v-if="scenarioSource === 'ai'">
+                <div v-if="scenarioLoading" class="scenario-generating">
+                  <LoadingSpinner />
+                  <p>Generating scenario with AI...</p>
+                </div>
+                <div v-else-if="scenarioError" class="scenario-error">
+                  <div class="error-message">{{ scenarioError }}</div>
+                  <button @click="generateScenario" class="btn btn-secondary">Try Again</button>
+                </div>
+                <div v-else-if="scenarioContent" class="scenario-editor">
+                  <ScenarioViewer
+                    :content="scenarioContent"
+                    @update:content="scenarioContent = $event"
+                  />
+                  <button @click="regenerateScenario" class="btn-regenerate" type="button">🔄 Regenerate</button>
+                  <!-- Rate scenario quality (1-5) -->
+                  <div v-if="currentScenarioId && !scenarioRatingSubmitted" class="scenario-rating-block">
+                    <p class="scenario-rating-label">Rate scenario quality (1–5)</p>
+                    <div class="scenario-rating-stars">
+                      <button
+                        v-for="n in 5"
+                        :key="n"
+                        type="button"
+                        :class="['rating-btn', { active: scenarioRatingValue === n }]"
+                        @click="submitScenarioRating(n)"
+                      >
+                        {{ n }}
+                      </button>
+                    </div>
+                    <p v-if="scenarioRatingError" class="scenario-rating-error">{{ scenarioRatingError }}</p>
+                  </div>
+                  <p v-else-if="scenarioRatingSubmitted" class="scenario-rating-thanks">Thanks for your rating!</p>
+                </div>
+                <div v-else class="scenario-ai-prompt">
+                  <p>Project is ready. Click the button below to generate a scenario from your segment and hypothesis.</p>
+                  <button @click="generateScenario" class="btn btn-primary" type="button">Generate scenario</button>
+                </div>
+              </div>
+
+              <!-- Manual: simple form — no JSON, just add/edit questions -->
+              <div v-if="scenarioSource === 'manual'" class="scenario-editor">
+                <ScenarioManualEditor
+                  :content="scenarioContent || defaultManualScenario"
                   @update:content="scenarioContent = $event"
                 />
-                <button @click="regenerateScenario" class="btn-regenerate" type="button">
-                  🔄 Regenerate
-                </button>
               </div>
             </div>
 
-            <!-- Step 7: Audience & Pricing -->
-            <div v-if="step === 6" class="step-panel">
-              <h2>Step 7: Audience & Payment</h2>
-              <p class="step-description">Specify project launch parameters</p>
+            <!-- Step 3: Audience & how to find respondents -->
+            <div v-if="step === 3" class="step-panel">
+              <h2>Step 4: Audience & Launch</h2>
+              <p class="step-description">Project name, size, and how you will find respondents</p>
               
               <div class="form-group">
                 <label for="project-name">Project Name *</label>
@@ -193,7 +249,7 @@
                   id="project-name"
                   v-model="formData.name"
                   type="text"
-                  placeholder="Example: Gamified Learning Platform - IT Professionals"
+                  placeholder="Example: Gamified Learning - IT Professionals"
                   class="form-input"
                 />
               </div>
@@ -209,9 +265,8 @@
                     placeholder="100"
                     class="form-input"
                   />
-                  <span class="form-hint">Recommended: 100-200 respondents for standard validation</span>
+                  <span class="form-hint">Recommended: 100-200 respondents</span>
                 </div>
-
                 <div class="form-group">
                   <label for="price-per-response">Price per Response *</label>
                   <input
@@ -220,22 +275,38 @@
                     type="number"
                     min="0"
                     step="0.01"
-                    placeholder="8.00"
+                    placeholder="5.00"
                     class="form-input"
                   />
-                  <span class="form-hint">Standard: $5-10 for 10-15 min surveys</span>
+                  <span class="form-hint">Standard: $5-10 for 10-15 min</span>
+                </div>
+              </div>
+
+              <div class="form-group audience-source">
+                <label>How will you find respondents?</label>
+                <div class="scenario-source-options">
+                  <label class="radio-option">
+                    <input v-model="audienceChoice" type="radio" value="email" />
+                    <span>I have a list of emails</span>
+                  </label>
+                  <label class="radio-option">
+                    <input v-model="audienceChoice" type="radio" value="panel" />
+                    <span>Buy audience [Soon]</span>
+                  </label>
+                  <label class="radio-option">
+                    <input v-model="audienceChoice" type="radio" value="share" />
+                    <span>I'll share the link myself</span>
+                  </label>
                 </div>
               </div>
 
               <div class="price-summary">
                 <div class="price-row">
                   <span>Project Cost:</span>
-                  <span class="price-amount">
-                    ${{ totalPrice.toFixed(2) }}
-                  </span>
+                  <span class="price-amount">${{ totalPrice.toFixed(2) }}</span>
                 </div>
                 <div class="price-hint">
-                  {{ formData.audienceSize || 0 }} respondents × ${{ formData.pricePerResponse || 0 }}
+                  {{ formData.audienceSize || 0 }} × ${{ formData.pricePerResponse || 0 }}
                 </div>
               </div>
             </div>
@@ -285,6 +356,7 @@ import Wizard from '@/shared/components/Wizard.vue';
 import Modal from '@/shared/components/Modal.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import ScenarioViewer from './components/ScenarioViewer.vue';
+import ScenarioManualEditor from './components/ScenarioManualEditor.vue';
 import { API_CONFIG } from '@/infrastructure/config/api.config';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
@@ -299,9 +371,6 @@ const scenarioPresenter = container.get<ScenarioPresenter>(SCENARIO_TYPES.Scenar
 
 const wizardSteps = [
   { label: 'Segment' },
-  { label: 'Market Picture' },
-  { label: 'Market Fit' },
-  { label: 'Differentiation' },
   { label: 'Hypothesis' },
   { label: 'Scenario' },
   { label: 'Audience' },
@@ -331,10 +400,41 @@ const marketContextSuggestLoading = ref(false);
 const marketContextSuggestError = ref<string | null>(null);
 const currentProjectId = ref<string | null>(null);
 const scenarioViewModel = new ScenarioViewModel();
+const showContextSection = ref(false);
+const scenarioSource = ref<'template' | 'ai' | 'manual'>('template');
+const selectedTemplateSlug = ref('');
+const scenarioTemplates = ref<Array<{ slug: string; name: string; content: string }>>([]);
+const audienceChoice = ref<'email' | 'panel' | 'share'>('email');
+
+const defaultManualScenario = JSON.stringify(
+  { questions: [{ id: 'q_1', text: 'Your first question', type: 'open', required: true }] },
+  null,
+  2
+);
 
 const totalPrice = computed(() => {
   return (formData.value.audienceSize || 0) * (formData.value.pricePerResponse || 0);
 });
+
+const currentScenarioId = computed(() => scenarioViewModel.scenario.value?.id ?? null);
+
+const scenarioRatingValue = ref(0);
+const scenarioRatingSubmitted = ref(false);
+const scenarioRatingError = ref<string | null>(null);
+
+async function submitScenarioRating(rating: number) {
+  const projectId = currentProjectId.value;
+  const scenarioId = currentScenarioId.value;
+  if (!projectId || !scenarioId) return;
+  scenarioRatingError.value = null;
+  scenarioRatingValue.value = rating;
+  const result = await scenarioPresenter.rateScenario(projectId, scenarioId, rating);
+  if (result.error) {
+    scenarioRatingError.value = result.error;
+    return;
+  }
+  scenarioRatingSubmitted.value = true;
+}
 
 const addAssumption = () => {
   formData.value.hypothesisAssumptions.push('');
@@ -434,11 +534,42 @@ function buildMarketContextFromForm(): { marketPicture?: string; marketFit?: str
 }
 
 const handleStepChange = async (step: number) => {
-  // When moving to step 6 (Scenario), create project and generate scenario
-  if (step === 5 && !scenarioContent.value && formData.value.hypothesisDescription) {
-    await generateScenario();
+  // When entering step 2 (Scenario): ensure project exists; load templates for template path; trigger AI generate for AI path
+  if (step === 2) {
+    await ensureProjectCreated();
+    if (scenarioSource.value === 'template') {
+      if (scenarioTemplates.value.length === 0) {
+        const { templates, error } = await scenarioPresenter.getTemplates();
+        if (!error) scenarioTemplates.value = templates;
+      }
+    }
+    if (scenarioSource.value === 'ai' && !scenarioContent.value) {
+      await generateScenario();
+    }
   }
 };
+
+async function ensureProjectCreated(): Promise<void> {
+  if (currentProjectId.value) return;
+  const projectName = formData.value.name || `Project ${new Date().toLocaleDateString()}`;
+  const marketContext = buildMarketContextFromForm();
+  const createResult = await projectPresenter.createProject(
+    projectName,
+    formData.value.segmentDescription,
+    formData.value.segmentDemographics,
+    formData.value.hypothesisDescription,
+    formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
+    marketContext ?? undefined
+  );
+  if (createResult.projectId) currentProjectId.value = createResult.projectId;
+}
+
+async function loadSelectedTemplate(): Promise<void> {
+  const slug = selectedTemplateSlug.value;
+  if (!slug) return;
+  const t = scenarioTemplates.value.find(x => x.slug === slug);
+  if (t) scenarioContent.value = t.content;
+}
 
 const generateScenario = async () => {
   scenarioLoading.value = true;
@@ -562,6 +693,9 @@ function sanitizeScenarioError(message: string): string {
 
 const regenerateScenario = async () => {
   scenarioContent.value = '';
+  scenarioRatingSubmitted.value = false;
+  scenarioRatingValue.value = 0;
+  scenarioRatingError.value = null;
   await generateScenario();
 };
 
@@ -579,10 +713,29 @@ const handleComplete = async () => {
       undefined,
       marketContext ?? undefined
     );
+
+    // Save scenario if we have content and it was edited or from template (not already saved by generate)
+    let content = (scenarioContent.value ?? '').trim();
+    if (!content && scenarioSource.value === 'manual') content = defaultManualScenario.trim();
+    const generatedContent = scenarioViewModel.scenario.value?.content?.trim() ?? '';
+    const needsSave = content.length > 0 && content !== generatedContent;
+    if (needsSave) {
+      const saveResult = await scenarioPresenter.saveScenarioVersion(currentProjectId.value, content);
+      if (saveResult.error) {
+        console.error('Failed to save scenario version:', saveResult.error);
+      }
+    }
   }
 
-  // Redirect to projects list
-  router.push('/projects');
+  // Redirect: invitations page for email list or share link; panel stub for "Buy audience"
+  const choice = audienceChoice.value;
+  if (currentProjectId.value && (choice === 'email' || choice === 'share')) {
+    router.push(`/projects/${currentProjectId.value}/invitations`);
+  } else if (currentProjectId.value && choice === 'panel') {
+    router.push(`/projects/${currentProjectId.value}/panel`);
+  } else {
+    router.push('/projects');
+  }
 };
 </script>
 
@@ -790,6 +943,129 @@ const handleComplete = async () => {
   margin-top: 1rem;
   min-width: 0;
   overflow: hidden;
+}
+
+.context-accordion {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.context-accordion-trigger {
+  width: 100%;
+  padding: 0.75rem;
+  text-align: left;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.context-accordion-trigger:hover {
+  color: var(--color-text);
+  background: #e2e8f0;
+}
+
+.context-accordion-content {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.scenario-source-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.radio-option input {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.template-section .scenario-editor,
+.scenario-ai-prompt {
+  margin-top: 1rem;
+}
+
+.scenario-ai-prompt {
+  padding: 1.5rem;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border);
+}
+
+.scenario-ai-prompt p {
+  margin-bottom: 1rem;
+  color: var(--color-text-muted);
+}
+
+.audience-source {
+  margin-top: 1.5rem;
+}
+
+.scenario-rating-block {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.scenario-rating-label {
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.scenario-rating-stars {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rating-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rating-btn:hover,
+.rating-btn.active {
+  border-color: var(--color-accent);
+  background: rgba(13, 148, 136, 0.1);
+  color: var(--color-accent);
+}
+
+.scenario-rating-error {
+  margin-top: 0.5rem;
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.scenario-rating-thanks {
+  margin-top: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
 }
 
 .btn-regenerate {

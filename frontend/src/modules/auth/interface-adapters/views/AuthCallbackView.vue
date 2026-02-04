@@ -43,7 +43,14 @@ onMounted(async () => {
       throw new Error(data?.error ?? 'Sign in failed');
     }
     status.value = 'done';
-    await router.replace('/');
+    let redirect = '/projects';
+    try {
+      redirect = sessionStorage.getItem('auth_redirect') || '/projects';
+      sessionStorage.removeItem('auth_redirect');
+    } catch {
+      /* ignore */
+    }
+    await router.replace(redirect);
   } catch (e) {
     status.value = 'error';
     error.value = e instanceof Error ? e.message : 'Sign in failed';

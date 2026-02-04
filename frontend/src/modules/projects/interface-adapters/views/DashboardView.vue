@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-view">
-    <!-- Empty State for new users -->
+    <!-- Empty State when no projects -->
     <EmptyState
       v-if="viewModel.projects.value.length === 0 && !viewModel.loading.value"
       title="Welcome to Validatey!"
@@ -59,7 +59,7 @@
               </span>
             </div>
           </template>
-          
+
           <div class="project-card-body">
             <div class="project-meta">
               <span class="meta-item">
@@ -125,7 +125,7 @@ const goToProject = (projectId: string) => {
 const getStatusLabel = (status: ProjectStatus): string => {
   const labels: Record<ProjectStatus, string> = {
     draft: 'Draft',
-    active: 'Active',
+    'in-progress': 'In progress',
     completed: 'Completed',
     archived: 'Archived',
   };

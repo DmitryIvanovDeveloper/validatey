@@ -6,6 +6,7 @@ export const TYPES = {
   GetInvitationByTokenUseCase: Symbol.for('GetInvitationByTokenUseCase'),
   GetInvitationsByProjectIdUseCase: Symbol.for('GetInvitationsByProjectIdUseCase'),
   UpdateInvitationStatusUseCase: Symbol.for('UpdateInvitationStatusUseCase'),
+  SendInvitationsUseCase: Symbol.for('SendInvitationsUseCase'),
   InvitationPresenter: Symbol.for('InvitationPresenter'),
 } as const;
 

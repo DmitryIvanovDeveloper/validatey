@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 export type InvitationStatus = 'pending' | 'sent' | 'opened' | 'completed' | 'responded' | 'expired';
 
 export interface Invitation {
@@ -172,7 +174,7 @@ export class InvitationEntity {
   }
 
   private static generateId(): string {
-    return `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return randomUUID();
   }
 
   private static generateToken(): string {

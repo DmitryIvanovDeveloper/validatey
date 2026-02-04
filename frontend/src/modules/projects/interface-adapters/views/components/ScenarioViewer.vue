@@ -25,10 +25,9 @@
           class="question-card"
         >
           <div class="question-header">
-            <span class="question-number">Q{{ index + 1 }}</span>
+            <span class="question-text">{{ question.text }}</span>
             <span v-if="question.required" class="question-required">Required</span>
           </div>
-          <div class="question-text">{{ question.text }}</div>
           <div v-if="question.type === 'scale' && question.options" class="question-options">
             <div class="scale-info">
               Scale from {{ question.options.min || 1 }} to {{ question.options.max || 5 }}
@@ -103,15 +102,20 @@ interface Scenario {
   [key: string]: any;
 }
 
-const props = defineProps<{
-  content: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    content: string;
+    /** When 'json', show editable textarea first (e.g. for "Edit manually" in wizard) */
+    defaultViewMode?: 'visual' | 'json';
+  }>(),
+  { defaultViewMode: 'visual' }
+);
 
 const emit = defineEmits<{
   'update:content': [value: string];
 }>();
 
-const viewMode = ref<'visual' | 'json'>('visual');
+const viewMode = ref<'visual' | 'json'>(props.defaultViewMode);
 const jsonContent = ref(props.content);
 const jsonError = ref<string | null>(null);
 
@@ -154,13 +158,12 @@ const toggleViewMode = () => {
 
 const handleJsonChange = (event: Event) => {
   const target = event.target as HTMLTextAreaElement;
-  jsonContent.value = target.value;
-  jsonError.value = null;
-  
-  // Validate JSON
+  const value = target.value;
+  jsonContent.value = value;
+  emit('update:content', value);
   try {
-    JSON.parse(target.value);
-    emit('update:content', target.value);
+    JSON.parse(value);
+    jsonError.value = null;
   } catch (error) {
     jsonError.value = error instanceof Error ? error.message : 'Invalid JSON';
   }

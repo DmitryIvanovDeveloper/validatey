@@ -4,10 +4,12 @@ import { CreateInvitationsUseCase } from '../../application/use-cases/create-inv
 import { GetInvitationByTokenUseCase } from '../../application/use-cases/get-invitation-by-token.use-case';
 import { GetInvitationsByProjectIdUseCase } from '../../application/use-cases/get-invitations-by-project-id.use-case';
 import { UpdateInvitationStatusUseCase } from '../../application/use-cases/update-invitation-status.use-case';
+import { SendInvitationsUseCase } from '../../application/use-cases/send-invitations.use-case';
 import { CreateInvitationsUseCaseRequest } from '../../application/use-cases/input-output/create-invitations.io';
 import { GetInvitationByTokenUseCaseRequest } from '../../application/use-cases/input-output/get-invitation-by-token.io';
 import { GetInvitationsByProjectIdUseCaseRequest } from '../../application/use-cases/input-output/get-invitations-by-project-id.io';
 import { UpdateInvitationStatusUseCaseRequest } from '../../application/use-cases/input-output/update-invitation-status.io';
+import { SendInvitationsUseCaseInput } from '../../application/use-cases/input-output/send-invitations.io';
 
 @injectable()
 export class InvitationPresenter {
@@ -19,7 +21,9 @@ export class InvitationPresenter {
     @inject(TYPES.GetInvitationsByProjectIdUseCase)
     private readonly _getInvitationsByProjectIdUseCase: GetInvitationsByProjectIdUseCase,
     @inject(TYPES.UpdateInvitationStatusUseCase)
-    private readonly _updateInvitationStatusUseCase: UpdateInvitationStatusUseCase
+    private readonly _updateInvitationStatusUseCase: UpdateInvitationStatusUseCase,
+    @inject(TYPES.SendInvitationsUseCase)
+    private readonly _sendInvitationsUseCase: SendInvitationsUseCase
   ) {}
 
   async createInvitations(request: CreateInvitationsUseCaseRequest) {
@@ -36,6 +40,10 @@ export class InvitationPresenter {
 
   async updateInvitationStatus(request: UpdateInvitationStatusUseCaseRequest) {
     return await this._updateInvitationStatusUseCase.execute(request);
+  }
+
+  async sendInvitations(input: SendInvitationsUseCaseInput) {
+    return await this._sendInvitationsUseCase.execute(input);
   }
 }
 

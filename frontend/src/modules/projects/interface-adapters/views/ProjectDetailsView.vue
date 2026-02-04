@@ -52,11 +52,14 @@
             <h3 class="card-title">Segment</h3>
             <button
               type="button"
-              class="btn btn-format"
+              class="btn btn-format btn-format-icon"
               :disabled="!project.segment?.description?.trim() || project.segment.description === 'Not specified' || formatLoadingKey !== null"
+              :title="formatLoadingKey === 'segment-description' ? 'Formatting…' : 'AI-Format'"
+              aria-label="AI-Format"
               @click="onFormatSegmentDescription"
             >
-              {{ formatLoadingKey === 'segment-description' ? 'Formatting…' : 'AI-Format' }}
+              <span v-if="formatLoadingKey === 'segment-description'" class="btn-format-spinner"></span>
+              <svg v-else class="btn-format-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
             </button>
           </div>
         </template>
@@ -71,11 +74,14 @@
             <h3 class="card-title">Demographics</h3>
             <button
               type="button"
-              class="btn btn-format"
+              class="btn btn-format btn-format-icon"
               :disabled="!getSegmentDemographicsText().trim() || getSegmentDemographicsText() === 'Not specified' || formatLoadingKey !== null"
+              :title="formatLoadingKey === 'segment-demographics' ? 'Formatting…' : 'AI-Format'"
+              aria-label="AI-Format"
               @click="onFormatSegmentDemographics"
             >
-              {{ formatLoadingKey === 'segment-demographics' ? 'Formatting…' : 'AI-Format' }}
+              <span v-if="formatLoadingKey === 'segment-demographics'" class="btn-format-spinner"></span>
+              <svg v-else class="btn-format-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
             </button>
           </div>
         </template>
@@ -100,11 +106,14 @@
             <h3 class="card-title">Market Picture</h3>
             <button
               type="button"
-              class="btn btn-format"
+              class="btn btn-format btn-format-icon"
               :disabled="!project.marketContext?.marketPicture?.trim() || project.marketContext.marketPicture === 'Not specified' || formatLoadingKey !== null"
+              :title="formatLoadingKey === 'market-picture' ? 'Formatting…' : 'AI-Format'"
+              aria-label="AI-Format"
               @click="onFormatMarketPicture"
             >
-              {{ formatLoadingKey === 'market-picture' ? 'Formatting…' : 'AI-Format' }}
+              <span v-if="formatLoadingKey === 'market-picture'" class="btn-format-spinner"></span>
+              <svg v-else class="btn-format-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
             </button>
           </div>
         </template>
@@ -119,11 +128,14 @@
             <h3 class="card-title">Market Fit</h3>
             <button
               type="button"
-              class="btn btn-format"
+              class="btn btn-format btn-format-icon"
               :disabled="!project.marketContext?.marketFit?.trim() || project.marketContext.marketFit === 'Not specified' || formatLoadingKey !== null"
+              :title="formatLoadingKey === 'market-fit' ? 'Formatting…' : 'AI-Format'"
+              aria-label="AI-Format"
               @click="onFormatMarketFit"
             >
-              {{ formatLoadingKey === 'market-fit' ? 'Formatting…' : 'AI-Format' }}
+              <span v-if="formatLoadingKey === 'market-fit'" class="btn-format-spinner"></span>
+              <svg v-else class="btn-format-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
             </button>
           </div>
         </template>
@@ -138,11 +150,14 @@
             <h3 class="card-title">Differentiation</h3>
             <button
               type="button"
-              class="btn btn-format"
+              class="btn btn-format btn-format-icon"
               :disabled="!project.marketContext?.differentiation?.trim() || project.marketContext.differentiation === 'Not specified' || formatLoadingKey !== null"
+              :title="formatLoadingKey === 'differentiation' ? 'Formatting…' : 'AI-Format'"
+              aria-label="AI-Format"
               @click="onFormatDifferentiation"
             >
-              {{ formatLoadingKey === 'differentiation' ? 'Formatting…' : 'AI-Format' }}
+              <span v-if="formatLoadingKey === 'differentiation'" class="btn-format-spinner"></span>
+              <svg v-else class="btn-format-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
             </button>
           </div>
         </template>
@@ -157,11 +172,14 @@
             <h3 class="card-title">Hypothesis</h3>
             <button
               type="button"
-              class="btn btn-format"
+              class="btn btn-format btn-format-icon"
               :disabled="!project.hypothesis?.description?.trim() || project.hypothesis.description === 'Not specified' || formatLoadingKey !== null"
+              :title="formatLoadingKey === 'hypothesis-description' ? 'Formatting…' : 'AI-Format'"
+              aria-label="AI-Format"
               @click="onFormatHypothesisDescription"
             >
-              {{ formatLoadingKey === 'hypothesis-description' ? 'Formatting…' : 'AI-Format' }}
+              <span v-if="formatLoadingKey === 'hypothesis-description'" class="btn-format-spinner"></span>
+              <svg v-else class="btn-format-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
             </button>
           </div>
         </template>
@@ -179,11 +197,14 @@
             <h3 class="card-title">Assumptions</h3>
             <button
               type="button"
-              class="btn btn-format"
+              class="btn btn-format btn-format-icon"
               :disabled="!project.hypothesis?.assumptions?.length || formatLoadingKey !== null"
+              :title="formatLoadingKey === 'hypothesis-assumptions' ? 'Formatting…' : 'AI-Format'"
+              aria-label="AI-Format"
               @click="onFormatHypothesisAssumptions"
             >
-              {{ formatLoadingKey === 'hypothesis-assumptions' ? 'Formatting…' : 'AI-Format' }}
+              <span v-if="formatLoadingKey === 'hypothesis-assumptions'" class="btn-format-spinner"></span>
+              <svg v-else class="btn-format-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
             </button>
           </div>
         </template>
@@ -205,11 +226,14 @@
             <h3 class="card-title">Scenario</h3>
             <button
               type="button"
-              class="btn btn-format"
+              class="btn btn-format btn-format-icon"
               :disabled="!scenarioContent?.trim() || !scenarioId || formatLoadingKey !== null"
+              :title="formatLoadingKey === 'scenario' ? 'Formatting…' : 'AI-Format'"
+              aria-label="AI-Format"
               @click="onFormatScenario"
             >
-              {{ formatLoadingKey === 'scenario' ? 'Formatting…' : 'AI-Format' }}
+              <span v-if="formatLoadingKey === 'scenario'" class="btn-format-spinner"></span>
+              <svg v-else class="btn-format-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
             </button>
           </div>
         </template>
@@ -746,6 +770,34 @@ watch(project, (p) => {
   background: var(--color-accent-light);
   color: var(--color-accent-hover);
   border: 1px solid var(--color-accent);
+}
+
+.btn-format-icon {
+  padding: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-format-svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: block;
+}
+
+.btn-format-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: btn-format-spin 0.7s linear infinite;
+}
+
+@keyframes btn-format-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-format:hover:not(:disabled) {

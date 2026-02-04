@@ -58,15 +58,22 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/send', async (req: Request, res: Response) => {
   try {
     const projectId = req.params.projectId;
-    const invitationIds = req.body.invitationIds || [];
+    const invitationIds = Array.isArray(req.body.invitationIds) ? req.body.invitationIds : [];
 
-    // TODO: Add SendInvitationsUseCase
-    // This should:
-    // 1. Queue email sending tasks
-    // 2. Update invitation statuses to "sent"
-    // 3. Create survey for each invitation based on scenario
+    const surveyBaseUrl =
+      (process.env.FRONTEND_ORIGIN || process.env.APP_URL || 'http://localhost:5173').replace(/\/$/, '');
 
-    return res.status(501).json({ error: 'Send invitations not implemented yet', projectId, invitationIds });
+    const result = await presenter.sendInvitations({
+      projectId,
+      invitationIds,
+      surveyBaseUrl,
+    });
+
+    if (!result.isSuccess) {
+      return res.status(400).json({ error: result.error.message });
+    }
+
+    return res.status(200).json(result.data);
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }

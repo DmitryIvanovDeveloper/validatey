@@ -9,7 +9,7 @@
         </ul>
         <div class="nav-user">
           <template v-if="authViewModel.user.value">
-            <span class="user-email" :title="authViewModel.user.value.email">{{ userDisplayName }}</span>
+            <span class="user-email" :title="authViewModel.user.value.email ?? undefined">{{ userDisplayName }}</span>
             <button type="button" class="btn btn-ghost" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
           </template>
           <template v-else>
@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '@/modules/auth/infrastructure/bootstrap/types';
 import type { AuthPresenter } from '@/modules/auth/interface-adapters/presenters/auth.presenter';
@@ -34,6 +34,7 @@ import { AuthViewModel } from '@/modules/auth/interface-adapters/view-models/aut
 import { userContextService } from '@/shared/services/user-context.service';
 
 const route = useRoute();
+const router = useRouter();
 const authViewModel = new AuthViewModel();
 const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
 
@@ -95,6 +96,7 @@ async function handleSignIn() {
 async function handleSignOut() {
   await authPresenter.signOut(authViewModel);
   userContextService.clearUserId();
+  await router.replace('/login');
 }
 </script>
 

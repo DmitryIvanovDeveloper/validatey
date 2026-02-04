@@ -32,11 +32,14 @@ export class InvitationRepository implements InvitationRepositoryPort {
       // Extract invitation from response
       const invitationData = response.invitation;
 
+      const email = (invitationData.email && invitationData.email.trim())
+        ? invitationData.email
+        : '(share link)';
       const invitation = new Invitation(
         invitationData.id,
         invitationData.projectId,
         invitationData.token,
-        invitationData.email,
+        email,
         invitationData.status as InvitationStatus,
         invitationData.sentAt ? new Date(invitationData.sentAt) : null,
         invitationData.respondedAt ? new Date(invitationData.respondedAt) : null
@@ -50,24 +53,28 @@ export class InvitationRepository implements InvitationRepositoryPort {
 
   async create(projectId: string, emails: string[]): Promise<Result<Invitation[], InvitationSendError>> {
     try {
-      const response = await this._httpClient.post<Array<{
-        id: string;
-        projectId: string;
-        token: string;
-        email: string;
-        status: string;
-        sentAt: string | null;
-        respondedAt: string | null;
-      }>>(API_CONFIG.ENDPOINTS.INVITATIONS(projectId), { emails });
+      const data = await this._httpClient.post<{
+        invitations: Array<{
+          id: string;
+          projectId: string;
+          token: string;
+          email: string | null;
+          status: string;
+          sentAt: string | null;
+          completedAt?: string | null;
+          respondedAt?: string | null;
+        }>;
+      }>(API_CONFIG.ENDPOINTS.INVITATIONS(projectId), { emails });
 
-      const invitations = response.map(i => new Invitation(
+      const list = data.invitations ?? [];
+      const invitations = list.map(i => new Invitation(
         i.id,
         i.projectId,
         i.token,
-        i.email,
+        (i.email && i.email.trim()) ? i.email : '(share link)',
         i.status as InvitationStatus,
         i.sentAt ? new Date(i.sentAt) : null,
-        i.respondedAt ? new Date(i.respondedAt) : null
+        (i.respondedAt ? new Date(i.respondedAt) : i.completedAt ? new Date(i.completedAt) : null) as Date | null
       ));
 
       return Result.success(invitations);
@@ -92,7 +99,7 @@ export class InvitationRepository implements InvitationRepositoryPort {
         i.id,
         i.projectId,
         i.token,
-        i.email,
+        (i.email && i.email.trim()) ? i.email : '(share link)',
         i.status as InvitationStatus,
         i.sentAt ? new Date(i.sentAt) : null,
         i.respondedAt ? new Date(i.respondedAt) : null
@@ -104,10 +111,13 @@ export class InvitationRepository implements InvitationRepositoryPort {
     }
   }
 
-  async send(projectId: string): Promise<Result<void, InvitationSendError>> {
+  async send(projectId: string, invitationIds?: string[]): Promise<Result<{ sent: number; failed: number; errors?: string[] }, InvitationSendError>> {
     try {
-      await this._httpClient.post(API_CONFIG.ENDPOINTS.SEND_INVITATIONS(projectId), {});
-      return Result.success(undefined);
+      const data = await this._httpClient.post<{ sent: number; failed: number; errors?: string[] }>(
+        API_CONFIG.ENDPOINTS.SEND_INVITATIONS(projectId),
+        { invitationIds: invitationIds ?? [] }
+      );
+      return Result.success({ sent: data.sent ?? 0, failed: data.failed ?? 0, errors: data.errors });
     } catch (error) {
       return Result.failure(new InvitationSendError(error instanceof Error ? error.message : 'Unknown error'));
     }

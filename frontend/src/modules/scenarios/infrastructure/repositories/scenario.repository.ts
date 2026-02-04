@@ -182,5 +182,57 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
       return Result.failure(new ScenarioNotFoundError(scenarioId));
     }
   }
+
+  async saveVersion(projectId: string, content: string): Promise<Result<Scenario, ScenarioNotFoundError>> {
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SCENARIOS_SAVE_VERSION}`;
+      const response = await this._httpClient.post<{
+        scenario: {
+          id: string;
+          projectId: string;
+          content: string;
+          version: number;
+          createdAt: string;
+          updatedAt?: string;
+        };
+      }>(url, { projectId, content });
+
+      const s = response.scenario;
+      const createdAt = s.createdAt != null ? new Date(s.createdAt) : new Date();
+      const scenario = new Scenario(
+        s.id,
+        s.projectId,
+        (s.content ?? '').trim() || '(No content)',
+        s.version,
+        'approved',
+        isNaN(createdAt.getTime()) ? new Date() : createdAt
+      );
+
+      return Result.success(scenario);
+    } catch (error) {
+      return Result.failure(new ScenarioNotFoundError(projectId, 'Failed to save scenario version'));
+    }
+  }
+
+  async getTemplates(): Promise<Result<Array<{ slug: string; name: string; content: string }>, ScenarioNotFoundError>> {
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SCENARIOS_TEMPLATES}`;
+      const response = await this._httpClient.get<{ templates: Array<{ slug: string; name: string; content: string }> }>(url);
+      const list = response.templates ?? [];
+      return Result.success(list);
+    } catch (error) {
+      return Result.failure(new ScenarioNotFoundError('templates', 'Failed to load templates'));
+    }
+  }
+
+  async rateScenario(projectId: string, scenarioId: string, rating: number): Promise<Result<{ id: string }, ScenarioNotFoundError>> {
+    try {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SCENARIOS_RATE}`;
+      const response = await this._httpClient.post<{ id: string }>(url, { projectId, scenarioId, rating });
+      return Result.success({ id: response.id });
+    } catch (error) {
+      return Result.failure(new ScenarioNotFoundError(scenarioId, 'Failed to save rating'));
+    }
+  }
 }
 

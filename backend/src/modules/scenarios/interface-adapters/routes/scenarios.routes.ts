@@ -7,6 +7,16 @@ import { LLMServicePort } from '../../application/ports/llm-service.port';
 const router = Router();
 const presenter = container.get<ScenarioPresenter>(TYPES.ScenarioPresenter);
 
+/** GET /api/scenarios/templates — list scenario templates (WTP, Feature Demand, Value Prop). */
+router.get('/templates', async (req: Request, res: Response) => {
+  try {
+    const result = await presenter.getTemplates();
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 /** POST /api/scenarios/verify-llm — check that the LLM (Cerebras or external) is reachable. */
 router.post('/verify-llm', async (req: Request, res: Response) => {
   try {
@@ -75,6 +85,24 @@ router.post('/generate', async (req: Request, res: Response) => {
         updatedAt: scenarioData.updatedAt.toISOString(),
       },
     });
+  } catch (error) {
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Rate scenario quality (1-5) after AI generation
+router.post('/rate', async (req: Request, res: Response) => {
+  try {
+    const { projectId, scenarioId, rating } = req.body;
+    const userId = (req.headers['x-user-id'] as string) || undefined;
+    if (!projectId || !scenarioId || rating == null) {
+      return res.status(400).json({ error: 'projectId, scenarioId, and rating are required' });
+    }
+    const result = await presenter.rateScenario({ projectId, scenarioId, rating: Number(rating), userId });
+    if (!result.isSuccess) {
+      return res.status(400).json({ error: result.error });
+    }
+    return res.status(201).json(result.data);
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }

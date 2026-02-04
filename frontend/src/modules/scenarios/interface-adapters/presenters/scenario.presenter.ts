@@ -1,5 +1,6 @@
 import { injectable, inject } from 'inversify';
 import type { GenerateScenarioUseCase } from '../../application/use-cases/generate-scenario.use-case';
+import type { ScenarioRepositoryPort } from '../../application/ports/scenario-repository.port';
 import { ScenarioViewModel } from '../view-models/scenario.view-model';
 import { Scenario, ScenarioStatus } from '../../domain/entities/scenario.entity';
 import { TYPES } from '../../infrastructure/bootstrap/types';
@@ -11,6 +12,8 @@ export class ScenarioPresenter {
   constructor(
     @inject(TYPES.GenerateScenarioUseCase)
     private readonly _generateScenarioUseCase: GenerateScenarioUseCase,
+    @inject(TYPES.ScenarioRepository)
+    private readonly _scenarioRepository: ScenarioRepositoryPort,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort
   ) {}
@@ -58,6 +61,40 @@ export class ScenarioPresenter {
       viewModel.loading.value = false;
       this._logger.error('Failed to generate scenario', { projectId, error: result.error });
     }
+  }
+
+  /** Save scenario content as a new version (e.g. when completing wizard with edited or template content). */
+  async saveScenarioVersion(projectId: string, content: string): Promise<{ error?: string }> {
+    const trimmed = (content ?? '').trim();
+    if (!trimmed) {
+      return {};
+    }
+    const result = await this._scenarioRepository.saveVersion(projectId, trimmed);
+    if (!result.isSuccess) {
+      return { error: result.error?.message ?? 'Failed to save scenario' };
+    }
+    return {};
+  }
+
+  /** Load scenario templates (WTP, Feature Demand, Value Prop) for the wizard. */
+  async getTemplates(): Promise<{
+    templates: Array<{ slug: string; name: string; content: string }>;
+    error?: string;
+  }> {
+    const result = await this._scenarioRepository.getTemplates();
+    if (!result.isSuccess) {
+      return { templates: [], error: result.error?.message };
+    }
+    return { templates: result.data };
+  }
+
+  /** Save scenario quality rating (1-5). Call after AI generation. */
+  async rateScenario(projectId: string, scenarioId: string, rating: number): Promise<{ error?: string }> {
+    const result = await this._scenarioRepository.rateScenario(projectId, scenarioId, rating);
+    if (!result.isSuccess) {
+      return { error: result.error?.message ?? 'Failed to save rating' };
+    }
+    return {};
   }
 }
 

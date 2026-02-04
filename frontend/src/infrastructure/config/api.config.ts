@@ -14,6 +14,12 @@ export const API_CONFIG = {
     // Scenarios
     SCENARIOS: (projectId: string) => `/projects/${projectId}/scenarios`,
     SCENARIO: (projectId: string, scenarioId: string) => `/projects/${projectId}/scenarios/${scenarioId}`,
+    /** POST body: { projectId, content, metadata? } - creates new scenario version */
+    SCENARIOS_SAVE_VERSION: '/scenarios',
+    /** GET - list scenario templates */
+    SCENARIOS_TEMPLATES: '/scenarios/templates',
+    /** POST body: { projectId, scenarioId, rating } - save scenario quality rating (1-5) */
+    SCENARIOS_RATE: '/scenarios/rate',
     
     // Invitations
     INVITATIONS: (projectId: string) => `/projects/${projectId}/invitations`,
