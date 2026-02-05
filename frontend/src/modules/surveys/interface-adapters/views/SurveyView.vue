@@ -40,6 +40,22 @@
           <strong>How we use your data</strong>
           <p v-html="viewModel.dataUsageText.value"></p>
         </div>
+        <div v-if="viewModel.privacyPolicyUrl.value || viewModel.termsOfServiceUrl.value" class="consent-links">
+          <a
+            v-if="viewModel.privacyPolicyUrl.value"
+            :href="viewModel.privacyPolicyUrl.value"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="consent-link"
+          >Privacy Policy</a>
+          <a
+            v-if="viewModel.termsOfServiceUrl.value"
+            :href="viewModel.termsOfServiceUrl.value"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="consent-link"
+          >Terms of Service</a>
+        </div>
         <label class="consent-checkbox">
           <input v-model="consentChecked" type="checkbox" />
           <span>I have read and agree to the above</span>
@@ -428,6 +444,21 @@ onBeforeUnmount(() => {
   width: 1.25rem;
   height: 1.25rem;
 }
+.consent-links {
+  margin: 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.consent-link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  font-size: 0.9375rem;
+}
+.consent-link:hover {
+  color: var(--color-accent-hover, #0d9488);
+}
+
 .consent-error {
   color: var(--color-error);
   font-size: 0.875rem;

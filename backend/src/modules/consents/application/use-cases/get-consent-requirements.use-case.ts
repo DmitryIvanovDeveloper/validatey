@@ -45,7 +45,7 @@ export class GetConsentRequirementsUseCase {
       });
       return ResultEx.failure(new InvalidConsentDataError('Failed to load consent requirements'));
     }
-    const { consentText, dataUsageText } = requirementsResult.data;
+    const { consentText, dataUsageText, privacyPolicyUrl, termsOfServiceUrl } = requirementsResult.data;
 
     const existingConsentResult = await this._consentRepository.findByInvitationId(invitation.id);
     if (!existingConsentResult.isSuccess) {
@@ -65,6 +65,8 @@ export class GetConsentRequirementsUseCase {
       consentRequired,
       consentText,
       dataUsageText,
+      privacyPolicyUrl: privacyPolicyUrl ?? null,
+      termsOfServiceUrl: termsOfServiceUrl ?? null,
       alreadyConsented,
     });
   }

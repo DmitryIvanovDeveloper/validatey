@@ -22,6 +22,10 @@ export interface Project {
   readonly consentText: string | null;
   /** How we use data (GDPR). */
   readonly dataUsageText: string | null;
+  /** Privacy Policy URL shown on consent screen. */
+  readonly privacyPolicyUrl: string | null;
+  /** Terms of Service URL shown on consent screen. */
+  readonly termsOfServiceUrl: string | null;
   /** Selected scenario template: wtp | feature-demand | value-prop. */
   readonly scenarioTemplateSlug: string | null;
   readonly createdAt: Date;
@@ -53,6 +57,8 @@ export class ProjectEntity {
     public readonly cost: number | null,
     public readonly consentText: string | null,
     public readonly dataUsageText: string | null,
+    public readonly privacyPolicyUrl: string | null,
+    public readonly termsOfServiceUrl: string | null,
     public readonly scenarioTemplateSlug: string | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
@@ -89,6 +95,8 @@ export class ProjectEntity {
       null,
       null,
       null,
+      null,
+      null,
       now,
       now
     );
@@ -107,6 +115,8 @@ export class ProjectEntity {
       data.cost,
       data.consentText ?? null,
       data.dataUsageText ?? null,
+      data.privacyPolicyUrl ?? null,
+      data.termsOfServiceUrl ?? null,
       data.scenarioTemplateSlug ?? null,
       data.createdAt,
       data.updatedAt
@@ -126,6 +136,8 @@ export class ProjectEntity {
       this.cost,
       this.consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -145,6 +157,8 @@ export class ProjectEntity {
       this.cost,
       this.consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -164,6 +178,8 @@ export class ProjectEntity {
       this.cost,
       this.consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -183,6 +199,8 @@ export class ProjectEntity {
       this.cost,
       this.consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -202,6 +220,8 @@ export class ProjectEntity {
       this.cost,
       this.consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -227,6 +247,8 @@ export class ProjectEntity {
       this.cost,
       this.consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -249,6 +271,8 @@ export class ProjectEntity {
       cost,
       this.consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -268,6 +292,8 @@ export class ProjectEntity {
       this.cost,
       consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -287,6 +313,50 @@ export class ProjectEntity {
       this.cost,
       this.consentText,
       dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
+      this.scenarioTemplateSlug,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withPrivacyPolicyUrl(privacyPolicyUrl: string | null): ProjectEntity {
+    return new ProjectEntity(
+      this.id,
+      this.userId,
+      this.name,
+      this.status,
+      this.segment,
+      this.hypothesis,
+      this.marketContext,
+      this.targetAudience,
+      this.cost,
+      this.consentText,
+      this.dataUsageText,
+      privacyPolicyUrl,
+      this.termsOfServiceUrl,
+      this.scenarioTemplateSlug,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withTermsOfServiceUrl(termsOfServiceUrl: string | null): ProjectEntity {
+    return new ProjectEntity(
+      this.id,
+      this.userId,
+      this.name,
+      this.status,
+      this.segment,
+      this.hypothesis,
+      this.marketContext,
+      this.targetAudience,
+      this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.privacyPolicyUrl,
+      termsOfServiceUrl,
       this.scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -306,6 +376,8 @@ export class ProjectEntity {
       this.cost,
       this.consentText,
       this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
       scenarioTemplateSlug,
       this.createdAt,
       new Date()
@@ -325,6 +397,8 @@ export class ProjectEntity {
       cost: this.cost,
       consentText: this.consentText,
       dataUsageText: this.dataUsageText,
+      privacyPolicyUrl: this.privacyPolicyUrl,
+      termsOfServiceUrl: this.termsOfServiceUrl,
       scenarioTemplateSlug: this.scenarioTemplateSlug,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,

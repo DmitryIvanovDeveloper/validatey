@@ -186,7 +186,11 @@ export class ProjectPresenter {
     hypothesisAssumptions?: string[],
     status?: string,
     marketContext?: MarketContext | null,
-    scenarioTemplateSlug?: string | null
+    scenarioTemplateSlug?: string | null,
+    consentText?: string | null,
+    dataUsageText?: string | null,
+    privacyPolicyUrl?: string | null,
+    termsOfServiceUrl?: string | null
   ): Promise<{ ok: boolean; error?: string }> {
     try {
       let segment: Segment | undefined = undefined;
@@ -231,6 +235,10 @@ export class ProjectPresenter {
           status: status as any,
           marketContext: marketContext ?? undefined,
           scenarioTemplateSlug: scenarioTemplateSlug ?? undefined,
+          consentText: consentText ?? undefined,
+          dataUsageText: dataUsageText ?? undefined,
+          privacyPolicyUrl: privacyPolicyUrl ?? undefined,
+          termsOfServiceUrl: termsOfServiceUrl ?? undefined,
         },
       });
 

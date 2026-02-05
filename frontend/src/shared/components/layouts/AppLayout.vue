@@ -96,6 +96,10 @@ watch(
 onMounted(async () => {
   await authPresenter.loadSession(authViewModel);
   sessionLoaded.value = true;
+  userContextService.setSessionReady(true);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('validatey-session-ready'));
+  }
   unsubscribeAuth = authPresenter.subscribeToAuthState(authViewModel);
 });
 

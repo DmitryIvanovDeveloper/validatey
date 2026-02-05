@@ -4,12 +4,18 @@ import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES as AUTH_TYPES } from '@/modules/auth/infrastructure/bootstrap/types';
 import type { AuthServicePort } from '@/modules/auth/application/ports/auth-service.port';
 
+/** Routes that are allowed without authentication (no redirect to login). */
+const PUBLIC_ROUTE_NAMES = new Set(['login', 'auth-callback', 'respondent-survey']);
+
 export async function tokenGuard(
   to: RouteLocationNormalized,
   _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ): Promise<void> {
-  // Survey route: validate token
+  const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
+  const session = await authService.getSession();
+
+  // Survey by token: only validate token, no auth required
   if (to.name === 'respondent-survey') {
     const token = to.params.token as string;
     if (!token || !TokenValidator.isValid(token)) {
@@ -20,10 +26,25 @@ export async function tokenGuard(
     return;
   }
 
-  // Root: unauthenticated → /login; authenticated → /projects
+  // Login page: if already authenticated, redirect to app
+  if (to.name === 'login') {
+    if (session) {
+      const redirect = (to.query.redirect as string) || '/projects';
+      next({ path: redirect, replace: true });
+      return;
+    }
+    next();
+    return;
+  }
+
+  // Other public routes (e.g. auth-callback)
+  if (typeof to.name === 'string' && PUBLIC_ROUTE_NAMES.has(to.name)) {
+    next();
+    return;
+  }
+
+  // Root: redirect to /projects if authenticated, else to login
   if (to.name === 'home') {
-    const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
-    const session = await authService.getSession();
     if (session) {
       next({ path: '/projects', replace: true });
       return;
@@ -32,24 +53,7 @@ export async function tokenGuard(
     return;
   }
 
-  // Public routes: no auth check
-  if (to.name === 'login' || to.name === 'auth-callback' || to.meta.requiresAuth === false) {
-    if (to.name === 'login') {
-      const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
-      const session = await authService.getSession();
-      if (session) {
-        const redirect = (to.query.redirect as string) || '/projects';
-        next({ path: redirect, replace: true });
-        return;
-      }
-    }
-    next();
-    return;
-  }
-
-  // Protected routes: require auth
-  const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
-  const session = await authService.getSession();
+  // All other routes (including not-found): require authentication
   if (!session) {
     next({ name: 'login', query: { redirect: to.fullPath } });
     return;

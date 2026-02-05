@@ -20,6 +20,10 @@ export class UpdateProjectUseCase {
       marketContext: input.updates.marketContext,
       status: input.updates.status,
       scenarioTemplateSlug: input.updates.scenarioTemplateSlug,
+      consentText: input.updates.consentText,
+      dataUsageText: input.updates.dataUsageText,
+      privacyPolicyUrl: input.updates.privacyPolicyUrl,
+      termsOfServiceUrl: input.updates.termsOfServiceUrl,
     });
 
     if (!result.isSuccess) {

@@ -72,6 +72,10 @@ export class ProjectRepository implements ProjectRepositoryPort {
           status: string;
           createdAt: string;
           updatedAt: string;
+          consentText?: string | null;
+          dataUsageText?: string | null;
+          privacyPolicyUrl?: string | null;
+          termsOfServiceUrl?: string | null;
         };
       }>(API_CONFIG.ENDPOINTS.PROJECT(id));
 
@@ -86,7 +90,11 @@ export class ProjectRepository implements ProjectRepositoryPort {
         projectData.marketContext ?? null,
         projectData.status as ProjectStatus,
         createdAt,
-        updatedAt
+        updatedAt,
+        projectData.consentText ?? null,
+        projectData.dataUsageText ?? null,
+        projectData.privacyPolicyUrl ?? null,
+        projectData.termsOfServiceUrl ?? null
       );
 
       return Result.success(domainProject);
@@ -146,6 +154,10 @@ export class ProjectRepository implements ProjectRepositoryPort {
           status: string;
           createdAt: string | Date;
           updatedAt: string | Date;
+          consentText?: string | null;
+          dataUsageText?: string | null;
+          privacyPolicyUrl?: string | null;
+          termsOfServiceUrl?: string | null;
         };
       }>(API_CONFIG.ENDPOINTS.PROJECT(id), updates);
 
@@ -175,7 +187,11 @@ export class ProjectRepository implements ProjectRepositoryPort {
         projectData.marketContext ?? null,
         projectData.status as ProjectStatus,
         createdAt,
-        updatedAt
+        updatedAt,
+        projectData.consentText ?? null,
+        projectData.dataUsageText ?? null,
+        projectData.privacyPolicyUrl ?? null,
+        projectData.termsOfServiceUrl ?? null
       );
 
       return Result.success(domainProject);

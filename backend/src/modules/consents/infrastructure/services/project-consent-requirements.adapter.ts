@@ -18,12 +18,12 @@ export class ProjectConsentRequirementsAdapter implements ConsentRequirementsPor
 
   async getByProjectId(
     projectId: string
-  ): Promise<ResultEx<{ consentText: string; dataUsageText: string }, Error>> {
+  ): Promise<ResultEx<{ consentText: string; dataUsageText: string; privacyPolicyUrl?: string | null; termsOfServiceUrl?: string | null }, Error>> {
     try {
       const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('projects')
-        .select('consent_text, consent_data_usage_text')
+        .select('consent_text, consent_data_usage_text, privacy_policy_url, terms_of_service_url')
         .eq('id', projectId)
         .maybeSingle();
 
@@ -34,7 +34,9 @@ export class ProjectConsentRequirementsAdapter implements ConsentRequirementsPor
 
       const consentText = (data?.consent_text ?? '') as string;
       const dataUsageText = (data?.consent_data_usage_text ?? '') as string;
-      return ResultEx.success({ consentText, dataUsageText });
+      const privacyPolicyUrl = (data?.privacy_policy_url ?? null) as string | null;
+      const termsOfServiceUrl = (data?.terms_of_service_url ?? null) as string | null;
+      return ResultEx.success({ consentText, dataUsageText, privacyPolicyUrl, termsOfServiceUrl });
     } catch (err) {
       this._logger.error('project-consent-requirements.get-exception', { projectId, error: err });
       return ResultEx.failure(err instanceof Error ? err : new Error('Unknown error'));

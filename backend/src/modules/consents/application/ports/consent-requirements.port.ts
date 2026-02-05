@@ -7,7 +7,12 @@ import ResultEx from '../../../../infrastructure/result/result';
 export interface ConsentRequirementsPort {
   getByProjectId(projectId: string): Promise<
     ResultEx<
-      { consentText: string; dataUsageText: string },
+      {
+        consentText: string;
+        dataUsageText: string;
+        privacyPolicyUrl?: string | null;
+        termsOfServiceUrl?: string | null;
+      },
       Error
     >
   >;

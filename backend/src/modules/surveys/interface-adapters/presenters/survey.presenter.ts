@@ -26,6 +26,8 @@ export class SurveyPresenter {
           consentRequired: false,
           consentText: '',
           dataUsageText: '',
+          privacyPolicyUrl: null as string | null,
+          termsOfServiceUrl: null as string | null,
           alreadyConsented: false,
         };
 
@@ -34,6 +36,8 @@ export class SurveyPresenter {
       consentRequired: consent.consentRequired,
       consentText: consent.consentText,
       dataUsageText: consent.dataUsageText,
+      privacyPolicyUrl: consent.privacyPolicyUrl ?? null,
+      termsOfServiceUrl: consent.termsOfServiceUrl ?? null,
       alreadyConsented: consent.alreadyConsented,
     });
   }

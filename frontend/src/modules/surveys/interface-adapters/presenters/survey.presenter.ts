@@ -23,43 +23,52 @@ export class SurveyPresenter {
     viewModel.loading.value = true;
     viewModel.error.value = null;
 
-    const result = await this._getSurveyByTokenUseCase.execute({ token });
+    try {
+      const result = await this._getSurveyByTokenUseCase.execute({ token });
 
-    if (result.isSuccess) {
-      const data = result.data;
-      const surveyData = data.survey;
-      const questions = surveyData.questions.map(q =>
-        new SurveyQuestion(
-          q.id,
-          q.type as QuestionType,
-          q.text,
-          q.required,
-          q.options
-        )
-      );
+      if (result.isSuccess) {
+        const data = result.data;
+        const surveyData = data.survey;
+        const questions = surveyData.questions.map(q =>
+          new SurveyQuestion(
+            q.id,
+            q.type as QuestionType,
+            q.text,
+            q.required,
+            q.options
+          )
+        );
 
-      const survey = new Survey(
-        surveyData.id,
-        surveyData.token,
-        surveyData.projectId,
-        questions,
-        surveyData.status as SurveyStatus,
-        null,
-        null
-      );
+        const survey = new Survey(
+          surveyData.id,
+          surveyData.token,
+          surveyData.projectId,
+          questions,
+          surveyData.status as SurveyStatus,
+          null,
+          null
+        );
 
-      viewModel.survey.value = survey;
-      viewModel.consentRequired.value = data.consentRequired ?? false;
-      viewModel.consentText.value = data.consentText ?? '';
-      viewModel.dataUsageText.value = data.dataUsageText ?? '';
-      viewModel.alreadyConsented.value = data.alreadyConsented ?? false;
-      viewModel.consentGiven.value = data.alreadyConsented ?? false;
+        viewModel.survey.value = survey;
+        viewModel.consentRequired.value = data.consentRequired ?? false;
+        viewModel.consentText.value = data.consentText ?? '';
+        viewModel.dataUsageText.value = data.dataUsageText ?? '';
+        viewModel.privacyPolicyUrl.value = data.privacyPolicyUrl ?? null;
+        viewModel.termsOfServiceUrl.value = data.termsOfServiceUrl ?? null;
+        viewModel.alreadyConsented.value = data.alreadyConsented ?? false;
+        viewModel.consentGiven.value = data.alreadyConsented ?? false;
+        this._logger.info('Survey loaded', { token });
+      } else {
+        const err = result.error;
+        viewModel.error.value = err && typeof err === 'object' && 'message' in err ? String((err as Error).message) : 'Failed to load survey';
+        this._logger.error('Failed to load survey', { token, error: result.error });
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to load survey';
+      viewModel.error.value = message;
+      this._logger.error('Load survey exception', { token, error: e });
+    } finally {
       viewModel.loading.value = false;
-      this._logger.info('Survey loaded', { token });
-    } else {
-      viewModel.error.value = result.error.message;
-      viewModel.loading.value = false;
-      this._logger.error('Failed to load survey', { token, error: result.error });
     }
   }
 

@@ -40,6 +40,8 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
           cost: project.cost,
           consent_text: project.consentText ?? null,
           consent_data_usage_text: project.dataUsageText ?? null,
+          privacy_policy_url: project.privacyPolicyUrl ?? null,
+          terms_of_service_url: project.termsOfServiceUrl ?? null,
           scenario_template_slug: project.scenarioTemplateSlug ?? null,
           created_at,
           updated_at,
@@ -281,6 +283,10 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         market_context: sanitizeValue(project.marketContext),
         target_audience: sanitizeValue(project.targetAudience),
         cost: project.cost !== null && project.cost !== undefined ? Number(project.cost) : null,
+        consent_text: project.consentText != null ? sanitizeValue(project.consentText) : null,
+        consent_data_usage_text: project.dataUsageText != null ? sanitizeValue(project.dataUsageText) : null,
+        privacy_policy_url: project.privacyPolicyUrl != null ? sanitizeValue(project.privacyPolicyUrl) : null,
+        terms_of_service_url: project.termsOfServiceUrl != null ? sanitizeValue(project.termsOfServiceUrl) : null,
         scenario_template_slug: project.scenarioTemplateSlug != null && String(project.scenarioTemplateSlug).trim() !== ''
           ? String(project.scenarioTemplateSlug).trim()
           : null,
@@ -555,6 +561,8 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         cost,
         consentText: data.consent_text ?? null,
         dataUsageText: data.consent_data_usage_text ?? null,
+        privacyPolicyUrl: data.privacy_policy_url ?? null,
+        termsOfServiceUrl: data.terms_of_service_url ?? null,
         scenarioTemplateSlug: data.scenario_template_slug ?? null,
         createdAt,
         updatedAt,

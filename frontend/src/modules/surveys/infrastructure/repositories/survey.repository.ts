@@ -78,6 +78,8 @@ export class SurveyRepository implements SurveyRepositoryPort {
         consentRequired: (response as any).consentRequired ?? false,
         consentText: (response as any).consentText ?? '',
         dataUsageText: (response as any).dataUsageText ?? '',
+        privacyPolicyUrl: (response as any).privacyPolicyUrl ?? null,
+        termsOfServiceUrl: (response as any).termsOfServiceUrl ?? null,
         alreadyConsented: (response as any).alreadyConsented ?? false,
       };
       return Result.success(withConsent);

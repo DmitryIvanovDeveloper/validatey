@@ -10,6 +10,8 @@ export class SurveyViewModel {
   consentRequired = ref(false);
   consentText = ref('');
   dataUsageText = ref('');
+  privacyPolicyUrl = ref<string | null>(null);
+  termsOfServiceUrl = ref<string | null>(null);
   alreadyConsented = ref(false);
   /** Set true after user clicks Continue on consent screen (or if alreadyConsented). */
   consentGiven = ref(false);

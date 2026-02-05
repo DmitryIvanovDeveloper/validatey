@@ -82,6 +82,22 @@ export class UpdateProjectUseCase {
         updatedProject = updatedProject.withScenarioTemplateSlug(request.scenarioTemplateSlug ?? null);
       }
 
+      if (request.consentText !== undefined) {
+        updatedProject = updatedProject.withConsentText(request.consentText ?? null);
+      }
+
+      if (request.dataUsageText !== undefined) {
+        updatedProject = updatedProject.withDataUsageText(request.dataUsageText ?? null);
+      }
+
+      if (request.privacyPolicyUrl !== undefined) {
+        updatedProject = updatedProject.withPrivacyPolicyUrl(request.privacyPolicyUrl ?? null);
+      }
+
+      if (request.termsOfServiceUrl !== undefined) {
+        updatedProject = updatedProject.withTermsOfServiceUrl(request.termsOfServiceUrl ?? null);
+      }
+
       const updateResult = await this._repository.update(updatedProject.toData());
 
       if (!updateResult.isSuccess) {

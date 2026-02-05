@@ -111,8 +111,8 @@ import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { userContextService } from '@/shared/services/user-context.service';
 import type { Project } from '../../domain/entities/project.entity';
-import { ProjectStatus } from '../../domain/entities/project.entity';
 
 const router = useRouter();
 const viewModel = new ProjectListViewModel();
@@ -148,11 +148,15 @@ function refetchProjects() {
 }
 
 onMounted(() => {
-  refetchProjects();
+  if (userContextService.isSessionReady()) {
+    refetchProjects();
+  }
+  window.addEventListener('validatey-session-ready', refetchProjects);
   window.addEventListener('validatey-user-id-synced', refetchProjects);
 });
 
 onUnmounted(() => {
+  window.removeEventListener('validatey-session-ready', refetchProjects);
   window.removeEventListener('validatey-user-id-synced', refetchProjects);
 });
 </script>

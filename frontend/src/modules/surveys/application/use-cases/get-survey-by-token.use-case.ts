@@ -1,12 +1,10 @@
 import { injectable, inject } from 'inversify';
 import Result from '../../../../infrastructure/result/result';
 import type { SurveyRepositoryPort } from '../ports/survey-repository.port';
-import type { InvitationServicePort } from '../../../invitations/application/services/invitation-service.port';
 import type { QuestionOptions } from '../../domain/value-objects/survey-question.vo';
 import { SurveyNotFoundError, SurveyExpiredError } from '../../domain/errors/survey.error';
 import { InvalidTokenError } from '../../../invitations/domain/errors/invitation.error';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
 
 export type GetSurveyByTokenUseCaseRequest = {
   token: string;
@@ -29,6 +27,8 @@ export type GetSurveyByTokenUseCaseResponse = {
   consentRequired?: boolean;
   consentText?: string;
   dataUsageText?: string;
+  privacyPolicyUrl?: string | null;
+  termsOfServiceUrl?: string | null;
   alreadyConsented?: boolean;
 };
 
@@ -36,19 +36,11 @@ export type GetSurveyByTokenUseCaseResponse = {
 export class GetSurveyByTokenUseCase {
   constructor(
     @inject(TYPES.SurveyRepository)
-    private readonly _surveyRepository: SurveyRepositoryPort,
-    @inject(INVITATION_TYPES.InvitationService)
-    private readonly _invitationService: InvitationServicePort
+    private readonly _surveyRepository: SurveyRepositoryPort
   ) {}
 
   async execute(input: GetSurveyByTokenUseCaseRequest): Promise<Result<GetSurveyByTokenUseCaseResponse, SurveyNotFoundError | SurveyExpiredError | InvalidTokenError>> {
-    // Валидация токена через InvitationServicePort
-    const tokenValidation = await this._invitationService.validateToken(input.token);
-    if (!tokenValidation.isSuccess) {
-      return Result.failure(tokenValidation.error);
-    }
-
-    // Получение опроса
+    // Single request: survey repo GET /survey/:token returns survey + consent (invalid token → 404)
     const result = await this._surveyRepository.getByToken(input.token);
     if (!result.isSuccess) {
       return Result.failure(result.error);
@@ -74,6 +66,8 @@ export class GetSurveyByTokenUseCase {
       consentRequired: data.consentRequired,
       consentText: data.consentText,
       dataUsageText: data.dataUsageText,
+      privacyPolicyUrl: data.privacyPolicyUrl ?? null,
+      termsOfServiceUrl: data.termsOfServiceUrl ?? null,
       alreadyConsented: data.alreadyConsented,
     });
   }

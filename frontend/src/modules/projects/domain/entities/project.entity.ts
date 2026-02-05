@@ -18,7 +18,11 @@ export class Project {
     public readonly marketContext: MarketContext | null,
     public readonly status: ProjectStatus,
     public readonly createdAt: Date,
-    public readonly updatedAt: Date
+    public readonly updatedAt: Date,
+    public readonly consentText: string | null = null,
+    public readonly dataUsageText: string | null = null,
+    public readonly privacyPolicyUrl: string | null = null,
+    public readonly termsOfServiceUrl: string | null = null
   ) {
     if (!id || id.trim().length === 0) {
       throw new Error('Project id cannot be empty');
@@ -37,7 +41,11 @@ export class Project {
       this.marketContext,
       this.status,
       this.createdAt,
-      new Date()
+      new Date(),
+      this.consentText,
+      this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl
     );
   }
 
@@ -50,7 +58,11 @@ export class Project {
       this.marketContext,
       this.status,
       this.createdAt,
-      new Date()
+      new Date(),
+      this.consentText,
+      this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl
     );
   }
 
@@ -63,7 +75,11 @@ export class Project {
       this.marketContext,
       status,
       this.createdAt,
-      new Date()
+      new Date(),
+      this.consentText,
+      this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl
     );
   }
 }

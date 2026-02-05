@@ -11,6 +11,10 @@ export type UpdateProjectUseCaseRequest = {
     marketContext?: MarketContext | null;
     status?: ProjectStatus;
     scenarioTemplateSlug?: string | null;
+    consentText?: string | null;
+    dataUsageText?: string | null;
+    privacyPolicyUrl?: string | null;
+    termsOfServiceUrl?: string | null;
   };
 };
 

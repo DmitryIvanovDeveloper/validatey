@@ -172,6 +172,10 @@ router.put('/:id', async (req: Request, res: Response) => {
       marketContext: req.body?.marketContext,
       targetAudience: req.body?.targetAudience,
       cost: req.body?.cost,
+      consentText: req.body?.consentText,
+      dataUsageText: req.body?.dataUsageText,
+      privacyPolicyUrl: req.body?.privacyPolicyUrl,
+      termsOfServiceUrl: req.body?.termsOfServiceUrl,
       scenarioTemplateSlug: req.body?.scenarioTemplateSlug,
     });
 

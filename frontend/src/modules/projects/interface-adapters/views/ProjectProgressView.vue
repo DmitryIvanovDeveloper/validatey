@@ -176,6 +176,42 @@
             </div>
           </section>
 
+          <!-- Survey consent: template + custom text + links -->
+          <section class="panel consent-config-panel" aria-labelledby="consent-config-heading">
+            <h3 id="consent-config-heading" class="panel-title">Survey consent</h3>
+            <p class="panel-desc">Text and links shown to respondents before the survey. Leave empty to skip the consent screen.</p>
+            <div class="consent-form">
+              <div class="form-row">
+                <label for="consent-template" class="form-label">Template</label>
+                <select id="consent-template" v-model="consentTemplateId" class="form-select" @change="onConsentTemplateChange">
+                  <option v-for="opt in CONSENT_TEMPLATE_OPTIONS" :key="opt.value || 'none'" :value="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label for="consent-text" class="form-label">Consent text</label>
+                <textarea id="consent-text" v-model="consentText" class="form-textarea" rows="4" placeholder="Optional. If set, respondents must accept before starting the survey."></textarea>
+              </div>
+              <div class="form-row">
+                <label for="data-usage-text" class="form-label">How we use your data (optional)</label>
+                <textarea id="data-usage-text" v-model="dataUsageText" class="form-textarea" rows="2" placeholder="Optional description of data usage."></textarea>
+              </div>
+              <div class="form-row">
+                <label for="privacy-policy-url" class="form-label">Privacy Policy URL</label>
+                <input id="privacy-policy-url" v-model="privacyPolicyUrl" type="url" class="form-input" placeholder="https://..." />
+              </div>
+              <div class="form-row">
+                <label for="terms-url" class="form-label">Terms of Service URL</label>
+                <input id="terms-url" v-model="termsOfServiceUrl" type="url" class="form-input" placeholder="https://..." />
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-primary btn-sm" :disabled="consentSaveLoading" @click="saveConsent">
+                  {{ consentSaveLoading ? 'Saving…' : 'Save' }}
+                </button>
+                <span v-if="consentSaveMessage" class="consent-save-message" :class="consentSaveSuccess ? 'success' : 'error'">{{ consentSaveMessage }}</span>
+              </div>
+            </div>
+          </section>
+
           <!-- Compliance: Export consents -->
           <section class="panel compliance-panel" aria-labelledby="compliance-heading">
             <h3 id="compliance-heading" class="panel-title">Compliance</h3>
@@ -253,14 +289,22 @@ import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES as INVITATION_TYPES } from '@/modules/invitations/infrastructure/bootstrap/types';
+import { TYPES as PROJECT_TYPES } from '@/modules/projects/infrastructure/bootstrap/types';
 import type { InvitationRepositoryPort } from '@/modules/invitations/application/ports/invitation-repository.port';
+import type { ProjectRepositoryPort } from '@/modules/projects/application/ports/project-repository.port';
+import { ProjectPresenter } from '@/modules/projects/interface-adapters/presenters/project.presenter';
 import { InvitationStatus } from '@/modules/invitations/domain/entities/invitation.entity';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { HttpClientPort } from '@/infrastructure/http/ports/http-client.port';
 import { API_CONFIG } from '@/infrastructure/config/api.config';
+import { CONSENT_TEMPLATES, CONSENT_TEMPLATE_OPTIONS } from '@/modules/projects/interface-adapters/constants/consent-templates';
+import type { ConsentTemplateId } from '@/modules/projects/interface-adapters/constants/consent-templates';
 
 const route = useRoute();
 const projectId = route.params.projectId as string;
+
+const projectRepository = container.get<ProjectRepositoryPort>(PROJECT_TYPES.ProjectRepository);
+const projectPresenter = container.get<ProjectPresenter>(PROJECT_TYPES.ProjectPresenter);
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -284,6 +328,16 @@ const questionLabels = ref<Record<string, string>>({});
 const expandedResponses = ref<Set<string>>(new Set());
 const exportLoading = ref(false);
 const consentExportLoading = ref(false);
+
+const project = ref<{ consentText: string | null; dataUsageText: string | null; privacyPolicyUrl: string | null; termsOfServiceUrl: string | null } | null>(null);
+const consentTemplateId = ref<'' | ConsentTemplateId>('');
+const consentText = ref('');
+const dataUsageText = ref('');
+const privacyPolicyUrl = ref('');
+const termsOfServiceUrl = ref('');
+const consentSaveLoading = ref(false);
+const consentSaveMessage = ref('');
+const consentSaveSuccess = ref(false);
 
 type DeletionRequestItem = {
   id: string;
@@ -396,6 +450,66 @@ const formatAnswerValue = (value: unknown): string => {
   }
   return JSON.stringify(value, null, 2);
 };
+
+function syncConsentFormFromProject(p: { consentText?: string | null; dataUsageText?: string | null; privacyPolicyUrl?: string | null; termsOfServiceUrl?: string | null }) {
+  consentText.value = p.consentText ?? '';
+  dataUsageText.value = p.dataUsageText ?? '';
+  privacyPolicyUrl.value = p.privacyPolicyUrl ?? '';
+  termsOfServiceUrl.value = p.termsOfServiceUrl ?? '';
+}
+
+function onConsentTemplateChange() {
+  const id = consentTemplateId.value;
+  if (id && CONSENT_TEMPLATES[id]) {
+    const t = CONSENT_TEMPLATES[id];
+    consentText.value = t.consentText;
+    if (t.dataUsageText) dataUsageText.value = t.dataUsageText;
+  }
+}
+
+async function saveConsent() {
+  if (consentSaveLoading.value) return;
+  consentSaveMessage.value = '';
+  try {
+    consentSaveLoading.value = true;
+    const result = await projectPresenter.updateProject(
+      projectId,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      consentText.value.trim() || null,
+      dataUsageText.value.trim() || null,
+      privacyPolicyUrl.value.trim() || null,
+      termsOfServiceUrl.value.trim() || null
+    );
+    if (result.ok) {
+      consentSaveSuccess.value = true;
+      consentSaveMessage.value = 'Saved.';
+      if (project.value) {
+        project.value = {
+          ...project.value,
+          consentText: consentText.value.trim() || null,
+          dataUsageText: dataUsageText.value.trim() || null,
+          privacyPolicyUrl: privacyPolicyUrl.value.trim() || null,
+          termsOfServiceUrl: termsOfServiceUrl.value.trim() || null,
+        };
+      }
+    } else {
+      consentSaveSuccess.value = false;
+      consentSaveMessage.value = result.error ?? 'Failed to save';
+    }
+  } catch (e) {
+    consentSaveSuccess.value = false;
+    consentSaveMessage.value = e instanceof Error ? e.message : 'Failed to save';
+  } finally {
+    consentSaveLoading.value = false;
+  }
+}
 
 async function exportResponses(format: 'json' | 'csv') {
   if (exportLoading.value) return;
@@ -526,6 +640,20 @@ onMounted(async () => {
   try {
     loading.value = true;
     error.value = null;
+
+    const projectResult = await projectRepository.getById(projectId);
+    if (projectResult.isSuccess) {
+      const p = projectResult.data;
+      project.value = {
+        consentText: p.consentText ?? null,
+        dataUsageText: p.dataUsageText ?? null,
+        privacyPolicyUrl: p.privacyPolicyUrl ?? null,
+        termsOfServiceUrl: p.termsOfServiceUrl ?? null,
+      };
+      syncConsentFormFromProject(p);
+    } else {
+      project.value = null;
+    }
     
     // Загружаем приглашения
     const invitationsResult = await invitationRepository.getStatuses(projectId);
@@ -817,6 +945,42 @@ onMounted(async () => {
   color: #64748b;
   margin: 0 0 0.75rem;
 }
+
+.consent-form .form-row { margin-bottom: 0.75rem; }
+.consent-form .form-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 0.25rem;
+}
+.consent-form .form-select,
+.consent-form .form-input {
+  width: 100%;
+  max-width: 28rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+}
+.consent-form .form-textarea {
+  width: 100%;
+  max-width: 36rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  resize: vertical;
+}
+.consent-form .form-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.consent-form .consent-save-message { font-size: 0.875rem; }
+.consent-form .consent-save-message.success { color: var(--color-success, #059669); }
+.consent-form .consent-save-message.error { color: #dc2626; }
 
 .panel-empty {
   font-size: 0.875rem;

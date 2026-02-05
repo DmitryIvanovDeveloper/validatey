@@ -10,6 +10,14 @@ export type UpdateProjectUseCaseRequest = {
   marketContext?: MarketContext;
   targetAudience?: string;
   cost?: number;
+  /** Consent text shown before survey (GDPR). */
+  consentText?: string | null;
+  /** How we use data (GDPR). */
+  dataUsageText?: string | null;
+  /** Privacy Policy URL shown on consent screen. */
+  privacyPolicyUrl?: string | null;
+  /** Terms of Service URL shown on consent screen. */
+  termsOfServiceUrl?: string | null;
   /** Scenario template slug (wtp | feature-demand | value-prop). */
   scenarioTemplateSlug?: string | null;
 };

@@ -7,6 +7,8 @@ export type SurveyWithConsent = {
   consentRequired: boolean;
   consentText: string;
   dataUsageText: string;
+  privacyPolicyUrl?: string | null;
+  termsOfServiceUrl?: string | null;
   alreadyConsented: boolean;
 };
 

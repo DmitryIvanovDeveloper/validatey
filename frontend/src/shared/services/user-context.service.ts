@@ -5,6 +5,7 @@
 class UserContextService {
   private static readonly USER_ID_KEY = 'validatey_user_id';
   private userId: string | null = null;
+  private sessionReady = false;
 
   constructor() {
     // Загружаем user ID из localStorage при инициализации
@@ -76,6 +77,15 @@ class UserContextService {
       id = this.generateTemporaryUserId();
     }
     return id;
+  }
+
+  /** Session has been loaded (auth state known). Used to avoid loading projects with stale userId. */
+  isSessionReady(): boolean {
+    return this.sessionReady;
+  }
+
+  setSessionReady(ready: boolean): void {
+    this.sessionReady = ready;
   }
 }
 

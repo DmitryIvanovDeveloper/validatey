@@ -84,6 +84,8 @@ import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { userContextService } from '@/shared/services/user-context.service';
+
 const router = useRouter();
 const viewModel = new ProjectListViewModel();
 const presenter = container.get<ProjectListPresenter>(TYPES.ProjectListPresenter);
@@ -93,11 +95,15 @@ function refetchProjects() {
 }
 
 onMounted(() => {
-  refetchProjects();
+  if (userContextService.isSessionReady()) {
+    refetchProjects();
+  }
+  window.addEventListener('validatey-session-ready', refetchProjects);
   window.addEventListener('validatey-user-id-synced', refetchProjects);
 });
 
 onUnmounted(() => {
+  window.removeEventListener('validatey-session-ready', refetchProjects);
   window.removeEventListener('validatey-user-id-synced', refetchProjects);
 });
 
