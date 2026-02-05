@@ -9,8 +9,7 @@
 
 ## validatey (frontend)
 
-- **Root Directory:** оставить пустым (деплой из корня репозитория не подходит для монорепо) — проект привязан к папке `frontend` через деплой из неё по CLI.  
-  Либо в Vercel: подключить репозиторий, **Root Directory** = `frontend`.
+- **Root Directory:** обязательно **`frontend`** (при деплое из Git без этого будет `vite: command not found`, т.к. сборка пойдёт из корня репо, где нет frontend-зависимостей).
 - **Environment Variables** (Production / Preview / Development):
   - `VITE_API_BASE_URL` = `https://validatey-backend.vercel.app/api` (или ваш URL бэкенда)
 
@@ -26,6 +25,10 @@
 ## Домены
 
 Домены уже привязаны при деплое: validatey.vercel.app и validatey-backend.vercel.app. При необходимости проверить/добавить: **Settings → Domains** в каждом проекте.
+
+## Если в логах «vite: command not found»
+
+Проверьте у проекта **validatey**: **Settings → General → Root Directory** = `frontend`. Без этого сборка запускается из корня репо, где нет `vite`.
 
 ## Деплой по CLI
 

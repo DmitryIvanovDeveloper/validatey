@@ -8,10 +8,12 @@ const router = Router();
 const authProvider = new SupabaseAuthProvider();
 
 const COOKIE_NAME = 'validatey_auth';
+// Cross-origin (frontend on validatey.vercel.app, backend on validatey-backend.vercel.app) requires SameSite=None so the cookie is sent with fetch(credentials: 'include').
+const isProduction = process.env.NODE_ENV === 'production';
 const COOKIE_OPTS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  secure: isProduction,
+  sameSite: (isProduction ? 'none' : 'lax') as const,
   maxAge: 7 * 24 * 60 * 60,
   path: '/',
 };
@@ -102,7 +104,7 @@ router.get('/session', async (req: Request, res: Response) => {
     }
     const user = await authProvider.getUserFromAccessToken(token);
     if (!user) {
-      res.clearCookie(COOKIE_NAME, { path: '/' });
+      res.clearCookie(COOKIE_NAME, { path: '/', sameSite: COOKIE_OPTS.sameSite, secure: COOKIE_OPTS.secure });
       return res.status(401).json({ error: 'Invalid session' });
     }
     return res.json({ user });
@@ -120,7 +122,7 @@ router.post('/link-previous-user', async (req: Request, res: Response) => {
     }
     const user = await authProvider.getUserFromAccessToken(token);
     if (!user) {
-      res.clearCookie(COOKIE_NAME, { path: '/' });
+      res.clearCookie(COOKIE_NAME, { path: '/', sameSite: COOKIE_OPTS.sameSite, secure: COOKIE_OPTS.secure });
       return res.status(401).json({ error: 'Invalid session' });
     }
     const previousUserId = (req.body?.previousUserId as string)?.trim();
@@ -143,7 +145,7 @@ router.post('/link-previous-user', async (req: Request, res: Response) => {
 
 /** POST /api/auth/sign-out → clear cookie */
 router.post('/sign-out', (_req: Request, res: Response) => {
-  res.clearCookie(COOKIE_NAME, { path: '/' });
+  res.clearCookie(COOKIE_NAME, { path: '/', sameSite: COOKIE_OPTS.sameSite, secure: COOKIE_OPTS.secure });
   return res.status(204).send();
 });
 
