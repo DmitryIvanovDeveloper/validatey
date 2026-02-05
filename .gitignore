@@ -233,3 +233,5 @@ Desktop.ini
 *.bak
 *.backup
 *~
+.vercel
+.env*.local
