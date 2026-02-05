@@ -68,6 +68,9 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'email and password are required' });
     }
     const session = await authProvider.signInWithEmailPassword(email, password);
+    if (!session.accessToken) {
+      return res.status(500).json({ error: 'Sign in failed' });
+    }
     setSessionCookies(res, session.accessToken, session.refreshToken);
     return res.json({ user: session.user });
   } catch (e) {
