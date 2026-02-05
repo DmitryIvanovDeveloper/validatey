@@ -10,68 +10,76 @@
       ]"
     >
       <template #actions>
-        <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">← Back</router-link>
-        <button type="button" class="btn btn-primary" @click="showInviteModal = true">
-          + Send invitations
+        <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">
+          <span class="btn-icon" aria-hidden="true">←</span> Back
+        </router-link>
+        <button type="button" class="btn btn-primary btn-cta" @click="showInviteModal = true">
+          <span class="btn-icon" aria-hidden="true">+</span> Send invitations
         </button>
       </template>
     </PageHeader>
 
-    <!-- Public link (one link, many respondents) -->
-    <Card class="public-link-card">
+    <!-- Public link -->
+    <Card class="section-card public-link-card">
       <template #header>
-        <div class="public-link-card-header">
-          <span class="public-link-icon" aria-hidden="true">🌐</span>
-          <h3 class="card-title">Public link</h3>
+        <div class="section-card-header">
+          <span class="section-icon section-icon-globe" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </span>
+          <div>
+            <h3 class="section-title">Public link</h3>
+            <p class="section-subtitle">One link, many respondents. Limit and moderate responses.</p>
+          </div>
         </div>
       </template>
-      <p class="public-link-desc">Create a single link anyone can use. Responses can be limited and moderated.</p>
-      <div v-if="projectLoadError" class="public-link-error" role="alert">{{ projectLoadError }}</div>
+      <div v-if="projectLoadError" class="msg msg-error" role="alert">{{ projectLoadError }}</div>
       <div v-else class="public-link-form">
-        <label class="toggle-row">
+        <label class="switch-row">
           <input
             v-model="publicAccessEnabled"
             type="checkbox"
             :disabled="publicSaving"
-            class="toggle-input"
+            class="switch-input"
           />
-          <span class="toggle-label">Enable public access</span>
+          <span class="switch-track"></span>
+          <span class="switch-label">Enable public access</span>
         </label>
         <template v-if="publicAccessEnabled">
-          <div v-if="publicSlug" class="public-url-row">
-            <label class="field-label">Public survey URL</label>
-            <div class="public-url-input-row">
-              <input :value="publicSurveyFullUrl" readonly class="share-link-input" aria-label="Public survey URL" />
+          <div v-if="publicSlug" class="input-group">
+            <label class="label">Public survey URL</label>
+            <div class="input-with-action">
+              <input :value="publicSurveyFullUrl" readonly class="input input-readonly" aria-label="Public survey URL" />
               <button
                 type="button"
-                class="btn btn-primary"
+                class="btn btn-primary btn-copy"
                 :aria-label="publicCopyFeedback ? 'Copied' : 'Copy public link'"
                 @click="copyPublicLink"
               >
-                {{ publicCopyFeedback ? 'Copied!' : 'Copy link' }}
+                <span v-if="publicCopyFeedback" class="copy-check" aria-hidden="true">✓</span>
+                {{ publicCopyFeedback ? 'Copied' : 'Copy' }}
               </button>
             </div>
           </div>
-          <div class="field-row">
-            <label class="field-label" for="max-public-responses">Max responses (leave empty for no limit)</label>
+          <div class="input-group input-group-inline">
+            <label class="label" for="max-public-responses">Max responses</label>
             <input
               id="max-public-responses"
               v-model.number="maxPublicResponsesInput"
               type="number"
               min="1"
-              class="form-input field-input"
+              class="input input-narrow"
               placeholder="No limit"
             />
           </div>
           <label class="checkbox-row">
-            <input v-model="requirePublicEmail" type="checkbox" :disabled="publicSaving" />
+            <input v-model="requirePublicEmail" type="checkbox" :disabled="publicSaving" class="checkbox-input" />
             <span>Require email for public respondents</span>
           </label>
           <label class="checkbox-row">
-            <input v-model="captchaEnabled" type="checkbox" :disabled="publicSaving" />
+            <input v-model="captchaEnabled" type="checkbox" :disabled="publicSaving" class="checkbox-input" />
             <span>Enable CAPTCHA</span>
           </label>
-          <div class="public-link-actions">
+          <div class="form-actions">
             <button
               type="button"
               class="btn btn-primary"
@@ -81,8 +89,8 @@
               <span v-if="publicSaving" class="btn-spinner" aria-hidden="true"></span>
               {{ publicSaving ? 'Saving…' : 'Save settings' }}
             </button>
-            <span v-if="publicSaveResult" :class="['public-save-result', publicSaveError ? 'error' : '']">
-              {{ publicSaveError || publicSaveResult }}
+            <span v-if="publicSaveResult" :class="['form-feedback', publicSaveError ? 'error' : 'success']">
+              {{ publicSaveResult }}
             </span>
           </div>
         </template>
@@ -90,46 +98,72 @@
     </Card>
 
     <!-- Share survey link -->
-    <Card class="share-card">
+    <Card class="section-card share-card">
       <template #header>
-        <div class="share-card-header">
-          <span class="share-icon" aria-hidden="true">🔗</span>
-          <h3 class="card-title">Share survey link</h3>
+        <div class="section-card-header">
+          <span class="section-icon section-icon-link" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </span>
+          <div>
+            <h3 class="section-title">Share survey link</h3>
+            <p class="section-subtitle">Generate a new unique link for each respondent. One link — one response.</p>
+          </div>
         </div>
       </template>
-      <p class="share-desc">Anyone with this link can take the survey — ideal for social media or communities.</p>
-      <div v-if="shareLinkUrl" class="share-link-row">
-        <input :value="shareLinkUrl" readonly class="share-link-input" aria-label="Survey share link" />
-        <button
-          type="button"
-          class="btn btn-primary"
-          :aria-label="copyFeedback ? 'Copied' : 'Copy link'"
-          @click="copyShareLink"
-        >
-          {{ copyFeedback ? 'Copied!' : 'Copy link' }}
-        </button>
-      </div>
-      <div v-else class="share-link-actions">
-        <button
-          type="button"
-          class="btn btn-primary"
-          :disabled="shareLinkLoading"
-          @click="createShareLink"
-        >
-          <span v-if="shareLinkLoading" class="btn-spinner" aria-hidden="true"></span>
-          {{ shareLinkLoading ? 'Creating link…' : 'Create share link' }}
-        </button>
-        <p v-if="shareLinkError" class="share-link-error" role="alert">{{ shareLinkError }}</p>
+      <div class="share-actions">
+        <div v-if="shareLinkUrl" class="share-link-block">
+          <div class="input-with-action">
+            <input :value="shareLinkUrl" readonly class="input input-readonly" aria-label="Survey share link" />
+            <button
+              type="button"
+              class="btn btn-primary btn-copy"
+              :aria-label="copyFeedback ? 'Copied' : 'Copy link'"
+              @click="copyShareLink"
+            >
+              <span v-if="copyFeedback" class="copy-check" aria-hidden="true">✓</span>
+              {{ copyFeedback ? 'Copied' : 'Copy' }}
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm btn-generate-another"
+            :disabled="shareLinkLoading"
+            @click="createShareLink"
+          >
+            <span v-if="shareLinkLoading" class="btn-spinner" aria-hidden="true"></span>
+            {{ shareLinkLoading ? 'Generating…' : 'Generate another link' }}
+          </button>
+        </div>
+        <template v-else>
+          <button
+            type="button"
+            class="btn btn-primary"
+            :disabled="shareLinkLoading"
+            @click="createShareLink"
+          >
+            <span v-if="shareLinkLoading" class="btn-spinner" aria-hidden="true"></span>
+            {{ shareLinkLoading ? 'Generating…' : 'Generate new link' }}
+          </button>
+        </template>
+        <p v-if="shareLinkError" class="msg msg-error" role="alert">{{ shareLinkError }}</p>
       </div>
     </Card>
 
     <!-- Invitations list -->
-    <Card class="list-card">
+    <Card class="section-card list-card">
       <template #header>
         <div class="list-card-header">
-          <h3 class="card-title">Invitations list</h3>
-          <div v-if="pendingCount > 0" class="send-pending-inline">
-            <span class="send-pending-label">{{ pendingCount }} pending</span>
+          <div class="section-card-header">
+            <span class="section-icon section-icon-list" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </span>
+            <div>
+              <h3 class="section-title">Invitations list</h3>
+              <p class="section-subtitle">{{ invitations.length }} invitation{{ invitations.length === 1 ? '' : 's' }}</p>
+            </div>
+          </div>
+          <div v-if="pendingCount > 0" class="header-actions-inline">
+            <span class="pending-badge">{{ pendingCount }} pending</span>
             <button
               type="button"
               class="btn btn-primary btn-sm"
@@ -139,71 +173,74 @@
               <span v-if="sendingPending" class="btn-spinner" aria-hidden="true"></span>
               {{ sendingPending ? 'Sending…' : 'Send pending' }}
             </button>
-            <span v-if="sendPendingResult" class="send-pending-result">{{ sendPendingResult }}</span>
+            <span v-if="sendPendingResult" class="form-feedback success">{{ sendPendingResult }}</span>
           </div>
         </div>
       </template>
-      <div v-if="loading" class="loading-state">
-        <span class="loading-dot" aria-hidden="true"></span>
+      <div v-if="loading" class="state state-loading">
+        <span class="spinner" aria-hidden="true"></span>
         <span>Loading invitations…</span>
       </div>
-      <div v-else-if="loadError" class="error-state" role="alert">
-        <span class="error-icon" aria-hidden="true">⚠</span>
+      <div v-else-if="loadError" class="state state-error" role="alert">
+        <span class="state-icon" aria-hidden="true">⚠</span>
         {{ loadError }}
       </div>
-      <div v-else-if="invitations.length === 0" class="empty-state">
-        <p>No invitations yet. Send invitations by email or create a share link above.</p>
+      <div v-else-if="invitations.length === 0" class="state state-empty">
+        <p class="state-title">No invitations yet</p>
+        <p class="state-desc">Send invitations by email or create a share link above.</p>
       </div>
-      <div v-else class="invitations-table">
-        <div class="table-header">
-          <div class="col-email">Email</div>
-          <div class="col-status">Status</div>
-          <div class="col-sent">Sent</div>
-          <div class="col-responded">Responded</div>
-          <div class="col-actions">Actions</div>
-        </div>
-        <div
-          v-for="invitation in invitations"
-          :key="invitation.id"
-          class="table-row"
-        >
-          <div class="col-email">{{ invitation.email }}</div>
-          <div class="col-status">
-            <span :class="['status-badge', `status-${invitation.status}`]">
-              {{ getStatusLabel(invitation.status) }}
-            </span>
-          </div>
-          <div class="col-sent">{{ formatDate(invitation.sentAt) }}</div>
-          <div class="col-responded">{{ formatDate(invitation.respondedAt) }}</div>
-          <div class="col-actions">
-            <button
-              type="button"
-              class="btn btn-secondary btn-sm"
-              :disabled="sendingPending || invitation.status !== 'pending'"
-              @click="resendInvitation(invitation.id)"
-            >
-              Resend
-            </button>
-          </div>
-        </div>
+      <div v-else class="table-wrap">
+        <table class="invitations-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Status</th>
+              <th class="th-date">Sent</th>
+              <th class="th-date">Responded</th>
+              <th class="th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="invitation in invitations" :key="invitation.id" class="table-row">
+              <td class="col-email">{{ invitation.email }}</td>
+              <td>
+                <span :class="['badge', `badge-${invitation.status}`]">
+                  {{ getStatusLabel(invitation.status) }}
+                </span>
+              </td>
+              <td class="col-date">{{ formatDate(invitation.sentAt) }}</td>
+              <td class="col-date">{{ formatDate(invitation.respondedAt) }}</td>
+              <td class="col-actions">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  :disabled="sendingPending || invitation.status !== 'pending'"
+                  @click="resendInvitation(invitation.id)"
+                >
+                  Resend
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </Card>
 
     <Modal v-model="showInviteModal" title="Send invitations" :closable="true">
       <div class="invite-form">
         <div class="form-group">
-          <label for="invite-emails">Email addresses (one per line)</label>
+          <label for="invite-emails" class="label">Email addresses (one per line)</label>
           <textarea
             id="invite-emails"
             v-model="inviteEmails"
             rows="6"
-            class="form-input"
+            class="input textarea"
             placeholder="user1@example.com&#10;user2@example.com"
           />
         </div>
       </div>
       <template #footer>
-        <button type="button" class="btn btn-secondary" @click="showInviteModal = false">Cancel</button>
+        <button type="button" class="btn btn-ghost" @click="showInviteModal = false">Cancel</button>
         <button type="button" class="btn btn-primary" :disabled="sending" @click="sendInvitations">
           <span v-if="sending" class="btn-spinner" aria-hidden="true"></span>
           {{ sending ? 'Sending…' : 'Send' }}
@@ -541,313 +578,421 @@ onMounted(() => {
   max-width: var(--content-max-width, 56rem);
 }
 
-.public-link-card {
+/* Section cards */
+.section-card {
   margin-bottom: 1.5rem;
 }
 
-.public-link-card-header {
+.section-card :deep(.card-header) {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0.5rem;
+}
+
+.section-card-header {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.public-link-icon {
-  font-size: 1.25rem;
-}
-
-.public-link-desc {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm, 0.875rem);
-  margin: 0 0 1rem;
-  line-height: 1.5;
-}
-
-.public-link-error {
-  color: var(--color-error);
-  font-size: var(--text-sm);
-  margin: 0.5rem 0 0;
-}
-
-.public-link-form {
-  display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 1rem;
 }
 
-.toggle-row {
+.section-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  color: var(--color-accent, #0d9488);
+}
+
+.section-icon-globe {
+  background: rgba(13, 148, 136, 0.1);
+}
+
+.section-icon-link {
+  background: rgba(13, 148, 136, 0.1);
+}
+
+.section-icon-list {
+  background: rgba(13, 148, 136, 0.1);
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text, #0f172a);
+  margin: 0 0 0.15rem 0;
+  letter-spacing: -0.01em;
+}
+
+.section-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #64748b);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Switch (toggle) */
+.switch-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
   cursor: pointer;
+  user-select: none;
 }
 
-.toggle-input {
-  width: 1.125rem;
-  height: 1.125rem;
+.switch-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.toggle-label {
+.switch-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--color-border, #e2e8f0);
+  position: relative;
+  transition: background 0.2s;
+}
+
+.switch-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.switch-input:checked + .switch-track {
+  background: var(--color-accent, #0d9488);
+}
+
+.switch-input:checked + .switch-track::after {
+  transform: translateX(20px);
+}
+
+.switch-input:disabled + .switch-track {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.switch-label {
   font-weight: 500;
-  font-size: var(--text-sm);
-  color: var(--color-text);
+  font-size: 0.9375rem;
+  color: var(--color-text, #0f172a);
 }
 
-.public-url-row .field-label,
-.field-row .field-label {
+/* Form */
+.public-link-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.label {
   display: block;
   font-weight: 500;
-  font-size: var(--text-sm);
-  color: var(--color-text);
+  font-size: 0.8125rem;
+  color: var(--color-text, #334155);
   margin-bottom: 0.375rem;
 }
 
-.public-url-input-row {
+.input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg, #fff);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent, #0d9488);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.input-readonly {
+  background: var(--color-bg-subtle, #f8fafc);
+  color: var(--color-text-muted, #64748b);
+}
+
+.input-narrow {
+  max-width: 8rem;
+}
+
+.input-group {
+  margin-bottom: 0;
+}
+
+.input-group-inline {
+  max-width: 12rem;
+}
+
+.input-with-action {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
-.public-url-input-row .share-link-input {
+.input-with-action .input {
   flex: 1;
   min-width: 0;
-}
-
-.field-input {
-  max-width: 12rem;
 }
 
 .checkbox-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: var(--text-sm);
+  font-size: 0.875rem;
   color: var(--color-text);
   cursor: pointer;
 }
 
-.checkbox-row input {
-  width: 1rem;
-  height: 1rem;
+.checkbox-input {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--color-accent, #0d9488);
 }
 
-.public-link-actions {
+.form-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.public-save-result {
-  font-size: var(--text-sm);
+.form-feedback {
+  font-size: 0.8125rem;
+}
+
+.form-feedback.success {
   color: var(--color-success, #16a34a);
 }
 
-.public-save-result.error {
-  color: var(--color-error);
+.form-feedback.error {
+  color: var(--color-error, #dc2626);
 }
 
-.share-card {
-  margin-bottom: 1.5rem;
+.msg {
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
 }
 
-.share-card-header {
+.msg-error {
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--color-error, #dc2626);
+}
+
+.share-actions {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.share-link-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.share-icon {
-  font-size: 1.25rem;
+.btn-generate-another {
+  align-self: flex-start;
 }
 
-.share-desc {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm, 0.875rem);
-  margin: 0 0 1rem;
-  line-height: 1.5;
-}
-
-.share-link-row {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.share-link-input {
-  flex: 1;
-  min-width: 0;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  background: var(--color-bg-subtle, #f8fafc);
-  color: var(--color-text);
-}
-
-.share-link-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.share-link-error {
-  color: var(--color-error);
-  font-size: var(--text-sm);
-  margin: 0.5rem 0 0;
-}
-
-.list-card {
-  margin-bottom: 1.5rem;
-}
-
+/* List card header */
 .list-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.send-pending-inline {
+.header-actions-inline {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.send-pending-label {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+.pending-badge {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #64748b);
+  font-weight: 500;
 }
 
-.send-pending-result {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-
-.loading-state {
+/* States */
+.state {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  padding: 2rem;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  padding: 2.5rem 1.5rem;
+  font-size: 0.9375rem;
 }
 
-.loading-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: pulse 1s ease-in-out infinite;
+.state-loading {
+  color: var(--color-text-muted, #64748b);
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+.state-error {
+  color: var(--color-error, #dc2626);
 }
 
-.error-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  color: var(--color-error);
-  font-size: var(--text-sm);
-}
-
-.error-icon {
+.state-icon {
   font-size: 1.25rem;
 }
 
-.empty-state {
-  padding: 2rem;
+.state-empty {
+  flex-direction: column;
   text-align: center;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  gap: 0.25rem;
 }
 
-.empty-state p {
+.state-title {
+  font-weight: 600;
+  color: var(--color-text, #0f172a);
   margin: 0;
 }
 
-.invitations-table {
+.state-desc {
+  color: var(--color-text-muted, #64748b);
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border, #e2e8f0);
+  border-top-color: var(--color-accent, #0d9488);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Table */
+.table-wrap {
   overflow-x: auto;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  border: 1px solid var(--color-border, #e2e8f0);
 }
 
-.table-header {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  gap: 1rem;
-  padding: 0.75rem 1.25rem;
-  background: var(--color-bg-subtle);
+.invitations-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.invitations-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
   font-weight: 600;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--color-text-muted, #64748b);
+  background: var(--color-bg-subtle, #f8fafc);
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
 }
 
-.table-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-  gap: 1rem;
-  padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid var(--color-border);
-  align-items: center;
-  font-size: var(--text-sm);
-  background: var(--color-bg);
+.invitations-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  color: var(--color-text);
+  vertical-align: middle;
 }
 
-.table-row:last-child {
+.invitations-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.col-email {
-  color: var(--color-text);
-  word-break: break-word;
+.invitations-table tbody tr:hover {
+  background: var(--color-bg-subtle, #f8fafc);
 }
 
-.status-badge {
+.col-email {
+  word-break: break-all;
+  font-weight: 500;
+}
+
+.col-date {
+  color: var(--color-text-muted, #64748b);
+  white-space: nowrap;
+}
+
+.th-date,
+.th-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-block;
   padding: 0.25rem 0.625rem;
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
-  display: inline-block;
 }
 
-.status-pending {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-muted);
+.badge-pending {
+  background: #f1f5f9;
+  color: #64748b;
 }
 
-.status-sent {
-  background: var(--color-info-bg, #eff6ff);
-  color: var(--color-info, #2563eb);
+.badge-sent {
+  background: #eff6ff;
+  color: #2563eb;
 }
 
-.status-responded,
-.status-completed {
-  background: var(--color-success-bg, #f0fdf4);
-  color: var(--color-success, #16a34a);
+.badge-opened {
+  background: #fef3c7;
+  color: #d97706;
 }
 
-.status-expired {
-  background: var(--color-error-bg, #fef2f2);
-  color: var(--color-error);
+.badge-responded,
+.badge-completed {
+  background: #ecfdf5;
+  color: #059669;
 }
 
+.badge-expired {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* Buttons */
 .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   padding: 0.625rem 1.25rem;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-weight: 500;
-  font-size: var(--text-sm);
+  font-size: 0.9375rem;
   cursor: pointer;
   border: none;
-  transition: background 0.2s, box-shadow 0.2s;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+}
+
+.btn-icon {
+  font-size: 1.1em;
+  line-height: 1;
 }
 
 .btn-sm {
@@ -855,14 +1000,18 @@ onMounted(() => {
   font-size: 0.8125rem;
 }
 
+.btn-cta {
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+}
+
 .btn-primary {
-  background: var(--color-accent);
-  color: white;
+  background: var(--color-accent, #0d9488);
+  color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-accent-hover);
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+  background: var(--color-accent-hover, #0f766e);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
 }
 
 .btn-primary:disabled {
@@ -870,23 +1019,22 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-.btn-secondary {
-  background: var(--color-bg-subtle);
-  color: var(--color-text);
+.btn-copy {
+  flex-shrink: 0;
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background: var(--color-border);
+.copy-check {
+  margin-right: 0.25rem;
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-text-muted);
+  color: var(--color-text-muted, #64748b);
 }
 
-.btn-ghost:hover {
-  color: var(--color-text);
-  background: var(--color-bg-subtle);
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-text, #0f172a);
+  background: var(--color-bg-subtle, #f1f5f9);
 }
 
 .btn-spinner {
@@ -901,58 +1049,46 @@ onMounted(() => {
   margin-right: 0.35rem;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
+/* Modal form */
 .invite-form {
   padding: 0.25rem 0;
 }
 
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .form-group:last-child {
   margin-bottom: 0;
 }
 
-.form-group label {
-  display: block;
-  font-weight: 500;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  margin-bottom: 0.375rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-base);
-  font-family: inherit;
-  color: var(--color-text);
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+.textarea {
+  min-height: 140px;
+  resize: vertical;
 }
 
 @media (max-width: 640px) {
-  .table-header,
-  .table-row {
-    grid-template-columns: 1.5fr 1fr 1fr;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
+  .invitations-table .th-date,
+  .invitations-table .col-date {
+    display: none;
   }
 
-  .col-sent,
-  .col-responded {
-    display: none;
+  .section-card-header {
+    gap: 0.75rem;
+  }
+
+  .section-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .input-with-action {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-copy {
+    width: 100%;
   }
 }
 </style>

@@ -69,10 +69,14 @@ export class InvitationPresenter {
   }
 
   /**
-   * Create a single invitation with placeholder email for share link; returns the survey URL.
+   * Create a new invitation with unique placeholder email; returns a survey URL for one respondent.
+   * Each call generates a new link (new token).
    */
   async createShareLink(projectId: string): Promise<{ url: string; error?: string }> {
-    const placeholderEmail = `share-${projectId}@validatey.local`;
+    const unique = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const placeholderEmail = `share-${projectId}-${unique}@validatey.local`;
     const result = await this._repository.create(projectId, [placeholderEmail]);
     if (!result.isSuccess) {
       return { url: '', error: result.error?.message };

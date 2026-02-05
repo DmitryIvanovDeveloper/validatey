@@ -90,8 +90,7 @@ export class SurveyRepository implements SurveyRepositoryPort {
 
   async recordConsent(token: string, consentText?: string | null): Promise<Result<void, Error>> {
     try {
-      const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api').replace('/api', '');
-      await this._httpClient.post(`${baseUrl}/survey/${token}/consent`, { consentText: consentText ?? null });
+      await this._httpClient.post(API_CONFIG.ENDPOINTS.SURVEY_CONSENT(token), { consentText: consentText ?? null });
       return Result.success(undefined);
     } catch (error) {
       return Result.failure(error instanceof Error ? error : new Error('Failed to record consent'));
