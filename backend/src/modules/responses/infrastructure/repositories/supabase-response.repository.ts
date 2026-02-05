@@ -28,7 +28,6 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
           answers: response.answers,
           audio_url: response.audioUrl,
           transcript: response.transcript,
-          moderation_status: response.moderationStatus ?? null,
           created_at: response.createdAt.toISOString(),
           updated_at: response.updatedAt.toISOString(),
         })
@@ -103,6 +102,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
         return ResultEx.failure(new Error(error.message));
       }
 
+      return ResultEx.success(data.map((item) => this.mapToDomain(item)));
       return ResultEx.success((data ?? []).map((item) => this.mapToDomain(item)));
     } catch (error) {
       this._logger.error('supabase-response-repository.find-by-project-id-exception', { projectId, error });

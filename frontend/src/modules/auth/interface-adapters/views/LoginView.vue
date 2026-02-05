@@ -138,7 +138,7 @@ async function handleGoogleSignIn() {
   } catch {
     /* ignore */
   }
-  await authPresenter.signInWithGoogle(authViewModel);
+  await authPresenter.signInWithGoogle(authViewModel, redirect); // redirect stored in sessionStorage for callback
 }
 </script>
 

@@ -8,9 +8,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { API_CONFIG } from '@/infrastructure/config/api.config';
 
+const route = useRoute();
 const router = useRouter();
 const status = ref<'loading' | 'done' | 'error'>('loading');
 const error = ref<string | null>(null);
@@ -21,6 +22,18 @@ function parseHashParams(hash: string): Record<string, string> {
   const q = new URLSearchParams(hash.slice(1));
   q.forEach((v, k) => { out[k] = v; });
   return out;
+}
+
+function getRedirectTarget(): string {
+  const fromQuery = route.query.redirect as string | undefined;
+  if (fromQuery && fromQuery.startsWith('/')) return fromQuery;
+  try {
+    const fromStorage = sessionStorage.getItem('auth_redirect');
+    if (fromStorage) return fromStorage;
+  } catch {
+    /* ignore */
+  }
+  return '/projects';
 }
 
 onMounted(async () => {
@@ -43,13 +56,12 @@ onMounted(async () => {
       throw new Error(data?.error ?? 'Sign in failed');
     }
     status.value = 'done';
-    let redirect = '/projects';
     try {
-      redirect = sessionStorage.getItem('auth_redirect') || '/projects';
       sessionStorage.removeItem('auth_redirect');
     } catch {
       /* ignore */
     }
+    const redirect = getRedirectTarget();
     await router.replace(redirect);
   } catch (e) {
     status.value = 'error';

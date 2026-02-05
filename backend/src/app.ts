@@ -12,8 +12,11 @@ import compression from 'compression';
 
 const app = express();
 
-// CORS: exact origin(s), never * (required when credentials: true from frontend)
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173,http://localhost:5174').split(',').map((s) => s.trim());
+// CORS: exact origin(s), never * (required when credentials: true from frontend).
+// On Vercel: set FRONTEND_ORIGIN or we allow https://validatey.vercel.app when VERCEL=1.
+const envOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173,http://localhost:5174').split(',').map((s) => s.trim());
+const vercelFallback = process.env.VERCEL ? ['https://validatey.vercel.app'] : [];
+const allowedOrigins = [...new Set([...envOrigins, ...vercelFallback])];
 app.use(
   cors({
     origin(origin, cb) {
@@ -22,7 +25,7 @@ app.use(
       return cb(null, false);
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id'],
   })
 );

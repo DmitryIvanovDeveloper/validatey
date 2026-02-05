@@ -46,7 +46,7 @@ export class AuthPresenter {
     });
   }
 
-  async signInWithGoogle(viewModel: AuthViewModel): Promise<boolean> {
+  async signInWithGoogle(viewModel: AuthViewModel, _redirectPath?: string): Promise<boolean> {
     viewModel.error.value = null;
     const redirectTo = `${window.location.origin}/auth/callback`;
     const result = await this._signInWithGoogleUseCase.execute({ redirectTo });
