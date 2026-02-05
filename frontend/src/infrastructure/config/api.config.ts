@@ -1,11 +1,21 @@
-// Helper to get survey base URL (without /api)
-const getSurveyBaseUrl = (): string => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-  return baseUrl.replace('/api', '');
+/** Ensure base URL is always absolute (has protocol). Prevents relative URLs and 404 on production. */
+const normalizeBaseUrl = (raw: string): string => {
+  const value = (raw || '').trim();
+  if (!value) return 'http://localhost:3000/api';
+  if (/^https?:\/\//i.test(value)) return value;
+  // Host without protocol (e.g. "verity-gamma.vercel.app/api") → add https://
+  const hostPath = value.replace(/^\//, '');
+  return hostPath ? `https://${hostPath}` : 'http://localhost:3000/api';
 };
 
+const rawBase = import.meta.env.VITE_API_BASE_URL ?? '';
+const apiBaseUrl = normalizeBaseUrl(rawBase || 'http://localhost:3000/api');
+
+// Helper to get survey base URL (without /api)
+const getSurveyBaseUrl = (): string => apiBaseUrl.replace(/\/api\/?$/, '');
+
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  BASE_URL: apiBaseUrl,
   ENDPOINTS: {
     // Projects
     PROJECTS: '/projects',

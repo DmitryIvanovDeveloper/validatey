@@ -5,7 +5,14 @@ import { userContextService } from '../../shared/services/user-context.service';
 
 @injectable()
 export class HttpClient implements HttpClientPort {
-  private readonly baseUrl = API_CONFIG.BASE_URL;
+  /** Always use absolute API URL to avoid requests going to frontend origin (404). */
+  private readonly baseUrl = HttpClient.ensureAbsolute(API_CONFIG.BASE_URL);
+
+  private static ensureAbsolute(url: string): string {
+    if (/^https?:\/\//i.test(url)) return url;
+    const trimmed = (url || '').trim().replace(/^\//, '');
+    return trimmed ? `https://${trimmed}` : url;
+  }
 
   private buildUrl(url: string): string {
     if (url.startsWith('http')) {
