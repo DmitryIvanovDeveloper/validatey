@@ -156,9 +156,17 @@
 
       <!-- Completion Screen -->
       <div v-else-if="isCompleted" class="completion-screen">
-        <div class="completion-icon">✅</div>
-        <h2>Thank you for participating!</h2>
-        <p>Your answers have been successfully submitted.</p>
+        <div class="completion-card">
+          <div class="completion-icon-wrap" aria-hidden="true">
+            <svg class="completion-check" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle class="completion-circle" cx="26" cy="26" r="24" stroke-width="2"/>
+              <path class="completion-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 26l10 10 14-18"/>
+            </svg>
+          </div>
+          <h2 class="completion-title">Thank you for participating!</h2>
+          <p class="completion-message">Your answers have been successfully submitted. We appreciate your time and feedback.</p>
+          <div class="completion-meta">You can close this page.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -466,23 +474,97 @@ onBeforeUnmount(() => {
 }
 
 .loading-state,
-.error-state,
-.completion-screen {
+.error-state {
   padding: 4rem 2rem;
   text-align: center;
 }
 
-.error-icon,
-.completion-icon {
+.error-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
 }
 
 .loading-state p,
-.error-state p,
-.completion-screen p {
+.error-state p {
   color: var(--color-text-muted);
   margin-top: 1rem;
+}
+
+/* Completion screen — modern success state */
+.completion-screen {
+  padding: 3rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.completion-card {
+  text-align: center;
+  max-width: 400px;
+  animation: completion-appear 0.5s ease-out;
+}
+
+@keyframes completion-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.completion-icon-wrap {
+  margin: 0 auto 1.5rem;
+  width: 80px;
+  height: 80px;
+}
+
+.completion-check {
+  width: 100%;
+  height: 100%;
+  stroke: var(--color-success, #0d9488);
+}
+
+.completion-circle {
+  stroke: var(--color-success, #0d9488);
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: completion-draw 0.6s ease-out 0.2s forwards;
+}
+
+.completion-path {
+  stroke: var(--color-success, #0d9488);
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: completion-draw 0.4s ease-out 0.5s forwards;
+}
+
+@keyframes completion-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.completion-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text, #0f172a);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.completion-message {
+  font-size: 1rem;
+  color: var(--color-text-muted, #64748b);
+  line-height: 1.6;
+  margin: 0 0 1.25rem;
+}
+
+.completion-meta {
+  font-size: 0.875rem;
+  color: var(--color-text-muted, #94a3b8);
 }
 
 .question-card {

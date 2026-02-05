@@ -24,6 +24,11 @@ export class UpdateProjectUseCase {
       dataUsageText: input.updates.dataUsageText,
       privacyPolicyUrl: input.updates.privacyPolicyUrl,
       termsOfServiceUrl: input.updates.termsOfServiceUrl,
+      publicAccessEnabled: input.updates.publicAccessEnabled,
+      publicSlug: input.updates.publicSlug,
+      maxPublicResponses: input.updates.maxPublicResponses,
+      requirePublicEmail: input.updates.requirePublicEmail,
+      captchaEnabled: input.updates.captchaEnabled,
     });
 
     if (!result.isSuccess) {
@@ -47,7 +52,12 @@ export class UpdateProjectUseCase {
         marketContext: project.marketContext ?? null,
         status: project.status,
         createdAt: project.createdAt.toISOString(),
-        updatedAt: project.updatedAt.toISOString()
+        updatedAt: project.updatedAt.toISOString(),
+        publicAccessEnabled: project.publicAccessEnabled,
+        publicSlug: project.publicSlug ?? null,
+        maxPublicResponses: project.maxPublicResponses ?? null,
+        requirePublicEmail: project.requirePublicEmail,
+        captchaEnabled: project.captchaEnabled
       }
     });
   }

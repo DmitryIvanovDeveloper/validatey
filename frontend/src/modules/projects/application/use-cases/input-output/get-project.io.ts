@@ -18,6 +18,11 @@ export type GetProjectUseCaseResponse = {
     status: string;
     createdAt: string;
     updatedAt: string;
+    publicAccessEnabled?: boolean;
+    publicSlug?: string | null;
+    maxPublicResponses?: number | null;
+    requirePublicEmail?: boolean;
+    captchaEnabled?: boolean;
   };
 };
 

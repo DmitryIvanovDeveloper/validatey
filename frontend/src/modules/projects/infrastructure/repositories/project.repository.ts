@@ -76,6 +76,11 @@ export class ProjectRepository implements ProjectRepositoryPort {
           dataUsageText?: string | null;
           privacyPolicyUrl?: string | null;
           termsOfServiceUrl?: string | null;
+          publicAccessEnabled?: boolean;
+          publicSlug?: string | null;
+          maxPublicResponses?: number | null;
+          requirePublicEmail?: boolean;
+          captchaEnabled?: boolean;
         };
       }>(API_CONFIG.ENDPOINTS.PROJECT(id));
 
@@ -94,7 +99,12 @@ export class ProjectRepository implements ProjectRepositoryPort {
         projectData.consentText ?? null,
         projectData.dataUsageText ?? null,
         projectData.privacyPolicyUrl ?? null,
-        projectData.termsOfServiceUrl ?? null
+        projectData.termsOfServiceUrl ?? null,
+        projectData.publicAccessEnabled ?? false,
+        projectData.publicSlug ?? null,
+        projectData.maxPublicResponses ?? null,
+        projectData.requirePublicEmail ?? false,
+        projectData.captchaEnabled ?? false
       );
 
       return Result.success(domainProject);
@@ -158,6 +168,11 @@ export class ProjectRepository implements ProjectRepositoryPort {
           dataUsageText?: string | null;
           privacyPolicyUrl?: string | null;
           termsOfServiceUrl?: string | null;
+          publicAccessEnabled?: boolean;
+          publicSlug?: string | null;
+          maxPublicResponses?: number | null;
+          requirePublicEmail?: boolean;
+          captchaEnabled?: boolean;
         };
       }>(API_CONFIG.ENDPOINTS.PROJECT(id), updates);
 
@@ -191,7 +206,12 @@ export class ProjectRepository implements ProjectRepositoryPort {
         projectData.consentText ?? null,
         projectData.dataUsageText ?? null,
         projectData.privacyPolicyUrl ?? null,
-        projectData.termsOfServiceUrl ?? null
+        projectData.termsOfServiceUrl ?? null,
+        projectData.publicAccessEnabled ?? false,
+        projectData.publicSlug ?? null,
+        projectData.maxPublicResponses ?? null,
+        projectData.requirePublicEmail ?? false,
+        projectData.captchaEnabled ?? false
       );
 
       return Result.success(domainProject);

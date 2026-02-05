@@ -20,6 +20,12 @@ export type UpdateProjectUseCaseRequest = {
   termsOfServiceUrl?: string | null;
   /** Scenario template slug (wtp | feature-demand | value-prop). */
   scenarioTemplateSlug?: string | null;
+  /** Public survey link settings. */
+  publicAccessEnabled?: boolean;
+  publicSlug?: string | null;
+  maxPublicResponses?: number | null;
+  requirePublicEmail?: boolean;
+  captchaEnabled?: boolean;
 };
 
 export type UpdateProjectUseCaseResponse = {
@@ -33,6 +39,16 @@ export type UpdateProjectUseCaseResponse = {
     marketContext: MarketContext | null;
     targetAudience: string | null;
     cost: number | null;
+    consentText: string | null;
+    dataUsageText: string | null;
+    privacyPolicyUrl: string | null;
+    termsOfServiceUrl: string | null;
+    scenarioTemplateSlug: string | null;
+    publicAccessEnabled: boolean;
+    publicSlug: string | null;
+    maxPublicResponses: number | null;
+    requirePublicEmail: boolean;
+    captchaEnabled: boolean;
     createdAt: Date;
     updatedAt: Date;
   };

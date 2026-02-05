@@ -57,8 +57,17 @@ export class SubmitResponseUseCase {
         audioUrl = uploadResult.data.url;
       }
 
-      // Create response entity
-      const response = ResponseEntity.create(invitation.id, invitation.projectId, request.answers, audioUrl || undefined);
+      const isAnonymous = invitation.email === null && invitation.phone === null;
+      const moderationStatus = isAnonymous ? ('pending' as const) : undefined;
+
+      // Create response entity (public-link responses get moderationStatus 'pending')
+      const response = ResponseEntity.create(
+        invitation.id,
+        invitation.projectId,
+        request.answers,
+        audioUrl || undefined,
+        moderationStatus
+      );
 
       // Save response
       const saveResult = await this._repository.create(response.toData());

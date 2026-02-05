@@ -28,6 +28,12 @@ export interface Project {
   readonly termsOfServiceUrl: string | null;
   /** Selected scenario template: wtp | feature-demand | value-prop. */
   readonly scenarioTemplateSlug: string | null;
+  /** Public survey link: one link for many respondents. */
+  readonly publicAccessEnabled: boolean;
+  readonly publicSlug: string | null;
+  readonly maxPublicResponses: number | null;
+  readonly requirePublicEmail: boolean;
+  readonly captchaEnabled: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -60,6 +66,11 @@ export class ProjectEntity {
     public readonly privacyPolicyUrl: string | null,
     public readonly termsOfServiceUrl: string | null,
     public readonly scenarioTemplateSlug: string | null,
+    public readonly publicAccessEnabled: boolean,
+    public readonly publicSlug: string | null,
+    public readonly maxPublicResponses: number | null,
+    public readonly requirePublicEmail: boolean,
+    public readonly captchaEnabled: boolean,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
@@ -97,6 +108,11 @@ export class ProjectEntity {
       null,
       null,
       null,
+      false,
+      null,
+      null,
+      false,
+      false,
       now,
       now
     );
@@ -118,6 +134,11 @@ export class ProjectEntity {
       data.privacyPolicyUrl ?? null,
       data.termsOfServiceUrl ?? null,
       data.scenarioTemplateSlug ?? null,
+      data.publicAccessEnabled ?? false,
+      data.publicSlug ?? null,
+      data.maxPublicResponses ?? null,
+      data.requirePublicEmail ?? false,
+      data.captchaEnabled ?? false,
       data.createdAt,
       data.updatedAt
     );
@@ -139,6 +160,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -160,6 +186,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -181,6 +212,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -202,6 +238,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -223,6 +264,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -250,6 +296,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -274,6 +325,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -295,6 +351,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -316,6 +377,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -337,6 +403,11 @@ export class ProjectEntity {
       privacyPolicyUrl,
       this.termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -358,6 +429,11 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       termsOfServiceUrl,
       this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -379,6 +455,43 @@ export class ProjectEntity {
       this.privacyPolicyUrl,
       this.termsOfServiceUrl,
       scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withPublicSettings(settings: {
+    publicAccessEnabled: boolean;
+    publicSlug: string | null;
+    maxPublicResponses: number | null;
+    requirePublicEmail: boolean;
+    captchaEnabled: boolean;
+  }): ProjectEntity {
+    return new ProjectEntity(
+      this.id,
+      this.userId,
+      this.name,
+      this.status,
+      this.segment,
+      this.hypothesis,
+      this.marketContext,
+      this.targetAudience,
+      this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
+      this.scenarioTemplateSlug,
+      settings.publicAccessEnabled,
+      settings.publicSlug,
+      settings.maxPublicResponses,
+      settings.requirePublicEmail,
+      settings.captchaEnabled,
       this.createdAt,
       new Date()
     );
@@ -400,6 +513,11 @@ export class ProjectEntity {
       privacyPolicyUrl: this.privacyPolicyUrl,
       termsOfServiceUrl: this.termsOfServiceUrl,
       scenarioTemplateSlug: this.scenarioTemplateSlug,
+      publicAccessEnabled: this.publicAccessEnabled,
+      publicSlug: this.publicSlug,
+      maxPublicResponses: this.maxPublicResponses,
+      requirePublicEmail: this.requirePublicEmail,
+      captchaEnabled: this.captchaEnabled,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

@@ -36,7 +36,12 @@ export class GetProjectUseCase {
         marketContext: project.marketContext ?? null,
         status: project.status,
         createdAt: project.createdAt.toISOString(),
-        updatedAt: project.updatedAt.toISOString()
+        updatedAt: project.updatedAt.toISOString(),
+        publicAccessEnabled: project.publicAccessEnabled,
+        publicSlug: project.publicSlug ?? null,
+        maxPublicResponses: project.maxPublicResponses ?? null,
+        requirePublicEmail: project.requirePublicEmail,
+        captchaEnabled: project.captchaEnabled,
       }
     });
   }

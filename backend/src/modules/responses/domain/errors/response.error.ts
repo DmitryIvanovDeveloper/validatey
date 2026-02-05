@@ -26,5 +26,12 @@ export class AudioProcessingError extends ResponseError {
   }
 }
 
+export class ModerationNotAllowedError extends ResponseError {
+  constructor(responseId: string, reason?: string) {
+    super(`Moderation not allowed for response ${responseId}${reason ? `: ${reason}` : ''}`);
+    this.name = 'ModerationNotAllowedError';
+  }
+}
+
 
 

@@ -15,7 +15,7 @@ export class SurveyRepository implements SurveyRepositoryPort {
     private readonly _httpClient: HttpClientPort
   ) {}
 
-  async getByToken(token: string): Promise<Result<Survey, SurveyNotFoundError | SurveyExpiredError>> {
+  async getByToken(token: string): Promise<Result<SurveyWithConsent, SurveyNotFoundError | SurveyExpiredError>> {
     try {
       const response = await this._httpClient.get<{
         invitation: {

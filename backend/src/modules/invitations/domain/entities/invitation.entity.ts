@@ -59,6 +59,25 @@ export class InvitationEntity {
     );
   }
 
+  /** Create anonymous invitation for public survey link (no email/phone). */
+  static createAnonymous(projectId: string): InvitationEntity {
+    const now = new Date();
+    return new InvitationEntity(
+      this.generateId(),
+      projectId,
+      this.generateToken(),
+      null,
+      null,
+      'pending',
+      null,
+      null,
+      null,
+      0,
+      now,
+      now
+    );
+  }
+
   static fromData(data: Invitation): InvitationEntity {
     return new InvitationEntity(
       data.id,
@@ -120,8 +139,8 @@ export class InvitationEntity {
   }
 
   markAsCompleted(): InvitationEntity {
-    if (this.status === 'pending') {
-      throw new Error('Invitation must be sent before it can be completed');
+    if (this.status === 'completed') {
+      return this;
     }
     return new InvitationEntity(
       this.id,

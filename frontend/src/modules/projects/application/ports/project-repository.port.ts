@@ -23,6 +23,11 @@ export interface UpdateProjectData {
   dataUsageText?: string | null;
   privacyPolicyUrl?: string | null;
   termsOfServiceUrl?: string | null;
+  publicAccessEnabled?: boolean;
+  publicSlug?: string | null;
+  maxPublicResponses?: number | null;
+  requirePublicEmail?: boolean;
+  captchaEnabled?: boolean;
 }
 
 export interface ProjectRepositoryPort {

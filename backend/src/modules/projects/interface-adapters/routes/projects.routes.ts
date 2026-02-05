@@ -177,6 +177,11 @@ router.put('/:id', async (req: Request, res: Response) => {
       privacyPolicyUrl: req.body?.privacyPolicyUrl,
       termsOfServiceUrl: req.body?.termsOfServiceUrl,
       scenarioTemplateSlug: req.body?.scenarioTemplateSlug,
+      publicAccessEnabled: req.body?.publicAccessEnabled,
+      publicSlug: req.body?.publicSlug,
+      maxPublicResponses: req.body?.maxPublicResponses,
+      requirePublicEmail: req.body?.requirePublicEmail,
+      captchaEnabled: req.body?.captchaEnabled,
     });
 
     if (!result.isSuccess) {

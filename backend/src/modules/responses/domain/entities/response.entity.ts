@@ -1,5 +1,7 @@
 import { randomUUID } from 'crypto';
 
+export type ModerationStatus = 'pending' | 'approved' | 'rejected';
+
 export interface Response {
   readonly id: string;
   readonly invitationId: string;
@@ -7,6 +9,8 @@ export interface Response {
   readonly answers: Record<string, any>;
   readonly audioUrl: string | null;
   readonly transcript: string | null;
+  /** For public-link responses: pending | approved | rejected. Null for personal invitations. */
+  readonly moderationStatus: ModerationStatus | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -19,6 +23,7 @@ export class ResponseEntity {
     public readonly answers: Record<string, any>,
     public readonly audioUrl: string | null,
     public readonly transcript: string | null,
+    public readonly moderationStatus: ModerationStatus | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
@@ -27,7 +32,8 @@ export class ResponseEntity {
     invitationId: string,
     projectId: string,
     answers: Record<string, any>,
-    audioUrl?: string
+    audioUrl?: string,
+    moderationStatus?: ModerationStatus | null
   ): ResponseEntity {
     if (!answers || Object.keys(answers).length === 0) {
       throw new Error('Response answers are required');
@@ -41,6 +47,7 @@ export class ResponseEntity {
       answers,
       audioUrl || null,
       null,
+      moderationStatus ?? null,
       now,
       now
     );
@@ -54,6 +61,7 @@ export class ResponseEntity {
       data.answers,
       data.audioUrl,
       data.transcript,
+      data.moderationStatus ?? null,
       data.createdAt,
       data.updatedAt
     );
@@ -67,6 +75,27 @@ export class ResponseEntity {
       this.answers,
       this.audioUrl,
       transcript,
+      this.moderationStatus,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withModerationStatus(status: ModerationStatus): ResponseEntity {
+    if (this.moderationStatus !== 'pending' && this.moderationStatus !== null) {
+      throw new Error('Only pending responses can be moderated');
+    }
+    if (status !== 'approved' && status !== 'rejected') {
+      throw new Error('Moderation status must be approved or rejected');
+    }
+    return new ResponseEntity(
+      this.id,
+      this.invitationId,
+      this.projectId,
+      this.answers,
+      this.audioUrl,
+      this.transcript,
+      status,
       this.createdAt,
       new Date()
     );
@@ -80,6 +109,7 @@ export class ResponseEntity {
       answers: this.answers,
       audioUrl: this.audioUrl,
       transcript: this.transcript,
+      moderationStatus: this.moderationStatus,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

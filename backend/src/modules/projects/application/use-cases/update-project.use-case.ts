@@ -98,6 +98,32 @@ export class UpdateProjectUseCase {
         updatedProject = updatedProject.withTermsOfServiceUrl(request.termsOfServiceUrl ?? null);
       }
 
+      if (
+        request.publicAccessEnabled !== undefined ||
+        request.publicSlug !== undefined ||
+        request.maxPublicResponses !== undefined ||
+        request.requirePublicEmail !== undefined ||
+        request.captchaEnabled !== undefined
+      ) {
+        let publicSlug = request.publicSlug !== undefined ? request.publicSlug : updatedProject.publicSlug;
+        const publicAccessEnabled = request.publicAccessEnabled !== undefined ? request.publicAccessEnabled : updatedProject.publicAccessEnabled;
+        if (publicAccessEnabled && !publicSlug) {
+          const slugResult = await this._repository.generateUniquePublicSlug();
+          if (!slugResult.isSuccess) {
+            this._logger.error('update-project.generate-slug-error', { error: slugResult.error });
+            return ResultEx.failure(new InvalidProjectDataError('Failed to generate public slug'));
+          }
+          publicSlug = slugResult.data;
+        }
+        updatedProject = updatedProject.withPublicSettings({
+          publicAccessEnabled: request.publicAccessEnabled ?? updatedProject.publicAccessEnabled,
+          publicSlug,
+          maxPublicResponses: request.maxPublicResponses !== undefined ? request.maxPublicResponses : updatedProject.maxPublicResponses,
+          requirePublicEmail: request.requirePublicEmail ?? updatedProject.requirePublicEmail,
+          captchaEnabled: request.captchaEnabled ?? updatedProject.captchaEnabled,
+        });
+      }
+
       const updateResult = await this._repository.update(updatedProject.toData());
 
       if (!updateResult.isSuccess) {

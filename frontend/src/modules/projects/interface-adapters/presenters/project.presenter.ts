@@ -132,6 +132,40 @@ export class ProjectPresenter {
     }
   }
 
+  async getProject(projectId: string): Promise<{ project: Project | null; error?: string }> {
+    const result = await this._getProjectUseCase.execute({ projectId });
+    if (!result.isSuccess) {
+      return { project: null, error: result.error?.message ?? 'Failed to load project' };
+    }
+    const projectData = result.data.project;
+    const segment = projectData.segment
+      ? new Segment(projectData.segment.description, projectData.segment.demographics)
+      : null;
+    const hypothesis = projectData.hypothesis
+      ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions || [])
+      : null;
+    const project = new Project(
+      projectData.id,
+      projectData.name,
+      segment,
+      hypothesis,
+      projectData.marketContext ?? null,
+      projectData.status as ProjectStatus,
+      new Date(projectData.createdAt),
+      new Date(projectData.updatedAt),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      projectData.publicAccessEnabled ?? false,
+      projectData.publicSlug ?? null,
+      projectData.maxPublicResponses ?? null,
+      projectData.requirePublicEmail ?? false,
+      projectData.captchaEnabled ?? false
+    );
+    return { project };
+  }
+
   async loadProject(projectId: string, viewModel: ProjectViewModel): Promise<void> {
     viewModel.loading.value = true;
     viewModel.error.value = null;
@@ -158,7 +192,16 @@ export class ProjectPresenter {
         projectData.marketContext ?? null,
         projectData.status as ProjectStatus,
         new Date(projectData.createdAt),
-        new Date(projectData.updatedAt)
+        new Date(projectData.updatedAt),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        projectData.publicAccessEnabled ?? false,
+        projectData.publicSlug ?? null,
+        projectData.maxPublicResponses ?? null,
+        projectData.requirePublicEmail ?? false,
+        projectData.captchaEnabled ?? false
       );
       
       viewModel.project.value = project;
@@ -190,8 +233,13 @@ export class ProjectPresenter {
     consentText?: string | null,
     dataUsageText?: string | null,
     privacyPolicyUrl?: string | null,
-    termsOfServiceUrl?: string | null
-  ): Promise<{ ok: boolean; error?: string }> {
+    termsOfServiceUrl?: string | null,
+    publicAccessEnabled?: boolean,
+    publicSlug?: string | null,
+    maxPublicResponses?: number | null,
+    requirePublicEmail?: boolean,
+    captchaEnabled?: boolean
+  ): Promise<{ ok: boolean; error?: string; project?: { publicAccessEnabled?: boolean; publicSlug?: string | null; maxPublicResponses?: number | null; requirePublicEmail?: boolean; captchaEnabled?: boolean } }> {
     try {
       let segment: Segment | undefined = undefined;
       if (segmentDescription && segmentDescription.trim().length > 0 && segmentDemographics) {
@@ -239,12 +287,17 @@ export class ProjectPresenter {
           dataUsageText: dataUsageText ?? undefined,
           privacyPolicyUrl: privacyPolicyUrl ?? undefined,
           termsOfServiceUrl: termsOfServiceUrl ?? undefined,
+          publicAccessEnabled: publicAccessEnabled ?? undefined,
+          publicSlug: publicSlug ?? undefined,
+          maxPublicResponses: maxPublicResponses ?? undefined,
+          requirePublicEmail: requirePublicEmail ?? undefined,
+          captchaEnabled: captchaEnabled ?? undefined,
         },
       });
 
       if (result.isSuccess) {
         this._logger.info('Project updated', { projectId });
-        return { ok: true };
+        return { ok: true, project: result.data.project };
       } else {
         const errorMessage = result.error instanceof Error
           ? result.error.message

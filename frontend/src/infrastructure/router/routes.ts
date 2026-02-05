@@ -62,6 +62,15 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/survey/public/:slug',
+    name: 'survey-public',
+    component: () => import('@/modules/surveys/interface-adapters/views/SurveyPublicRedirectView.vue'),
+    meta: {
+      requiresAuth: false,
+      layout: 'empty',
+    },
+  },
+  {
     path: '/survey/:token',
     name: 'respondent-survey',
     component: () => import('@/modules/surveys/interface-adapters/views/SurveyView.vue'),

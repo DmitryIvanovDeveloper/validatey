@@ -43,6 +43,11 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
           privacy_policy_url: project.privacyPolicyUrl ?? null,
           terms_of_service_url: project.termsOfServiceUrl ?? null,
           scenario_template_slug: project.scenarioTemplateSlug ?? null,
+          public_access_enabled: project.publicAccessEnabled ?? false,
+          public_slug: project.publicSlug ?? null,
+          max_public_responses: project.maxPublicResponses ?? null,
+          require_public_email: project.requirePublicEmail ?? false,
+          captcha_enabled: project.captchaEnabled ?? false,
           created_at,
           updated_at,
         })
@@ -115,6 +120,42 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         stack: error instanceof Error ? error.stack : undefined
       });
       return ResultEx.failure(new ProjectNotFoundError(id));
+    }
+  }
+
+  async findByPublicSlug(slug: string): Promise<ResultEx<Project, ProjectNotFoundError>> {
+    try {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.from('projects').select('*').eq('public_slug', slug).single();
+      if (error || !data) {
+        if (error?.code === 'PGRST116') {
+          return ResultEx.failure(new ProjectNotFoundError(slug));
+        }
+        this._logger.error('supabase-project-repository.find-by-public-slug-error', { slug, error });
+        return ResultEx.failure(new ProjectNotFoundError(slug));
+      }
+      return ResultEx.success(this.mapToDomain(data));
+    } catch (error) {
+      this._logger.error('supabase-project-repository.find-by-public-slug-exception', { slug, error });
+      return ResultEx.failure(new ProjectNotFoundError(slug));
+    }
+  }
+
+  async generateUniquePublicSlug(): Promise<ResultEx<string, Error>> {
+    try {
+      const supabase = getSupabaseClient();
+      const crypto = await import('crypto');
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const slug = crypto.randomBytes(5).toString('base64url').replace(/[-_]/g, '').slice(0, 10).toLowerCase();
+        const { data } = await supabase.from('projects').select('id').eq('public_slug', slug).maybeSingle();
+        if (!data) {
+          return ResultEx.success(slug);
+        }
+      }
+      return ResultEx.failure(new Error('Failed to generate unique public slug'));
+    } catch (error) {
+      this._logger.error('supabase-project-repository.generate-unique-public-slug-exception', { error });
+      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -290,6 +331,11 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         scenario_template_slug: project.scenarioTemplateSlug != null && String(project.scenarioTemplateSlug).trim() !== ''
           ? String(project.scenarioTemplateSlug).trim()
           : null,
+        public_access_enabled: project.publicAccessEnabled ?? false,
+        public_slug: project.publicSlug != null ? String(project.publicSlug).trim() || null : null,
+        max_public_responses: project.maxPublicResponses != null ? Number(project.maxPublicResponses) : null,
+        require_public_email: project.requirePublicEmail ?? false,
+        captcha_enabled: project.captchaEnabled ?? false,
         updated_at: project.updatedAt != null && typeof project.updatedAt.toISOString === 'function'
           ? project.updatedAt.toISOString()
           : new Date().toISOString(),
@@ -564,6 +610,11 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         privacyPolicyUrl: data.privacy_policy_url ?? null,
         termsOfServiceUrl: data.terms_of_service_url ?? null,
         scenarioTemplateSlug: data.scenario_template_slug ?? null,
+        publicAccessEnabled: Boolean(data.public_access_enabled),
+        publicSlug: data.public_slug ?? null,
+        maxPublicResponses: data.max_public_responses != null ? Number(data.max_public_responses) : null,
+        requirePublicEmail: Boolean(data.require_public_email),
+        captchaEnabled: Boolean(data.captcha_enabled),
         createdAt,
         updatedAt,
       };

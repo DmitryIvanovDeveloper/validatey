@@ -4,6 +4,7 @@ import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 import { Response } from '../../domain/entities/response.entity';
+import type { ModerationStatus } from '../../domain/entities/response.entity';
 import { ResponseNotFoundError, InvalidResponseDataError } from '../../domain/errors/response.error';
 import { ResponseRepositoryPort } from '../../application/ports/response-repository.port';
 
@@ -27,6 +28,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
           answers: response.answers,
           audio_url: response.audioUrl,
           transcript: response.transcript,
+          moderation_status: response.moderationStatus ?? null,
           created_at: response.createdAt.toISOString(),
           updated_at: response.updatedAt.toISOString(),
         })
@@ -101,9 +103,53 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
         return ResultEx.failure(new Error(error.message));
       }
 
-      return ResultEx.success(data.map((item) => this.mapToDomain(item)));
+      return ResultEx.success((data ?? []).map((item) => this.mapToDomain(item)));
     } catch (error) {
       this._logger.error('supabase-response-repository.find-by-project-id-exception', { projectId, error });
+      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async listByProjectId(
+    projectId: string,
+    filters?: { moderationStatus?: ModerationStatus | null }
+  ): Promise<ResultEx<Response[], Error>> {
+    try {
+      const supabase = getSupabaseClient();
+      let query = supabase
+        .from('responses')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+      if (filters?.moderationStatus != null) {
+        query = query.eq('moderation_status', filters.moderationStatus);
+      }
+      const { data, error } = await query;
+      if (error) {
+        this._logger.error('supabase-response-repository.list-by-project-id-error', { projectId, error });
+        return ResultEx.failure(new Error(error.message));
+      }
+      return ResultEx.success((data ?? []).map((item) => this.mapToDomain(item)));
+    } catch (error) {
+      this._logger.error('supabase-response-repository.list-by-project-id-exception', { projectId, error });
+      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async countPublicByProjectId(projectId: string): Promise<ResultEx<number, Error>> {
+    try {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.rpc('count_public_responses_by_project', {
+        p_project_id: projectId,
+      });
+      if (error) {
+        this._logger.error('supabase-response-repository.count-public-by-project-id-error', { projectId, error });
+        return ResultEx.failure(new Error(error.message));
+      }
+      const count = typeof data === 'number' ? data : Number(data ?? 0);
+      return ResultEx.success(count);
+    } catch (error) {
+      this._logger.error('supabase-response-repository.count-public-by-project-id-exception', { projectId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
@@ -142,6 +188,35 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
     }
   }
 
+  async updateModerationStatus(
+    responseId: string,
+    status: ModerationStatus
+  ): Promise<ResultEx<Response, ResponseNotFoundError | InvalidResponseDataError>> {
+    try {
+      const supabase = getSupabaseClient();
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from('responses')
+        .update({ moderation_status: status, updated_at: now })
+        .eq('id', responseId)
+        .select()
+        .single();
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return ResultEx.failure(new ResponseNotFoundError(responseId));
+        }
+        this._logger.error('supabase-response-repository.update-moderation-status-error', { responseId, error });
+        return ResultEx.failure(new InvalidResponseDataError(error.message));
+      }
+      return ResultEx.success(this.mapToDomain(data));
+    } catch (error) {
+      this._logger.error('supabase-response-repository.update-moderation-status-exception', { responseId, error });
+      return ResultEx.failure(
+        new InvalidResponseDataError(error instanceof Error ? error.message : 'Unknown error')
+      );
+    }
+  }
+
   private mapToDomain(data: any): Response {
     return {
       id: data.id,
@@ -150,6 +225,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
       answers: data.answers,
       audioUrl: data.audio_url,
       transcript: data.transcript,
+      moderationStatus: data.moderation_status ?? null,
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
     };

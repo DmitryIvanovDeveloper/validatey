@@ -15,6 +15,11 @@ export type UpdateProjectUseCaseRequest = {
     dataUsageText?: string | null;
     privacyPolicyUrl?: string | null;
     termsOfServiceUrl?: string | null;
+    publicAccessEnabled?: boolean;
+    publicSlug?: string | null;
+    maxPublicResponses?: number | null;
+    requirePublicEmail?: boolean;
+    captchaEnabled?: boolean;
   };
 };
 
@@ -34,6 +39,11 @@ export type UpdateProjectUseCaseResponse = {
     status: string;
     createdAt: string;
     updatedAt: string;
+    publicAccessEnabled?: boolean;
+    publicSlug?: string | null;
+    maxPublicResponses?: number | null;
+    requirePublicEmail?: boolean;
+    captchaEnabled?: boolean;
   };
 };
 

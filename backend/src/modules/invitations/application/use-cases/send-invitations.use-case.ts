@@ -9,6 +9,44 @@ import { EmailServicePort } from '../ports/email-service.port';
 import type { SendInvitationsUseCaseInput, SendInvitationsUseCaseOutput } from './input-output/send-invitations.io';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 
+function buildInvitationEmailHtml(surveyLink: string): string {
+  const escapedLink = surveyLink.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Survey invitation</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f1f5f9;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 480px; background-color:#ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 40px 32px;">
+              <h1 style="margin:0 0 8px; font-size: 20px; font-weight: 600; color: #0f172a;">Survey invitation</h1>
+              <p style="margin:0 0 24px; font-size: 15px; line-height: 1.6; color: #475569;">You have been invited to take a short survey. Your feedback helps us improve.</p>
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 0 0 24px;">
+                <tr>
+                  <td style="border-radius: 8px; background-color: #0d9488;">
+                    <a href="${escapedLink}" target="_blank" rel="noopener" style="display: inline-block; padding: 14px 28px; font-size: 15px; font-weight: 500; color: #ffffff; text-decoration: none;">Open survey</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0; font-size: 13px; line-height: 1.5; color: #94a3b8;">If the button does not work, copy and paste this link into your browser:</p>
+              <p style="margin: 8px 0 0; font-size: 13px; word-break: break-all; color: #64748b;"><a href="${escapedLink}" style="color: #0d9488; text-decoration: none;">${escapedLink}</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`.trim();
+}
+
 @injectable()
 export class SendInvitationsUseCase {
   constructor(
@@ -64,7 +102,7 @@ export class SendInvitationsUseCase {
 
       const surveyLink = `${baseUrl}/survey/${inv.token}`;
       const subject = 'Survey invitation';
-      const html = `<p>You have been invited to take a survey.</p><p><a href="${surveyLink}">Open survey</a></p><p>Or copy this link: ${surveyLink}</p>`;
+      const html = buildInvitationEmailHtml(surveyLink);
       const text = `You have been invited to take a survey. Open: ${surveyLink}`;
 
       const emailResult = await this._emailService.sendEmail({

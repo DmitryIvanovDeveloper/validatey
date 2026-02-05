@@ -165,6 +165,34 @@ export class HttpClient implements HttpClientPort {
     return response.json();
   }
 
+  async patch<T>(url: string, data?: any, headers?: Record<string, string>): Promise<T> {
+    const fullUrl = this.buildUrl(url);
+    const requestHeaders = {
+      'Content-Type': 'application/json',
+      ...this.getHeaders(),
+      ...headers,
+    };
+    const response = await fetch(fullUrl, {
+      method: 'PATCH',
+      headers: requestHeaders,
+      body: data !== undefined ? JSON.stringify(data) : undefined,
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ HTTP Error:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+    if (response.status === 204 || response.headers.get('content-length') === '0') {
+      return undefined as T;
+    }
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      return (text || undefined) as T;
+    }
+    return response.json();
+  }
+
   async delete<T>(url: string, headers?: Record<string, string>): Promise<T> {
     const fullUrl = this.buildUrl(url);
     const requestHeaders = this.getHeaders(headers);

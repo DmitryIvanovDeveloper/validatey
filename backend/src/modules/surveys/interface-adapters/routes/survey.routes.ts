@@ -2,12 +2,42 @@ import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as CONSENT_TYPES } from '../../../consents/infrastructure/bootstrap/types';
+import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
 import { SurveyPresenter } from '../presenters/survey.presenter';
 import { ConsentPresenter } from '../../../consents/interface-adapters/presenters/consent.presenter';
+import { CreateAnonymousInvitationForPublicLinkUseCase } from '../../../invitations/application/use-cases/create-anonymous-invitation-for-public-link.use-case';
 
 const router = Router();
 const presenter = container.get<SurveyPresenter>(TYPES.SurveyPresenter);
 const consentPresenter = container.get<ConsentPresenter>(CONSENT_TYPES.ConsentPresenter);
+const createAnonymousInvitationUseCase = container.get<CreateAnonymousInvitationForPublicLinkUseCase>(INVITATION_TYPES.CreateAnonymousInvitationForPublicLinkUseCase);
+
+// GET /survey/public/:slug — create anonymous invitation and return survey payload (frontend can redirect to /survey/:token)
+router.get('/public/:slug', async (req: Request, res: Response) => {
+  try {
+    const slug = req.params.slug;
+    const createResult = await createAnonymousInvitationUseCase.execute({ publicSlug: slug });
+    if (!createResult.isSuccess) {
+      const err = createResult.error;
+      if (err.name === 'ProjectNotFoundError' || err.name === 'PublicLinkNotEnabledError') {
+        return res.status(404).json({ error: err.message });
+      }
+      if (err.name === 'MaxPublicResponsesReachedError') {
+        return res.status(403).json({ error: err.message });
+      }
+      return res.status(400).json({ error: err.message });
+    }
+    const { token } = createResult.data;
+    const surveyResult = await presenter.getSurveyByToken({ token });
+    if (!surveyResult.isSuccess) {
+      return res.status(502).json({ error: 'Failed to load survey after creating invitation' });
+    }
+    return res.status(200).json(surveyResult.data);
+  } catch (error) {
+    console.error('GET /survey/public/:slug exception', { error });
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
 
 // GET /survey/:token
 router.get('/:token', async (req: Request, res: Response) => {

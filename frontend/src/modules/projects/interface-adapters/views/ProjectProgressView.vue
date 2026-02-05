@@ -176,6 +176,74 @@
             </div>
           </section>
 
+          <!-- Moderation (public-link responses) -->
+          <section class="panel moderation-panel" aria-labelledby="moderation-heading">
+            <div class="panel-head">
+              <h3 id="moderation-heading" class="panel-title">Moderation</h3>
+              <span v-if="moderationResponses.length > 0" class="panel-count">{{ moderationResponses.length }} to review</span>
+              <div class="panel-actions">
+                <select v-model="moderationFilter" class="moderation-filter" @change="loadModerationResponses">
+                  <option value="">All statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <button type="button" class="btn btn-ghost btn-sm" :disabled="moderationLoading" @click="loadModerationResponses">
+                  {{ moderationLoading ? 'Loading…' : 'Refresh' }}
+                </button>
+              </div>
+            </div>
+            <p class="panel-desc">Approve or reject responses from the public link.</p>
+            <div v-if="moderationLoading" class="panel-empty">Loading…</div>
+            <div v-else-if="moderationResponses.length === 0" class="panel-empty">
+              No responses to moderate for this filter.
+            </div>
+            <div v-else class="moderation-table-wrap">
+              <table class="moderation-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Summary</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="r in moderationResponses" :key="r.id">
+                    <td>{{ formatDate(new Date(r.createdAt)) }}</td>
+                    <td class="moderation-summary">{{ responseSummary(r) }}</td>
+                    <td>
+                      <span :class="['moderation-badge', `moderation-${r.moderationStatus ?? 'none'}`]">
+                        {{ r.moderationStatus ?? '—' }}
+                      </span>
+                    </td>
+                    <td>
+                      <template v-if="r.moderationStatus === 'pending'">
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-approve"
+                          :disabled="moderatingId === r.id"
+                          @click="setModerationStatus(r.id, 'approved')"
+                        >
+                          {{ moderatingId === r.id ? '…' : 'Approve' }}
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-reject"
+                          :disabled="moderatingId === r.id"
+                          @click="setModerationStatus(r.id, 'rejected')"
+                        >
+                          Reject
+                        </button>
+                      </template>
+                      <span v-else class="moderation-done">Done</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
           <!-- Survey consent: template + custom text + links -->
           <section class="panel consent-config-panel" aria-labelledby="consent-config-heading">
             <h3 id="consent-config-heading" class="panel-title">Survey consent</h3>
@@ -362,6 +430,22 @@ const responses = ref<Array<{
   updatedAt: string;
 }>>([]);
 
+type ModerationResponseItem = {
+  id: string;
+  invitationId: string;
+  projectId: string;
+  answers: Record<string, any>;
+  audioUrl: string | null;
+  transcript: string | null;
+  moderationStatus: 'pending' | 'approved' | 'rejected' | null;
+  createdAt: string;
+  updatedAt: string;
+};
+const moderationResponses = ref<ModerationResponseItem[]>([]);
+const moderationLoading = ref(false);
+const moderationFilter = ref('pending');
+const moderatingId = ref<string | null>(null);
+
 const invitationRepository = container.get<InvitationRepositoryPort>(INVITATION_TYPES.InvitationRepository);
 const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
@@ -419,6 +503,53 @@ const getSignalIcon = (type: string): string => {
   };
   return icons[type] || '•';
 };
+
+function responseSummary(r: ModerationResponseItem): string {
+  const keys = Object.keys(r.answers || {});
+  if (keys.length === 0) return r.transcript ? r.transcript.slice(0, 60) + '…' : '—';
+  const first = r.answers[keys[0]];
+  const str = typeof first === 'object' ? JSON.stringify(first) : String(first);
+  return str.length > 60 ? str.slice(0, 60) + '…' : str;
+}
+
+async function loadModerationResponses() {
+  if (!projectId) return;
+  moderationLoading.value = true;
+  try {
+    const status = moderationFilter.value || undefined;
+    const url = API_CONFIG.ENDPOINTS.RESPONSES_MODERATION(projectId, status);
+    const data = await httpClient.get<{ responses: ModerationResponseItem[] }>(url);
+    moderationResponses.value = (data?.responses ?? []).map((r) => ({
+      ...r,
+      createdAt: typeof r.createdAt === 'string' ? r.createdAt : (r.createdAt as Date).toISOString?.(),
+      updatedAt: typeof r.updatedAt === 'string' ? r.updatedAt : (r.updatedAt as Date).toISOString?.(),
+    }));
+  } catch (err) {
+    console.error('Load moderation failed:', err);
+    moderationResponses.value = [];
+  } finally {
+    moderationLoading.value = false;
+  }
+}
+
+async function setModerationStatus(responseId: string, status: 'approved' | 'rejected') {
+  if (!projectId || moderatingId.value) return;
+  moderatingId.value = responseId;
+  try {
+    const url = API_CONFIG.ENDPOINTS.RESPONSE_MODERATE(projectId, responseId);
+    await httpClient.patch<{ response: ModerationResponseItem }>(url, { status });
+    const idx = moderationResponses.value.findIndex((r) => r.id === responseId);
+    if (idx >= 0) {
+      const next = [...moderationResponses.value];
+      next[idx] = { ...next[idx], moderationStatus: status };
+      moderationResponses.value = next;
+    }
+  } catch (err) {
+    console.error('Moderate failed:', err);
+  } finally {
+    moderatingId.value = null;
+  }
+}
 
 const formatDate = (date: Date | null): string => {
   if (!date) return '';
@@ -740,6 +871,7 @@ onMounted(async () => {
     }
 
     await loadDeletionRequests();
+    await loadModerationResponses();
 
     // Expand first response by default
     if (responses.value.length > 0) {
@@ -1051,6 +1183,46 @@ onMounted(async () => {
   font-size: 0.75rem;
 }
 .deletion-done { color: #94a3b8; }
+
+/* Moderation panel */
+.moderation-panel { margin-bottom: 1.5rem; }
+.moderation-filter {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.moderation-table-wrap { overflow-x: auto; }
+.moderation-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.moderation-table th,
+.moderation-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+.moderation-table th { font-weight: 600; color: var(--color-text-muted, #64748b); }
+.moderation-summary { max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.moderation-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+.moderation-pending { background: #fef3c7; color: #b45309; }
+.moderation-approved { background: #dcfce7; color: #15803d; }
+.moderation-rejected { background: #fee2e2; color: #dc2626; }
+.moderation-none { background: #f1f5f9; color: #64748b; }
+.moderation-done { font-size: 0.75rem; color: var(--color-text-muted); }
+.btn-approve { background: #dcfce7; color: #15803d; }
+.btn-approve:hover:not(:disabled) { background: #bbf7d0; }
+.btn-reject { background: #fee2e2; color: #dc2626; margin-left: 0.25rem; }
+.btn-reject:hover:not(:disabled) { background: #fecaca; }
 
 /* Right column: insights */
 .col-insights { min-width: 0; }

@@ -26,5 +26,26 @@ export class ProjectAccessDeniedError extends ProjectError {
   }
 }
 
+export class PublicLinkNotEnabledError extends ProjectError {
+  constructor(projectIdOrSlug: string) {
+    super(`Public access is not enabled for project or slug: ${projectIdOrSlug}`);
+    this.name = 'PublicLinkNotEnabledError';
+  }
+}
+
+export class PublicSlugTakenError extends ProjectError {
+  constructor(slug: string) {
+    super(`Public slug already in use: ${slug}`);
+    this.name = 'PublicSlugTakenError';
+  }
+}
+
+export class MaxPublicResponsesReachedError extends ProjectError {
+  constructor(projectId: string) {
+    super(`Maximum public responses reached for project: ${projectId}`);
+    this.name = 'MaxPublicResponsesReachedError';
+  }
+}
+
 
 

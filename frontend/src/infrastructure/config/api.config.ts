@@ -33,6 +33,8 @@ export const API_CONFIG = {
     RESPONSE: (projectId: string, responseId: string) => `/projects/${projectId}/responses/${responseId}`,
     /** GET ?format=json|csv - export raw responses (attachment) */
     RESPONSES_EXPORT: (projectId: string, format: 'json' | 'csv') => `/projects/${projectId}/responses/export?format=${format}`,
+    RESPONSES_MODERATION: (projectId: string, status?: string) => `/projects/${projectId}/responses/moderation${status ? `?status=${status}` : ''}`,
+    RESPONSE_MODERATE: (projectId: string, responseId: string) => `/projects/${projectId}/responses/${responseId}/moderation`,
     /** GET ?format=json|csv - export consents for audit (attachment) */
     CONSENTS_EXPORT: (projectId: string, format: 'json' | 'csv') => `/projects/${projectId}/consents/export?format=${format}`,
     /** GET - list deletion requests for project; POST to execute: .../deletion-requests/:requestId/execute */
@@ -49,6 +51,7 @@ export const API_CONFIG = {
     
     // Survey (Respondent UI) - Note: /survey route is mounted directly, not under /api
     SURVEY_BY_TOKEN: (token: string) => `${getSurveyBaseUrl()}/survey/${token}`,
+    SURVEY_PUBLIC: (slug: string) => `${getSurveyBaseUrl()}/survey/public/${slug}`,
     SURVEY_CONSENT: (token: string) => `${getSurveyBaseUrl()}/survey/${token}/consent`,
     SUBMIT_RESPONSE: (token: string) => `/public/responses`,
     

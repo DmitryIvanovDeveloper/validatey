@@ -11,6 +11,7 @@ import { GetInvitationByTokenUseCase } from '../../application/use-cases/get-inv
 import { GetInvitationsByProjectIdUseCase } from '../../application/use-cases/get-invitations-by-project-id.use-case';
 import { UpdateInvitationStatusUseCase } from '../../application/use-cases/update-invitation-status.use-case';
 import { SendInvitationsUseCase } from '../../application/use-cases/send-invitations.use-case';
+import { CreateAnonymousInvitationForPublicLinkUseCase } from '../../application/use-cases/create-anonymous-invitation-for-public-link.use-case';
 import { InvitationPresenter } from '../../interface-adapters/presenters/invitation.presenter';
 
 export function bindInvitations(container: Container): void {
@@ -27,6 +28,7 @@ export function bindInvitations(container: Container): void {
   container.bind<GetInvitationsByProjectIdUseCase>(TYPES.GetInvitationsByProjectIdUseCase).to(GetInvitationsByProjectIdUseCase);
   container.bind<UpdateInvitationStatusUseCase>(TYPES.UpdateInvitationStatusUseCase).to(UpdateInvitationStatusUseCase);
   container.bind<SendInvitationsUseCase>(TYPES.SendInvitationsUseCase).to(SendInvitationsUseCase);
+  container.bind<CreateAnonymousInvitationForPublicLinkUseCase>(TYPES.CreateAnonymousInvitationForPublicLinkUseCase).to(CreateAnonymousInvitationForPublicLinkUseCase);
 
   // Presenter
   container.bind<InvitationPresenter>(TYPES.InvitationPresenter).to(InvitationPresenter);

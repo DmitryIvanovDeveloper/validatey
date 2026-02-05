@@ -22,7 +22,12 @@ export class Project {
     public readonly consentText: string | null = null,
     public readonly dataUsageText: string | null = null,
     public readonly privacyPolicyUrl: string | null = null,
-    public readonly termsOfServiceUrl: string | null = null
+    public readonly termsOfServiceUrl: string | null = null,
+    public readonly publicAccessEnabled: boolean = false,
+    public readonly publicSlug: string | null = null,
+    public readonly maxPublicResponses: number | null = null,
+    public readonly requirePublicEmail: boolean = false,
+    public readonly captchaEnabled: boolean = false
   ) {
     if (!id || id.trim().length === 0) {
       throw new Error('Project id cannot be empty');
@@ -45,7 +50,12 @@ export class Project {
       this.consentText,
       this.dataUsageText,
       this.privacyPolicyUrl,
-      this.termsOfServiceUrl
+      this.termsOfServiceUrl,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled
     );
   }
 
@@ -62,7 +72,12 @@ export class Project {
       this.consentText,
       this.dataUsageText,
       this.privacyPolicyUrl,
-      this.termsOfServiceUrl
+      this.termsOfServiceUrl,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled
     );
   }
 
@@ -79,7 +94,12 @@ export class Project {
       this.consentText,
       this.dataUsageText,
       this.privacyPolicyUrl,
-      this.termsOfServiceUrl
+      this.termsOfServiceUrl,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled
     );
   }
 }
