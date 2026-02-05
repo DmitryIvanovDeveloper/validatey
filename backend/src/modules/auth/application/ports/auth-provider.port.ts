@@ -11,11 +11,18 @@ export interface AuthSessionResult {
   user: AuthUserDto;
   /** Present when user is signed in immediately (e.g. when email confirmation is disabled). */
   accessToken?: string;
+  /** Required for refreshing access token after it expires (e.g. 1h). */
+  refreshToken?: string;
 }
 
 export interface AuthProviderPort {
   getGoogleAuthUrl(redirectTo: string): Promise<string>;
   getUserFromAccessToken(accessToken: string): Promise<AuthUserDto | null>;
+  /**
+   * Exchange refresh token for new access (and optionally refresh) token.
+   * Returns null if refresh token is invalid or expired.
+   */
+  refreshSession(refreshToken: string): Promise<AuthSessionResult | null>;
   /** Register with email/password. Returns session or throws. */
   signUpWithEmailPassword(email: string, password: string): Promise<AuthSessionResult>;
   /** Sign in with email/password. Returns session or throws. */

@@ -40,6 +40,7 @@ onMounted(async () => {
   try {
     const params = parseHashParams(window.location.hash);
     const accessToken = params.access_token;
+    const refreshToken = params.refresh_token ?? null;
     if (!accessToken) {
       await router.replace('/');
       return;
@@ -49,7 +50,10 @@ onMounted(async () => {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ access_token: accessToken }),
+      body: JSON.stringify({
+        access_token: accessToken,
+        ...(refreshToken && { refresh_token: refreshToken }),
+      }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));

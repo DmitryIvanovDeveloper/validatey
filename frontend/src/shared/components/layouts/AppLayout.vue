@@ -19,9 +19,6 @@
             </div>
             <button type="button" class="btn btn-ghost btn-sm" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
           </template>
-          <template v-else>
-            <button type="button" class="btn btn-primary" :disabled="authViewModel.loading.value" @click="handleSignIn">Sign in with Google</button>
-          </template>
         </div>
       </div>
     </header>
@@ -106,10 +103,6 @@ onMounted(async () => {
 onUnmounted(() => {
   unsubscribeAuth?.();
 });
-
-async function handleSignIn() {
-  await authPresenter.signInWithGoogle(authViewModel);
-}
 
 async function handleSignOut() {
   await authPresenter.signOut(authViewModel);

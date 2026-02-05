@@ -36,6 +36,16 @@ export class SupabaseAuthProvider implements AuthProviderPort {
     return toAuthUserDto(user);
   }
 
+  async refreshSession(refreshToken: string): Promise<AuthSessionResult | null> {
+    const { data, error } = await getAuthClient().auth.refreshSession({ refresh_token: refreshToken });
+    if (error || !data?.session?.access_token || !data?.user) return null;
+    return {
+      user: toAuthUserDto(data.user),
+      accessToken: data.session.access_token,
+      refreshToken: data.session.refresh_token ?? undefined,
+    };
+  }
+
   async signUpWithEmailPassword(email: string, password: string): Promise<AuthSessionResult> {
     const { data, error } = await getAuthClient().auth.signUp({
       email: email.trim(),
@@ -80,6 +90,7 @@ export class SupabaseAuthProvider implements AuthProviderPort {
     return {
       user: toAuthUserDto(data.user),
       accessToken: data.session.access_token,
+      refreshToken: data.session.refresh_token ?? undefined,
     };
   }
 }

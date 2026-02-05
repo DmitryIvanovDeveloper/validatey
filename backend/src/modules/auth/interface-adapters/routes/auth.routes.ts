@@ -8,6 +8,7 @@ const router = Router();
 const authProvider = new SupabaseAuthProvider();
 
 const COOKIE_NAME = 'validatey_auth';
+const COOKIE_REFRESH_NAME = 'validatey_refresh';
 // Cross-origin (frontend on validatey.vercel.app, backend on validatey-backend.vercel.app) requires SameSite=None so the cookie is sent with fetch(credentials: 'include').
 const isProduction = process.env.NODE_ENV === 'production';
 const COOKIE_OPTS = {
@@ -17,6 +18,18 @@ const COOKIE_OPTS = {
   maxAge: 7 * 24 * 60 * 60,
   path: '/',
 };
+
+function setSessionCookies(res: Response, accessToken: string, refreshToken?: string): void {
+  res.cookie(COOKIE_NAME, accessToken, COOKIE_OPTS);
+  if (refreshToken) {
+    res.cookie(COOKIE_REFRESH_NAME, refreshToken, COOKIE_OPTS);
+  }
+}
+
+function clearSessionCookies(res: Response): void {
+  res.clearCookie(COOKIE_NAME, { path: '/', sameSite: COOKIE_OPTS.sameSite, secure: COOKIE_OPTS.secure });
+  res.clearCookie(COOKIE_REFRESH_NAME, { path: '/', sameSite: COOKIE_OPTS.sameSite, secure: COOKIE_OPTS.secure });
+}
 
 /** POST /api/auth/register { email, password } → set cookie, return { user } */
 router.post('/register', async (req: Request, res: Response) => {
@@ -55,7 +68,7 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'email and password are required' });
     }
     const session = await authProvider.signInWithEmailPassword(email, password);
-    res.cookie(COOKIE_NAME, session.accessToken, COOKIE_OPTS);
+    setSessionCookies(res, session.accessToken, session.refreshToken);
     return res.json({ user: session.user });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Sign in failed';
@@ -95,19 +108,27 @@ router.post('/session', async (req: Request, res: Response) => {
   }
 });
 
-/** GET /api/auth/session → from cookie, return { user } or 401 */
+/** GET /api/auth/session → from cookie (or refresh token if access expired), return { user } or 401 */
 router.get('/session', async (req: Request, res: Response) => {
   try {
     const token = req.cookies?.[COOKIE_NAME];
-    if (!token) {
-      return res.status(401).json({ error: 'No session' });
+    const refreshToken = req.cookies?.[COOKIE_REFRESH_NAME];
+
+    if (token) {
+      const user = await authProvider.getUserFromAccessToken(token);
+      if (user) return res.json({ user });
     }
-    const user = await authProvider.getUserFromAccessToken(token);
-    if (!user) {
-      res.clearCookie(COOKIE_NAME, { path: '/', sameSite: COOKIE_OPTS.sameSite, secure: COOKIE_OPTS.secure });
-      return res.status(401).json({ error: 'Invalid session' });
+
+    if (refreshToken) {
+      const session = await authProvider.refreshSession(refreshToken);
+      if (session?.accessToken) {
+        setSessionCookies(res, session.accessToken, session.refreshToken);
+        return res.json({ user: session.user });
+      }
     }
-    return res.json({ user });
+
+    clearSessionCookies(res);
+    return res.status(401).json({ error: 'No session' });
   } catch (e) {
     return res.status(500).json({ error: e instanceof Error ? e.message : 'Auth error' });
   }
@@ -143,9 +164,9 @@ router.post('/link-previous-user', async (req: Request, res: Response) => {
   }
 });
 
-/** POST /api/auth/sign-out → clear cookie */
+/** POST /api/auth/sign-out → clear cookies */
 router.post('/sign-out', (_req: Request, res: Response) => {
-  res.clearCookie(COOKIE_NAME, { path: '/', sameSite: COOKIE_OPTS.sameSite, secure: COOKIE_OPTS.secure });
+  clearSessionCookies(res);
   return res.status(204).send();
 });
 
