@@ -89,17 +89,25 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 
+interface QuestionOptions {
+  min?: number;
+  max?: number;
+  label?: string;
+  choices?: string[];
+  multiple?: boolean;
+}
+
 interface Question {
   id?: string;
   text: string;
   type: string;
   required?: boolean;
-  options?: any;
+  options?: QuestionOptions;
 }
 
 interface Scenario {
   questions?: Question[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const props = withDefaults(

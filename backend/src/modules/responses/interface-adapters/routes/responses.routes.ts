@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ResponsePresenter } from '../presenters/response.presenter';
+import { ResponseController } from '../controllers/response.controller';
 
 const router = Router();
-const presenter = container.get<ResponsePresenter>(TYPES.ResponsePresenter);
+const controller = container.get<ResponseController>(TYPES.ResponseController);
 
 // Get responses by project (MUST be before /:id route)
 router.get('/project/:projectId', async (req: Request, res: Response) => {
@@ -12,7 +12,7 @@ router.get('/project/:projectId', async (req: Request, res: Response) => {
     const { projectId } = req.params;
     console.log('[responses.routes] Getting responses for project:', projectId);
     
-    const result = await presenter.getResponsesByProjectId({ projectId });
+    const result = await controller.getResponsesByProjectId({ projectId });
 
     if (!result.isSuccess) {
       console.error('[responses.routes] Error getting responses:', result.error);

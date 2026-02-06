@@ -7,7 +7,7 @@ import { ProjectConsentRequirementsAdapter } from '../services/project-consent-r
 import { RecordConsentUseCase } from '../../application/use-cases/record-consent.use-case';
 import { GetConsentRequirementsUseCase } from '../../application/use-cases/get-consent-requirements.use-case';
 import { ExportConsentsUseCase } from '../../application/use-cases/export-consents.use-case';
-import { ConsentPresenter } from '../../interface-adapters/presenters/consent.presenter';
+import { ConsentController } from '../../interface-adapters/controllers/consent.controller';
 
 export function bindConsents(container: Container): void {
   container.bind<ConsentRepositoryPort>(TYPES.ConsentRepository).to(SupabaseConsentRepository);
@@ -17,5 +17,5 @@ export function bindConsents(container: Container): void {
   container.bind<GetConsentRequirementsUseCase>(TYPES.GetConsentRequirementsUseCase).to(GetConsentRequirementsUseCase);
   container.bind<ExportConsentsUseCase>(TYPES.ExportConsentsUseCase).to(ExportConsentsUseCase);
 
-  container.bind<ConsentPresenter>(TYPES.ConsentPresenter).to(ConsentPresenter);
+  container.bind<ConsentController>(TYPES.ConsentController).to(ConsentController);
 }

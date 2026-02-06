@@ -4,7 +4,7 @@ import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import Result from '../../../../infrastructure/result/result';
 import { Survey, SurveyStatus } from '../../domain/entities/survey.entity';
-import { SurveyQuestion } from '../../domain/value-objects/survey-question.vo';
+import { SurveyQuestion, type QuestionType } from '../../domain/value-objects/survey-question.vo';
 import { SurveyNotFoundError, SurveyExpiredError } from '../../domain/errors/survey.error';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 
@@ -48,15 +48,21 @@ export class SurveyRepository implements SurveyRepositoryPort {
           startedAt: string | null;
           completedAt: string | null;
         };
+        consentRequired?: boolean;
+        consentText?: string;
+        dataUsageText?: string;
+        privacyPolicyUrl?: string | null;
+        termsOfServiceUrl?: string | null;
+        alreadyConsented?: boolean;
       }>(API_CONFIG.ENDPOINTS.SURVEY_BY_TOKEN(token));
 
       // Extract survey from response
       const surveyData = response.survey;
 
-      const questions = surveyData.questions.map(q => 
+      const questions = surveyData.questions.map(q =>
         new SurveyQuestion(
           q.id,
-          q.type as any,
+          q.type as QuestionType,
           q.text,
           q.required,
           q.options
@@ -97,7 +103,7 @@ export class SurveyRepository implements SurveyRepositoryPort {
     }
   }
 
-  async submitResponse(token: string, answers: Record<string, any>): Promise<Result<void, Error>> {
+  async submitResponse(token: string, answers: Record<string, unknown>): Promise<Result<void, Error>> {
     try {
       await this._httpClient.post(API_CONFIG.ENDPOINTS.SUBMIT_RESPONSE(token), {
         token,

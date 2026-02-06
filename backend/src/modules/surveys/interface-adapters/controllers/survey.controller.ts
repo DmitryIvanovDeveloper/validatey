@@ -1,0 +1,44 @@
+import { injectable, inject } from 'inversify';
+import ResultEx from '../../../../infrastructure/result/result';
+import { TYPES } from '../../infrastructure/bootstrap/types';
+import { GetSurveyByTokenUseCase } from '../../application/use-cases/get-survey-by-token.use-case';
+import { GetSurveyByTokenUseCaseRequest } from '../../application/use-cases/input-output/get-survey-by-token.io';
+import { TYPES as CONSENT_TYPES } from '../../../consents/infrastructure/bootstrap/types';
+import { GetConsentRequirementsUseCase } from '../../../consents/application/use-cases/get-consent-requirements.use-case';
+
+@injectable()
+export class SurveyController {
+	constructor(
+		@inject(TYPES.GetSurveyByTokenUseCase)
+		private readonly _getSurveyByTokenUseCase: GetSurveyByTokenUseCase,
+		@inject(CONSENT_TYPES.GetConsentRequirementsUseCase)
+		private readonly _getConsentRequirementsUseCase: GetConsentRequirementsUseCase
+	) {}
+
+	public async getSurveyByToken(request: GetSurveyByTokenUseCaseRequest): Promise<ReturnType<GetSurveyByTokenUseCase['execute']>> {
+		const result = await this._getSurveyByTokenUseCase.execute(request);
+		if (!result.isSuccess) return result;
+
+		const consentResult = await this._getConsentRequirementsUseCase.execute({ token: request.token });
+		const consent = consentResult.isSuccess
+			? consentResult.data
+			: {
+					consentRequired: false,
+					consentText: '',
+					dataUsageText: '',
+					privacyPolicyUrl: null as string | null,
+					termsOfServiceUrl: null as string | null,
+					alreadyConsented: false,
+			  };
+
+		return ResultEx.success({
+			...result.data,
+			consentRequired: consent.consentRequired,
+			consentText: consent.consentText,
+			dataUsageText: consent.dataUsageText,
+			privacyPolicyUrl: consent.privacyPolicyUrl ?? null,
+			termsOfServiceUrl: consent.termsOfServiceUrl ?? null,
+			alreadyConsented: consent.alreadyConsented,
+		});
+	}
+}

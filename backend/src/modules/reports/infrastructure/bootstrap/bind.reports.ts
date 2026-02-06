@@ -8,7 +8,7 @@ import { HTMLReportGeneratorService } from '../services/html-report-generator.se
 import { GenerateReportUseCase } from '../../application/use-cases/generate-report.use-case';
 import { GetReportByTokenUseCase } from '../../application/use-cases/get-report-by-token.use-case';
 import { GetReportDataUseCase } from '../../application/use-cases/get-report-data.use-case';
-import { ReportPresenter } from '../../interface-adapters/presenters/report.presenter';
+import { ReportController } from '../../interface-adapters/controllers/report.controller';
 
 export function bindReports(container: Container): void {
   // Repository
@@ -23,8 +23,8 @@ export function bindReports(container: Container): void {
   container.bind<GetReportByTokenUseCase>(TYPES.GetReportByTokenUseCase).to(GetReportByTokenUseCase);
   container.bind<GetReportDataUseCase>(TYPES.GetReportDataUseCase).to(GetReportDataUseCase);
 
-  // Presenter
-  container.bind<ReportPresenter>(TYPES.ReportPresenter).to(ReportPresenter);
+  // Controller
+  container.bind<ReportController>(TYPES.ReportController).to(ReportController);
 }
 
 

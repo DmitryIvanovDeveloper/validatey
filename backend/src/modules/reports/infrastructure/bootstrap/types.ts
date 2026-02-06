@@ -5,7 +5,7 @@ export const TYPES = {
   GenerateReportUseCase: Symbol.for('GenerateReportUseCase'),
   GetReportByTokenUseCase: Symbol.for('GetReportByTokenUseCase'),
   GetReportDataUseCase: Symbol.for('GetReportDataUseCase'),
-  ReportPresenter: Symbol.for('ReportPresenter'),
+  ReportController: Symbol.for('ReportController'),
 } as const;
 
 

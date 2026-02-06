@@ -117,17 +117,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import PageHeader from '@/shared/components/PageHeader.vue';
+import PageHeader from '../../../../shared/components/PageHeader.vue';
 import ProjectCard from './components/ProjectCard.vue';
-import EmptyState from '@/shared/components/EmptyState.vue';
-import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
-import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
-import Modal from '@/shared/components/Modal.vue';
+import EmptyState from '../../../../shared/components/EmptyState.vue';
+import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
+import Modal from '../../../../shared/components/Modal.vue';
 import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { userContextService } from '@/shared/services/user-context.service';
+import { userContextService } from '../../../../shared/services/user-context.service';
 import type { Project } from '../../domain/entities/project.entity';
 
 const ONBOARDING_STORAGE_KEY = 'validatey_onboarding_completed';

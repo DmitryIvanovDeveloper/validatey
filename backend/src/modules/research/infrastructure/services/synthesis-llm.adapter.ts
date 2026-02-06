@@ -4,7 +4,7 @@ import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-
 import ResultEx from '../../../../infrastructure/result/result';
 import type { SynthesisLlmPort } from '../../application/ports/synthesis-llm.port';
 import type { SynthesisInput } from '../../application/ports/synthesis-llm.port';
-import type { SynthesisReport } from '../../domain/entities/synthesis-report.entity';
+import type { SynthesisReport } from '../../domain/value-objects/synthesis-report.vo';
 import { SynthesisGenerationError } from '../../domain/errors/research.error';
 
 const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';

@@ -26,7 +26,7 @@ export class InvitationRepository implements InvitationRepositoryPort {
           sentAt: string | null;
           respondedAt: string | null;
         };
-        survey: any;
+        survey: Record<string, unknown>;
       }>(API_CONFIG.ENDPOINTS.SURVEY_BY_TOKEN(token));
 
       // Extract invitation from response

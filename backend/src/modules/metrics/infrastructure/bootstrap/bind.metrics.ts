@@ -6,7 +6,7 @@ import { ClusteringServicePort } from '../../application/ports/clustering-servic
 import { KMeansClusteringService } from '../services/kmeans-clustering.service';
 import { RecommendationEngineService } from '../services/recommendation-engine.service';
 import { CalculateMetricsUseCase } from '../../application/use-cases/calculate-metrics.use-case';
-import { MetricsPresenter } from '../../interface-adapters/presenters/metrics.presenter';
+import { MetricsController } from '../../interface-adapters/controllers/metrics.controller';
 
 export function bindMetrics(container: Container): void {
   // Repository
@@ -19,8 +19,8 @@ export function bindMetrics(container: Container): void {
   // Use Cases
   container.bind<CalculateMetricsUseCase>(TYPES.CalculateMetricsUseCase).to(CalculateMetricsUseCase);
 
-  // Presenter
-  container.bind<MetricsPresenter>(TYPES.MetricsPresenter).to(MetricsPresenter);
+  // Controller
+  container.bind<MetricsController>(TYPES.MetricsController).to(MetricsController);
 }
 
 

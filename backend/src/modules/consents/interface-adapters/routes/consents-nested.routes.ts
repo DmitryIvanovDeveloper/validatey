@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ConsentPresenter } from '../presenters/consent.presenter';
+import { ConsentController } from '../controllers/consent.controller';
 
 const router = Router({ mergeParams: true });
-const presenter = container.get<ConsentPresenter>(TYPES.ConsentPresenter);
+const controller = container.get<ConsentController>(TYPES.ConsentController);
 
 /** GET /projects/:projectId/consents/export?format=json|csv — export consents for audit. */
 router.get('/export', async (req: Request, res: Response) => {
@@ -14,7 +14,7 @@ router.get('/export', async (req: Request, res: Response) => {
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
-    const result = await presenter.exportConsents({ projectId, format });
+    const result = await controller.exportConsents({ projectId, format });
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error.message });
     }

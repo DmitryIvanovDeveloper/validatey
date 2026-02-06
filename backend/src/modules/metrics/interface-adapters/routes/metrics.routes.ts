@@ -1,15 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { MetricsPresenter } from '../presenters/metrics.presenter';
+import { MetricsController } from '../controllers/metrics.controller';
 
 const router = Router();
-const presenter = container.get<MetricsPresenter>(TYPES.MetricsPresenter);
+const controller = container.get<MetricsController>(TYPES.MetricsController);
 
 // Calculate metrics for project
 router.post('/calculate/:projectId', async (req: Request, res: Response) => {
   try {
-    const result = await presenter.calculateMetrics({
+    const result = await controller.calculateMetrics({
       projectId: req.params.projectId,
     });
 

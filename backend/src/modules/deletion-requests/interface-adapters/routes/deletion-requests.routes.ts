@@ -1,16 +1,16 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { DeletionRequestPresenter } from '../presenters/deletion-request.presenter';
+import { DeletionRequestController } from '../controllers/deletion-request.controller';
 
 const router = Router();
-const presenter = container.get<DeletionRequestPresenter>(TYPES.DeletionRequestPresenter);
+const controller = container.get<DeletionRequestController>(TYPES.DeletionRequestController);
 
 /** POST /api/deletion-requests — create a deletion request (public; e.g. from privacy form). */
 router.post('/', async (req: Request, res: Response) => {
   try {
     const { projectId, identifier, requestedBy } = req.body || {};
-    const result = await presenter.createDeletionRequest({
+    const result = await controller.createDeletionRequest({
       projectId: projectId ?? '',
       identifier: identifier ?? '',
       requestedBy: requestedBy ?? null,

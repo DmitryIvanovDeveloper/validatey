@@ -2,11 +2,11 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { StoragePresenter } from '../presenters/storage.presenter';
+import { StorageController } from '../controllers/storage.controller';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
-const presenter = container.get<StoragePresenter>(TYPES.StoragePresenter);
+const controller = container.get<StorageController>(TYPES.StorageController);
 
 // Upload file
 router.post('/upload', upload.single('file'), async (req: Request, res: Response) => {
@@ -15,7 +15,7 @@ router.post('/upload', upload.single('file'), async (req: Request, res: Response
       return res.status(400).json({ error: 'File is required' });
     }
 
-    const result = await presenter.uploadFile({
+    const result = await controller.uploadFile({
       file: req.file.buffer,
       filename: req.file.originalname,
       contentType: req.file.mimetype,

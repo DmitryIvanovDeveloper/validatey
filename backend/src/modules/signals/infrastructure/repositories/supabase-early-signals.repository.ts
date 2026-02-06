@@ -3,7 +3,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
-import { EarlySignal } from '../../domain/entities/early-signal.entity';
+import { EarlySignal, EarlySignalType } from '../../domain/entities/early-signal.entity';
 import { EarlySignalsRepositoryPort } from '../../application/ports/early-signals-repository.port';
 
 @injectable()
@@ -75,13 +75,16 @@ export class SupabaseEarlySignalsRepository implements EarlySignalsRepositoryPor
         return ResultEx.failure(new Error(error.message));
       }
 
-      const signals: EarlySignal[] = (data || []).map((row: any) => ({
-        id: row.id,
-        type: row.type,
-        title: row.title,
-        description: row.description || '',
-        timestamp: new Date(row.created_at),
-      }));
+      const signals: EarlySignal[] = (data || []).map((row: Record<string, unknown>) => {
+        const r = row as { id: string; type: string; title: string; description?: string; created_at: string };
+        return {
+          id: r.id,
+          type: r.type as EarlySignalType,
+          title: r.title,
+          description: r.description ?? '',
+          timestamp: new Date(r.created_at),
+        };
+      });
 
       return ResultEx.success(signals);
     } catch (error) {

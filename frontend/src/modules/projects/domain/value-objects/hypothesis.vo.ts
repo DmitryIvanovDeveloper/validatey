@@ -12,7 +12,7 @@ export class Hypothesis {
     }
   }
 
-  equals(other: Hypothesis): boolean {
+  public equals(other: Hypothesis): boolean {
     return (
       this.description === other.description &&
       JSON.stringify(this.assumptions) === JSON.stringify(other.assumptions)

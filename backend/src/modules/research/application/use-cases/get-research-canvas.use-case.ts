@@ -15,7 +15,7 @@ import type {
   MarketDataBlock,
   CompetitorInfoBlock,
   UserInsightsBlock,
-} from '../../domain/entities';
+} from '../../domain/value-objects';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
 import type {
   GetResearchCanvasRequest,

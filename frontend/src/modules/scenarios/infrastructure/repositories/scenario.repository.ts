@@ -16,7 +16,7 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
 
   async generateScenario(
     projectId: string,
-    segment?: { description: string; demographics: Record<string, any> } | null,
+    segment?: { description: string; demographics: Record<string, unknown> } | null,
     hypothesis?: { description: string; assumptions: string[] } | null,
     marketContext?: MarketContextForScenario,
     prompt?: string

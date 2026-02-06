@@ -7,7 +7,7 @@ import type { SearchPhrasesGeneratorPort } from '../../application/ports/search-
 import type { AutocompleteApiPort } from '../../application/ports/autocomplete-api.port';
 import type { AutocompleteDataProviderPort } from '../../application/ports/autocomplete-data-provider.port';
 import type { ResearchIntent } from '../../application/use-cases/input-output/collect-research-data.io';
-import type { AutocompleteInsights } from '../../domain/entities/autocomplete-insights.entity';
+import type { AutocompleteInsights } from '../../domain/value-objects/autocomplete-insights.vo';
 
 @injectable()
 export class AutocompleteDataProviderAdapter implements AutocompleteDataProviderPort {

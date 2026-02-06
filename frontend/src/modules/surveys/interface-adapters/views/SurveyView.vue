@@ -173,16 +173,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import ScaleInput from '@/shared/components/ScaleInput.vue';
-import MultipleChoiceInput from '@/shared/components/MultipleChoiceInput.vue';
-import AudioRecorder from '@/shared/components/AudioRecorder.vue';
-import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
-import { trackSurveyStart, trackSurveyComplete, trackSurveyDropoff } from '@/infrastructure/router/middleware/telemetry-middleware';
+import ScaleInput from '../../../../shared/components/ScaleInput.vue';
+import MultipleChoiceInput from '../../../../shared/components/MultipleChoiceInput.vue';
+import AudioRecorder from '../../../../shared/components/AudioRecorder.vue';
+import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
 import { SurveyViewModel } from '../view-models/survey.view-model';
 import { SurveyPresenter } from '../presenters/survey.presenter';
-import { container } from '@/infrastructure/bootstrap/container';
+import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { QuestionType } from '../../domain/value-objects/survey-question.vo';
 
@@ -292,8 +291,6 @@ const prevQuestion = () => {
 
 const submitSurvey = async () => {
   const token = route.params.token as string;
-  const startTime = Date.now();
-  
   isSubmitting.value = true;
   submitError.value = null;
   
@@ -302,8 +299,6 @@ const submitSurvey = async () => {
     const result = await presenter.submitAnswers(token, answers.value);
     
     if (result.success) {
-      const duration = Math.round((Date.now() - startTime) / 1000);
-      trackSurveyComplete(token, duration);
       isCompleted.value = true;
     } else {
       submitError.value = result.error || 'Failed to submit survey';
@@ -345,16 +340,6 @@ onMounted(() => {
   const token = route.params.token as string;
   if (token) {
     presenter.loadSurvey(token, viewModel);
-    trackSurveyStart(token);
-  }
-});
-
-// Отслеживание дроп-оффов при уходе со страницы
-onBeforeUnmount(() => {
-  const token = route.params.token as string;
-  const survey = viewModel.survey.value;
-  if (token && survey && !isCompleted.value) {
-    trackSurveyDropoff(token, viewModel.currentQuestionIndex.value, currentQuestion.value?.id || '');
   }
 });
 </script>

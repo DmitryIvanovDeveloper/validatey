@@ -2,11 +2,11 @@ import { injectable, inject } from 'inversify';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
-import type { ListUsersPort, ListUsersItemDto } from '../../application/ports/list-users.port';
+import type { ListUsersPort, ListUsersItemDTO } from '../../application/ports/list-users.port';
 
 const PER_PAGE = 1000;
 
-function toItem(user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }): ListUsersItemDto {
+function toItem(user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }): ListUsersItemDTO {
   return {
     id: user.id,
     email: user.email ?? null,
@@ -25,9 +25,9 @@ export class SupabaseAuthListUsersAdapter implements ListUsersPort {
     private readonly _logger: LoggerPort
   ) {}
 
-  async list(): Promise<ListUsersItemDto[]> {
+  async list(): Promise<ListUsersItemDTO[]> {
     const supabase = getSupabaseClient();
-    const all: ListUsersItemDto[] = [];
+    const all: ListUsersItemDTO[] = [];
     let page = 1;
 
     // eslint-disable-next-line no-constant-condition

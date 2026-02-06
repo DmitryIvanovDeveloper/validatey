@@ -174,18 +174,19 @@ export class SupabaseReportRepository implements ReportRepositoryPort {
     }
   }
 
-  private mapToDomain(data: any): Report {
+  private mapToDomain(data: Record<string, unknown>): Report {
+    const d = data as { id: string; project_id: string; version: number; metrics: Record<string, unknown> | null; html_content: string | null; pdf_url: string | null; token: string; generated_at: string; created_at: string; updated_at: string };
     return {
-      id: data.id,
-      projectId: data.project_id,
-      version: data.version,
-      metrics: data.metrics,
-      htmlContent: data.html_content,
-      pdfUrl: data.pdf_url,
-      token: data.token,
-      generatedAt: new Date(data.generated_at),
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: d.id,
+      projectId: d.project_id,
+      version: d.version,
+      metrics: d.metrics,
+      htmlContent: d.html_content,
+      pdfUrl: d.pdf_url,
+      token: d.token,
+      generatedAt: new Date(d.generated_at),
+      createdAt: new Date(d.created_at),
+      updatedAt: new Date(d.updated_at),
     };
   }
 }

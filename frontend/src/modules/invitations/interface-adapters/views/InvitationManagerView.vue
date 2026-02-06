@@ -334,17 +334,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import Card from '@/shared/components/Card.vue';
-import Modal from '@/shared/components/Modal.vue';
-import PageHeader from '@/shared/components/PageHeader.vue';
-import { container } from '@/infrastructure/bootstrap/container';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
+import Card from '../../../../shared/components/Card.vue';
+import Modal from '../../../../shared/components/Modal.vue';
+import PageHeader from '../../../../shared/components/PageHeader.vue';
+import { container } from '../../../../infrastructure/bootstrap/container';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { userContextService } from '@/shared/services/user-context.service';
-import { TYPES as PROJECT_TYPES } from '@/modules/projects/infrastructure/bootstrap/types';
-import type { InvitationPresenter } from '../../interface-adapters/presenters/invitation.presenter';
-import type { InvitationListItem } from '../../interface-adapters/presenters/invitation.presenter';
-import { ProjectPresenter } from '@/modules/projects/interface-adapters/presenters/project.presenter';
+import { userContextService } from '../../../../shared/services/user-context.service';
+import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
+import type { InvitationPresenter } from '../presenters/invitation.presenter';
+import type { InvitationListItem } from '../presenters/invitation.presenter';
+import { ProjectPresenter } from '../../../projects/interface-adapters/presenters/project.presenter';
 
 const route = useRoute();
 const projectId = route.params.projectId as string;

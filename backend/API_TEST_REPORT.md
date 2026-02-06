@@ -15,7 +15,6 @@
 | `/api/projects` | GET | ✅ 200 | Список проектов (требует `x-user-id`) |
 | `/api/projects` | POST | ✅ 201 | Создание проекта |
 | `/api/projects/:id` | GET | ✅ 200 | Получение проекта по ID |
-| `/api/telemetry` | POST | ✅ 204 | Отправка телеметрии (неблокирующий) |
 | `/api/projects/:id/scenarios/generate` | POST | ✅ 201 | Генерация сценария через LLM |
 | `/api/projects/:id/scenarios` | GET | ✅ 200 | Получение сценария |
 

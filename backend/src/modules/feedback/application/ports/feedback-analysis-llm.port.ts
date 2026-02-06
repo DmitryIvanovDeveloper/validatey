@@ -1,5 +1,5 @@
 import ResultEx from '../../../../infrastructure/result/result';
-import type { FeedbackAnalysis } from '../../domain/entities/feedback-analysis.entity';
+import type { FeedbackAnalysis } from '../../domain/value-objects/feedback-analysis.vo';
 import type { FeedbackAnalysisError } from '../../domain/errors/feedback.error';
 
 export interface FeedbackItemForAnalysis {

@@ -217,17 +217,18 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
     }
   }
 
-  private mapToDomain(data: any): Response {
+  private mapToDomain(data: Record<string, unknown>): Response {
+    const d = data as { id: string; invitation_id: string; project_id: string; answers: Response['answers']; audio_url: string | null; transcript: string | null; moderation_status: string | null; created_at: string; updated_at: string };
     return {
-      id: data.id,
-      invitationId: data.invitation_id,
-      projectId: data.project_id,
-      answers: data.answers,
-      audioUrl: data.audio_url,
-      transcript: data.transcript,
-      moderationStatus: data.moderation_status ?? null,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: d.id,
+      invitationId: d.invitation_id,
+      projectId: d.project_id,
+      answers: d.answers,
+      audioUrl: d.audio_url,
+      transcript: d.transcript,
+      moderationStatus: (d.moderation_status ?? null) as Response['moderationStatus'],
+      createdAt: new Date(d.created_at),
+      updatedAt: new Date(d.updated_at),
     };
   }
 }

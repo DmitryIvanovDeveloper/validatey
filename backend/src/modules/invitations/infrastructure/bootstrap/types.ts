@@ -8,7 +8,7 @@ export const TYPES = {
   UpdateInvitationStatusUseCase: Symbol.for('UpdateInvitationStatusUseCase'),
   SendInvitationsUseCase: Symbol.for('SendInvitationsUseCase'),
   CreateAnonymousInvitationForPublicLinkUseCase: Symbol.for('CreateAnonymousInvitationForPublicLinkUseCase'),
-  InvitationPresenter: Symbol.for('InvitationPresenter'),
+  InvitationController: Symbol.for('InvitationController'),
 } as const;
 
 

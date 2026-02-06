@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ReportPresenter } from '../presenters/report.presenter';
+import { ReportController } from '../controllers/report.controller';
 
 const router = Router({ mergeParams: true });
-const presenter = container.get<ReportPresenter>(TYPES.ReportPresenter);
+const controller = container.get<ReportController>(TYPES.ReportController);
 
 // GET /projects/:projectId/report — report view data from live metrics (template-aware)
 router.get('/', async (req: Request, res: Response) => {
@@ -13,7 +13,7 @@ router.get('/', async (req: Request, res: Response) => {
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
-    const result = await presenter.getReportData({ projectId });
+    const result = await controller.getReportData({ projectId });
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error.message });
     }
@@ -27,7 +27,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/generate', async (req: Request, res: Response) => {
   try {
     const projectId = req.params.projectId;
-    const result = await presenter.generateReport({
+    const result = await controller.generateReport({
       projectId,
       includePDF: req.body.includePDF || false,
     });

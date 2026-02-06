@@ -290,14 +290,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import PageHeader from '@/shared/components/PageHeader.vue';
-import Wizard from '@/shared/components/Wizard.vue';
-import Modal from '@/shared/components/Modal.vue';
-import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
+import PageHeader from '../../../../shared/components/PageHeader.vue';
+import Wizard from '../../../../shared/components/Wizard.vue';
+import Modal from '../../../../shared/components/Modal.vue';
+import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
 import ScenarioViewer from './components/ScenarioViewer.vue';
 import ScenarioManualEditor from './components/ScenarioManualEditor.vue';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
-import { container } from '@/infrastructure/bootstrap/container';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
+import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { ProjectPresenter } from '../presenters/project.presenter';
 import { ScenarioPresenter } from '../../../scenarios/interface-adapters/presenters/scenario.presenter';
@@ -576,11 +576,11 @@ const generateScenario = async () => {
 
     // 2. Generate scenario via UseCase -> Repository -> HttpClient -> Backend API
     // Convert text demographics to object
-    let demographicsParsed: Record<string, any> = {};
+    let demographicsParsed: Record<string, unknown> = {};
     if (formData.value.segmentDemographics) {
       try {
         // Try to parse as JSON
-        demographicsParsed = JSON.parse(formData.value.segmentDemographics);
+        demographicsParsed = JSON.parse(formData.value.segmentDemographics) as Record<string, unknown>;
       } catch {
         // If not JSON, save as text field
         demographicsParsed = { text: formData.value.segmentDemographics };

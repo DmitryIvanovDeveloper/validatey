@@ -10,7 +10,7 @@ export interface Cluster {
   id: string;
   name: string;
   size: number;
-  characteristics: Record<string, any>;
+  characteristics: Record<string, unknown>;
 }
 
 export interface Alternative {
@@ -44,7 +44,7 @@ export class ProjectReport {
     }
   }
 
-  withMetrics(metrics: ReportMetrics): ProjectReport {
+  public withMetrics(metrics: ReportMetrics): ProjectReport {
     return new ProjectReport(
       this.id,
       this.projectId,
@@ -62,7 +62,7 @@ export class ProjectReport {
     return '';
   }
 
-  exportPdf(): Blob {
+  public exportPdf(): Blob {
     // TODO: Implement PDF export
     return new Blob();
   }

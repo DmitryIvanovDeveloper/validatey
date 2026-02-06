@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { EarlySignalsPresenter } from '../presenters/early-signals.presenter';
+import { EarlySignalsController } from '../controllers/early-signals.controller';
 
 const router = Router({ mergeParams: true });
-const presenter = container.get<EarlySignalsPresenter>(TYPES.EarlySignalsPresenter);
+const controller = container.get<EarlySignalsController>(TYPES.EarlySignalsController);
 
 router.get('/', async (req: Request, res: Response) => {
   try {
@@ -14,7 +14,7 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Project ID is required' });
     }
 
-    const result = await presenter.getEarlySignalsByProjectId({ projectId });
+    const result = await controller.getEarlySignalsByProjectId({ projectId });
 
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error.message });

@@ -294,11 +294,11 @@
  */
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
-import PageHeader from '@/shared/components/PageHeader.vue';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
-import { container } from '@/infrastructure/bootstrap/container';
-import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
-import type { HttpClientPort } from '@/infrastructure/http/ports/http-client.port';
+import PageHeader from '../../../../shared/components/PageHeader.vue';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
+import { container } from '../../../../infrastructure/bootstrap/container';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 
 const route = useRoute();
 const projectId = computed(() => route.params.projectId as string);

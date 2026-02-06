@@ -12,7 +12,7 @@ import { GetInvitationsByProjectIdUseCase } from '../../application/use-cases/ge
 import { UpdateInvitationStatusUseCase } from '../../application/use-cases/update-invitation-status.use-case';
 import { SendInvitationsUseCase } from '../../application/use-cases/send-invitations.use-case';
 import { CreateAnonymousInvitationForPublicLinkUseCase } from '../../application/use-cases/create-anonymous-invitation-for-public-link.use-case';
-import { InvitationPresenter } from '../../interface-adapters/presenters/invitation.presenter';
+import { InvitationController } from '../../interface-adapters/controllers/invitation.controller';
 
 export function bindInvitations(container: Container): void {
   // Repository
@@ -30,8 +30,8 @@ export function bindInvitations(container: Container): void {
   container.bind<SendInvitationsUseCase>(TYPES.SendInvitationsUseCase).to(SendInvitationsUseCase);
   container.bind<CreateAnonymousInvitationForPublicLinkUseCase>(TYPES.CreateAnonymousInvitationForPublicLinkUseCase).to(CreateAnonymousInvitationForPublicLinkUseCase);
 
-  // Presenter
-  container.bind<InvitationPresenter>(TYPES.InvitationPresenter).to(InvitationPresenter);
+  // Controller
+  container.bind<InvitationController>(TYPES.InvitationController).to(InvitationController);
 }
 
 

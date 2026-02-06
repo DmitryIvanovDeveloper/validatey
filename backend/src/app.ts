@@ -75,7 +75,6 @@ import reportsRoutes from './modules/reports/interface-adapters/routes/reports.r
 import publicReportsRoutes from './modules/reports/interface-adapters/routes/public-reports.routes';
 import storageRoutes from './modules/storage/interface-adapters/routes/storage.routes';
 import audioUploadRoutes from './modules/storage/interface-adapters/routes/audio-upload.routes';
-import telemetryRoutes from './modules/telemetry/interface-adapters/routes/telemetry.routes';
 import surveyRoutes from './modules/surveys/interface-adapters/routes/survey.routes';
 import aiRoutes from './modules/ai/routes';
 import authRoutes from './modules/auth/interface-adapters/routes/auth.routes';
@@ -97,7 +96,6 @@ app.use('/api/reports', reportsRoutes);
 app.use('/api/public/reports', publicReportsRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/audio-upload', audioUploadRoutes);
-app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -125,7 +123,6 @@ app.get('/api', (req: Request, res: Response) => {
       publicReports: '/api/public/reports',
       storage: '/api/storage',
       audioUpload: '/api/audio-upload',
-      telemetry: '/api/telemetry',
       auth: '/api/auth (google-url, session, sign-out)',
       survey: '/survey',
       root: '/'

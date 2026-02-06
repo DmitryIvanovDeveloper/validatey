@@ -1,15 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { InvitationPresenter } from '../presenters/invitation.presenter';
+import { InvitationController } from '../controllers/invitation.controller';
 
 const router = Router();
-const presenter = container.get<InvitationPresenter>(TYPES.InvitationPresenter);
+const controller = container.get<InvitationController>(TYPES.InvitationController);
 
 // Get invitation by token (public endpoint)
 router.get('/:token', async (req: Request, res: Response) => {
   try {
-    const result = await presenter.getInvitationByToken({
+    const result = await controller.getInvitationByToken({
       token: req.params.token,
     });
 
@@ -22,7 +22,7 @@ router.get('/:token', async (req: Request, res: Response) => {
 
     // Mark as opened when accessed
     if (result.data.invitation.status === 'sent') {
-      await presenter.updateInvitationStatus({
+      await controller.updateInvitationStatus({
         invitationId: result.data.invitation.id,
         status: 'opened',
       });

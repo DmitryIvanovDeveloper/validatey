@@ -243,7 +243,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
       const supabase = getSupabaseClient();
 
       // Sanitize and validate data before sending
-      const sanitizeValue = (value: any): any => {
+      const sanitizeValue = (value: unknown): unknown => {
         if (value === null || value === undefined) {
           return null;
         }
@@ -276,12 +276,12 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
               });
               // Try to truncate if it's marketContext with long strings
               if (value && typeof value === 'object' && ('marketPicture' in value || 'marketFit' in value || 'differentiation' in value)) {
-                const truncated: any = {};
-                for (const key in value) {
-                  if (typeof value[key] === 'string') {
-                    truncated[key] = value[key].substring(0, 1024 * 1024); // 1MB per field
+                const truncated: Record<string, unknown> = {};
+                for (const key in value as Record<string, unknown>) {
+                  if (typeof (value as Record<string, unknown>)[key] === 'string') {
+                    truncated[key] = ((value as Record<string, unknown>)[key] as string).substring(0, 1024 * 1024); // 1MB per field
                   } else {
-                    truncated[key] = value[key];
+                    truncated[key] = (value as Record<string, unknown>)[key];
                   }
                 }
                 return truncated;
@@ -297,15 +297,16 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
             });
             // If it's marketContext, try to extract only the string fields
             if (value && typeof value === 'object' && ('marketPicture' in value || 'marketFit' in value || 'differentiation' in value)) {
-              const clean: any = {};
-              if (value.marketPicture && typeof value.marketPicture === 'string') {
-                clean.marketPicture = value.marketPicture.substring(0, 1024 * 1024);
+              const clean: Record<string, string> = {};
+              const v = value as { marketPicture?: string; marketFit?: string; differentiation?: string };
+              if (v.marketPicture && typeof v.marketPicture === 'string') {
+                clean.marketPicture = v.marketPicture.substring(0, 1024 * 1024);
               }
-              if (value.marketFit && typeof value.marketFit === 'string') {
-                clean.marketFit = value.marketFit.substring(0, 1024 * 1024);
+              if (v.marketFit && typeof v.marketFit === 'string') {
+                clean.marketFit = v.marketFit.substring(0, 1024 * 1024);
               }
-              if (value.differentiation && typeof value.differentiation === 'string') {
-                clean.differentiation = value.differentiation.substring(0, 1024 * 1024);
+              if (v.differentiation && typeof v.differentiation === 'string') {
+                clean.differentiation = v.differentiation.substring(0, 1024 * 1024);
               }
               return Object.keys(clean).length > 0 ? clean : null;
             }
@@ -425,7 +426,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
           message: errorMessage,
           code: 'FETCH_ERROR',
           details: lastError,
-        } as any;
+        } as { message: string; code: string; details?: unknown; hint?: string };
       }
 
       if (error) {
@@ -563,7 +564,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     }
   }
 
-  private mapToDomain(data: any): Project {
+  private mapToDomain(data: Record<string, unknown>): Project {
     if (!data) {
       throw new Error('Cannot map null or undefined data to domain');
     }
@@ -584,8 +585,8 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
       // Parse dates safely (Supabase may return snake_case or camelCase)
       const created_at_raw = data.created_at ?? data.createdAt;
       const updated_at_raw = data.updated_at ?? data.updatedAt;
-      const createdAt = created_at_raw ? new Date(created_at_raw) : new Date();
-      const updatedAt = updated_at_raw ? new Date(updated_at_raw) : new Date();
+      const createdAt = created_at_raw ? new Date(created_at_raw as string | number) : new Date();
+      const updatedAt = updated_at_raw ? new Date(updated_at_raw as string | number) : new Date();
 
       // Validate dates
       if (isNaN(createdAt.getTime())) {
@@ -600,18 +601,18 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         userId: String(data.user_id),
         name: String(data.name),
         status: String(data.status) as 'draft' | 'active' | 'completed' | 'archived',
-        segment: data.segment || null,
-        hypothesis: data.hypothesis || null,
-        marketContext: data.market_context || null,
-        targetAudience: data.target_audience || null,
+        segment: (data.segment || null) as Project['segment'],
+        hypothesis: (data.hypothesis || null) as Project['hypothesis'],
+        marketContext: (data.market_context || null) as Project['marketContext'],
+        targetAudience: (data.target_audience ?? null) as string | null,
         cost,
-        consentText: data.consent_text ?? null,
-        dataUsageText: data.consent_data_usage_text ?? null,
-        privacyPolicyUrl: data.privacy_policy_url ?? null,
-        termsOfServiceUrl: data.terms_of_service_url ?? null,
-        scenarioTemplateSlug: data.scenario_template_slug ?? null,
+        consentText: (data.consent_text ?? null) as string | null,
+        dataUsageText: (data.consent_data_usage_text ?? null) as string | null,
+        privacyPolicyUrl: (data.privacy_policy_url ?? null) as string | null,
+        termsOfServiceUrl: (data.terms_of_service_url ?? null) as string | null,
+        scenarioTemplateSlug: (data.scenario_template_slug ?? null) as string | null,
         publicAccessEnabled: Boolean(data.public_access_enabled),
-        publicSlug: data.public_slug ?? null,
+        publicSlug: (data.public_slug ?? null) as string | null,
         maxPublicResponses: data.max_public_responses != null ? Number(data.max_public_responses) : null,
         requirePublicEmail: Boolean(data.require_public_email),
         captchaEnabled: Boolean(data.captcha_enabled),

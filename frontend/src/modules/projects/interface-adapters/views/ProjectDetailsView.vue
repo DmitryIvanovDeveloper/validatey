@@ -262,22 +262,22 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import Card from '@/shared/components/Card.vue';
-import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
-import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
+import Card from '../../../../shared/components/Card.vue';
+import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
 import ScenarioViewer from './components/ScenarioViewer.vue';
-import Modal from '@/shared/components/Modal.vue';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
-import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
-import type { HttpClientPort } from '@/infrastructure/http/ports/http-client.port';
+import Modal from '../../../../shared/components/Modal.vue';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import { ProjectViewModel } from '../view-models/project.view-model';
 import { ProjectPresenter } from '../presenters/project.presenter';
-import { container } from '@/infrastructure/bootstrap/container';
+import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
-import { TYPES as INVITATION_TYPES } from '@/modules/invitations/infrastructure/bootstrap/types';
-import type { ScenarioPresenter } from '@/modules/scenarios/interface-adapters/presenters/scenario.presenter';
-import type { InvitationPresenter } from '@/modules/invitations/interface-adapters/presenters/invitation.presenter';
+import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
+import type { ScenarioPresenter } from '../../../scenarios/interface-adapters/presenters/scenario.presenter';
+import type { InvitationPresenter } from '../../../invitations/interface-adapters/presenters/invitation.presenter';
 import { ProjectStatus } from '../../domain/entities/project.entity';
 
 const route = useRoute();

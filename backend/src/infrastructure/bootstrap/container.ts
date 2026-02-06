@@ -15,7 +15,6 @@ import { bindResponses } from '../../modules/responses/infrastructure/bootstrap/
 import { bindMetrics } from '../../modules/metrics/infrastructure/bootstrap/bind.metrics';
 import { bindReports } from '../../modules/reports/infrastructure/bootstrap/bind.reports';
 import { bindStorage } from '../../modules/storage/infrastructure/bootstrap/bind.storage';
-import { bindTelemetry } from '../../modules/telemetry/infrastructure/bootstrap/bind.telemetry';
 import { bindConsents } from '../../modules/consents/infrastructure/bootstrap/bind.consents';
 import { bindSurveys } from '../../modules/surveys/infrastructure/bootstrap/bind.surveys';
 import { bindAi } from '../../modules/ai/infrastructure/bootstrap/bind.ai';
@@ -42,7 +41,6 @@ bindResponses(container);
 bindMetrics(container);
 bindReports(container);
 bindStorage(container);
-bindTelemetry(container);
 bindConsents(container);
 bindSurveys(container);
 bindAi(container);

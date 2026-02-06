@@ -75,7 +75,7 @@ export class SupabaseDeletionRequestRepository implements DeletionRequestReposit
         this._logger.error('supabase-deletion-request-repository.find-by-project-id-error', { projectId, error });
         return ResultEx.failure(new Error(error.message));
       }
-      return ResultEx.success((data || []).map((row: any) => this.mapToDomain(row)));
+      return ResultEx.success((data || []).map((row: Record<string, unknown>) => this.mapToDomain(row)));
     } catch (err) {
       return ResultEx.failure(err instanceof Error ? err : new Error('Unknown error'));
     }
@@ -113,17 +113,18 @@ export class SupabaseDeletionRequestRepository implements DeletionRequestReposit
     }
   }
 
-  private mapToDomain(row: any): DeletionRequest {
+  private mapToDomain(row: Record<string, unknown>): DeletionRequest {
+    const r = row as { id: string; project_id: string; identifier: string; status: string; requested_at: string; completed_at: string | null; requested_by: string | null; created_at: string; updated_at: string };
     return {
-      id: row.id,
-      projectId: row.project_id,
-      identifier: row.identifier,
-      status: row.status,
-      requestedAt: new Date(row.requested_at),
-      completedAt: row.completed_at ? new Date(row.completed_at) : null,
-      requestedBy: row.requested_by,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
+      id: r.id,
+      projectId: r.project_id,
+      identifier: r.identifier,
+      status: r.status as DeletionRequestStatus,
+      requestedAt: new Date(r.requested_at),
+      completedAt: r.completed_at ? new Date(r.completed_at) : null,
+      requestedBy: r.requested_by,
+      createdAt: new Date(r.created_at),
+      updatedAt: new Date(r.updated_at),
     };
   }
 }

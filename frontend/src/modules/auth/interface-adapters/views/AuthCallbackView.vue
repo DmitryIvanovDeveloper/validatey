@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 
 const route = useRoute();
 const router = useRouter();

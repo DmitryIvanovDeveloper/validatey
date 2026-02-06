@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { container } from '@/infrastructure/bootstrap/container';
+import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import type { AuthPresenter } from '../presenters/auth.presenter';
 import { AuthViewModel } from '../view-models/auth.view-model';

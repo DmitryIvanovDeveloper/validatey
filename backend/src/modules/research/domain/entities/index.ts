@@ -1,7 +1,2 @@
-export type { MarketDataBlock } from './market-data-block.entity';
-export type { CompetitorInfoBlock } from './competitor-info-block.entity';
-export type { AutocompleteInsights } from './autocomplete-insights.entity';
-export type { UserInsightsBlock } from './user-insights-block.entity';
-export type { ResearchCanvas } from './research-canvas.entity';
-export type { SynthesisReport } from './synthesis-report.entity';
-export type { StoredResearchData } from './stored-research-data.entity';
+/** Re-export value objects for backward compatibility. Real entities are not in this module. */
+export type { UserInsightsBlock, MarketDataBlock, CompetitorInfoBlock, AutocompleteInsights, SynthesisReport, ResearchCanvas, StoredResearchData } from '../value-objects';

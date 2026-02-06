@@ -29,7 +29,7 @@ export type UpdateProjectUseCaseResponse = {
     name: string;
     segment: {
       description: string;
-      demographics: Record<string, any>;
+      demographics: Record<string, unknown>;
     } | null;
     hypothesis: {
       description: string;

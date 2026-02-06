@@ -2,7 +2,7 @@ export interface Answer {
   readonly questionId: string;
   readonly questionText: string;
   readonly answerType: 'text' | 'number' | 'choice' | 'scale' | 'audio';
-  readonly value: any;
+  readonly value: string | number | boolean | string[];
   readonly timestamp?: Date;
 }
 
@@ -11,7 +11,7 @@ export class AnswerVO {
     private readonly _questionId: string,
     private readonly _questionText: string,
     private readonly _answerType: Answer['answerType'],
-    private readonly _value: any,
+    private readonly _value: string | number | boolean | string[],
     private readonly _timestamp?: Date
   ) {
     if (!_questionId || _questionId.trim().length === 0) {
@@ -29,7 +29,7 @@ export class AnswerVO {
     questionId: string,
     questionText: string,
     answerType: Answer['answerType'],
-    value: any,
+    value: string | number | boolean | string[],
     timestamp?: Date
   ): AnswerVO {
     return new AnswerVO(questionId, questionText, answerType, value, timestamp || new Date());
@@ -47,7 +47,7 @@ export class AnswerVO {
     return this._answerType;
   }
 
-  get value(): any {
+  get value(): string | number | boolean | string[] {
     return this._value;
   }
 

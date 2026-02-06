@@ -98,17 +98,18 @@ export class SupabaseConsentRepository implements ConsentRepositoryPort {
     }
   }
 
-  private mapToDomain(row: any): Consent {
+  private mapToDomain(row: Record<string, unknown>): Consent {
+    const r = row as { id: string; project_id: string; invitation_id: string; consent_text_id: string | null; consent_text: string | null; accepted_at: string; ip: string | null; user_agent: string | null; created_at: string };
     return {
-      id: row.id,
-      projectId: row.project_id,
-      invitationId: row.invitation_id,
-      consentTextId: row.consent_text_id,
-      consentText: row.consent_text,
-      acceptedAt: new Date(row.accepted_at),
-      ip: row.ip,
-      userAgent: row.user_agent,
-      createdAt: new Date(row.created_at),
+      id: r.id,
+      projectId: r.project_id,
+      invitationId: r.invitation_id,
+      consentTextId: r.consent_text_id,
+      consentText: r.consent_text,
+      acceptedAt: new Date(r.accepted_at),
+      ip: r.ip,
+      userAgent: r.user_agent,
+      createdAt: new Date(r.created_at),
     };
   }
 }

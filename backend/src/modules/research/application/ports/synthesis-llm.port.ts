@@ -1,5 +1,5 @@
 import ResultEx from '../../../../infrastructure/result/result';
-import type { SynthesisReport } from '../../domain/entities/synthesis-report.entity';
+import type { SynthesisReport } from '../../domain/value-objects/synthesis-report.vo';
 import type { SynthesisGenerationError } from '../../domain/errors/research.error';
 
 export interface SynthesisInput {

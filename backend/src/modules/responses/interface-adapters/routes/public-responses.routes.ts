@@ -2,11 +2,11 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ResponsePresenter } from '../presenters/response.presenter';
+import { ResponseController } from '../controllers/response.controller';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
-const presenter = container.get<ResponsePresenter>(TYPES.ResponsePresenter);
+const controller = container.get<ResponseController>(TYPES.ResponseController);
 
 // Submit response (public endpoint by token)
 router.post('/', upload.single('audio'), async (req: Request, res: Response) => {
@@ -24,7 +24,7 @@ router.post('/', upload.single('audio'), async (req: Request, res: Response) => 
         }
       : undefined;
 
-    const result = await presenter.submitResponse({
+    const result = await controller.submitResponse({
       invitationToken: token,
       answers: req.body.answers || JSON.parse(req.body.answers || '{}'),
       audioFile,

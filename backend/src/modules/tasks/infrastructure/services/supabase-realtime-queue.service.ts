@@ -106,21 +106,35 @@ export class SupabaseRealtimeQueueService implements TaskQueuePort {
           (payload) => {
             this._logger.info('supabase-realtime-queue.new-task', { taskId: payload.new.id });
             // Notify all subscribers
-            const task = payload.new as any;
+            const raw = payload.new as {
+              id: string;
+              type: import('../../domain/entities/task.entity').TaskType;
+              status: import('../../domain/entities/task.entity').TaskStatus;
+              payload: Task['payload'];
+              result: Task['result'];
+              error_message: string | null;
+              retry_count: number;
+              max_retries: number;
+              deadline: string | null;
+              started_at: string | null;
+              completed_at: string | null;
+              created_at: string;
+              updated_at: string;
+            };
             const domainTask: Task = {
-              id: task.id,
-              type: task.type,
-              status: task.status,
-              payload: task.payload,
-              result: task.result,
-              errorMessage: task.error_message,
-              retryCount: task.retry_count,
-              maxRetries: task.max_retries,
-              deadline: task.deadline ? new Date(task.deadline) : null,
-              startedAt: task.started_at ? new Date(task.started_at) : null,
-              completedAt: task.completed_at ? new Date(task.completed_at) : null,
-              createdAt: new Date(task.created_at),
-              updatedAt: new Date(task.updated_at),
+              id: raw.id,
+              type: raw.type,
+              status: raw.status,
+              payload: raw.payload,
+              result: raw.result,
+              errorMessage: raw.error_message,
+              retryCount: raw.retry_count,
+              maxRetries: raw.max_retries,
+              deadline: raw.deadline ? new Date(raw.deadline) : null,
+              startedAt: raw.started_at ? new Date(raw.started_at) : null,
+              completedAt: raw.completed_at ? new Date(raw.completed_at) : null,
+              createdAt: new Date(raw.created_at),
+              updatedAt: new Date(raw.updated_at),
             };
 
             for (const subscriber of this.subscribers) {

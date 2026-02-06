@@ -1,15 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ReportPresenter } from '../presenters/report.presenter';
+import { ReportController } from '../controllers/report.controller';
 
 const router = Router();
-const presenter = container.get<ReportPresenter>(TYPES.ReportPresenter);
+const controller = container.get<ReportController>(TYPES.ReportController);
 
 // Generate report
 router.post('/generate/:projectId', async (req: Request, res: Response) => {
   try {
-    const result = await presenter.generateReport({
+    const result = await controller.generateReport({
       projectId: req.params.projectId,
       includePDF: req.body.includePDF || false,
     });

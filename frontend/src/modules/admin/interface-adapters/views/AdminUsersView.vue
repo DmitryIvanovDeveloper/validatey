@@ -31,9 +31,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
-import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
+import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 
 interface UserRow {
   id: string;

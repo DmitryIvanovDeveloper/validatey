@@ -3,7 +3,7 @@ export const TYPES = {
   ClusteringService: Symbol.for('ClusteringService'),
   RecommendationEngine: Symbol.for('RecommendationEngine'),
   CalculateMetricsUseCase: Symbol.for('CalculateMetricsUseCase'),
-  MetricsPresenter: Symbol.for('MetricsPresenter'),
+  MetricsController: Symbol.for('MetricsController'),
 } as const;
 
 

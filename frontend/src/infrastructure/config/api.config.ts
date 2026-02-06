@@ -70,9 +70,6 @@ export const API_CONFIG = {
     SURVEY_PUBLIC: (slug: string) => `${getSurveyBaseUrl()}/survey/public/${slug}`,
     SURVEY_CONSENT: (token: string) => `${getSurveyBaseUrl()}/survey/${token}/consent`,
     SUBMIT_RESPONSE: (token: string) => `/public/responses`,
-    
-    // Analytics/Telemetry
-    TELEMETRY: '/telemetry',
 
     // AI Helper (hypothesis suggestions)
     AI_HYPOTHESIS_SUGGEST: '/ai/hypothesis-suggest',

@@ -481,21 +481,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import PageHeader from '@/shared/components/PageHeader.vue';
-import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
-import ConfirmDialog from '@/shared/components/ConfirmDialog.vue';
-import { container } from '@/infrastructure/bootstrap/container';
-import { TYPES as INVITATION_TYPES } from '@/modules/invitations/infrastructure/bootstrap/types';
-import { TYPES as PROJECT_TYPES } from '@/modules/projects/infrastructure/bootstrap/types';
-import type { InvitationRepositoryPort } from '@/modules/invitations/application/ports/invitation-repository.port';
-import type { ProjectRepositoryPort } from '@/modules/projects/application/ports/project-repository.port';
-import { ProjectPresenter } from '@/modules/projects/interface-adapters/presenters/project.presenter';
-import { InvitationStatus } from '@/modules/invitations/domain/entities/invitation.entity';
-import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
-import type { HttpClientPort } from '@/infrastructure/http/ports/http-client.port';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
-import { CONSENT_TEMPLATES, CONSENT_TEMPLATE_OPTIONS } from '@/modules/projects/interface-adapters/constants/consent-templates';
-import type { ConsentTemplateId } from '@/modules/projects/interface-adapters/constants/consent-templates';
+import PageHeader from '../../../../shared/components/PageHeader.vue';
+import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog.vue';
+import { container } from '../../../../infrastructure/bootstrap/container';
+import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
+import { TYPES as PROJECT_TYPES } from '../../infrastructure/bootstrap/types';
+import type { InvitationRepositoryPort } from '../../../invitations/application/ports/invitation-repository.port';
+import type { ProjectRepositoryPort } from '../../application/ports/project-repository.port';
+import { ProjectPresenter } from '../presenters/project.presenter';
+import { InvitationStatus } from '../../../invitations/domain/entities/invitation.entity';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
+import { CONSENT_TEMPLATES, CONSENT_TEMPLATE_OPTIONS } from '../constants/consent-templates';
+import type { ConsentTemplateId } from '../constants/consent-templates';
 
 const route = useRoute();
 const projectId = route.params.projectId as string;
@@ -552,7 +552,7 @@ const responses = ref<Array<{
   id: string;
   invitationId: string;
   projectId: string;
-  answers: Record<string, any>;
+  answers: Record<string, unknown>;
   audioUrl: string | null;
   transcript: string | null;
   createdAt: string;
@@ -563,7 +563,7 @@ type ModerationResponseItem = {
   id: string;
   invitationId: string;
   projectId: string;
-  answers: Record<string, any>;
+  answers: Record<string, unknown>;
   audioUrl: string | null;
   transcript: string | null;
   moderationStatus: 'pending' | 'approved' | 'rejected' | null;
@@ -1073,7 +1073,7 @@ onMounted(async () => {
         id: string;
         invitationId: string;
         projectId: string;
-        answers: Record<string, any>;
+        answers: Record<string, unknown>;
         audioUrl: string | null;
         transcript: string | null;
         createdAt: string;

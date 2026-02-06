@@ -76,15 +76,15 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import Card from '@/shared/components/Card.vue';
-import EmptyState from '@/shared/components/EmptyState.vue';
-import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
-import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
+import Card from '../../../../shared/components/Card.vue';
+import EmptyState from '../../../../shared/components/EmptyState.vue';
+import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
 import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { ProjectListPresenter } from '../presenters/project-list.presenter';
-import { container } from '@/infrastructure/bootstrap/container';
+import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { userContextService } from '@/shared/services/user-context.service';
+import { userContextService } from '../../../../shared/services/user-context.service';
 
 const router = useRouter();
 const viewModel = new ProjectListViewModel();

@@ -38,8 +38,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import PageHeader from '@/shared/components/PageHeader.vue';
-import Card from '@/shared/components/Card.vue';
+import PageHeader from '../../../../shared/components/PageHeader.vue';
+import Card from '../../../../shared/components/Card.vue';
 
 const RESPONDENT_IO_BASE = 'https://www.respondent.io';
 

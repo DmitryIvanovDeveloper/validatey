@@ -14,7 +14,7 @@ import { SaveScenarioRatingUseCase } from '../../application/use-cases/save-scen
 import { GetScenarioUseCase } from '../../application/use-cases/get-scenario.use-case';
 import { GetScenarioTemplatesUseCase } from '../../application/use-cases/get-scenario-templates.use-case';
 import { ValidateScenarioStructureUseCase } from '../../application/use-cases/validate-scenario-structure.use-case';
-import { ScenarioPresenter } from '../../interface-adapters/presenters/scenario.presenter';
+import { ScenarioController } from '../../interface-adapters/controllers/scenario.controller';
 
 export function bindScenarios(container: Container): void {
   // Repository
@@ -33,8 +33,8 @@ export function bindScenarios(container: Container): void {
   container.bind<GetScenarioTemplatesUseCase>(TYPES.GetScenarioTemplatesUseCase).to(GetScenarioTemplatesUseCase);
   container.bind<ValidateScenarioStructureUseCase>(TYPES.ValidateScenarioStructureUseCase).to(ValidateScenarioStructureUseCase);
 
-  // Presenter
-  container.bind<ScenarioPresenter>(TYPES.ScenarioPresenter).to(ScenarioPresenter);
+  // Controller
+  container.bind<ScenarioController>(TYPES.ScenarioController).to(ScenarioController);
 }
 
 

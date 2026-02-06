@@ -21,7 +21,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
       const response = await this._httpClient.post<{
         id: string;
         name: string;
-        segment: { description: string; demographics: Record<string, any> } | null;
+        segment: { description: string; demographics: Record<string, unknown> } | null;
         hypothesis: { description: string; assumptions: string[] } | null;
         marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
         status: string;
@@ -66,7 +66,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
         project: {
           id: string;
           name: string;
-          segment: { description: string; demographics: Record<string, any> } | null;
+          segment: { description: string; demographics: Record<string, unknown> } | null;
           hypothesis: { description: string; assumptions: string[] } | null;
           marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
           status: string;
@@ -158,7 +158,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
           id: string;
           userId: string;
           name: string;
-          segment: { description: string; demographics: Record<string, any> } | null;
+          segment: { description: string; demographics: Record<string, unknown> } | null;
           hypothesis: { description: string; assumptions: string[] } | null;
           marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
           status: string;
@@ -179,9 +179,9 @@ export class ProjectRepository implements ProjectRepositoryPort {
       console.log('✅ ProjectRepository.update success:', { id, response });
 
       // Extract project from response (backend returns { project: { ... } })
-      const projectData = response?.project || response as any;
+      const projectData = response?.project ?? (response && typeof response === 'object' && 'id' in response ? response : undefined);
       
-      if (!projectData || !projectData.id) {
+      if (!projectData || !('id' in projectData) || !projectData.id) {
         console.error('❌ ProjectRepository.update: invalid response format:', response);
         return Result.failure(new ProjectNotFoundError(id));
       }

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import 'dotenv/config';
-import type { AuthProviderPort, AuthUserDto, AuthSessionResult } from '../application/ports/auth-provider.port';
+import type { AuthProviderPort, AuthUserDTO, AuthSessionResult } from '../application/ports/auth-provider.port';
 
 const supabaseUrl = process.env.SUPABASE_URL?.trim() ?? '';
 // Anon or service_role both work for auth (signInWithOAuth, getUser, signUp, signInWithPassword)
@@ -12,7 +12,7 @@ function getAuthClient() {
   });
 }
 
-function toAuthUserDto(user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }): AuthUserDto {
+function toAuthUserDTO(user: { id: string; email?: string | null; user_metadata?: Record<string, unknown> }): AuthUserDTO {
   return {
     id: user.id,
     email: user.email ?? null,
@@ -30,17 +30,17 @@ export class SupabaseAuthProvider implements AuthProviderPort {
     return data.url;
   }
 
-  async getUserFromAccessToken(accessToken: string): Promise<AuthUserDto | null> {
+  async getUserFromAccessToken(accessToken: string): Promise<AuthUserDTO | null> {
     const { data: { user }, error } = await getAuthClient().auth.getUser(accessToken);
     if (error || !user) return null;
-    return toAuthUserDto(user);
+    return toAuthUserDTO(user);
   }
 
   async refreshSession(refreshToken: string): Promise<AuthSessionResult | null> {
     const { data, error } = await getAuthClient().auth.refreshSession({ refresh_token: refreshToken });
     if (error || !data?.session?.access_token || !data?.user) return null;
     return {
-      user: toAuthUserDto(data.user),
+      user: toAuthUserDTO(data.user),
       accessToken: data.session.access_token,
       refreshToken: data.session.refresh_token ?? undefined,
     };
@@ -68,7 +68,7 @@ export class SupabaseAuthProvider implements AuthProviderPort {
     // When "Confirm email" is enabled in Supabase, session is null until user confirms
     const accessToken = data.session?.access_token;
     return {
-      user: toAuthUserDto(data.user),
+      user: toAuthUserDTO(data.user),
       ...(accessToken && { accessToken }),
     };
   }
@@ -88,7 +88,7 @@ export class SupabaseAuthProvider implements AuthProviderPort {
       throw new Error('Sign in failed');
     }
     return {
-      user: toAuthUserDto(data.user),
+      user: toAuthUserDTO(data.user),
       accessToken: data.session.access_token,
       refreshToken: data.session.refresh_token ?? undefined,
     };

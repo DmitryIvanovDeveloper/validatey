@@ -3,7 +3,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
-import { Task } from '../../domain/entities/task.entity';
+import { Task, TaskType, TaskStatus } from '../../domain/entities/task.entity';
 import { TaskNotFoundError, InvalidTaskDataError } from '../../domain/errors/task.error';
 import { TaskRepositoryPort } from '../../application/ports/task-repository.port';
 
@@ -149,21 +149,22 @@ export class SupabaseTaskRepository implements TaskRepositoryPort {
     }
   }
 
-  private mapToDomain(data: any): Task {
+  private mapToDomain(data: Record<string, unknown>): Task {
+    const d = data as { id: string; type: string; status: string; payload: Task['payload']; result: Task['result']; error_message: string | null; retry_count: number; max_retries: number; deadline: string | null; started_at: string | null; completed_at: string | null; created_at: string; updated_at: string };
     return {
-      id: data.id,
-      type: data.type,
-      status: data.status,
-      payload: data.payload,
-      result: data.result,
-      errorMessage: data.error_message,
-      retryCount: data.retry_count,
-      maxRetries: data.max_retries,
-      deadline: data.deadline ? new Date(data.deadline) : null,
-      startedAt: data.started_at ? new Date(data.started_at) : null,
-      completedAt: data.completed_at ? new Date(data.completed_at) : null,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: d.id,
+      type: d.type as TaskType,
+      status: d.status as TaskStatus,
+      payload: d.payload,
+      result: d.result,
+      errorMessage: d.error_message,
+      retryCount: d.retry_count,
+      maxRetries: d.max_retries,
+      deadline: d.deadline ? new Date(d.deadline) : null,
+      startedAt: d.started_at ? new Date(d.started_at) : null,
+      completedAt: d.completed_at ? new Date(d.completed_at) : null,
+      createdAt: new Date(d.created_at),
+      updatedAt: new Date(d.updated_at),
     };
   }
 }

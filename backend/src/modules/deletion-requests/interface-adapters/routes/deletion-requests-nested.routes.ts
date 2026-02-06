@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { DeletionRequestPresenter } from '../presenters/deletion-request.presenter';
+import { DeletionRequestController } from '../controllers/deletion-request.controller';
 
 const router = Router({ mergeParams: true });
-const presenter = container.get<DeletionRequestPresenter>(TYPES.DeletionRequestPresenter);
+const controller = container.get<DeletionRequestController>(TYPES.DeletionRequestController);
 
 /** GET /projects/:projectId/deletion-requests — list deletion requests for project (auth recommended in middleware). */
 router.get('/', async (req: Request, res: Response) => {
@@ -13,7 +13,7 @@ router.get('/', async (req: Request, res: Response) => {
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
-    const result = await presenter.listDeletionRequestsByProject({ projectId });
+    const result = await controller.listDeletionRequestsByProject({ projectId });
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error.message });
     }
@@ -36,7 +36,7 @@ router.post('/:requestId/execute', async (req: Request, res: Response) => {
     if (!requestId) {
       return res.status(400).json({ error: 'Request ID is required' });
     }
-    const result = await presenter.executeDeletionRequest({ requestId });
+    const result = await controller.executeDeletionRequest({ requestId });
     if (!result.isSuccess) {
       const err = result.error;
       if (err.name === 'DeletionRequestNotFoundError') {

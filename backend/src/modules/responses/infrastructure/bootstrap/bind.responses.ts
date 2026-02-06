@@ -15,7 +15,7 @@ import { GetResponsesByProjectIdUseCase } from '../../application/use-cases/get-
 import { ExportResponsesUseCase } from '../../application/use-cases/export-responses.use-case';
 import { ListResponsesForModerationUseCase } from '../../application/use-cases/list-responses-for-moderation.use-case';
 import { ModerateResponseUseCase } from '../../application/use-cases/moderate-response.use-case';
-import { ResponsePresenter } from '../../interface-adapters/presenters/response.presenter';
+import { ResponseController } from '../../interface-adapters/controllers/response.controller';
 
 export function bindResponses(container: Container): void {
   // Repository
@@ -36,8 +36,8 @@ export function bindResponses(container: Container): void {
   container.bind<ListResponsesForModerationUseCase>(TYPES.ListResponsesForModerationUseCase).to(ListResponsesForModerationUseCase);
   container.bind<ModerateResponseUseCase>(TYPES.ModerateResponseUseCase).to(ModerateResponseUseCase);
 
-  // Presenter
-  container.bind<ResponsePresenter>(TYPES.ResponsePresenter).to(ResponsePresenter);
+  // Controller
+  container.bind<ResponseController>(TYPES.ResponseController).to(ResponseController);
 }
 
 

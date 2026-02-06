@@ -49,7 +49,7 @@ export class GenerateReportUseCase {
 
       // Create report entity
       const token = ReportToken.generate();
-      const report = ReportEntity.create(request.projectId, nextVersion, metricsResult.data as any, token.value)
+      const report = ReportEntity.create(request.projectId, nextVersion, metricsResult.data as unknown as Record<string, unknown>, token.value)
         .withHtmlContent(htmlContent);
 
       // Generate PDF if requested

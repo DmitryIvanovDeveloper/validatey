@@ -2,7 +2,7 @@ export interface Report {
   readonly id: string;
   readonly projectId: string;
   readonly version: number;
-  readonly metrics: Record<string, any> | null;
+  readonly metrics: Record<string, unknown> | null;
   readonly htmlContent: string | null;
   readonly pdfUrl: string | null;
   readonly token: string;
@@ -16,7 +16,7 @@ export class ReportEntity {
     public readonly id: string,
     public readonly projectId: string,
     public readonly version: number,
-    public readonly metrics: Record<string, any> | null,
+    public readonly metrics: Record<string, unknown> | null,
     public readonly htmlContent: string | null,
     public readonly pdfUrl: string | null,
     public readonly token: string,
@@ -28,7 +28,7 @@ export class ReportEntity {
   static create(
     projectId: string,
     version: number,
-    metrics: Record<string, any>,
+    metrics: Record<string, unknown>,
     token: string
   ): ReportEntity {
     const now = new Date();

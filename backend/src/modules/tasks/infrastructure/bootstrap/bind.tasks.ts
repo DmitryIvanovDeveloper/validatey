@@ -9,7 +9,7 @@ import { ScenarioGenerationWorker } from '../workers/scenario-generation.worker'
 import { InvitationSenderWorker } from '../workers/invitation-sender.worker';
 import { ResponseProcessorWorker } from '../workers/response-processor.worker';
 import { ReportBuilderWorker } from '../workers/report-builder.worker';
-import { TaskPresenter } from '../../interface-adapters/presenters/task.presenter';
+import { TaskController } from '../../interface-adapters/controllers/task.controller';
 
 export function bindTasks(container: Container): void {
   // Repository
@@ -27,8 +27,8 @@ export function bindTasks(container: Container): void {
   container.bind<ResponseProcessorWorker>(TYPES.ResponseProcessorWorker).to(ResponseProcessorWorker);
   container.bind<ReportBuilderWorker>(TYPES.ReportBuilderWorker).to(ReportBuilderWorker);
 
-  // Presenter
-  container.bind<TaskPresenter>(TYPES.TaskPresenter).to(TaskPresenter);
+  // Controller
+  container.bind<TaskController>(TYPES.TaskController).to(TaskController);
 }
 
 

@@ -21,7 +21,7 @@ export class ScenarioPresenter {
   async generateScenario(
     projectId: string,
     viewModel: ScenarioViewModel,
-    segment?: { description: string; demographics: Record<string, any> } | null,
+    segment?: { description: string; demographics: Record<string, unknown> } | null,
     hypothesis?: { description: string; assumptions: string[] } | null,
     marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null,
     prompt?: string

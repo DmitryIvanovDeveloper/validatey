@@ -10,7 +10,7 @@ import type { MarketDataProviderPort } from '../ports/market-data-provider.port'
 import type { CompetitorDataProviderPort } from '../ports/competitor-data-provider.port';
 import type { AutocompleteDataProviderPort } from '../ports/autocomplete-data-provider.port';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
-import type { StoredResearchData } from '../../domain/entities/stored-research-data.entity';
+import type { StoredResearchData } from '../../domain/value-objects/stored-research-data.vo';
 import type {
   CollectResearchDataRequest,
   CollectResearchDataResponse,

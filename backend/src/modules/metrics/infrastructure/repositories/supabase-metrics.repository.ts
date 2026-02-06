@@ -47,7 +47,7 @@ export class SupabaseMetricsRepository implements MetricsRepositoryPort {
           }
           // Extract quotes (text answers)
           if (answers.quotes && Array.isArray(answers.quotes)) {
-            answers.quotes.forEach((quote: any) => {
+            answers.quotes.forEach((quote: string | { text?: string }) => {
               quotes.push({
                 id: `${response.id}_quote_${quotes.length}`,
                 text: typeof quote === 'string' ? quote : quote.text || '',
@@ -73,7 +73,7 @@ export class SupabaseMetricsRepository implements MetricsRepositoryPort {
           const responseId = quote.id.split('_quote_')[0];
           const embedding = embeddingMap.get(responseId);
           if (embedding) {
-            quote.embedding = Array.isArray(embedding) ? embedding : JSON.parse(embedding as any);
+            quote.embedding = Array.isArray(embedding) ? embedding : JSON.parse(embedding as string);
           }
         });
       }

@@ -5,5 +5,5 @@ export const TYPES = {
   CreateDeletionRequestUseCase: Symbol.for('CreateDeletionRequestUseCase'),
   ListDeletionRequestsByProjectUseCase: Symbol.for('ListDeletionRequestsByProjectUseCase'),
   ExecuteDeletionRequestUseCase: Symbol.for('ExecuteDeletionRequestUseCase'),
-  DeletionRequestPresenter: Symbol.for('DeletionRequestPresenter'),
+  DeletionRequestController: Symbol.for('DeletionRequestController'),
 } as const;

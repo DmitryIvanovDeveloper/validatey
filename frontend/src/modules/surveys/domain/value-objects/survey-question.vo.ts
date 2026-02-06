@@ -26,7 +26,7 @@ export class SurveyQuestion {
     }
   }
 
-  equals(other: SurveyQuestion): boolean {
+  public equals(other: SurveyQuestion): boolean {
     return (
       this.id === other.id &&
       this.type === other.type &&

@@ -14,17 +14,12 @@ import { bindProjectReports } from '../../modules/project-reports/infrastructure
 import { bindSurveys } from '../../modules/surveys/infrastructure/bootstrap/bind.surveys';
 import { bindSurveyResponses } from '../../modules/survey-responses/infrastructure/bootstrap/bind.survey-responses';
 import { bindAuth } from '../../modules/auth/infrastructure/bootstrap/bind.auth';
-import { TelemetryPort } from '../../shared/services/ports/telemetry.port';
-import { TelemetryService } from '../../shared/services/telemetry.service';
-
 const container = new Container();
 
 // Infrastructure bindings
 container.bind<LoggerPort>(TYPES.Logger).to(ConsoleLogger);
 container.bind<HttpClientPort>(TYPES.HttpClient).to(HttpClient);
 container.bind<EventBusPort>(TYPES.EventBus).to(EventBus);
-container.bind<TelemetryPort>(TYPES.Telemetry).to(TelemetryService);
-
 // Module bindings
 bindProjects(container);
 bindScenarios(container);

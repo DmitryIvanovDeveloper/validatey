@@ -5,7 +5,7 @@ import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger
 import ResultEx from '../../../../infrastructure/result/result';
 import type { MarketDataProviderPort } from '../../application/ports/market-data-provider.port';
 import type { ResearchIntent } from '../../application/use-cases/input-output/collect-research-data.io';
-import type { MarketDataBlock } from '../../domain/entities/market-data-block.entity';
+import type { MarketDataBlock } from '../../domain/value-objects/market-data-block.vo';
 import { ResearchDataCollectionError } from '../../domain/errors/research.error';
 
 const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';

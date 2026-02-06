@@ -3,7 +3,7 @@ export const TYPES = {
   StartSurveyUseCase: Symbol.for('StartSurveyUseCase'),
   CompleteSurveyUseCase: Symbol.for('CompleteSurveyUseCase'),
   SubmitSurveyResponseUseCase: Symbol.for('SubmitSurveyResponseUseCase'),
-  SurveyPresenter: Symbol.for('SurveyPresenter'),
+  SurveyController: Symbol.for('SurveyController'),
 } as const;
 
 

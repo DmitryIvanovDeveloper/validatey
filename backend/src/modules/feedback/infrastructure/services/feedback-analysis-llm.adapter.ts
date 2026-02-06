@@ -2,7 +2,7 @@ import { injectable, inject } from 'inversify';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import type { FeedbackAnalysisLlmPort, FeedbackItemForAnalysis } from '../../application/ports/feedback-analysis-llm.port';
-import type { FeedbackAnalysis } from '../../domain/entities/feedback-analysis.entity';
+import type { FeedbackAnalysis } from '../../domain/value-objects/feedback-analysis.vo';
 import { FeedbackAnalysisError } from '../../domain/errors/feedback.error';
 import ResultEx from '../../../../infrastructure/result/result';
 

@@ -15,7 +15,7 @@ export type SurveyWithConsent = {
 export interface SurveyRepositoryPort {
   getByToken(token: string): Promise<Result<SurveyWithConsent, SurveyNotFoundError | SurveyExpiredError>>;
   recordConsent(token: string, consentText?: string | null): Promise<Result<void, Error>>;
-  submitResponse(token: string, answers: Record<string, any>): Promise<Result<void, Error>>;
+  submitResponse(token: string, answers: Record<string, unknown>): Promise<Result<void, Error>>;
 }
 
 

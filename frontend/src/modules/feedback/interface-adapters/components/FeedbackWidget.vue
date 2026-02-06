@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 
 const typeOptions = [
   { value: 'feature_request', label: 'New feature' },

@@ -127,10 +127,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { API_CONFIG } from '@/infrastructure/config/api.config';
-import { container } from '@/infrastructure/bootstrap/container';
-import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
-import type { HttpClientPort } from '@/infrastructure/http/ports/http-client.port';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
+import { container } from '../../../../infrastructure/bootstrap/container';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 
 const route = useRoute();
 const projectId = route.params.projectId as string;

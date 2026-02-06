@@ -4,7 +4,7 @@ import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 import type { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
-import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights } from '../../domain/entities';
+import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights } from '../../domain/value-objects';
 
 @injectable()
 export class SupabaseResearchRepository implements ResearchDataRepositoryPort {

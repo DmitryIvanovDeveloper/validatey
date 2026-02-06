@@ -217,17 +217,18 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
     }
   }
 
-  private mapToDomain(data: any): Scenario {
-    const created_at = data?.created_at ?? data?.createdAt;
-    const updated_at = data?.updated_at ?? data?.updatedAt;
+  private mapToDomain(data: Record<string, unknown>): Scenario {
+    const d = data as { id: string; project_id: string; version: number; content: unknown; is_generated?: boolean; is_edited?: boolean; metadata?: ScenarioMetadata; created_at?: string; createdAt?: string; updated_at?: string; updatedAt?: string };
+    const created_at = d.created_at ?? d.createdAt;
+    const updated_at = d.updated_at ?? d.updatedAt;
     return {
-      id: data.id,
-      projectId: data.project_id,
-      version: data.version,
-      content: this.contentToString(data.content),
-      isGenerated: data.is_generated ?? false,
-      isEdited: data.is_edited ?? false,
-      metadata: (data.metadata as ScenarioMetadata) ?? null,
+      id: d.id,
+      projectId: d.project_id,
+      version: d.version,
+      content: this.contentToString(d.content),
+      isGenerated: d.is_generated ?? false,
+      isEdited: d.is_edited ?? false,
+      metadata: d.metadata ?? null,
       createdAt: created_at ? new Date(created_at) : new Date(),
       updatedAt: updated_at ? new Date(updated_at) : new Date(),
     };

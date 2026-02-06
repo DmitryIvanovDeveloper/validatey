@@ -1,15 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { TaskPresenter } from '../presenters/task.presenter';
+import { TaskController } from '../controllers/task.controller';
 
 const router = Router();
-const presenter = container.get<TaskPresenter>(TYPES.TaskPresenter);
+const controller = container.get<TaskController>(TYPES.TaskController);
 
 // Create task
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const result = await presenter.createTask({
+    const result = await controller.createTask({
       type: req.body.type,
       payload: req.body.payload,
       maxRetries: req.body.maxRetries,

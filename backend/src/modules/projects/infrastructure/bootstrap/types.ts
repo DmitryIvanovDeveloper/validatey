@@ -5,6 +5,6 @@ export const TYPES = {
   UpdateProjectUseCase: Symbol.for('UpdateProjectUseCase'),
   ListProjectsUseCase: Symbol.for('ListProjectsUseCase'),
   DeleteProjectUseCase: Symbol.for('DeleteProjectUseCase'),
-  ProjectPresenter: Symbol.for('ProjectPresenter'),
+  ProjectController: Symbol.for('ProjectController'),
 } as const;
 

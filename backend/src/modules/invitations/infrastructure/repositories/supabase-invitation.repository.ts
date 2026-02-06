@@ -3,7 +3,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
-import { Invitation } from '../../domain/entities/invitation.entity';
+import { Invitation, InvitationStatus } from '../../domain/entities/invitation.entity';
 import { InvitationNotFoundError, InvalidInvitationDataError } from '../../domain/errors/invitation.error';
 import { InvitationRepositoryPort } from '../../application/ports/invitation-repository.port';
 
@@ -209,20 +209,21 @@ export class SupabaseInvitationRepository implements InvitationRepositoryPort {
     }
   }
 
-  private mapToDomain(data: any): Invitation {
+  private mapToDomain(data: Record<string, unknown>): Invitation {
+    const d = data as { id: string; project_id: string; token: string; email: string | null; phone: string | null; status: string; sent_at: string | null; opened_at: string | null; completed_at: string | null; reminder_count: number; created_at: string; updated_at: string };
     return {
-      id: data.id,
-      projectId: data.project_id,
-      token: data.token,
-      email: data.email,
-      phone: data.phone,
-      status: data.status,
-      sentAt: data.sent_at ? new Date(data.sent_at) : null,
-      openedAt: data.opened_at ? new Date(data.opened_at) : null,
-      completedAt: data.completed_at ? new Date(data.completed_at) : null,
-      reminderCount: data.reminder_count,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: d.id,
+      projectId: d.project_id,
+      token: d.token,
+      email: d.email,
+      phone: d.phone,
+      status: d.status as InvitationStatus,
+      sentAt: d.sent_at ? new Date(d.sent_at) : null,
+      openedAt: d.opened_at ? new Date(d.opened_at) : null,
+      completedAt: d.completed_at ? new Date(d.completed_at) : null,
+      reminderCount: d.reminder_count,
+      createdAt: new Date(d.created_at),
+      updatedAt: new Date(d.updated_at),
     };
   }
 }

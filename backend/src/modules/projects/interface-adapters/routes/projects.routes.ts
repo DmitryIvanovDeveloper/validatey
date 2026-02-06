@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ProjectPresenter } from '../presenters/project.presenter';
+import { ProjectController } from '../controllers/project.controller';
 
 const router = Router();
-const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
+const controller = container.get<ProjectController>(TYPES.ProjectController);
 
 // Create project
 router.post('/', async (req: Request, res: Response) => {
@@ -17,7 +17,7 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await presenter.createProject({
+    const result = await controller.createProject({
       userId,
       name: req.body?.name,
       segment: req.body?.segment,
@@ -68,7 +68,7 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await presenter.listProjects({
+    const result = await controller.listProjects({
       userId,
       listAll,
     });
@@ -114,7 +114,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await presenter.getProject({
+    const result = await controller.getProject({
       projectId: req.params.id,
       userId,
     });
@@ -162,7 +162,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       hasCost: req.body?.cost !== undefined,
     });
 
-    const result = await presenter.updateProject({
+    const result = await controller.updateProject({
       projectId,
       userId,
       name: req.body?.name,
@@ -236,7 +236,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await presenter.deleteProject({
+    const result = await controller.deleteProject({
       projectId: req.params.id,
       userId,
     });

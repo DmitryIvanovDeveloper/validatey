@@ -72,7 +72,7 @@ export class SurveyPresenter {
     }
   }
 
-  async submitAnswers(token: string, answers: Record<string, any>): Promise<{ success: boolean; error?: string }> {
+  async submitAnswers(token: string, answers: Record<string, unknown>): Promise<{ success: boolean; error?: string }> {
     try {
       const result = await this._surveyRepository.submitResponse(token, answers);
       
@@ -90,7 +90,7 @@ export class SurveyPresenter {
     }
   }
 
-  async saveAnswer(token: string, questionId: string, answer: any): Promise<void> {
+  async saveAnswer(token: string, questionId: string, answer: unknown): Promise<void> {
     // Auto-save is optional - for now just log
     this._logger.debug('Answer saved locally', { token, questionId });
   }

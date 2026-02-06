@@ -1,4 +1,4 @@
-import type { ResearchCanvas } from '../../../domain/entities/research-canvas.entity';
+import type { ResearchCanvas } from '../../../domain/value-objects/research-canvas.vo';
 
 export type GetResearchCanvasRequest = {
   projectId: string;

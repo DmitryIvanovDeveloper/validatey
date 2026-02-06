@@ -99,7 +99,7 @@ import { ref, reactive, watch, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ProjectViewModel } from '../view-models/project.view-model';
 import { ProjectPresenter } from '../presenters/project.presenter';
-import { container } from '@/infrastructure/bootstrap/container';
+import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 
 const route = useRoute();

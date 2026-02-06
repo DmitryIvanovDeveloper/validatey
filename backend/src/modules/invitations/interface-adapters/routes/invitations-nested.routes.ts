@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { InvitationPresenter } from '../presenters/invitation.presenter';
+import { InvitationController } from '../controllers/invitation.controller';
 
 const router = Router({ mergeParams: true });
-const presenter = container.get<InvitationPresenter>(TYPES.InvitationPresenter);
+const controller = container.get<InvitationController>(TYPES.InvitationController);
 
 // POST /projects/:projectId/invitations
 router.post('/', async (req: Request, res: Response) => {
@@ -18,7 +18,7 @@ router.post('/', async (req: Request, res: Response) => {
 
     const contacts = emails.map((email: string) => ({ email, phone: undefined }));
 
-    const result = await presenter.createInvitations({
+    const result = await controller.createInvitations({
       projectId,
       contacts,
     });
@@ -42,7 +42,7 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Project ID is required' });
     }
     
-    const result = await presenter.getInvitationsByProjectId({ projectId });
+    const result = await controller.getInvitationsByProjectId({ projectId });
     
     if (!result.isSuccess) {
       return res.status(500).json({ error: result.error.message });
@@ -63,7 +63,7 @@ router.post('/send', async (req: Request, res: Response) => {
     const surveyBaseUrl =
       (process.env.FRONTEND_ORIGIN || process.env.APP_URL || 'http://localhost:5173').replace(/\/$/, '');
 
-    const result = await presenter.sendInvitations({
+    const result = await controller.sendInvitations({
       projectId,
       invitationIds,
       surveyBaseUrl,

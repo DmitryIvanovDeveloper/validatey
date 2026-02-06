@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ResearchPresenter } from '../presenters/research.presenter';
+import { ResearchController } from '../controllers/research.controller';
 
 const router = Router({ mergeParams: true });
-const presenter = container.get<ResearchPresenter>(TYPES.ResearchPresenter);
+const controller = container.get<ResearchController>(TYPES.ResearchController);
 
 router.get('/canvas', async (req: Request, res: Response) => {
   try {
@@ -12,7 +12,7 @@ router.get('/canvas', async (req: Request, res: Response) => {
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
-    const result = await presenter.getCanvas({ projectId });
+    const result = await controller.getCanvas({ projectId });
     if (!result.isSuccess) {
       return res.status(404).json({ error: result.error.message });
     }
@@ -28,7 +28,7 @@ router.post('/synthesis', async (req: Request, res: Response) => {
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
-    const result = await presenter.generateSynthesis({ projectId });
+    const result = await controller.generateSynthesis({ projectId });
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error.message });
     }
@@ -44,7 +44,7 @@ router.post('/collect', async (req: Request, res: Response) => {
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
-    const result = await presenter.collectData({
+    const result = await controller.collectData({
       projectId,
       sources: req.body?.sources,
       geography: typeof req.body?.geography === 'string' ? req.body.geography.trim() || undefined : undefined,
@@ -72,7 +72,7 @@ router.post('/assistant', async (req: Request, res: Response) => {
     if (!message) {
       return res.status(400).json({ error: 'message is required' });
     }
-    const result = await presenter.sendAssistantMessage({
+    const result = await controller.sendAssistantMessage({
       projectId,
       message,
       conversationHistory: req.body?.conversationHistory,

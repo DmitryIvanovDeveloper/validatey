@@ -22,7 +22,7 @@ import { LlmCompetitorDataProviderAdapter } from '../services/llm-competitor-dat
 import { LlmSearchPhrasesGeneratorAdapter } from '../services/llm-search-phrases-generator.adapter';
 import { GooglePlaceAutocompleteAdapter } from '../services/google-place-autocomplete.adapter';
 import { AutocompleteDataProviderAdapter } from '../services/autocomplete-data-provider.adapter';
-import { ResearchPresenter } from '../../interface-adapters/presenters/research.presenter';
+import { ResearchController } from '../../interface-adapters/controllers/research.controller';
 
 const useLlmResearchProviders = !!process.env.SERPER_API_KEY?.trim();
 
@@ -43,5 +43,5 @@ export function bindResearch(container: Container): void {
   container.bind<GenerateSynthesisUseCase>(TYPES.GenerateSynthesisUseCase).to(GenerateSynthesisUseCase);
   container.bind<CollectResearchDataUseCase>(TYPES.CollectResearchDataUseCase).to(CollectResearchDataUseCase);
   container.bind<ResearchAssistantUseCase>(TYPES.ResearchAssistantUseCase).to(ResearchAssistantUseCase);
-  container.bind<ResearchPresenter>(TYPES.ResearchPresenter).to(ResearchPresenter);
+  container.bind<ResearchController>(TYPES.ResearchController).to(ResearchController);
 }

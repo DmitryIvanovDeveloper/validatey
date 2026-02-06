@@ -3,6 +3,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import { EmbeddingServicePort, GenerateEmbeddingRequest, GenerateEmbeddingResponse } from '../../application/ports/embedding-service.port';
 import { AudioProcessingError } from '../../domain/errors/response.error';
 
@@ -14,7 +15,7 @@ export class EmbeddingService implements EmbeddingServicePort {
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort,
     @inject(ROOT_TYPES.HttpClient)
-    private readonly _httpClient: any
+    private readonly _httpClient: HttpClientPort
   ) {
     this.llmServiceUrl = process.env.LLM_SERVICE_URL || 'http://localhost:8080';
   }

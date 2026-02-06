@@ -11,7 +11,7 @@ export type MarketContextForScenario = {
 export interface ScenarioRepositoryPort {
   generateScenario(
     projectId: string,
-    segment?: { description: string; demographics: Record<string, any> } | null,
+    segment?: { description: string; demographics: Record<string, unknown> } | null,
     hypothesis?: { description: string; assumptions: string[] } | null,
     marketContext?: MarketContextForScenario,
     prompt?: string

@@ -4,5 +4,5 @@ export const TYPES = {
   RecordConsentUseCase: Symbol.for('RecordConsentUseCase'),
   GetConsentRequirementsUseCase: Symbol.for('GetConsentRequirementsUseCase'),
   ExportConsentsUseCase: Symbol.for('ExportConsentsUseCase'),
-  ConsentPresenter: Symbol.for('ConsentPresenter'),
+  ConsentController: Symbol.for('ConsentController'),
 } as const;

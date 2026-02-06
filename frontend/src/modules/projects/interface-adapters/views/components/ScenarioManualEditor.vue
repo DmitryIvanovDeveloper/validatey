@@ -100,15 +100,15 @@ function parseContent(str: string): ManualQuestion[] {
   try {
     const data = JSON.parse(str);
     const list = Array.isArray(data.questions) ? data.questions : [];
-    return list.map((q: any, i: number) => ({
-      id: q.id || `q_${i + 1}`,
+    return list.map((q: Record<string, unknown>, i: number) => ({
+      id: (typeof q.id === 'string' ? q.id : '') || `q_${i + 1}`,
       text: typeof q.text === 'string' ? q.text : '',
-      type: ['open', 'scale', 'multiple_choice'].includes(q.type) ? q.type : 'open',
+      type: ['open', 'scale', 'multiple_choice'].includes(String(q.type)) ? String(q.type) : 'open',
       required: !!q.required,
       options: q.type === 'scale'
-        ? { min: q.options?.min ?? 1, max: q.options?.max ?? 5, label: q.options?.label }
+        ? { min: (q.options && typeof q.options === 'object' && 'min' in q.options ? (q.options as Record<string, unknown>).min : undefined) ?? 1, max: (q.options && typeof q.options === 'object' && 'max' in q.options ? (q.options as Record<string, unknown>).max : undefined) ?? 5, label: (q.options && typeof q.options === 'object' && 'label' in q.options ? (q.options as Record<string, unknown>).label : undefined) }
         : q.type === 'multiple_choice'
-          ? { choices: Array.isArray(q.options?.choices) ? q.options.choices : [] }
+          ? { choices: Array.isArray((q.options as Record<string, unknown>)?.choices) ? (q.options as Record<string, unknown>).choices as string[] : [] }
           : undefined,
     }));
   } catch {
@@ -136,13 +136,13 @@ watch(() => props.content, initFromProp, { immediate: true });
 
 function buildJson(): string {
   const list = questions.value.map((q) => {
-    const base: any = { id: q.id, text: q.text.trim() || 'Question', type: q.type, required: q.required };
+    const base: Record<string, unknown> = { id: q.id, text: q.text.trim() || 'Question', type: q.type, required: q.required };
     if (q.type === 'scale' && q.options) {
       base.options = { min: q.options.min ?? 1, max: q.options.max ?? 5 };
-      if ((q.options as any).label) base.options.label = (q.options as any).label;
+      if ('label' in q.options && q.options.label) (base.options as Record<string, unknown>).label = q.options.label;
     }
-    if (q.type === 'multiple_choice' && q.options && Array.isArray((q.options as any).choices)) {
-      base.options = { choices: (q.options as any).choices.filter((c: string) => c?.trim()) };
+    if (q.type === 'multiple_choice' && q.options && Array.isArray((q.options as { choices?: string[] }).choices)) {
+      base.options = { choices: (q.options as { choices: string[] }).choices.filter((c: string) => c?.trim()) };
     }
     return base;
   });
@@ -155,13 +155,14 @@ function emitUpdate() {
 
 function onTypeChange(q: ManualQuestion) {
   if (q.type === 'scale' && !q.options) q.options = { min: 1, max: 5 };
-  if (q.type === 'multiple_choice' && !q.options) (q as any).options = { choices: [] };
+  if (q.type === 'multiple_choice' && !q.options) q.options = { choices: [] };
   emitUpdate();
 }
 
 function setChoices(q: ManualQuestion, text: string) {
-  if (!(q.options as any)?.choices) (q as any).options = { choices: [] };
-  (q.options as any).choices = text.split('\n').map((s) => s.trim()).filter(Boolean);
+  const opts = q.options as { choices?: string[] } | undefined;
+  if (!opts?.choices) q.options = { choices: [] };
+  (q.options as { choices: string[] }).choices = text.split('\n').map((s) => s.trim()).filter(Boolean);
   emitUpdate();
 }
 

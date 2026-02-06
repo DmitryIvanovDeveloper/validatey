@@ -168,14 +168,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import Card from '@/shared/components/Card.vue';
-import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
-import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
-import EmptyState from '@/shared/components/EmptyState.vue';
-import Toast from '@/shared/components/Toast.vue';
-import { container } from '@/infrastructure/bootstrap/container';
-import { TYPES } from '@/modules/project-reports/infrastructure/bootstrap/types';
-import type { ReportRepositoryPort, ReportViewData } from '@/modules/project-reports/application/ports/report-repository.port';
+import Card from '../../../../shared/components/Card.vue';
+import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
+import EmptyState from '../../../../shared/components/EmptyState.vue';
+import Toast from '../../../../shared/components/Toast.vue';
+import { container } from '../../../../infrastructure/bootstrap/container';
+import { TYPES } from '../../infrastructure/bootstrap/types';
+import type { ReportRepositoryPort, ReportViewData } from '../../application/ports/report-repository.port';
 
 const route = useRoute();
 const router = useRouter();
@@ -203,7 +203,7 @@ const formatMetricLabel = (key: string): string => {
   return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
-const formatMetricValue = (value: any): string => {
+const formatMetricValue = (value: unknown): string => {
   if (typeof value === 'number') {
     return value.toFixed(2);
   }

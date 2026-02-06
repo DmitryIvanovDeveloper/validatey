@@ -66,7 +66,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { container } from '@/infrastructure/bootstrap/container';
+import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { ProjectPresenter } from '../presenters/project.presenter';
 import { ProjectViewModel } from '../view-models/project.view-model';

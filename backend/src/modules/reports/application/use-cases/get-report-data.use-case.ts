@@ -7,7 +7,7 @@ import type { ProjectRepositoryPort } from '../../../projects/application/ports/
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
 import { CalculateMetricsUseCase } from '../../../metrics/application/use-cases/calculate-metrics.use-case';
 import { TYPES as METRICS_TYPES } from '../../../metrics/infrastructure/bootstrap/types';
-import type { GetReportDataRequest, ReportViewDto } from './input-output/get-report-data.io';
+import type { GetReportDataRequest, ReportViewDTO } from './input-output/get-report-data.io';
 
 @injectable()
 export class GetReportDataUseCase {
@@ -22,7 +22,7 @@ export class GetReportDataUseCase {
 
   async execute(
     request: GetReportDataRequest
-  ): Promise<ResultEx<ReportViewDto, ReportGenerationError>> {
+  ): Promise<ResultEx<ReportViewDTO, ReportGenerationError>> {
     const { projectId } = request;
     this._logger.info('get-report-data.start', { projectId });
 
@@ -81,7 +81,7 @@ export class GetReportDataUseCase {
       }
 
       const clustersArray = m.clusters ?? [];
-      const clusters: ReportViewDto['clusters'] = {};
+      const clusters: ReportViewDTO['clusters'] = {};
       clustersArray.forEach((c) => {
         clusters[c.theme] = { size: c.size, representativeQuote: c.representativeQuote };
       });
@@ -96,7 +96,7 @@ export class GetReportDataUseCase {
           ? clustersArray.map((c) => `Focus on cluster: ${c.theme} (${c.size} respondents)`)
           : ['Collect more responses for reliable insights'];
 
-      const dto: ReportViewDto = {
+      const dto: ReportViewDTO = {
         verdict,
         verdictType,
         metrics: flatMetrics,

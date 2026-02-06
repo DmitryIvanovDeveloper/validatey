@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ResponsePresenter } from '../presenters/response.presenter';
+import { ResponseController } from '../controllers/response.controller';
 
 const router = Router({ mergeParams: true });
-const presenter = container.get<ResponsePresenter>(TYPES.ResponsePresenter);
+const controller = container.get<ResponseController>(TYPES.ResponseController);
 
 // List responses for moderation (public-link responses): GET /projects/:projectId/responses/moderation?status=pending
 router.get('/moderation', async (req: Request, res: Response) => {
@@ -16,7 +16,7 @@ router.get('/moderation', async (req: Request, res: Response) => {
     }
     const status = req.query.status as string | undefined;
     const moderationStatus = status === 'pending' || status === 'approved' || status === 'rejected' ? status : undefined;
-    const result = await presenter.listResponsesForModeration({
+    const result = await controller.listResponsesForModeration({
       projectId,
       userId,
       moderationStatus: moderationStatus ?? null,
@@ -51,7 +51,7 @@ router.patch('/:responseId/moderation', async (req: Request, res: Response) => {
     if (status !== 'approved' && status !== 'rejected') {
       return res.status(400).json({ error: 'status must be approved or rejected' });
     }
-    const result = await presenter.moderateResponse({ responseId, userId, status });
+    const result = await controller.moderateResponse({ responseId, userId, status });
     if (!result.isSuccess) {
       if (result.error.name === 'ResponseNotFoundError') {
         return res.status(404).json({ error: result.error.message });
@@ -84,7 +84,7 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Project ID is required' });
     }
     
-    const result = await presenter.getResponsesByProjectId({ projectId });
+    const result = await controller.getResponsesByProjectId({ projectId });
 
     if (!result.isSuccess) {
       console.error('[responses-nested.routes] Error getting responses:', result.error);
@@ -114,7 +114,7 @@ router.get('/export', async (req: Request, res: Response) => {
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
     }
-    const result = await presenter.exportResponses({ projectId, format });
+    const result = await controller.exportResponses({ projectId, format });
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error.message });
     }

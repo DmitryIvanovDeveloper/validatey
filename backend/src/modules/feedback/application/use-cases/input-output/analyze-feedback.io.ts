@@ -1,4 +1,4 @@
-import type { FeedbackAnalysis } from '../../../domain/entities/feedback-analysis.entity';
+import type { FeedbackAnalysis } from '../../../domain/value-objects/feedback-analysis.vo';
 
 export type AnalyzeFeedbackUseCaseRequest = {
   callerUserId: string;

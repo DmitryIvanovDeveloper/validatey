@@ -30,11 +30,26 @@ export default class Result<T, E = Error> {
         return this._data as T;
     }
 
+    /** CODING_STANDARDS: use getValue() instead of .data when following Result Pattern API */
+    public getValue(): T {
+        return this.data;
+    }
+
     public get error(): E {
         if (this.isSuccess) {
             throw new Error('No error on success');
         }
         return this._error as E;
+    }
+
+    /** CODING_STANDARDS: use getError() instead of .error when following Result Pattern API */
+    public getError(): E {
+        return this.error;
+    }
+
+    /** CODING_STANDARDS: use !result.isSuccess or result.isError() instead of result.isFailure */
+    public isError(): boolean {
+        return !this.isSuccess;
     }
 
     // Back-compat alias for existing code that expects `result.errors`

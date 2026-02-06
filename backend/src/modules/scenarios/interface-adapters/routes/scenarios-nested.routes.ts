@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ScenarioPresenter } from '../presenters/scenario.presenter';
+import { ScenarioController } from '../controllers/scenario.controller';
 
 const router = Router({ mergeParams: true });
-const presenter = container.get<ScenarioPresenter>(TYPES.ScenarioPresenter);
+const controller = container.get<ScenarioController>(TYPES.ScenarioController);
 
 // POST /projects/:projectId/scenarios/generate
 router.post('/generate', async (req: Request, res: Response) => {
@@ -35,8 +35,8 @@ router.post('/generate', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'projectId in body must match URL parameter' });
     }
 
-    console.log('✅ [BACKEND] Calling presenter.generateScenario...');
-    const result = await presenter.generateScenario({
+    console.log('✅ [BACKEND] Calling controller.generateScenario...');
+    const result = await controller.generateScenario({
       projectId,
       userId, // Pass userId for ownership validation
       segment: req.body.segment,
@@ -46,7 +46,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       prompt: req.body.prompt, // Optional prompt override
     });
     
-    console.log('📥 [BACKEND] Presenter result:', {
+    console.log('📥 [BACKEND] Controller result:', {
       isSuccess: result.isSuccess
     });
 
@@ -158,7 +158,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     if (version) {
       // Get specific version
-      const result = await presenter.getScenario({
+      const result = await controller.getScenario({
         projectId,
         version,
       });
@@ -173,7 +173,7 @@ router.get('/', async (req: Request, res: Response) => {
       return res.status(200).json(result.data);
     } else {
       // Get latest scenario for project (so "select project" view can show step 3 LLM output)
-      const result = await presenter.getScenario({ projectId });
+      const result = await controller.getScenario({ projectId });
       if (!result.isSuccess) {
         if (result.error.name === 'ScenarioNotFoundError') {
           return res.status(404).json({ error: result.error.message });
@@ -212,7 +212,7 @@ router.get('/:scenarioId', async (req: Request, res: Response) => {
     const scenarioId = req.params.scenarioId;
     const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
 
-    const result = await presenter.getScenario({
+    const result = await controller.getScenario({
       projectId,
       version,
     });
@@ -234,7 +234,7 @@ router.get('/:scenarioId', async (req: Request, res: Response) => {
 router.put('/:scenarioId', async (req: Request, res: Response) => {
   try {
     const projectId = req.params.projectId;
-    const result = await presenter.saveScenarioVersion({
+    const result = await controller.saveScenarioVersion({
       projectId,
       content: req.body.content,
       metadata: req.body.metadata,

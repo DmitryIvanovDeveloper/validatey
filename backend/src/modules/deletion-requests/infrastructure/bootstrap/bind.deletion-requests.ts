@@ -9,7 +9,7 @@ import { InvitationPiiDeletionAdapter } from '../services/invitation-pii-deletio
 import { CreateDeletionRequestUseCase } from '../../application/use-cases/create-deletion-request.use-case';
 import { ListDeletionRequestsByProjectUseCase } from '../../application/use-cases/list-deletion-requests-by-project.use-case';
 import { ExecuteDeletionRequestUseCase } from '../../application/use-cases/execute-deletion-request.use-case';
-import { DeletionRequestPresenter } from '../../interface-adapters/presenters/deletion-request.presenter';
+import { DeletionRequestController } from '../../interface-adapters/controllers/deletion-request.controller';
 
 export function bindDeletionRequests(container: Container): void {
   container.bind<DeletionRequestRepositoryPort>(TYPES.DeletionRequestRepository).to(SupabaseDeletionRequestRepository);
@@ -20,5 +20,5 @@ export function bindDeletionRequests(container: Container): void {
   container.bind<ListDeletionRequestsByProjectUseCase>(TYPES.ListDeletionRequestsByProjectUseCase).to(ListDeletionRequestsByProjectUseCase);
   container.bind<ExecuteDeletionRequestUseCase>(TYPES.ExecuteDeletionRequestUseCase).to(ExecuteDeletionRequestUseCase);
 
-  container.bind<DeletionRequestPresenter>(TYPES.DeletionRequestPresenter).to(DeletionRequestPresenter);
+  container.bind<DeletionRequestController>(TYPES.DeletionRequestController).to(DeletionRequestController);
 }

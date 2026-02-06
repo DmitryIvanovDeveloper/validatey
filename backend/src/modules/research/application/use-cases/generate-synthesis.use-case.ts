@@ -12,8 +12,8 @@ import type { ResearchDataRepositoryPort } from '../ports/research-data-reposito
 import type { SynthesisLlmPort } from '../ports/synthesis-llm.port';
 import { CalculateMetricsUseCase } from '../../../metrics/application/use-cases/calculate-metrics.use-case';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
-import type { SynthesisReport } from '../../domain/entities/synthesis-report.entity';
-import type { StoredResearchData } from '../../domain/entities/stored-research-data.entity';
+import type { SynthesisReport } from '../../domain/value-objects/synthesis-report.vo';
+import type { StoredResearchData } from '../../domain/value-objects/stored-research-data.vo';
 import type {
   GenerateSynthesisRequest,
   GenerateSynthesisResponse,

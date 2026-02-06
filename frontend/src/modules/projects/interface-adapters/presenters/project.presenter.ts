@@ -36,11 +36,11 @@ export class ProjectPresenter {
       let segment: Segment | null = null;
       if (segmentDescription && segmentDescription.trim().length > 0 && segmentDemographics && segmentDemographics.trim().length > 0) {
         try {
-          let demographicsParsed: Record<string, any> = {};
+          let demographicsParsed: Record<string, unknown> = {};
           try {
-            demographicsParsed = typeof segmentDemographics === 'string'
+            demographicsParsed = (typeof segmentDemographics === 'string'
               ? JSON.parse(segmentDemographics)
-              : segmentDemographics;
+              : segmentDemographics) as Record<string, unknown>;
           } catch {
             demographicsParsed = { text: segmentDemographics };
           }
@@ -224,7 +224,7 @@ export class ProjectPresenter {
     projectId: string,
     name?: string,
     segmentDescription?: string,
-    segmentDemographics?: string | Record<string, any>,
+    segmentDemographics?: string | Record<string, unknown>,
     hypothesisDescription?: string,
     hypothesisAssumptions?: string[],
     status?: string,
@@ -244,10 +244,10 @@ export class ProjectPresenter {
       let segment: Segment | undefined = undefined;
       if (segmentDescription && segmentDescription.trim().length > 0 && segmentDemographics) {
         try {
-          let demographicsParsed: Record<string, any> = {};
+          let demographicsParsed: Record<string, unknown> = {};
           if (typeof segmentDemographics === 'string') {
             try {
-              demographicsParsed = JSON.parse(segmentDemographics);
+              demographicsParsed = JSON.parse(segmentDemographics) as Record<string, unknown>;
             } catch {
               demographicsParsed = { text: segmentDemographics };
             }
@@ -280,7 +280,7 @@ export class ProjectPresenter {
           name,
           segment,
           hypothesis,
-          status: status as any,
+          status: status as ProjectStatus | undefined,
           marketContext: marketContext ?? undefined,
           scenarioTemplateSlug: scenarioTemplateSlug ?? undefined,
           consentText: consentText ?? undefined,
@@ -314,11 +314,32 @@ export class ProjectPresenter {
     }
   }
 
-  async updateProjectViewModel(projectId: string, updates: any, viewModel: ProjectViewModel): Promise<void> {
+  async updateProjectViewModel(
+    projectId: string,
+    updates: {
+      name?: string;
+      segmentDescription?: string;
+      segmentDemographics?: string | Record<string, unknown>;
+      hypothesisDescription?: string;
+      hypothesisAssumptions?: string[];
+      status?: string;
+      marketContext?: MarketContext | null;
+    },
+    viewModel: ProjectViewModel
+  ): Promise<void> {
     viewModel.loading.value = true;
     viewModel.error.value = null;
 
-    const result = await this.updateProject(projectId, updates.name, updates.segmentDescription, updates.segmentDemographics, updates.hypothesisDescription, updates.hypothesisAssumptions, updates.status, updates.marketContext);
+    const result = await this.updateProject(
+      projectId,
+      updates.name,
+      updates.segmentDescription,
+      updates.segmentDemographics,
+      updates.hypothesisDescription,
+      updates.hypothesisAssumptions,
+      updates.status,
+      updates.marketContext
+    );
 
     if (result.ok) {
       viewModel.loading.value = false;

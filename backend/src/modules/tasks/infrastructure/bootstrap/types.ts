@@ -6,7 +6,7 @@ export const TYPES = {
   InvitationSenderWorker: Symbol.for('InvitationSenderWorker'),
   ResponseProcessorWorker: Symbol.for('ResponseProcessorWorker'),
   ReportBuilderWorker: Symbol.for('ReportBuilderWorker'),
-  TaskPresenter: Symbol.for('TaskPresenter'),
+  TaskController: Symbol.for('TaskController'),
 } as const;
 
 

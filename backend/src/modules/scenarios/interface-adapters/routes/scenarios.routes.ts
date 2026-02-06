@@ -1,16 +1,16 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { ScenarioPresenter } from '../presenters/scenario.presenter';
+import { ScenarioController } from '../controllers/scenario.controller';
 import { LLMServicePort } from '../../application/ports/llm-service.port';
 
 const router = Router();
-const presenter = container.get<ScenarioPresenter>(TYPES.ScenarioPresenter);
+const controller = container.get<ScenarioController>(TYPES.ScenarioController);
 
 /** GET /api/scenarios/templates — list scenario templates (WTP, Feature Demand, Value Prop). */
 router.get('/templates', async (req: Request, res: Response) => {
   try {
-    const result = await presenter.getTemplates();
+    const result = await controller.getTemplates();
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
@@ -56,7 +56,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'x-user-id header is required' });
     }
 
-    const result = await presenter.generateScenario({
+    const result = await controller.generateScenario({
       projectId: req.body.projectId,
       userId, // Pass userId for ownership validation
       segment: req.body.segment,
@@ -98,7 +98,7 @@ router.post('/rate', async (req: Request, res: Response) => {
     if (!projectId || !scenarioId || rating == null) {
       return res.status(400).json({ error: 'projectId, scenarioId, and rating are required' });
     }
-    const result = await presenter.rateScenario({ projectId, scenarioId, rating: Number(rating), userId });
+    const result = await controller.rateScenario({ projectId, scenarioId, rating: Number(rating), userId });
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error });
     }
@@ -115,7 +115,7 @@ router.post('/validate', async (req: Request, res: Response) => {
     if (templateSlug == null || templateSlug === '') {
       return res.status(400).json({ error: 'templateSlug is required' });
     }
-    const result = presenter.validateScenarioStructure({
+    const result = controller.validateScenarioStructure({
       scenarioContent: scenarioContent ?? '',
       templateSlug: String(templateSlug),
     });
@@ -128,7 +128,7 @@ router.post('/validate', async (req: Request, res: Response) => {
 // Save scenario version (manual edit)
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const result = await presenter.saveScenarioVersion({
+    const result = await controller.saveScenarioVersion({
       projectId: req.body.projectId,
       content: req.body.content,
       metadata: req.body.metadata,
@@ -149,7 +149,7 @@ router.get('/:projectId', async (req: Request, res: Response) => {
   try {
     const version = req.query.version ? parseInt(req.query.version as string, 10) : undefined;
 
-    const result = await presenter.getScenario({
+    const result = await controller.getScenario({
       projectId: req.params.projectId,
       version,
     });

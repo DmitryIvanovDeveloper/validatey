@@ -2,7 +2,7 @@ export type GetReportDataRequest = {
   projectId: string;
 };
 
-export type ReportViewDto = {
+export type ReportViewDTO = {
   verdict: string;
   verdictType: 'positive' | 'negative' | 'neutral';
   metrics: Record<string, number | string>;

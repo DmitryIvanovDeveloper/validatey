@@ -9,7 +9,7 @@ export const TYPES = {
   ExportResponsesUseCase: Symbol.for('ExportResponsesUseCase'),
   ListResponsesForModerationUseCase: Symbol.for('ListResponsesForModerationUseCase'),
   ModerateResponseUseCase: Symbol.for('ModerateResponseUseCase'),
-  ResponsePresenter: Symbol.for('ResponsePresenter'),
+  ResponseController: Symbol.for('ResponseController'),
 } as const;
 
 

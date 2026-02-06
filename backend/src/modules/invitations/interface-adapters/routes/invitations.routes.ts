@@ -1,15 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { InvitationPresenter } from '../presenters/invitation.presenter';
+import { InvitationController } from '../controllers/invitation.controller';
 
 const router = Router();
-const presenter = container.get<InvitationPresenter>(TYPES.InvitationPresenter);
+const controller = container.get<InvitationController>(TYPES.InvitationController);
 
 // Create invitations
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const result = await presenter.createInvitations({
+    const result = await controller.createInvitations({
       projectId: req.body.projectId,
       contacts: req.body.contacts,
     });
@@ -37,7 +37,7 @@ router.get('/project/:projectId', async (req: Request, res: Response) => {
 // Update invitation status
 router.put('/:id/status', async (req: Request, res: Response) => {
   try {
-    const result = await presenter.updateInvitationStatus({
+    const result = await controller.updateInvitationStatus({
       invitationId: req.params.id,
       status: req.body.status,
     });

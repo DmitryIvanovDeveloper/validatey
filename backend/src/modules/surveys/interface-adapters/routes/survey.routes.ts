@@ -3,13 +3,13 @@ import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as CONSENT_TYPES } from '../../../consents/infrastructure/bootstrap/types';
 import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
-import { SurveyPresenter } from '../presenters/survey.presenter';
-import { ConsentPresenter } from '../../../consents/interface-adapters/presenters/consent.presenter';
+import { SurveyController } from '../controllers/survey.controller';
+import { ConsentController } from '../../../consents/interface-adapters/controllers/consent.controller';
 import { CreateAnonymousInvitationForPublicLinkUseCase } from '../../../invitations/application/use-cases/create-anonymous-invitation-for-public-link.use-case';
 
 const router = Router();
-const presenter = container.get<SurveyPresenter>(TYPES.SurveyPresenter);
-const consentPresenter = container.get<ConsentPresenter>(CONSENT_TYPES.ConsentPresenter);
+const controller = container.get<SurveyController>(TYPES.SurveyController);
+const consentController = container.get<ConsentController>(CONSENT_TYPES.ConsentController);
 const createAnonymousInvitationUseCase = container.get<CreateAnonymousInvitationForPublicLinkUseCase>(INVITATION_TYPES.CreateAnonymousInvitationForPublicLinkUseCase);
 
 // GET /survey/public/:slug — create anonymous invitation and return survey payload (frontend can redirect to /survey/:token)
@@ -28,7 +28,7 @@ router.get('/public/:slug', async (req: Request, res: Response) => {
       return res.status(400).json({ error: err.message });
     }
     const { token } = createResult.data;
-    const surveyResult = await presenter.getSurveyByToken({ token });
+    const surveyResult = await controller.getSurveyByToken({ token });
     if (!surveyResult.isSuccess) {
       return res.status(502).json({ error: 'Failed to load survey after creating invitation' });
     }
@@ -45,7 +45,7 @@ router.get('/:token', async (req: Request, res: Response) => {
     const token = req.params.token;
     console.log('📋 GET /survey/:token', { token: token.substring(0, 10) + '...' });
     
-    const result = await presenter.getSurveyByToken({ token });
+    const result = await controller.getSurveyByToken({ token });
 
     if (!result.isSuccess) {
       console.error('❌ Survey not found:', {
@@ -85,7 +85,7 @@ router.post('/:token/consent', async (req: Request, res: Response) => {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.socket?.remoteAddress ?? undefined;
     const userAgent = (req.headers['user-agent'] as string) ?? undefined;
 
-    const result = await consentPresenter.recordConsent({
+    const result = await consentController.recordConsent({
       invitationToken: token,
       consentTextId: consentTextId ?? null,
       consentText: consentText ?? null,
