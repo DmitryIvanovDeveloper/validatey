@@ -11,6 +11,10 @@
           </span>
           <span class="brand-text">Validatey</span>
         </router-link>
+        <nav v-if="authViewModel.user.value" class="header-nav" aria-label="Main">
+          <router-link to="/projects" class="nav-link">Projects</router-link>
+          <router-link v-if="authViewModel.role.value === 'admin'" to="/admin/users" class="nav-link">Users</router-link>
+        </nav>
         <div class="header-actions">
           <template v-if="authViewModel.user.value">
             <div class="user-badge" :title="authViewModel.user.value.email ?? undefined">
@@ -164,6 +168,32 @@ async function handleSignOut() {
 
 .brand-text {
   font-weight: 700;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.nav-link {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted, #64748b);
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.nav-link:hover {
+  color: var(--color-accent, #0d9488);
+  background: var(--color-bg-subtle, #f1f5f9);
+}
+
+.nav-link.router-link-active {
+  color: var(--color-accent, #0d9488);
 }
 
 .header-actions {

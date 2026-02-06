@@ -15,7 +15,7 @@ export class SignInWithEmailUseCase {
     try {
       const session = await this._authService.signInWithEmail(input.email, input.password);
       if (!session) return { message: 'Sign in failed', name: 'AuthSignInError' } as AuthSignInError;
-      return { session: { user: session.user } };
+      return { session: { user: session.user, role: session.role } };
     } catch (e) {
       return {
         message: e instanceof Error ? e.message : 'Sign in failed',

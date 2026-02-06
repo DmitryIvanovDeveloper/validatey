@@ -32,6 +32,7 @@ export class AuthPresenter {
     try {
       const result = await this._getCurrentSessionUseCase.execute();
       viewModel.user.value = result.user;
+      viewModel.role.value = result.role;
     } finally {
       viewModel.loading.value = false;
     }
@@ -67,8 +68,10 @@ export class AuthPresenter {
       if (result.requiresEmailConfirmation) {
         viewModel.registrationSuccessMessage.value = 'Check your email to confirm your account, then sign in.';
         viewModel.user.value = null;
+        viewModel.role.value = null;
       } else {
         viewModel.user.value = result.session.user;
+        viewModel.role.value = result.session.role ?? 'user';
       }
       return true;
     }
@@ -81,6 +84,7 @@ export class AuthPresenter {
     const result = await this._signInWithEmailUseCase.execute({ email, password });
     if ('session' in result && result.session?.user) {
       viewModel.user.value = result.session.user;
+      viewModel.role.value = result.session.role ?? 'user';
       return true;
     }
     viewModel.error.value = (result as AuthSignInError).message;
@@ -91,6 +95,7 @@ export class AuthPresenter {
     viewModel.error.value = null;
     await this._signOutUseCase.execute();
     viewModel.user.value = null;
+    viewModel.role.value = null;
   }
 
   /** Call after login to reassign projects from anonymous userId to current user. */

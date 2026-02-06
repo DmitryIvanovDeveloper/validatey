@@ -74,6 +74,12 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/admin/users',
+    name: 'admin-users',
+    component: () => import('@/modules/admin/interface-adapters/views/AdminUsersView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
     path: '/integrations/hubspot/callback',
     name: 'hubspot-callback',
     component: () => import('@/modules/integrations/interface-adapters/views/HubSpotCallbackView.vue'),

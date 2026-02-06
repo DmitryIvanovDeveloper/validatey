@@ -35,30 +35,36 @@ export class ResearchAssistantLlmAdapter implements ResearchAssistantLlmPort {
         return ResultEx.failure(new Error('Empty response from LLM'));
       }
 
-      const reply = this.parseJsonToReply(content);
-      return ResultEx.success(reply);
+      const result = this.parseJsonToReply(content);
+      if (!result.isSuccess) {
+        return result;
+      }
+      return ResultEx.success(result.data);
     } catch (err) {
       return ResultEx.failure(err instanceof Error ? err : new Error('Assistant failed'));
     }
   }
 
-  private parseJsonToReply(content: string): AssistantReply {
+  private parseJsonToReply(content: string): ResultEx<AssistantReply, Error> {
     const match = content.match(/\{[\s\S]*\}/);
     if (!match) {
-      return { reply: content.slice(0, 500) };
+      return ResultEx.failure(new Error('Invalid response format: expected JSON'));
     }
     try {
       const obj = JSON.parse(match[0]) as Record<string, unknown>;
-      const reply = typeof obj.reply === 'string' ? obj.reply : content.slice(0, 500);
+      const reply = typeof obj.reply === 'string' ? obj.reply.trim() : '';
+      if (!reply) {
+        return ResultEx.failure(new Error('Invalid response format: missing reply'));
+      }
       const suggestedMethods = Array.isArray(obj.suggestedMethods)
         ? (obj.suggestedMethods as string[]).filter((m) => typeof m === 'string')
         : undefined;
       const clarificationQuestions = Array.isArray(obj.clarificationQuestions)
         ? (obj.clarificationQuestions as string[]).filter((q) => typeof q === 'string')
         : undefined;
-      return { reply, suggestedMethods, clarificationQuestions };
+      return ResultEx.success({ reply, suggestedMethods, clarificationQuestions });
     } catch {
-      return { reply: content.slice(0, 500) };
+      return ResultEx.failure(new Error('Invalid response format: invalid JSON'));
     }
   }
 }

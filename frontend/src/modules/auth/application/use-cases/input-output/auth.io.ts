@@ -1,7 +1,9 @@
 import type { AuthUser } from '../../../domain/entities/auth-user.entity';
+import type { AuthRole } from '../../ports/auth-service.port';
 
 export type GetCurrentSessionOutput = {
   user: AuthUser | null;
+  role: AuthRole | null;
 };
 
 export type SignInWithGoogleInput = {
@@ -23,6 +25,6 @@ export type SignInWithEmailInput = {
 };
 
 export type EmailAuthOutput = {
-  session: { user: AuthUser };
+  session: { user: AuthUser; role?: AuthRole };
   requiresEmailConfirmation?: boolean;
 };

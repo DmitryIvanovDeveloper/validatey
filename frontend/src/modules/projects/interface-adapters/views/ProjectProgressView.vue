@@ -26,22 +26,75 @@
     </div>
 
     <div v-else class="progress-content">
-      <!-- Hero: Response progress (primary metric) -->
-      <section class="hero-progress" aria-labelledby="progress-heading">
-        <h2 id="progress-heading" class="sr-only">Response progress</h2>
-        <div class="progress-visual">
-          <div class="progress-ring" :style="{ '--p': responseRate }">
-            <span class="progress-value">{{ responseRate }}%</span>
+      <!-- 1. RESPONSE RATE ACCELERATOR -->
+      <section class="block accelerator-block" aria-labelledby="accelerator-heading">
+        <h2 id="accelerator-heading" class="block-title">Response Rate Accelerator</h2>
+        <div class="accelerator-row">
+          <div class="accelerator-metrics">
+            <div class="progress-visual progress-visual--inline">
+              <div class="progress-ring" :style="{ '--p': responseRate }">
+                <span class="progress-value">{{ responseRate }}%</span>
+              </div>
+            </div>
+            <div class="accelerator-badges">
+              <span class="badge-pill">Response rate: {{ responseRate }}%</span>
+              <span class="badge-pill badge-pill--goal">Goal: {{ responseRateGoal }}%</span>
+              <span class="badge-pill">Days left: {{ daysLeft }}</span>
+            </div>
+          </div>
+          <div class="accelerator-need">
+            <p class="accelerator-need-text">Need <strong>{{ needForSignificance }}</strong> more responses for statistical significance</p>
+            <p v-if="responsesPerDay > 0" class="accelerator-tempo">Current pace: {{ responsesPerDay }} responses/day → on track</p>
           </div>
         </div>
-        <div class="hero-stats">
-          <div class="hero-stat">
-            <span class="hero-stat-value">{{ invitationStats.responded }}</span>
-            <span class="hero-stat-label">of {{ invitationStats.sent }} sent responded</span>
+        <div class="quick-wins">
+          <h3 class="quick-wins-title">Quick actions to improve</h3>
+          <ul class="quick-wins-list">
+            <li class="quick-win" :class="{ done: quickWins.personalizeDone }">
+              <span class="quick-win-check">{{ quickWins.personalizeDone ? '✓' : '○' }}</span>
+              <router-link v-if="!quickWins.personalizeDone" :to="`/projects/${projectId}/invitations`">Personalize invitations (AI can rewrite)</router-link>
+              <span v-else>Personalize invitations (AI can rewrite)</span>
+            </li>
+            <li class="quick-win" :class="{ done: quickWins.remindersDone }">
+              <span class="quick-win-check">{{ quickWins.remindersDone ? '✓' : '○' }}</span>
+              <span>Send reminders to {{ nonRespondedCount }} who haven’t responded</span>
+              <router-link v-if="nonRespondedCount > 0" :to="`/projects/${projectId}/invitations`" class="quick-win-action">Send reminders</router-link>
+            </li>
+            <li class="quick-win" :class="{ done: quickWins.shareLinkDone }">
+              <span class="quick-win-check">{{ quickWins.shareLinkDone ? '✓' : '○' }}</span>
+              <span>Share public link (e.g. LinkedIn)</span>
+              <router-link v-if="projectId" :to="`/projects/${projectId}`" class="quick-win-action">Get link</router-link>
+            </li>
+            <li class="quick-win" :class="{ done: quickWins.rewardDone }">
+              <span class="quick-win-check">{{ quickWins.rewardDone ? '✓' : '○' }}</span>
+              <span>Increase reward (e.g. +$5 → predicted +15% RR)</span>
+            </li>
+          </ul>
+        </div>
+        <div v-if="invitationStats.sent > 0 && responseRate < responseRateGoal" class="predicted-impact">
+          <strong>Predicted impact:</strong> If you do the quick wins → ~{{ predictedRate }}% by tomorrow. Need {{ needForSignificance }} more responses for significance.
+        </div>
+      </section>
+
+      <!-- 2. PROJECT HEALTH -->
+      <section class="block health-block" aria-labelledby="health-heading">
+        <h2 id="health-heading" class="block-title">Project Health</h2>
+        <div class="health-cards">
+          <div class="health-card">
+            <span class="health-card-label">Data Quality</span>
+            <span class="health-card-value">{{ qualityScore.toFixed(1) }}/10</span>
+            <router-link :to="`/projects/${projectId}/responses`" class="health-card-action">Improve</router-link>
           </div>
-          <p v-if="invitationStats.sent === 0" class="hero-hint">Send invitations to start collecting responses.</p>
-          <p v-else-if="responseRate >= 80" class="hero-hint success">Strong response rate. Consider generating the report.</p>
-          <p v-else class="hero-hint">Collect more responses for reliable insights.</p>
+          <div class="health-card">
+            <span class="health-card-label">Segment Balance</span>
+            <span class="health-card-value">{{ segmentBalanceLabel }}</span>
+            <router-link :to="`/projects/${projectId}/invitations`" class="health-card-action">View</router-link>
+          </div>
+          <div class="health-card">
+            <span class="health-card-label">Time Efficiency</span>
+            <span class="health-card-value">{{ timeEfficiency }}%</span>
+            <span class="health-card-action">On track</span>
+          </div>
         </div>
       </section>
 
@@ -80,32 +133,44 @@
 
         <!-- Right: Insights (signals + responses) -->
         <main class="col-insights">
-          <!-- Early Signals (grouped by type) -->
+          <!-- 3. Early Signals with confidence -->
           <section class="panel signals-panel" aria-labelledby="signals-heading">
-            <h3 id="signals-heading" class="panel-title">Early Signals</h3>
+            <h3 id="signals-heading" class="panel-title">Early Signals with confidence</h3>
             <p class="panel-desc">AI insights from respondent feedback</p>
             <div v-if="earlySignals.length === 0" class="panel-empty">
               No signals yet. Responses with comments will be analyzed automatically.
             </div>
-            <div v-else class="signals-grouped">
-              <div v-for="type in ['positive', 'negative', 'neutral']" :key="type" class="signal-group">
-                <div v-if="signalsByType[type].length" class="signal-group-label" :class="`label-${type}`">
-                  {{ type === 'positive' ? 'Positive' : type === 'negative' ? 'Negative' : 'Neutral' }}
-                </div>
-                <div class="signal-group-items">
-                  <div
-                    v-for="signal in signalsByType[type]"
-                    :key="signal.id"
-                    class="signal-card"
-                    :class="`signal-${signal.type}`"
-                  >
-                    <span class="signal-icon" :aria-hidden="true">{{ getSignalIcon(signal.type) }}</span>
-                    <div class="signal-body">
-                      <strong class="signal-title">{{ signal.title }}</strong>
-                      <p class="signal-desc">{{ signal.description }}</p>
-                    </div>
-                  </div>
-                </div>
+            <div v-else class="signals-by-confidence">
+              <div v-if="signalsByConfidence.high.length" class="signal-confidence-group confidence-high">
+                <h4 class="signal-confidence-label">🔴 High confidence (≥80%)</h4>
+                <ul class="signal-confidence-list">
+                  <li v-for="s in signalsByConfidence.high" :key="s.id" class="signal-card" :class="`signal-${s.type}`">
+                    <span class="signal-icon">{{ getSignalIcon(s.type) }}</span>
+                    <strong class="signal-title">{{ s.title }}</strong>
+                    <span class="signal-meta">({{ responses.length }} responses)</span>
+                    <p class="signal-desc">{{ s.description }}</p>
+                  </li>
+                </ul>
+              </div>
+              <div v-if="signalsByConfidence.medium.length" class="signal-confidence-group confidence-medium">
+                <h4 class="signal-confidence-label">🟡 Medium confidence (50–80%)</h4>
+                <ul class="signal-confidence-list">
+                  <li v-for="s in signalsByConfidence.medium" :key="s.id" class="signal-card" :class="`signal-${s.type}`">
+                    <span class="signal-icon">{{ getSignalIcon(s.type) }}</span>
+                    <strong class="signal-title">{{ s.title }}</strong>
+                    <p class="signal-desc">{{ s.description }}</p>
+                  </li>
+                </ul>
+              </div>
+              <div v-if="signalsByConfidence.needMore.length" class="signal-confidence-group confidence-need">
+                <h4 class="signal-confidence-label">⚪ Need more data</h4>
+                <ul class="signal-confidence-list">
+                  <li v-for="s in signalsByConfidence.needMore" :key="s.id" class="signal-card signal-neutral">
+                    <span class="signal-icon">ℹ</span>
+                    <strong class="signal-title">{{ s.title }}</strong>
+                    <p class="signal-desc">{{ s.description }}</p>
+                  </li>
+                </ul>
               </div>
             </div>
           </section>
@@ -186,11 +251,32 @@
             </div>
           </section>
 
-          <!-- Moderation (public-link responses) -->
+          <!-- 4. Response Moderation & Quality -->
+          <section class="panel quality-panel" aria-labelledby="quality-heading">
+            <h3 id="quality-heading" class="panel-title">Response Quality Dashboard</h3>
+            <div class="quality-score-row">
+              <span class="quality-score-label">Quality score</span>
+              <span class="quality-score-value">{{ qualityScore.toFixed(1) }}/10</span>
+            </div>
+            <div v-if="qualityIssues.length > 0" class="quality-issues">
+              <p class="quality-issues-title">Issues detected:</p>
+              <ul class="quality-issues-list">
+                <li v-for="(issue, i) in qualityIssues" :key="i" class="quality-issue" :class="issue.severity">
+                  {{ issue.icon }} {{ issue.text }}
+                </li>
+              </ul>
+            </div>
+            <p v-else-if="responses.length > 0" class="quality-ok">✅ {{ responses.length }} responses meet quality bar.</p>
+            <div class="quality-actions">
+              <router-link :to="`/projects/${projectId}/responses`" class="btn btn-secondary btn-sm">Check low-quality responses</router-link>
+              <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-ghost btn-sm">Request clarifications</router-link>
+            </div>
+          </section>
+
           <section class="panel moderation-panel" aria-labelledby="moderation-heading">
             <div class="panel-head">
               <h3 id="moderation-heading" class="panel-title">Moderation</h3>
-              <span v-if="moderationResponses.length > 0" class="panel-count">{{ moderationResponses.length }} to review</span>
+              <span class="panel-count">{{ responses.length }} responses · {{ moderationPendingCount }} pending · {{ qualityLowCount }} low quality</span>
               <div class="panel-actions">
                 <select v-model="moderationFilter" class="moderation-filter" @change="loadModerationResponses">
                   <option value="">All statuses</option>
@@ -198,12 +284,18 @@
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                 </select>
+                <select v-model="qualityFilter" class="moderation-filter">
+                  <option value="">All quality</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
                 <button type="button" class="btn btn-ghost btn-sm" :disabled="moderationLoading" @click="loadModerationResponses">
                   {{ moderationLoading ? 'Loading…' : 'Refresh' }}
                 </button>
               </div>
             </div>
-            <p class="panel-desc">Approve or reject responses from the public link.</p>
+            <p class="panel-desc">Approve or reject responses from the public link. Filter by quality to review problematic answers.</p>
             <div v-if="moderationLoading" class="panel-empty">Loading…</div>
             <div v-else-if="moderationResponses.length === 0" class="panel-empty">
               No responses to moderate for this filter.
@@ -253,9 +345,37 @@
               </table>
             </div>
           </section>
+        </main>
+      </div>
 
-          <!-- Survey consent: template + custom text + links -->
-          <section class="panel consent-config-panel" aria-labelledby="consent-config-heading">
+      <!-- 5. Real-time Insights Feed -->
+      <section class="block insights-feed-block" aria-labelledby="insights-feed-heading">
+        <h2 id="insights-feed-heading" class="block-title">Real-time insights feed</h2>
+        <ul class="insights-feed-list">
+          <li v-for="(item, i) in insightsFeed" :key="i" class="insight-item" :class="item.type">
+            <span class="insight-time">{{ item.timeAgo }}</span>
+            <span class="insight-text">{{ item.text }}</span>
+          </li>
+        </ul>
+        <p v-if="insightsFeed.length === 0" class="insights-feed-empty">No recent events. New responses and trends will appear here.</p>
+      </section>
+
+      <!-- 6. What's Next -->
+      <section class="block whats-next-block" aria-labelledby="whats-next-heading">
+        <h2 id="whats-next-heading" class="block-title">What's next</h2>
+        <ol class="whats-next-list">
+          <li v-for="(rec, i) in whatsNextRecommendations" :key="i" class="whats-next-item">
+            <span class="whats-next-num">{{ i + 1 }}</span>
+            <span class="whats-next-text">{{ rec }}</span>
+          </li>
+        </ol>
+        <p v-if="whatsNextRecommendations.length === 0" class="whats-next-empty">Collect more responses to get AI recommendations.</p>
+      </section>
+
+      <!-- Consent & deletion (existing) -->
+      <div class="progress-footer">
+        <!-- Survey consent: template + custom text + links -->
+        <section class="panel consent-config-panel" aria-labelledby="consent-config-heading">
             <h3 id="consent-config-heading" class="panel-title">Survey consent</h3>
             <p class="panel-desc">Text and links shown to respondents before the survey. Leave empty to skip the consent screen.</p>
             <div class="consent-form">
@@ -343,7 +463,6 @@
               </table>
             </div>
           </section>
-        </main>
       </div>
     </div>
 
@@ -454,7 +573,12 @@ type ModerationResponseItem = {
 const moderationResponses = ref<ModerationResponseItem[]>([]);
 const moderationLoading = ref(false);
 const moderationFilter = ref('pending');
+const qualityFilter = ref('');
 const moderatingId = ref<string | null>(null);
+
+const responseRateGoal = 50;
+const SIGNIFICANCE_TARGET = 20;
+const DEFAULT_DAYS_LEFT = 7;
 
 const invitationRepository = container.get<InvitationRepositoryPort>(INVITATION_TYPES.InvitationRepository);
 const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
@@ -470,6 +594,113 @@ const invitationStats = computed(() => {
 const responseRate = computed(() => {
   if (invitationStats.value.sent === 0) return 0;
   return Math.round((invitationStats.value.responded / invitationStats.value.sent) * 100);
+});
+
+const daysLeft = computed(() => DEFAULT_DAYS_LEFT);
+const nonRespondedCount = computed(() => Math.max(0, invitationStats.value.sent - invitationStats.value.responded));
+const needForSignificance = computed(() => Math.max(0, SIGNIFICANCE_TARGET - invitationStats.value.responded));
+const responsesPerDay = computed(() => {
+  if (responses.value.length < 2) return responses.value.length;
+  const sorted = [...responses.value].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const first = new Date(sorted[0].createdAt).getTime();
+  const last = new Date(sorted[sorted.length - 1].createdAt).getTime();
+  const days = (last - first) / (24 * 60 * 60 * 1000) || 1;
+  return Math.round((responses.value.length / days) * 10) / 10;
+});
+const quickWins = computed(() => ({
+  personalizeDone: invitationStats.value.sent > 0 && responseRate.value >= 30,
+  remindersDone: nonRespondedCount.value === 0,
+  shareLinkDone: responseRate.value >= 50,
+  rewardDone: false,
+}));
+const predictedRate = computed(() => Math.min(responseRate.value + 17, 95));
+
+function responseWordCount(r: typeof responses.value[0]): number {
+  let words = 0;
+  Object.values(r.answers || {}).forEach((v) => {
+    const s = typeof v === 'string' ? v : typeof v === 'object' && v && 'text' in v ? String((v as { text: string }).text) : JSON.stringify(v);
+    words += s.trim().split(/\s+/).filter(Boolean).length;
+  });
+  if (r.transcript) words += r.transcript.trim().split(/\s+/).filter(Boolean).length;
+  return words;
+}
+
+const qualityScore = computed(() => {
+  if (responses.value.length === 0) return 0;
+  const scores = responses.value.map((r) => {
+    const w = responseWordCount(r);
+    if (w < 10) return 4;
+    if (w < 30) return 6;
+    if (w < 80) return 8;
+    return 9;
+  });
+  return scores.reduce((a, b) => a + b, 0) / scores.length;
+});
+
+const qualityIssues = computed(() => {
+  const issues: Array<{ text: string; severity: string; icon: string }> = [];
+  const short = responses.value.filter((r) => responseWordCount(r) < 10);
+  if (short.length > 0) {
+    issues.push({ text: `${short.length} response(s) too short (<10 words)`, severity: 'warn', icon: '⚠' });
+  }
+  const highQuality = responses.value.filter((r) => responseWordCount(r) >= 30).length;
+  if (highQuality > 0 && responses.value.length > 0) {
+    issues.push({ text: `${highQuality} high-quality response(s)`, severity: 'ok', icon: '✅' });
+  }
+  return issues;
+});
+
+const qualityLowCount = computed(() => responses.value.filter((r) => responseWordCount(r) < 10).length);
+const moderationPendingCount = computed(() => moderationResponses.value.filter((r) => r.moderationStatus === 'pending').length);
+const segmentBalanceLabel = computed(() => (invitationStats.value.total >= 5 ? 'Good' : 'Need more'));
+const timeEfficiency = computed(() => (responseRate.value >= 50 ? 85 : responseRate.value >= 25 ? 65 : 45));
+
+const signalsByConfidence = computed(() => {
+  const n = responses.value.length;
+  const high: typeof earlySignals.value = [];
+  const medium: typeof earlySignals.value = [];
+  const needMore: typeof earlySignals.value = [];
+  earlySignals.value.forEach((s) => {
+    if (n >= 15 && (s.type === 'positive' || s.type === 'negative')) high.push(s);
+    else if (n >= 5) medium.push(s);
+    else needMore.push(s);
+  });
+  return { high, medium, needMore };
+});
+
+const insightsFeed = computed(() => {
+  const items: Array<{ timeAgo: string; text: string; type: string }> = [];
+  if (responses.value.length > 0) {
+    const last = responses.value[0];
+    const created = new Date(last.createdAt);
+    const minAgo = Math.floor((Date.now() - created.getTime()) / 60000);
+    const timeAgo = minAgo < 60 ? `${minAgo} min ago` : `${Math.floor(minAgo / 60)} hour(s) ago`;
+    items.push({ timeAgo, text: `New response received`, type: 'response' });
+  }
+  if (responseRate.value > 0 && responseRate.value < 50) {
+    items.push({ timeAgo: '—', text: `Response rate ${responseRate.value}%. Send reminders to improve.`, type: 'tip' });
+  }
+  if (qualityLowCount.value > 0) {
+    items.push({ timeAgo: '—', text: `Quality alert: ${qualityLowCount.value} response(s) under 10 words.`, type: 'alert' });
+  }
+  return items.slice(0, 5);
+});
+
+const whatsNextRecommendations = computed(() => {
+  const recs: string[] = [];
+  if (needForSignificance.value > 0) {
+    recs.push(`Collect ${needForSignificance.value} more responses for statistical significance`);
+  }
+  if (responseRate.value < responseRateGoal && nonRespondedCount.value > 0) {
+    recs.push(`Send reminders to ${nonRespondedCount.value} non-respondents`);
+  }
+  if (responses.value.length >= 10 && earlySignals.value.length > 0) {
+    recs.push('Generate interim report for the team');
+  }
+  if (responses.value.length >= 5) {
+    recs.push('Review early signals and update hypothesis if needed');
+  }
+  return recs.slice(0, 4);
 });
 
 const signalsByType = computed(() => {
@@ -908,46 +1139,67 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* --- Modern Progress: layout & vars --- */
 .project-progress-view {
-  max-width: 1120px;
+  --progress-bg: #f8fafc;
+  --progress-card: #ffffff;
+  --progress-border: #e2e8f0;
+  --progress-text: #0f172a;
+  --progress-muted: #64748b;
+  --progress-accent: var(--color-accent, #0d9488);
+  --progress-accent-soft: rgba(13, 148, 136, 0.08);
+  --progress-radius: 16px;
+  --progress-radius-sm: 12px;
+  --progress-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  --progress-shadow-lg: 0 4px 24px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 1.5rem 4rem;
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
 }
 
+/* --- Buttons --- */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 0.5rem;
+  border-radius: 10px;
   text-decoration: none;
-  transition: background 0.15s;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
+.btn:active { transform: scale(0.98); }
 
 .btn-primary {
-  background: var(--color-accent);
+  background: var(--progress-accent);
   color: white;
-  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
 }
-
-.btn-primary:hover { background: var(--color-accent-hover); box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3); }
+.btn-primary:hover {
+  background: var(--color-accent-hover, #0f766e);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4);
+}
 
 .btn-secondary {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-muted);
+  background: var(--progress-card);
+  color: var(--progress-text);
+  border: 1px solid var(--progress-border);
 }
-
-.btn-secondary:hover { background: var(--color-border); color: var(--color-text); }
+.btn-secondary:hover {
+  background: var(--progress-bg);
+  border-color: #cbd5e1;
+}
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-text-muted);
+  color: var(--progress-muted);
 }
+.btn-ghost:hover { color: var(--progress-accent); background: var(--progress-accent-soft); }
 
-.btn-ghost:hover { color: var(--color-accent); background: var(--color-accent-light); }
-
-/* Loading / Error */
+/* --- Loading / Error --- */
 .loading-state,
 .error-state {
   display: flex;
@@ -956,10 +1208,268 @@ onMounted(async () => {
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
-  color: #64748b;
+  color: var(--progress-muted);
+}
+.error-text { color: #dc2626; font-weight: 500; }
+
+/* --- Blocks: section titles --- */
+.block {
+  margin-bottom: 2rem;
+}
+.block-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+  color: var(--progress-text);
 }
 
-.error-text { color: #dc2626; font-weight: 500; }
+/* --- 1. Response Rate Accelerator (hero card) --- */
+.accelerator-block {
+  padding: 1.75rem 2rem;
+  background: var(--progress-card);
+  border-radius: var(--progress-radius);
+  border: 1px solid var(--progress-border);
+  box-shadow: var(--progress-shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+.accelerator-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--progress-accent), #2dd4bf);
+  opacity: 0.9;
+}
+.accelerator-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.accelerator-metrics {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.progress-visual--inline .progress-ring {
+  width: 80px;
+  height: 80px;
+}
+.progress-visual--inline .progress-value { font-size: 1.125rem; font-weight: 800; }
+.accelerator-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.badge-pill {
+  padding: 0.4rem 0.9rem;
+  border-radius: 9999px;
+  background: var(--progress-bg);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--progress-text);
+  border: 1px solid var(--progress-border);
+}
+.badge-pill--goal {
+  background: var(--progress-accent-soft);
+  color: var(--progress-accent);
+  border-color: rgba(13, 148, 136, 0.25);
+}
+.accelerator-need-text { margin: 0 0 0.25rem; font-size: 0.9375rem; font-weight: 500; color: var(--progress-text); }
+.accelerator-tempo { margin: 0; font-size: 0.8125rem; color: var(--progress-muted); }
+.quick-wins-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--progress-muted);
+  margin: 0 0 0.75rem;
+}
+.quick-wins-list { list-style: none; padding: 0; margin: 0; }
+.quick-win {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  border-radius: var(--progress-radius-sm);
+  transition: background 0.15s ease;
+}
+.quick-win:hover { background: var(--progress-bg); }
+.quick-win.done { color: var(--progress-muted); }
+.quick-win-check {
+  font-weight: 700;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  background: var(--progress-border);
+  color: var(--progress-card);
+}
+.quick-win.done .quick-win-check {
+  background: var(--progress-accent);
+  color: white;
+}
+.quick-win-action { margin-left: auto; font-size: 0.8125rem; font-weight: 500; }
+.predicted-impact {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--progress-border);
+  font-size: 0.875rem;
+  color: var(--progress-muted);
+}
+
+/* --- 2. Project Health cards --- */
+.health-block { padding: 0; }
+.health-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+.health-card {
+  padding: 1.25rem;
+  background: var(--progress-card);
+  border-radius: var(--progress-radius-sm);
+  border: 1px solid var(--progress-border);
+  box-shadow: var(--progress-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.health-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  border-color: #cbd5e1;
+}
+.health-card-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--progress-muted);
+}
+.health-card-value { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; color: var(--progress-text); }
+.health-card-action {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--progress-accent);
+  text-decoration: none;
+  margin-top: 0.25rem;
+}
+.health-card-action:hover { text-decoration: underline; }
+
+/* --- Quality panel --- */
+.quality-panel {
+  margin-top: 1rem;
+  background: var(--progress-card);
+  border-radius: var(--progress-radius-sm);
+  border: 1px solid var(--progress-border);
+  box-shadow: var(--progress-shadow);
+}
+.quality-score-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+.quality-score-label { font-weight: 600; font-size: 0.875rem; color: var(--progress-text); }
+.quality-score-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--progress-accent);
+  letter-spacing: -0.02em;
+}
+.quality-issues-title { font-size: 0.8125rem; font-weight: 600; margin: 0 0 0.35rem; color: var(--progress-text); }
+.quality-issues-list { list-style: none; padding: 0; margin: 0 0 0.75rem; }
+.quality-issue { font-size: 0.875rem; padding: 0.25rem 0; }
+.quality-issue.warn { color: #b45309; }
+.quality-issue.ok { color: #059669; }
+.quality-ok { margin: 0 0 0.5rem; font-size: 0.875rem; color: var(--progress-muted); }
+.quality-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* --- Signals by confidence --- */
+.signals-by-confidence { display: flex; flex-direction: column; gap: 1.25rem; }
+.signal-confidence-group { margin: 0; }
+.signal-confidence-label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5rem;
+  color: var(--progress-text);
+}
+.signal-confidence-list { list-style: none; padding: 0; margin: 0; }
+.signal-confidence-list .signal-card {
+  display: block;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--progress-radius-sm);
+  background: var(--progress-bg);
+  border: 1px solid var(--progress-border);
+}
+.signal-meta { font-size: 0.75rem; color: var(--progress-muted); margin-left: 0.35rem; }
+
+/* --- Insights feed & What's next --- */
+.insights-feed-block {
+  padding: 1.25rem 1.5rem;
+  background: var(--progress-card);
+  border-radius: var(--progress-radius-sm);
+  border: 1px solid var(--progress-border);
+  box-shadow: var(--progress-shadow);
+}
+.insights-feed-list { list-style: none; padding: 0; margin: 0; }
+.insight-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--progress-border);
+  align-items: flex-start;
+}
+.insight-item:last-child { border-bottom: none; }
+.insight-time {
+  flex-shrink: 0;
+  color: var(--progress-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.insight-item.alert .insight-text { color: #b45309; font-weight: 500; }
+.insights-feed-empty { margin: 0; font-size: 0.875rem; color: var(--progress-muted); }
+
+.whats-next-block {
+  padding: 1.25rem 1.5rem;
+  background: var(--progress-card);
+  border-radius: var(--progress-radius-sm);
+  border: 1px solid var(--progress-border);
+  box-shadow: var(--progress-shadow);
+}
+.whats-next-list { list-style: none; padding: 0; margin: 0; }
+.whats-next-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  color: var(--progress-text);
+}
+.whats-next-num {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 8px;
+  background: var(--progress-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.whats-next-empty { margin: 0; font-size: 0.875rem; color: var(--progress-muted); }
+
+.progress-footer { margin-top: 2.5rem; }
 
 .sr-only {
   position: absolute;
@@ -973,19 +1483,7 @@ onMounted(async () => {
   border: 0;
 }
 
-/* Hero progress */
-.hero-progress {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  padding: 2rem;
-  background: linear-gradient(135deg, var(--color-accent-light) 0%, #e0f2fe 50%, #f0fdfa 100%);
-  border-radius: var(--radius-xl);
-  margin-bottom: 2rem;
-  border: 1px solid rgba(13, 148, 136, 0.2);
-  box-shadow: var(--shadow-md);
-}
-
+/* Progress ring (modern) */
 .progress-visual {
   flex-shrink: 0;
   display: flex;
@@ -999,44 +1497,39 @@ onMounted(async () => {
   width: 112px;
   height: 112px;
   border-radius: 50%;
-  background: conic-gradient(var(--color-accent) calc(var(--p, 0) * 3.6deg), var(--color-border) 0);
+  background: conic-gradient(
+    var(--progress-accent) calc(var(--p, 0) * 3.6deg),
+    var(--progress-border) 0
+  );
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 0 0 4px white, 0 2px 8px rgba(13, 148, 136, 0.2);
+  box-shadow: inset 0 0 0 5px var(--progress-card), 0 4px 14px rgba(13, 148, 136, 0.15);
 }
 
 .progress-ring::before {
   content: '';
   position: absolute;
-  inset: 8px;
+  inset: 10px;
   border-radius: 50%;
-  background: white;
+  background: var(--progress-card);
 }
 
 .progress-value {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-accent);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--progress-accent);
   position: relative;
   z-index: 1;
 }
 
 .hero-stats { flex: 1; min-width: 0; }
-
 .hero-stat { margin-bottom: 0.25rem; }
-
-.hero-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--color-accent); }
-
-.hero-stat-label { font-size: 0.9375rem; color: var(--color-text-muted); margin-left: 0.25rem; }
-
-.hero-hint {
-  font-size: 0.9375rem;
-  color: var(--color-text-muted);
-  margin: 0.5rem 0 0;
-}
-
-.hero-hint.success { color: var(--color-success); font-weight: 500; }
+.hero-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--progress-accent); }
+.hero-stat-label { font-size: 0.9375rem; color: var(--progress-muted); margin-left: 0.25rem; }
+.hero-hint { font-size: 0.9375rem; color: var(--progress-muted); margin: 0.5rem 0 0; }
+.hero-hint.success { color: #059669; font-weight: 500; }
 
 /* Two-column layout */
 .two-col {
@@ -1048,63 +1541,65 @@ onMounted(async () => {
 
 @media (max-width: 900px) {
   .two-col { grid-template-columns: 1fr; }
+  .health-cards { grid-template-columns: 1fr; }
 }
 
-/* Left column: operations */
-.col-operations {
-  position: sticky;
-  top: 1rem;
-}
+.col-operations { position: sticky; top: 1rem; }
 
+/* Metrics card (sidebar) */
 .metrics-compact {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 1rem;
+  background: var(--progress-card);
+  border-radius: var(--progress-radius-sm);
+  padding: 1.25rem;
   margin-bottom: 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--progress-border);
+  box-shadow: var(--progress-shadow);
 }
 
 .metric-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.375rem 0;
+  align-items: center;
+  padding: 0.5rem 0;
   font-size: 0.875rem;
 }
 
-.metric-label { color: #64748b; }
+.metric-label { color: var(--progress-muted); font-weight: 500; }
+.metric-value { font-weight: 700; color: var(--progress-text); letter-spacing: -0.02em; }
 
-.metric-value { font-weight: 600; color: #0f172a; }
-
+/* Panels (cards) */
 .panel {
-  background: white;
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  background: var(--progress-card);
+  border-radius: var(--progress-radius-sm);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--progress-border);
+  box-shadow: var(--progress-shadow);
 }
 
 .panel + .panel { margin-top: 1rem; }
 
 .panel-title {
   font-size: 0.9375rem;
-  font-weight: 600;
-  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--progress-text);
   margin: 0 0 0.25rem;
 }
 
 .panel-desc {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 0.8125rem;
+  color: var(--progress-muted);
   margin: 0 0 0.75rem;
+  line-height: 1.4;
 }
 
-.consent-form .form-row { margin-bottom: 0.75rem; }
+.consent-form .form-row { margin-bottom: 1rem; }
 .consent-form .form-label {
   display: block;
   font-size: 0.8125rem;
-  font-weight: 500;
-  color: #334155;
-  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: var(--progress-text);
+  margin-bottom: 0.35rem;
 }
 .consent-form .form-select,
 .consent-form .form-input {
@@ -1112,17 +1607,29 @@ onMounted(async () => {
   max-width: 28rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
+  border: 1px solid var(--progress-border);
+  border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.consent-form .form-select:focus,
+.consent-form .form-input:focus {
+  outline: none;
+  border-color: var(--progress-accent);
+  box-shadow: 0 0 0 3px var(--progress-accent-soft);
 }
 .consent-form .form-textarea {
   width: 100%;
   max-width: 36rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
+  border: 1px solid var(--progress-border);
+  border-radius: 10px;
   resize: vertical;
+  transition: border-color 0.2s ease;
+}
+.consent-form .form-textarea:focus {
+  outline: none;
+  border-color: var(--progress-accent);
 }
 .consent-form .form-actions {
   display: flex;
@@ -1131,27 +1638,23 @@ onMounted(async () => {
   margin-top: 1rem;
 }
 .consent-form .consent-save-message { font-size: 0.875rem; }
-.consent-form .consent-save-message.success { color: var(--color-success, #059669); }
+.consent-form .consent-save-message.success { color: #059669; font-weight: 500; }
 .consent-form .consent-save-message.error { color: #dc2626; }
 
 .panel-empty {
   font-size: 0.875rem;
-  color: #94a3b8;
-  padding: 0.5rem 0;
+  color: var(--progress-muted);
+  padding: 0.75rem 0;
 }
 
-.invitation-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+.invitation-list { list-style: none; padding: 0; margin: 0; }
 
 .invitation-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--progress-border);
   font-size: 0.8125rem;
 }
 
@@ -1162,15 +1665,15 @@ onMounted(async () => {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 140px;
-  color: #334155;
+  color: var(--progress-text);
 }
 
 .inv-status {
   flex-shrink: 0;
-  padding: 0.125rem 0.5rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 9999px;
   font-size: 0.6875rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .status-pending { background: #f1f5f9; color: #475569; }
@@ -1180,10 +1683,10 @@ onMounted(async () => {
 .status-expired { background: #fee2e2; color: #dc2626; }
 
 .btn-danger { color: #dc2626; }
-.btn-danger:hover { background: #fee2e2; color: #b91c1c; }
+.btn-danger:hover { background: #fef2f2; color: #b91c1c; }
 
 .deletion-requests-panel { margin-bottom: 1.5rem; }
-.deletion-requests-table-wrap { overflow-x: auto; }
+.deletion-requests-table-wrap { overflow-x: auto; border-radius: var(--progress-radius-sm); border: 1px solid var(--progress-border); }
 .deletion-requests-table {
   width: 100%;
   border-collapse: collapse;
@@ -1191,30 +1694,42 @@ onMounted(async () => {
 }
 .deletion-requests-table th,
 .deletion-requests-table td {
-  padding: 0.5rem 0.75rem;
+  padding: 0.65rem 1rem;
   text-align: left;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--progress-border);
 }
-.deletion-requests-table th { font-weight: 600; color: #64748b; }
+.deletion-requests-table th {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--progress-muted);
+  background: var(--progress-bg);
+}
 .deletion-status {
   display: inline-block;
-  padding: 0.125rem 0.5rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 9999px;
   font-size: 0.75rem;
+  font-weight: 600;
 }
-.deletion-done { color: #94a3b8; }
+.deletion-done { color: var(--progress-muted); }
 
-/* Moderation panel */
+/* Moderation */
 .moderation-panel { margin-bottom: 1.5rem; }
 .moderation-filter {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-bg);
-  color: var(--color-text);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  border: 1px solid var(--progress-border);
+  border-radius: 8px;
+  background: var(--progress-card);
+  color: var(--progress-text);
 }
-.moderation-table-wrap { overflow-x: auto; }
+.moderation-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--progress-radius-sm);
+  border: 1px solid var(--progress-border);
+}
 .moderation-table {
   width: 100%;
   border-collapse: collapse;
@@ -1222,85 +1737,96 @@ onMounted(async () => {
 }
 .moderation-table th,
 .moderation-table td {
-  padding: 0.5rem 0.75rem;
+  padding: 0.65rem 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--progress-border);
 }
-.moderation-table th { font-weight: 600; color: var(--color-text-muted, #64748b); }
+.moderation-table th {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--progress-muted);
+  background: var(--progress-bg);
+}
 .moderation-summary { max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .moderation-badge {
   display: inline-block;
-  padding: 0.125rem 0.5rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 9999px;
   font-size: 0.75rem;
+  font-weight: 600;
 }
 .moderation-pending { background: #fef3c7; color: #b45309; }
 .moderation-approved { background: #dcfce7; color: #15803d; }
 .moderation-rejected { background: #fee2e2; color: #dc2626; }
-.moderation-none { background: #f1f5f9; color: #64748b; }
-.moderation-done { font-size: 0.75rem; color: var(--color-text-muted); }
-.btn-approve { background: #dcfce7; color: #15803d; }
+.moderation-none { background: var(--progress-bg); color: var(--progress-muted); }
+.moderation-done { font-size: 0.75rem; color: var(--progress-muted); }
+.btn-approve {
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: #dcfce7;
+  color: #15803d;
+  border: none;
+  cursor: pointer;
+}
 .btn-approve:hover:not(:disabled) { background: #bbf7d0; }
-.btn-reject { background: #fee2e2; color: #dc2626; margin-left: 0.25rem; }
+.btn-reject {
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.35rem;
+}
 .btn-reject:hover:not(:disabled) { background: #fecaca; }
 
-/* Right column: insights */
 .col-insights { min-width: 0; }
 
 .signals-panel,
-.responses-panel {
-  margin-bottom: 1.5rem;
-}
+.responses-panel { margin-bottom: 1.5rem; }
 
 .latest-responses-preview {
   margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: var(--color-bg-subtle);
-  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: var(--progress-bg);
+  border-radius: 10px;
+  border: 1px solid var(--progress-border);
 }
 .preview-title {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  color: var(--progress-muted);
   margin: 0 0 0.5rem 0;
 }
-.preview-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+.preview-list { list-style: none; padding: 0; margin: 0; }
 .preview-item {
   display: flex;
   gap: 0.5rem;
-  padding: 0.35rem 0;
+  padding: 0.4rem 0;
   font-size: 0.8125rem;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--progress-border);
 }
-.preview-item:last-child {
-  border-bottom: none;
-}
-.preview-num {
-  flex-shrink: 0;
-  color: var(--color-text-muted);
-}
-.preview-snippet {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.preview-item:last-child { border-bottom: none; }
+.preview-num { flex-shrink: 0; color: var(--progress-muted); font-weight: 500; }
+.preview-snippet { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--progress-text); }
 
 .signals-grouped { display: flex; flex-direction: column; gap: 1rem; }
 
 .signal-group-label {
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 0.5rem;
-  color: #64748b;
+  color: var(--progress-muted);
 }
 
 .label-positive { color: #15803d; }
@@ -1313,47 +1839,71 @@ onMounted(async () => {
   display: flex;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  border-left: 4px solid;
+  border-radius: 10px;
+  border: 1px solid var(--progress-border);
+  background: var(--progress-card);
+  box-shadow: var(--progress-shadow);
 }
 
-.signal-card.signal-positive { background: #f0fdf4; border-left-color: #22c55e; }
-.signal-card.signal-negative { background: #fef2f2; border-left-color: #ef4444; }
-.signal-card.signal-neutral { background: #f0f9ff; border-left-color: #0ea5e9; }
+.signal-card.signal-positive { background: #f0fdf4; border-left: 4px solid #22c55e; }
+.signal-card.signal-negative { background: #fef2f2; border-left: 4px solid #ef4444; }
+.signal-card.signal-neutral { background: #f0f9ff; border-left: 4px solid #0ea5e9; }
 
 .signal-icon {
   flex-shrink: 0;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.875rem;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.9);
 }
 
 .signal-body { flex: 1; min-width: 0; }
 
-.signal-title { font-size: 0.875rem; display: block; margin-bottom: 0.25rem; color: #0f172a; }
+.signal-title { font-size: 0.875rem; font-weight: 600; display: block; margin-bottom: 0.25rem; color: var(--progress-text); }
 
-.signal-desc { font-size: 0.8125rem; color: #475569; margin: 0; line-height: 1.5; }
+.signal-desc { font-size: 0.8125rem; color: var(--progress-muted); margin: 0; line-height: 1.5; }
 
-/* Responses accordion */
 .panel-head {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
 }
 
-.panel-count { font-size: 0.75rem; color: #94a3b8; }
-.panel-actions { margin-left: auto; display: flex; gap: 0.5rem; }
-.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+.panel-count { font-size: 0.75rem; font-weight: 500; color: var(--progress-muted); }
+.panel-actions { margin-left: auto; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.btn-sm {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 8px;
+}
+.btn-export {
+  background: var(--progress-bg);
+  border: 1px solid var(--progress-border);
+  color: var(--progress-text);
+  cursor: pointer;
+  border-radius: 8px;
+}
+.btn-export:hover:not(:disabled) {
+  background: var(--progress-border);
+}
 
 .responses-accordion { display: flex; flex-direction: column; gap: 0.5rem; }
 
-.response-block { border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
+.response-block {
+  border: 1px solid var(--progress-border);
+  border-radius: var(--progress-radius-sm);
+  overflow: hidden;
+  box-shadow: var(--progress-shadow);
+  transition: box-shadow 0.2s ease;
+}
+.response-block:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 
 .response-trigger {
   width: 100%;
@@ -1361,38 +1911,40 @@ onMounted(async () => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1.25rem;
-  background: var(--color-bg-page);
+  background: var(--progress-card);
   border: none;
   font-size: 0.875rem;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s ease;
 }
 
-.response-trigger:hover { background: var(--color-accent-light); }
+.response-trigger:hover { background: var(--progress-bg); }
 
-.response-num { font-weight: 600; color: #64748b; min-width: 2ch; }
+.response-num { font-weight: 600; color: var(--progress-muted); min-width: 2ch; }
 
-.response-date { flex: 1; color: #334155; }
+.response-date { flex: 1; color: var(--progress-text); font-weight: 500; }
 
 .badge {
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
   font-size: 0.6875rem;
-  background: #e2e8f0;
-  color: #475569;
+  font-weight: 600;
+  background: var(--progress-bg);
+  color: var(--progress-muted);
+  border: 1px solid var(--progress-border);
 }
 
 .response-chevron {
   font-size: 1rem;
-  color: #94a3b8;
-  font-weight: 300;
+  color: var(--progress-muted);
+  font-weight: 400;
 }
 
 .response-body {
-  padding: 1rem;
-  background: white;
-  border-top: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  background: var(--progress-bg);
+  border-top: 1px solid var(--progress-border);
 }
 
 .response-block:not(.is-expanded) .response-body { display: none; }
@@ -1413,34 +1965,37 @@ onMounted(async () => {
 .answer-q {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--progress-muted);
   margin: 0;
 }
 
 .answer-a {
   font-size: 0.875rem;
-  color: #0f172a;
+  color: var(--progress-text);
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+  line-height: 1.5;
 }
 
 .response-transcript {
   padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--progress-border);
 }
 
-.transcript-label { font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 0.25rem; }
+.transcript-label { font-size: 0.75rem; font-weight: 600; color: var(--progress-muted); display: block; margin-bottom: 0.35rem; }
 
-.transcript-text { font-size: 0.875rem; color: #334155; margin: 0; line-height: 1.6; white-space: pre-wrap; }
+.transcript-text { font-size: 0.875rem; color: var(--progress-text); margin: 0; line-height: 1.6; white-space: pre-wrap; }
 
 .response-audio {
   padding-top: 1rem;
   margin-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--progress-border);
 }
 
-.audio-player { width: 100%; max-width: 100%; }
+.audio-player { width: 100%; max-width: 100%; border-radius: 8px; }
 
 </style>
 

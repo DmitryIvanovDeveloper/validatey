@@ -366,12 +366,20 @@ async function sendAssistantMessage() {
   try {
     const url = API_CONFIG.ENDPOINTS.RESEARCH_ASSISTANT(projectId.value);
     const data = await httpClient.post<{ reply: string; suggestedMethods?: string[]; clarificationQuestions?: string[] }>(url, { message: text });
-    assistantMessages.value.push({
-      role: 'assistant',
-      content: data?.reply ?? 'No reply.',
-      suggestedMethods: data?.suggestedMethods,
-      clarificationQuestions: data?.clarificationQuestions,
-    });
+    const replyText = data?.reply?.trim();
+    if (!replyText) {
+      assistantMessages.value.push({
+        role: 'assistant',
+        content: 'Assistant returned no reply. Please try again.',
+      });
+    } else {
+      assistantMessages.value.push({
+        role: 'assistant',
+        content: replyText,
+        suggestedMethods: data?.suggestedMethods,
+        clarificationQuestions: data?.clarificationQuestions,
+      });
+    }
   } catch (e) {
     assistantMessages.value.push({
       role: 'assistant',

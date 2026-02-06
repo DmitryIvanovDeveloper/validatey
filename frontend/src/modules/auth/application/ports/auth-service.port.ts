@@ -1,9 +1,13 @@
 import type { AuthUser } from '../../domain/entities/auth-user.entity';
 
+export type AuthRole = 'admin' | 'user';
+
 export interface AuthSession {
   user: AuthUser;
   accessToken: string;
   expiresAt: number;
+  /** From GET /api/auth/session; default 'user' when absent. */
+  role?: AuthRole;
 }
 
 /**

@@ -16,7 +16,7 @@ export class RegisterWithEmailUseCase {
       const result = await this._authService.registerWithEmail(input.email, input.password);
       if (!result.session) return { message: 'Registration failed', name: 'AuthSignInError' } as AuthSignInError;
       return {
-        session: { user: result.session.user },
+        session: { user: result.session.user, role: result.session.role },
         requiresEmailConfirmation: result.requiresEmailConfirmation,
       };
     } catch (e) {

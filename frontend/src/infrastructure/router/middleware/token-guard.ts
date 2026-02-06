@@ -59,6 +59,12 @@ export async function tokenGuard(
     return;
   }
 
+  // Admin-only routes: redirect non-admins to /projects
+  if ((to.meta?.requiresAdmin as boolean) === true && session.role !== 'admin') {
+    next({ path: '/projects', replace: true });
+    return;
+  }
+
   next();
 }
 

@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
+import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
+import type { GetUserRolePort } from '../../application/ports/get-user-role.port';
 import { SupabaseAuthProvider } from '../../infrastructure/supabase-auth-provider';
 
 const router = Router();
@@ -59,7 +61,7 @@ router.post('/register', async (req: Request, res: Response) => {
   }
 });
 
-/** POST /api/auth/login { email, password } → set cookie, return { user } */
+/** POST /api/auth/login { email, password } → set cookie, return { user, role } */
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const email = (req.body?.email as string)?.trim();
@@ -71,8 +73,10 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!session.accessToken) {
       return res.status(500).json({ error: 'Sign in failed' });
     }
+    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRolePort);
+    const role = await getRole.getRole(session.user.id);
     setSessionCookies(res, session.accessToken, session.refreshToken);
-    return res.json({ user: session.user });
+    return res.json({ user: session.user, role });
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Sign in failed';
     return res.status(401).json({ error: message });
@@ -93,7 +97,7 @@ router.get('/google-url', async (req: Request, res: Response) => {
   }
 });
 
-/** POST /api/auth/session { access_token } → set cookie, return { user } */
+/** POST /api/auth/session { access_token } → set cookie, return { user, role } */
 router.post('/session', async (req: Request, res: Response) => {
   try {
     const accessToken = (req.body?.access_token as string)?.trim();
@@ -104,29 +108,36 @@ router.post('/session', async (req: Request, res: Response) => {
     if (!user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
+    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRolePort);
+    const role = await getRole.getRole(user.id);
     res.cookie(COOKIE_NAME, accessToken, COOKIE_OPTS);
-    return res.json({ user });
+    return res.json({ user, role });
   } catch (e) {
     return res.status(500).json({ error: e instanceof Error ? e.message : 'Auth error' });
   }
 });
 
-/** GET /api/auth/session → from cookie (or refresh token if access expired), return { user } or 401 */
+/** GET /api/auth/session → from cookie (or refresh token if access expired), return { user, role } or 401 */
 router.get('/session', async (req: Request, res: Response) => {
   try {
     const token = req.cookies?.[COOKIE_NAME];
     const refreshToken = req.cookies?.[COOKIE_REFRESH_NAME];
+    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRolePort);
 
     if (token) {
       const user = await authProvider.getUserFromAccessToken(token);
-      if (user) return res.json({ user });
+      if (user) {
+        const role = await getRole.getRole(user.id);
+        return res.json({ user, role });
+      }
     }
 
     if (refreshToken) {
       const session = await authProvider.refreshSession(refreshToken);
       if (session?.accessToken) {
         setSessionCookies(res, session.accessToken, session.refreshToken);
-        return res.json({ user: session.user });
+        const role = await getRole.getRole(session.user.id);
+        return res.json({ user: session.user, role });
       }
     }
 

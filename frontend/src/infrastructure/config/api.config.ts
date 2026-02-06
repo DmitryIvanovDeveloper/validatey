@@ -92,6 +92,9 @@ export const API_CONFIG = {
     AUTH_SESSION: '/auth/session',
     AUTH_LINK_PREVIOUS_USER: '/auth/link-previous-user',
     AUTH_SIGN_OUT: '/auth/sign-out',
+
+    // Admin
+    ADMIN_USERS: '/admin/users',
   },
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,

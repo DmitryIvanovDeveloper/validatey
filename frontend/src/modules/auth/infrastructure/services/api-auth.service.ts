@@ -5,11 +5,15 @@ import type { AuthUser } from '../../domain/entities/auth-user.entity';
 
 const BASE = API_CONFIG.BASE_URL;
 
-function toAuthSession(dto: { user: { id: string; email: string | null; displayName: string | null } }): AuthSession {
+function toAuthSession(dto: {
+  user: { id: string; email: string | null; displayName: string | null };
+  role?: 'admin' | 'user';
+}): AuthSession {
   return {
     user: dto.user as AuthUser,
     accessToken: '',
     expiresAt: 0,
+    role: dto.role === 'admin' ? 'admin' : 'user',
   };
 }
 

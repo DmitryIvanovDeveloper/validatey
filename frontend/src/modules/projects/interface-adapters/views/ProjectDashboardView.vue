@@ -16,20 +16,20 @@
           Overview
         </router-link>
         <router-link
+          :to="`/projects/${projectId}/progress`"
+          class="tab-link"
+          :class="{ active: isTabActive('progress') }"
+          role="tab"
+        >
+          Progress
+        </router-link>
+        <router-link
           :to="`/projects/${projectId}/research`"
           class="tab-link"
           :class="{ active: isTabActive('research') }"
           role="tab"
         >
           Research
-        </router-link>
-        <router-link
-          :to="`/projects/${projectId}/report`"
-          class="tab-link"
-          :class="{ active: isTabActive('report') }"
-          role="tab"
-        >
-          Report
         </router-link>
         <router-link
           :to="`/projects/${projectId}/invitations`"
@@ -40,20 +40,20 @@
           Invitations
         </router-link>
         <router-link
-          :to="`/projects/${projectId}/progress`"
-          class="tab-link"
-          :class="{ active: isTabActive('progress') }"
-          role="tab"
-        >
-          Progress
-        </router-link>
-        <router-link
           :to="`/projects/${projectId}/responses`"
           class="tab-link"
           :class="{ active: isTabActive('responses') }"
           role="tab"
         >
           Responses
+        </router-link>
+        <router-link
+          :to="`/projects/${projectId}/report`"
+          class="tab-link"
+          :class="{ active: isTabActive('report') }"
+          role="tab"
+        >
+          Report
         </router-link>
       </nav>
     </header>

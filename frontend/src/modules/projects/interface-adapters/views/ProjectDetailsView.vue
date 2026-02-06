@@ -34,12 +34,12 @@
           <span :class="['status-badge', `status-${project.status}`]">{{ getStatusLabel(project.status) }}</span>
         </div>
         <div class="executive-health-row">
-          <HealthDonutChart
-            :score="projectHealthScore"
-            :score-class="healthScoreClass"
-            label="Project Health"
-            :size="80"
-          />
+          <div class="progress-visual overview-progress-ring">
+            <div class="progress-ring" :style="{ '--p': overviewResponseRate }">
+              <span class="progress-value">{{ overviewResponseRate }}%</span>
+            </div>
+            <span class="progress-ring-label">Response rate</span>
+          </div>
           <div class="executive-metrics">
             <p class="executive-insight" v-if="overviewStats.sent > 0">
               {{ overviewStats.responded }} of {{ overviewStats.sent }} responded ({{ overviewResponseRate }}%)
@@ -266,7 +266,6 @@ import Card from '@/shared/components/Card.vue';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.vue';
 import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
 import ScenarioViewer from './components/ScenarioViewer.vue';
-import HealthDonutChart from '@/shared/components/HealthDonutChart.vue';
 import Modal from '@/shared/components/Modal.vue';
 import { API_CONFIG } from '@/infrastructure/config/api.config';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
@@ -732,6 +731,52 @@ onMounted(() => scrollToHashSection());
   gap: 1.5rem;
   flex-wrap: wrap;
 }
+
+/* Progress ring (same as Progress page) */
+.overview-progress-ring {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+.overview-progress-ring .progress-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--color-accent, #0d9488) calc(var(--p, 0) * 3.6deg),
+    var(--color-border, #e2e8f0) 0
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 5px var(--color-bg, #fff), 0 2px 8px rgba(13, 148, 136, 0.15);
+}
+.overview-progress-ring .progress-ring::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: var(--color-bg, #fff);
+}
+.overview-progress-ring .progress-value {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-accent, #0d9488);
+  position: relative;
+  z-index: 1;
+}
+.progress-ring-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted, #64748b);
+}
+
 .executive-metrics {
   flex: 1;
   min-width: 0;

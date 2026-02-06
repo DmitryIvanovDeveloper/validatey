@@ -14,6 +14,7 @@ export class GetCurrentSessionUseCase {
     const session = await this._authService.getSession();
     return {
       user: session?.user ?? null,
+      role: session?.role ?? null,
     };
   }
 }

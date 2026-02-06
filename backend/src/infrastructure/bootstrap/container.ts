@@ -23,6 +23,7 @@ import { bindSignals } from '../../modules/signals/infrastructure/bootstrap/bind
 import { bindResearch } from '../../modules/research/infrastructure/bootstrap/bind.research';
 import { bindDeletionRequests } from '../../modules/deletion-requests/infrastructure/bootstrap/bind.deletion-requests';
 import { bindAudit } from '../../modules/audit/infrastructure/bootstrap/bind.audit';
+import { bindAdmin } from '../../modules/admin/infrastructure/bootstrap/bind.admin';
 
 const container = new Container();
 
@@ -48,6 +49,7 @@ bindSignals(container);
 bindResearch(container);
 bindDeletionRequests(container);
 bindAudit(container);
+bindAdmin(container);
 
 export { container, TYPES };
 
