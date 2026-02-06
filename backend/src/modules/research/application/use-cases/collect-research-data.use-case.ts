@@ -8,6 +8,7 @@ import type { ProjectRepositoryPort } from '../../../projects/application/ports/
 import type { ResearchDataRepositoryPort } from '../ports/research-data-repository.port';
 import type { MarketDataProviderPort } from '../ports/market-data-provider.port';
 import type { CompetitorDataProviderPort } from '../ports/competitor-data-provider.port';
+import type { AutocompleteDataProviderPort } from '../ports/autocomplete-data-provider.port';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
 import type { StoredResearchData } from '../../domain/entities/stored-research-data.entity';
 import type {
@@ -28,7 +29,9 @@ export class CollectResearchDataUseCase {
     @inject(RESEARCH_TYPES.MarketDataProvider)
     private readonly _marketDataProvider: MarketDataProviderPort,
     @inject(RESEARCH_TYPES.CompetitorDataProvider)
-    private readonly _competitorDataProvider: CompetitorDataProviderPort
+    private readonly _competitorDataProvider: CompetitorDataProviderPort,
+    @inject(RESEARCH_TYPES.AutocompleteDataProvider)
+    private readonly _autocompleteDataProvider: AutocompleteDataProviderPort
   ) {}
 
   async execute(
@@ -46,13 +49,19 @@ export class CollectResearchDataUseCase {
 
       const intent: ResearchIntent = this.buildResearchIntent(project, request);
 
-      const [marketResult, competitorResult] = await Promise.all([
+      const autocompletePromise = request.skipAutocomplete
+        ? Promise.resolve(ResultEx.success(null))
+        : this._autocompleteDataProvider.fetchAutocompleteData(projectId, intent);
+
+      const [marketResult, competitorResult, autocompleteResult] = await Promise.all([
         this._marketDataProvider.fetchMarketData(projectId, intent),
         this._competitorDataProvider.fetchCompetitorData(projectId, intent),
+        autocompletePromise,
       ]);
 
       const marketData = marketResult.isSuccess ? marketResult.data : null;
       const competitorData = competitorResult.isSuccess ? competitorResult.data : null;
+      const autocompleteInsights = autocompleteResult.isSuccess ? autocompleteResult.data : null;
 
       const existingResult = await this._researchDataRepository.findByProjectId(projectId);
       const existing = existingResult.isSuccess ? existingResult.data : null;
@@ -61,6 +70,7 @@ export class CollectResearchDataUseCase {
         projectId,
         marketData: marketData ?? existing?.marketData ?? null,
         competitorData: competitorData ?? existing?.competitorData ?? null,
+        autocompleteInsights: autocompleteInsights ?? existing?.autocompleteInsights ?? null,
         synthesisReport: existing?.synthesisReport ?? null,
         updatedAt: new Date(),
       };
@@ -73,6 +83,7 @@ export class CollectResearchDataUseCase {
         collected: true,
         marketDataCollected: marketData != null,
         competitorDataCollected: competitorData != null,
+        autocompleteDataCollected: autocompleteInsights != null,
       });
     } catch (error) {
       this._logger.error('collect-research-data.exception', { projectId, error });

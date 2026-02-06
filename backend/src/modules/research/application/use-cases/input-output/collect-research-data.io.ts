@@ -13,10 +13,13 @@ export type CollectResearchDataRequest = {
   geography?: string;
   segment?: string;
   productDescription?: string;
+  /** When true, skip Google Places Autocomplete (for A/B testing). */
+  skipAutocomplete?: boolean;
 };
 
 export type CollectResearchDataResponse = {
   collected: boolean;
   marketDataCollected: boolean;
   competitorDataCollected: boolean;
+  autocompleteDataCollected: boolean;
 };

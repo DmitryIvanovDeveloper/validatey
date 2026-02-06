@@ -9,13 +9,13 @@ import { SynthesisGenerationError } from '../../domain/errors/research.error';
 
 const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 
-const SYSTEM_PROMPT = `You are a research analyst. Based on the provided project context (hypothesis, market, competitors, user insights, early signals), produce a short synthesis report.
+const SYSTEM_PROMPT = `You are a research analyst. Based on the provided project context (hypothesis, market, competitors, autocomplete/search intents, user insights, early signals), produce a short synthesis report.
 
 Respond with ONLY a valid JSON object (no markdown, no extra text):
 {"summary":"2-4 sentence overall summary","recommendations":["recommendation 1","recommendation 2",...]}
 
 Rules:
-- summary: concise synthesis of the main findings
+- summary: concise synthesis of the main findings; if autocomplete data is provided, incorporate what users actually search for.
 - recommendations: 2-5 actionable recommendations
 - Use English.`;
 
@@ -32,6 +32,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `Hypothesis: ${input.hypothesisSummary}`,
       `Market: ${input.marketSummary}`,
       `Competitors: ${input.competitorSummary}`,
+      `Search intents (Google Autocomplete): ${input.autocompleteSummary}`,
       `User insights: ${input.userInsightsSummary}`,
       `Early signals: ${input.earlySignalsSummary}`,
     ].join('\n\n');

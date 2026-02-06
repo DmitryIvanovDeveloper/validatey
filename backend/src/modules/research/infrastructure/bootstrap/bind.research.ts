@@ -4,6 +4,9 @@ import { ResearchDataRepositoryPort } from '../../application/ports/research-dat
 import type { SynthesisLlmPort } from '../../application/ports/synthesis-llm.port';
 import type { MarketDataProviderPort } from '../../application/ports/market-data-provider.port';
 import type { CompetitorDataProviderPort } from '../../application/ports/competitor-data-provider.port';
+import type { AutocompleteDataProviderPort } from '../../application/ports/autocomplete-data-provider.port';
+import type { SearchPhrasesGeneratorPort } from '../../application/ports/search-phrases-generator.port';
+import type { AutocompleteApiPort } from '../../application/ports/autocomplete-api.port';
 import type { ResearchAssistantLlmPort } from '../../application/ports/research-assistant-llm.port';
 import { GetResearchCanvasUseCase } from '../../application/use-cases/get-research-canvas.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
@@ -16,6 +19,9 @@ import { MarketDataProviderStubAdapter } from '../services/market-data-provider-
 import { CompetitorDataProviderStubAdapter } from '../services/competitor-data-provider-stub.adapter';
 import { LlmMarketDataProviderAdapter } from '../services/llm-market-data-provider.adapter';
 import { LlmCompetitorDataProviderAdapter } from '../services/llm-competitor-data-provider.adapter';
+import { LlmSearchPhrasesGeneratorAdapter } from '../services/llm-search-phrases-generator.adapter';
+import { GooglePlaceAutocompleteAdapter } from '../services/google-place-autocomplete.adapter';
+import { AutocompleteDataProviderAdapter } from '../services/autocomplete-data-provider.adapter';
 import { ResearchPresenter } from '../../interface-adapters/presenters/research.presenter';
 
 const useLlmResearchProviders = !!process.env.SERPER_API_KEY?.trim();
@@ -30,6 +36,9 @@ export function bindResearch(container: Container): void {
   container
     .bind<CompetitorDataProviderPort>(TYPES.CompetitorDataProvider)
     .to(useLlmResearchProviders ? LlmCompetitorDataProviderAdapter : CompetitorDataProviderStubAdapter);
+  container.bind<SearchPhrasesGeneratorPort>(TYPES.SearchPhrasesGenerator).to(LlmSearchPhrasesGeneratorAdapter);
+  container.bind<AutocompleteApiPort>(TYPES.AutocompleteApi).to(GooglePlaceAutocompleteAdapter);
+  container.bind<AutocompleteDataProviderPort>(TYPES.AutocompleteDataProvider).to(AutocompleteDataProviderAdapter);
   container.bind<GetResearchCanvasUseCase>(TYPES.GetResearchCanvasUseCase).to(GetResearchCanvasUseCase);
   container.bind<GenerateSynthesisUseCase>(TYPES.GenerateSynthesisUseCase).to(GenerateSynthesisUseCase);
   container.bind<CollectResearchDataUseCase>(TYPES.CollectResearchDataUseCase).to(CollectResearchDataUseCase);

@@ -59,6 +59,7 @@ export class GenerateSynthesisUseCase {
       const hypothesisSummary = project.hypothesis?.description ?? project.name ?? 'No hypothesis';
       const marketSummary = this.summarizeMarket(project.marketContext, stored?.marketData ?? null);
       const competitorSummary = this.summarizeCompetitors(stored?.competitorData ?? null);
+      const autocompleteSummary = this.summarizeAutocomplete(stored?.autocompleteInsights ?? null);
       const templateSlug = project.scenarioTemplateSlug ?? 'wtp';
       const metricsResult = await this._calculateMetricsUseCase.execute({ projectId, templateSlug });
       const userInsightsSummary = metricsResult.isSuccess
@@ -74,6 +75,7 @@ export class GenerateSynthesisUseCase {
         hypothesisSummary,
         marketSummary,
         competitorSummary,
+        autocompleteSummary,
         userInsightsSummary,
         earlySignalsSummary,
       });
@@ -87,6 +89,7 @@ export class GenerateSynthesisUseCase {
         projectId,
         marketData: stored?.marketData ?? null,
         competitorData: stored?.competitorData ?? null,
+        autocompleteInsights: stored?.autocompleteInsights ?? null,
         synthesisReport: report,
         updatedAt: new Date(),
       };
@@ -110,6 +113,17 @@ export class GenerateSynthesisUseCase {
       Boolean
     );
     return parts.length > 0 ? parts.join('. ') : 'No market data';
+  }
+
+  private summarizeAutocomplete(autocomplete: StoredResearchData['autocompleteInsights']): string {
+    if (!autocomplete || autocomplete.results.length === 0) return 'No autocomplete data';
+    const lines: string[] = [];
+    for (const r of autocomplete.results) {
+      if (r.suggestions.length > 0) {
+        lines.push(`"${r.phrase}" → ${r.suggestions.slice(0, 5).join('; ')}`);
+      }
+    }
+    return lines.length > 0 ? lines.join('. ') : 'No suggestions';
   }
 
   private summarizeCompetitors(competitorData: StoredResearchData['competitorData']): string {

@@ -51,6 +51,7 @@ router.post('/collect', async (req: Request, res: Response) => {
       segment: typeof req.body?.segment === 'string' ? req.body.segment.trim() || undefined : undefined,
       productDescription:
         typeof req.body?.productDescription === 'string' ? req.body.productDescription.trim() || undefined : undefined,
+      skipAutocomplete: req.body?.skipAutocomplete === true,
     });
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error.message });

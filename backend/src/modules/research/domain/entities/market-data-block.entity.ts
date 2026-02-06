@@ -2,5 +2,5 @@
 export interface MarketDataBlock {
   readonly size?: string;
   readonly growth?: string;
-  readonly trends?: string[];
+  readonly trends?: readonly string[];
 }

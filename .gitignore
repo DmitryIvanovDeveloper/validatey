@@ -227,6 +227,9 @@ Desktop.ini
 *.sqlite3
 *.db
 
+# A/B test output (generated)
+backend/ab-test-output/*.json
+
 # Temporary files
 *.tmp
 *.temp

@@ -148,6 +148,28 @@
               <p class="block-hint">Use «Research market with AI» to get main players and pricing.</p>
             </div>
           </div>
+          <div class="card canvas-block autocomplete-block">
+            <div class="block-head">
+              <span class="block-icon autocomplete-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </span>
+              <h3 class="block-title">Search Suggestions (Google Places)</h3>
+              <span v-if="hasAutocompleteInsights" class="block-status">Collected</span>
+            </div>
+            <div v-if="hasAutocompleteInsights" class="block-content block-insights">
+              <p class="block-subtitle">What people search for in your market</p>
+              <div v-for="(r, idx) in canvas.autocompleteInsights?.results" :key="idx" class="autocomplete-phrase-group">
+                <p class="autocomplete-phrase"><strong>{{ r.phrase }}</strong></p>
+                <ul v-if="r.suggestions?.length" class="block-list insights-list autocomplete-suggestions">
+                  <li v-for="(s, i) in r.suggestions" :key="i">{{ s }}</li>
+                </ul>
+              </div>
+            </div>
+            <div v-else class="block-empty">
+              <p>No search suggestions yet.</p>
+              <p class="block-hint">Use «Research market with AI» to gather Google Place Autocomplete data.</p>
+            </div>
+          </div>
           <div class="card canvas-block insights-block">
             <div class="block-head">
               <span class="block-icon insights-icon" aria-hidden="true">
@@ -291,6 +313,10 @@ const canvas = ref<{
   marketData: { size?: string; growth?: string; trends?: string[] };
   competitorInfo: { competitors?: string[]; priceRange?: string; rating?: string };
   userInsights: { topPains?: string[]; wtp?: string; retentionHint?: string };
+  autocompleteInsights?: {
+    searchPhrases: string[];
+    results: ReadonlyArray<{ phrase: string; suggestions: string[] }>;
+  } | null;
 } | null>(null);
 const projectName = ref<string>('');
 const synthesisLoading = ref(false);
@@ -330,6 +356,10 @@ const hasCompetitorData = computed(() => {
 const hasUserInsights = computed(() => {
   const u = canvas.value?.userInsights;
   return !!(u && (u.topPains?.length || u.wtp || u.retentionHint));
+});
+const hasAutocompleteInsights = computed(() => {
+  const a = canvas.value?.autocompleteInsights;
+  return !!(a && a.results?.length && a.results.some((r) => r.suggestions?.length));
 });
 const marketInsightText = computed(() => {
   if (!canvas.value?.marketData?.growth) return '';
@@ -914,10 +944,10 @@ onMounted(() => {
 .blocks-section { margin-top: var(--space-2, 0.5rem); }
 .canvas-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-5, 1.25rem);
 }
-@media (max-width: 900px) {
+@media (max-width: 700px) {
   .canvas-grid { grid-template-columns: 1fr; }
 }
 .canvas-block {
@@ -956,7 +986,12 @@ onMounted(() => {
 }
 .market-icon   { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
 .competitor-icon { background: rgba(245, 158, 11, 0.12); color: #b45309; }
+.autocomplete-icon { background: rgba(139, 92, 246, 0.12); color: #7c3aed; }
 .insights-icon { background: rgba(34, 197, 94, 0.12); color: #059669; }
+.autocomplete-phrase-group { margin-bottom: var(--space-3, 0.75rem); }
+.autocomplete-phrase-group:last-child { margin-bottom: 0; }
+.autocomplete-phrase { margin: 0 0 0.25em 0; font-size: var(--text-sm, 0.8125rem); }
+.block-subtitle { font-size: var(--text-xs, 0.75rem); color: var(--color-text-subtle); margin-bottom: var(--space-2, 0.5rem); }
 
 .block-content,
 .block-empty {

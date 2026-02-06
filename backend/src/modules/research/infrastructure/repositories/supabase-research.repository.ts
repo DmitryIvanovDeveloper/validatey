@@ -4,7 +4,7 @@ import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 import type { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
-import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport } from '../../domain/entities';
+import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights } from '../../domain/entities';
 
 @injectable()
 export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
@@ -33,6 +33,7 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
         projectId: data.project_id,
         marketData: (data.market_data as MarketDataBlock) ?? null,
         competitorData: (data.competitor_data as CompetitorInfoBlock) ?? null,
+        autocompleteInsights: (data.autocomplete_insights as AutocompleteInsights) ?? null,
         synthesisReport: (data.synthesis_report as SynthesisReport) ?? null,
         updatedAt: new Date(data.updated_at),
       };
@@ -51,6 +52,7 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
           project_id: data.projectId,
           market_data: data.marketData,
           competitor_data: data.competitorData,
+          autocomplete_insights: data.autocompleteInsights,
           synthesis_report: data.synthesisReport,
           updated_at: new Date().toISOString(),
         },

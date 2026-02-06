@@ -68,6 +68,7 @@ export class GetResearchCanvasUseCase {
         marketData,
         competitorInfo,
         userInsights,
+        autocompleteInsights: stored?.autocompleteInsights ?? null,
       };
 
       const recommendedTemplate = this.getRecommendedTemplate(project.scenarioTemplateSlug ?? 'wtp');

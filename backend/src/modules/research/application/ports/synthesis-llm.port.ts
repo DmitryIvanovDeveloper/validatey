@@ -7,6 +7,7 @@ export interface SynthesisInput {
   hypothesisSummary: string;
   marketSummary: string;
   competitorSummary: string;
+  autocompleteSummary: string;
   userInsightsSummary: string;
   earlySignalsSummary: string;
 }
