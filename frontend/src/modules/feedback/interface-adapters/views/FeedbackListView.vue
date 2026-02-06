@@ -8,7 +8,54 @@
       <ErrorDisplay :error="error" />
     </div>
     <template v-else>
-      <div v-if="feedback.length === 0" class="feedback-list-view__empty">
+      <div v-if="feedback.length > 0" class="feedback-list-view__toolbar">
+        <div class="feedback-list-view__filter">
+          <label for="feedback-type-filter" class="feedback-list-view__filter-label">Type</label>
+          <select
+            id="feedback-type-filter"
+            v-model="typeFilter"
+            class="feedback-list-view__filter-select"
+            aria-label="Filter by feedback type"
+          >
+            <option value="">All</option>
+            <option value="feature_request">New feature</option>
+            <option value="bug_report">Bug report</option>
+            <option value="what_is_missing">What's missing</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="feedback-list-view__actions">
+        <button
+          type="button"
+          class="feedback-list-view__analyze-btn"
+          :disabled="analyzing"
+          @click="runAnalysis"
+        >
+          <span v-if="analyzing" class="feedback-list-view__analyze-spinner" aria-hidden="true" />
+          {{ analyzing ? 'Analyzing…' : 'Analyze with AI' }}
+        </button>
+        </div>
+      </div>
+      <div v-if="analysis" class="feedback-list-view__analysis">
+        <h3 class="feedback-list-view__analysis-title">AI analysis</h3>
+        <p class="feedback-list-view__analysis-summary">{{ analysis.summary }}</p>
+        <div v-if="analysis.themes?.length" class="feedback-list-view__analysis-section">
+          <h4 class="feedback-list-view__analysis-heading">Themes</h4>
+          <ul class="feedback-list-view__analysis-list">
+            <li v-for="(t, i) in analysis.themes" :key="i">{{ t }}</li>
+          </ul>
+        </div>
+        <div v-if="analysis.suggestedActions?.length" class="feedback-list-view__analysis-section">
+          <h4 class="feedback-list-view__analysis-heading">Suggested actions</h4>
+          <ul class="feedback-list-view__analysis-list">
+            <li v-for="(a, i) in analysis.suggestedActions" :key="i">{{ a }}</li>
+          </ul>
+        </div>
+      </div>
+      <div v-if="analysisError" class="feedback-list-view__analysis-error">
+        {{ analysisError }}
+      </div>
+      <div v-if="filteredAndSortedFeedback.length === 0" class="feedback-list-view__empty">
         <div class="feedback-list-view__empty-icon" aria-hidden="true">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -70,9 +117,69 @@ interface FeedbackRow {
   createdAt: string;
 }
 
+interface FeedbackAnalysis {
+  summary: string;
+  themes: string[];
+  suggestedActions: string[];
+}
+
 const feedback = ref<FeedbackRow[]>([]);
+const typeFilter = ref<string>('');
 const loading = ref(true);
+
+const TYPE_ORDER: Record<string, number> = {
+  feature_request: 0,
+  bug_report: 1,
+  what_is_missing: 2,
+  other: 3,
+};
+
+const filteredAndSortedFeedback = computed(() => {
+  let list = feedback.value;
+  if (typeFilter.value) {
+    list = list.filter((f) => f.type === typeFilter.value);
+  }
+  return [...list].sort((a, b) => {
+    const typeA = TYPE_ORDER[a.type] ?? 4;
+    const typeB = TYPE_ORDER[b.type] ?? 4;
+    if (typeA !== typeB) return typeA - typeB;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+});
 const error = ref<string | null>(null);
+const analyzing = ref(false);
+const analysis = ref<FeedbackAnalysis | null>(null);
+const analysisError = ref<string | null>(null);
+
+async function runAnalysis() {
+  analyzing.value = true;
+  analysisError.value = null;
+  analysis.value = null;
+  try {
+    const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ADMIN_FEEDBACK_ANALYZE}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      analysisError.value = data?.error ?? `Error: ${res.status}`;
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (data?.analysis) {
+      analysis.value = {
+        summary: data.analysis.summary ?? '',
+        themes: Array.isArray(data.analysis.themes) ? data.analysis.themes : [],
+        suggestedActions: Array.isArray(data.analysis.suggestedActions) ? data.analysis.suggestedActions : [],
+      };
+    }
+  } catch (e) {
+    analysisError.value = e instanceof Error ? e.message : 'Analysis request failed';
+  } finally {
+    analyzing.value = false;
+  }
+}
 
 function idShort(id: string): string {
   if (id.length <= 8) return id;
@@ -289,5 +396,134 @@ onMounted(async () => {
 
 .feedback-card__link:hover {
   color: var(--color-accent-hover, #0f766e);
+}
+
+.feedback-list-view__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.feedback-list-view__filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.feedback-list-view__filter-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted, #475569);
+}
+
+.feedback-list-view__filter-select {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: 0.5rem;
+  background: var(--color-bg, #fff);
+  color: var(--color-text, #0f172a);
+  cursor: pointer;
+}
+
+.feedback-list-view__filter-select:focus {
+  outline: none;
+  border-color: var(--color-accent, #0d9488);
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
+}
+
+.feedback-list-view__actions {
+  margin-left: auto;
+}
+
+.feedback-list-view__analyze-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--color-accent, #0d9488);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.feedback-list-view__analyze-btn:hover:not(:disabled) {
+  background: var(--color-accent-hover, #0f766e);
+}
+
+.feedback-list-view__analyze-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.feedback-list-view__analyze-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: feedback-list-view-spin 0.7s linear infinite;
+}
+
+@keyframes feedback-list-view-spin {
+  to { transform: rotate(360deg); }
+}
+
+.feedback-list-view__analysis {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-bg-elevated, #f8fafc);
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 1rem;
+}
+
+.feedback-list-view__analysis-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text, #0f172a);
+}
+
+.feedback-list-view__analysis-summary {
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--color-text, #0f172a);
+}
+
+.feedback-list-view__analysis-section {
+  margin-top: 1rem;
+}
+
+.feedback-list-view__analysis-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted, #475569);
+}
+
+.feedback-list-view__analysis-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-text, #0f172a);
+}
+
+.feedback-list-view__analysis-error {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #b91c1c;
+  background: var(--color-error-bg, #fee2e2);
+  border-radius: 0.5rem;
 }
 </style>

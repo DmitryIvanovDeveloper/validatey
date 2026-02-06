@@ -5,6 +5,7 @@ import { ListUsersUseCase } from '../../application/use-cases/list-users.use-cas
 import { AdminAccessDeniedError } from '../../domain/errors/admin.error';
 import { SupabaseAuthProvider } from '../../../auth/infrastructure/supabase-auth-provider';
 import { ListFeedbackUseCase } from '../../../feedback/application/use-cases/list-feedback.use-case';
+import { AnalyzeFeedbackUseCase } from '../../../feedback/application/use-cases/analyze-feedback.use-case';
 import { TYPES as FEEDBACK_TYPES } from '../../../feedback/infrastructure/bootstrap/types';
 
 const router = Router();
@@ -89,6 +90,35 @@ router.get('/feedback', async (req: Request, res: Response) => {
       };
     });
     return res.json({ feedback });
+  } catch (e) {
+    return res.status(500).json({ error: e instanceof Error ? e.message : 'Unknown error' });
+  }
+});
+
+/** POST /api/admin/feedback/analyze — AI analysis of feedback (admin only). Session from cookie. Body not used: backend loads all feedback from Supabase. */
+router.post('/feedback/analyze', async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.[COOKIE_NAME];
+    if (!token) {
+      return res.status(401).json({ error: 'No session' });
+    }
+
+    const user = await authProvider.getUserFromAccessToken(token);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+
+    const analyzeFeedbackUseCase = container.get<AnalyzeFeedbackUseCase>(FEEDBACK_TYPES.AnalyzeFeedbackUseCase);
+    const result = await analyzeFeedbackUseCase.execute({ callerUserId: user.id });
+
+    if (!result.isSuccess) {
+      if (result.error instanceof AdminAccessDeniedError) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      return res.status(500).json({ error: result.error instanceof Error ? result.error.message : 'Unknown error' });
+    }
+
+    return res.json({ analysis: result.data.analysis });
   } catch (e) {
     return res.status(500).json({ error: e instanceof Error ? e.message : 'Unknown error' });
   }

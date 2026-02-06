@@ -96,6 +96,7 @@ export const API_CONFIG = {
     // Admin
     ADMIN_USERS: '/admin/users',
     ADMIN_FEEDBACK: '/admin/feedback',
+    ADMIN_FEEDBACK_ANALYZE: '/admin/feedback/analyze',
 
     // Feedback (widget submit)
     FEEDBACK: '/feedback',
