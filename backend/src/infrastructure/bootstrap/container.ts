@@ -24,6 +24,7 @@ import { bindResearch } from '../../modules/research/infrastructure/bootstrap/bi
 import { bindDeletionRequests } from '../../modules/deletion-requests/infrastructure/bootstrap/bind.deletion-requests';
 import { bindAudit } from '../../modules/audit/infrastructure/bootstrap/bind.audit';
 import { bindAdmin } from '../../modules/admin/infrastructure/bootstrap/bind.admin';
+import { bindFeedback } from '../../modules/feedback/infrastructure/bootstrap/bind.feedback';
 
 const container = new Container();
 
@@ -50,6 +51,7 @@ bindResearch(container);
 bindDeletionRequests(container);
 bindAudit(container);
 bindAdmin(container);
+bindFeedback(container);
 
 export { container, TYPES };
 

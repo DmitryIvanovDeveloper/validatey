@@ -80,6 +80,7 @@ import surveyRoutes from './modules/surveys/interface-adapters/routes/survey.rou
 import aiRoutes from './modules/ai/routes';
 import authRoutes from './modules/auth/interface-adapters/routes/auth.routes';
 import adminRoutes from './modules/admin/interface-adapters/routes/admin.routes';
+import feedbackRoutes from './modules/feedback/interface-adapters/routes/feedback.routes';
 import deletionRequestsRoutes from './modules/deletion-requests/interface-adapters/routes/deletion-requests.routes';
 import hubspotRoutes from './modules/integrations/interface-adapters/routes/hubspot.routes';
 
@@ -100,6 +101,7 @@ app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/feedback', feedbackRoutes);
 app.use('/api/deletion-requests', deletionRequestsRoutes);
 app.use('/api/integrations/hubspot', hubspotRoutes);
 app.use('/survey', surveyRoutes);

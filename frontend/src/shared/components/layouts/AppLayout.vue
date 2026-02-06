@@ -12,7 +12,7 @@
           <span class="brand-text">Validatey</span>
         </router-link>
         <nav v-if="authViewModel.user.value" class="header-nav" aria-label="Main">
-          <router-link to="/projects" class="nav-link">Projects</router-link>
+          <router-link v-if="authViewModel.role.value !== 'admin'" to="/projects" class="nav-link">Projects</router-link>
           <router-link v-if="authViewModel.role.value === 'admin'" to="/admin/users" class="nav-link">Users</router-link>
         </nav>
         <div class="header-actions">

@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { RouterView } from 'vue-router';
 import AppLayout from './shared/components/layouts/AppLayout.vue';
 import EmptyLayout from './shared/components/layouts/EmptyLayout.vue';
+import AdminLayout from './shared/components/layouts/AdminLayout.vue';
+import FeedbackWidget from './modules/feedback/interface-adapters/components/FeedbackWidget.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -15,10 +17,16 @@ onMounted(async () => {
   ready.value = true;
 });
 
-// Определяем какой layout использовать на основе meta
 const layout = computed(() => {
-  return route.meta.layout === 'empty' ? EmptyLayout : AppLayout;
+  if (route.meta.layout === 'empty') return EmptyLayout;
+  if (route.meta.layout === 'admin') return AdminLayout;
+  return AppLayout;
 });
+
+/** Show feedback widget for users only: not on empty layout (survey) and not on admin layout. */
+const showFeedbackWidget = computed(
+  () => route.meta.layout !== 'empty' && route.meta.layout !== 'admin'
+);
 </script>
 
 <template>
@@ -26,6 +34,7 @@ const layout = computed(() => {
     <component :is="layout">
       <RouterView />
     </component>
+    <FeedbackWidget v-if="showFeedbackWidget" />
   </template>
   <div v-else class="app-initial-loading" aria-live="polite">
     <span class="app-initial-loading__brand">Validatey</span>

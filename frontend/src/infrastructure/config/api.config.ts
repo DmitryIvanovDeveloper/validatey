@@ -95,6 +95,10 @@ export const API_CONFIG = {
 
     // Admin
     ADMIN_USERS: '/admin/users',
+    ADMIN_FEEDBACK: '/admin/feedback',
+
+    // Feedback (widget submit)
+    FEEDBACK: '/feedback',
   },
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
