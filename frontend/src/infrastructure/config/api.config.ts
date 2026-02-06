@@ -54,6 +54,12 @@ export const API_CONFIG = {
     // Early Signals
     EARLY_SIGNALS: (projectId: string) => `/projects/${projectId}/early-signals`,
 
+    // Research (Canvas, Assistant, Collect, Synthesis)
+    RESEARCH_CANVAS: (projectId: string) => `/projects/${projectId}/research/canvas`,
+    RESEARCH_SYNTHESIS: (projectId: string) => `/projects/${projectId}/research/synthesis`,
+    RESEARCH_COLLECT: (projectId: string) => `/projects/${projectId}/research/collect`,
+    RESEARCH_ASSISTANT: (projectId: string) => `/projects/${projectId}/research/assistant`,
+
     // Reports
     REPORT: (projectId: string) => `/projects/${projectId}/report`,
     REPORT_HTML: (projectId: string) => `/projects/${projectId}/report/html`,
@@ -72,6 +78,12 @@ export const API_CONFIG = {
     AI_HYPOTHESIS_SUGGEST: '/ai/hypothesis-suggest',
     AI_MARKET_CONTEXT_SUGGEST: '/ai/market-context-suggest',
     AI_FORMAT_TEXT: '/ai/format-text',
+
+    // Integrations
+    HUBSPOT_STATUS: '/integrations/hubspot/status',
+    HUBSPOT_AUTHORIZE: (returnTo?: string) => `/integrations/hubspot/authorize${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`,
+    HUBSPOT_CALLBACK: '/integrations/hubspot/callback',
+    HUBSPOT_CONTACTS: (segment?: string) => `/integrations/hubspot/contacts${segment ? `?segment=${encodeURIComponent(segment)}` : ''}`,
 
     // Auth (via backend; no Supabase on frontend)
     AUTH_GOOGLE_URL: '/auth/google-url',

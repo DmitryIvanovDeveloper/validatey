@@ -5,7 +5,7 @@ import { TYPES as AUTH_TYPES } from '@/modules/auth/infrastructure/bootstrap/typ
 import type { AuthServicePort } from '@/modules/auth/application/ports/auth-service.port';
 
 /** Routes that are allowed without authentication (no redirect to login). */
-const PUBLIC_ROUTE_NAMES = new Set(['login', 'auth-callback', 'respondent-survey', 'survey-public']);
+const PUBLIC_ROUTE_NAMES = new Set(['login', 'auth-callback', 'respondent-survey', 'survey-public', 'survey-public-short']);
 
 export async function tokenGuard(
   to: RouteLocationNormalized,

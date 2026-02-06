@@ -30,6 +30,8 @@ defineProps<{
 <style scoped>
 .page-header {
   margin-bottom: var(--space-8, 2rem);
+  padding-bottom: var(--space-6, 1.5rem);
+  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
 }
 
 .page-header-compact {
@@ -77,12 +79,15 @@ defineProps<{
   color: var(--color-text, #0f172a);
   margin: 0;
   letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .page-subtitle {
   font-size: var(--text-base, 0.875rem);
   color: var(--color-text-muted);
   margin: 0.5rem 0 0;
+  max-width: 42rem;
+  line-height: 1.5;
 }
 
 .header-actions {

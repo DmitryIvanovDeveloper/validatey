@@ -20,6 +20,7 @@ import { bindConsents } from '../../modules/consents/infrastructure/bootstrap/bi
 import { bindSurveys } from '../../modules/surveys/infrastructure/bootstrap/bind.surveys';
 import { bindAi } from '../../modules/ai/infrastructure/bootstrap/bind.ai';
 import { bindSignals } from '../../modules/signals/infrastructure/bootstrap/bind.signals';
+import { bindResearch } from '../../modules/research/infrastructure/bootstrap/bind.research';
 import { bindDeletionRequests } from '../../modules/deletion-requests/infrastructure/bootstrap/bind.deletion-requests';
 import { bindAudit } from '../../modules/audit/infrastructure/bootstrap/bind.audit';
 
@@ -44,6 +45,7 @@ bindConsents(container);
 bindSurveys(container);
 bindAi(container);
 bindSignals(container);
+bindResearch(container);
 bindDeletionRequests(container);
 bindAudit(container);
 

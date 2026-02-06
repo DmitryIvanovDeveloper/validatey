@@ -25,8 +25,9 @@ router.post('/market-context-suggest', async (req: Request, res: Response) => {
     if (!result.isSuccess) {
       const err = result.error;
       const message = err instanceof AiModuleError ? err.message : 'Market context suggestion failed';
+      const isMissingContext = message.includes('Provide segment or hypothesis');
       const isConfig = message.includes('not configured') || message.includes('SERPER_API_KEY');
-      const status = isConfig ? 503 : 502;
+      const status = isMissingContext ? 400 : isConfig ? 503 : 502;
       return res.status(status).json({
         error: message,
         hint: isConfig ? 'Set SERPER_API_KEY in environment to enable search.' : undefined,

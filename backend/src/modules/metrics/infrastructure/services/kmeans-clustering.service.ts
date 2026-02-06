@@ -153,7 +153,7 @@ export class KMeansClusteringService implements ClusteringServicePort {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([word]) => word);
-    return sortedWords.join(', ') || 'General feedback';
+    return sortedWords.join(', ') || '';
   }
 }
 

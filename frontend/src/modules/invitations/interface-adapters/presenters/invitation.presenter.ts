@@ -22,7 +22,8 @@ export class InvitationPresenter {
   async loadInvitations(projectId: string): Promise<{ invitations: InvitationListItem[]; error?: string }> {
     const result = await this._repository.getStatuses(projectId);
     if (!result.isSuccess) {
-      return { invitations: [], error: result.error?.message };
+      const err = result.error as Error | undefined;
+      return { invitations: [], error: err?.message ?? 'Failed to load invitations' };
     }
     const invitations = (result.data as Invitation[]).map((inv) => ({
       id: inv.id,

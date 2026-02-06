@@ -54,6 +54,31 @@
     </div>
 
     <div v-else-if="report" class="report-content">
+      <!-- Executive summary (always visible) -->
+      <Card class="executive-summary-card">
+        <template #header>
+          <h2 class="executive-summary-title">Summary</h2>
+        </template>
+        <div class="executive-summary-content">
+          <p class="executive-line">
+            <strong>Verdict:</strong> {{ getVerdictIcon(report.verdictType) }} {{ report.verdictType === 'positive' ? 'Go' : report.verdictType === 'negative' ? 'No-go' : 'Neutral' }} — {{ report.verdict.slice(0, 120) }}{{ report.verdict.length > 120 ? '…' : '' }}
+          </p>
+          <p class="executive-line">
+            <strong>Key insight:</strong> Target audience willingness to pay <strong>${{ report.wtp.toFixed(2) }}</strong> on average.
+          </p>
+          <p v-if="report.recommendations && report.recommendations.length" class="executive-line">
+            <strong>Recommendation:</strong> {{ report.recommendations[0] }}
+          </p>
+        </div>
+        <div class="executive-summary-actions">
+          <button type="button" class="btn btn-secondary" @click="showFullReport = !showFullReport">
+            {{ showFullReport ? 'Collapse full report' : 'Expand full report' }}
+          </button>
+        </div>
+      </Card>
+
+      <!-- Full report (expandable) -->
+      <div v-show="showFullReport" class="report-full-content">
       <!-- Verdict -->
       <Card class="verdict-card" :class="`verdict-${report.verdictType}`">
         <template #header>
@@ -122,6 +147,7 @@
           </li>
         </ol>
       </Card>
+      </div>
 
       <!-- Actions -->
       <div class="report-actions">
@@ -160,6 +186,7 @@ const reportRepository = container.get<ReportRepositoryPort>(TYPES.ReportReposit
 const loading = ref(true);
 const error = ref<string | null>(null);
 const report = ref<ReportViewData | null>(null);
+const showFullReport = ref(false);
 const showCopyToast = ref(false);
 const copyToastMessage = ref('');
 
@@ -339,6 +366,42 @@ onMounted(() => {
   gap: var(--space-8);
 }
 
+.executive-summary-card {
+  background: var(--color-bg-elevated, #f8fafc);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.executive-summary-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.executive-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.executive-line {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.executive-summary-actions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.report-full-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
 
 .verdict-card {
   border-left: 6px solid var(--color-border);

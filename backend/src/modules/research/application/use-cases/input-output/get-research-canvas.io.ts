@@ -1,0 +1,17 @@
+import type { ResearchCanvas } from '../../../domain/entities/research-canvas.entity';
+
+export type GetResearchCanvasRequest = {
+  projectId: string;
+};
+
+export type RecommendedTemplate = {
+  name: string;
+  slug: string;
+  description: string;
+};
+
+export type GetResearchCanvasResponse = {
+  canvas: ResearchCanvas;
+  projectName?: string;
+  recommendedTemplate?: RecommendedTemplate;
+};

@@ -21,7 +21,12 @@ export class SuggestMarketContextUseCase {
   async execute(request: SuggestMarketContextRequest): Promise<ResultEx<SuggestMarketContextResponse, AiModuleError>> {
     const segmentDesc = (request.segmentDescription ?? '').trim();
     const productDesc = (request.productDescription ?? '').trim();
-    const niche = segmentDesc || productDesc || 'B2B software market';
+    const niche = segmentDesc || productDesc;
+    if (!niche) {
+      return ResultEx.failure(
+        new AiModuleError('Provide segment or hypothesis (or product name) above for a relevant market context suggestion.')
+      );
+    }
 
     const queries = [
       `${niche} market players competitors who buys`,

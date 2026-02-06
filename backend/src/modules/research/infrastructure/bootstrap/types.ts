@@ -1,0 +1,12 @@
+export const TYPES = {
+  ResearchDataRepository: Symbol.for('ResearchDataRepository'),
+  MarketDataProvider: Symbol.for('MarketDataProvider'),
+  CompetitorDataProvider: Symbol.for('CompetitorDataProvider'),
+  ResearchAssistantLlm: Symbol.for('ResearchAssistantLlm'),
+  SynthesisLlm: Symbol.for('SynthesisLlm'),
+  GetResearchCanvasUseCase: Symbol.for('GetResearchCanvasUseCase'),
+  GenerateSynthesisUseCase: Symbol.for('GenerateSynthesisUseCase'),
+  CollectResearchDataUseCase: Symbol.for('CollectResearchDataUseCase'),
+  ResearchAssistantUseCase: Symbol.for('ResearchAssistantUseCase'),
+  ResearchPresenter: Symbol.for('ResearchPresenter'),
+} as const;

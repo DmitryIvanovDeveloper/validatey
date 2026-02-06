@@ -19,6 +19,19 @@
       </template>
     </PageHeader>
 
+    <div v-if="route.query.onboarding === '1'" class="onboarding-hint" role="status">
+      <span class="onboarding-hint-icon" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      </span>
+      <span>Share your link to start collecting responses. Enable public access below or generate a personal link.</span>
+    </div>
+
+    <nav class="invitations-tabs" role="tablist">
+      <button type="button" role="tab" :class="{ active: invitationsTab === 'public' }" @click="invitationsTab = 'public'">Public link</button>
+      <button type="button" role="tab" :class="{ active: invitationsTab === 'personal' }" @click="invitationsTab = 'personal'">Personal invitations</button>
+    </nav>
+
+    <div v-show="invitationsTab === 'public'" class="invitations-tab-panel">
     <!-- Public link -->
     <Card class="section-card public-link-card">
       <template #header>
@@ -29,7 +42,7 @@
           <div>
             <h3 class="section-title">Public link</h3>
             <p class="section-subtitle">One link, many respondents. Limit and moderate responses.</p>
-          </div>
+      </div>
         </div>
       </template>
       <div v-if="projectLoadError" class="msg msg-error" role="alert">{{ projectLoadError }}</div>
@@ -107,7 +120,7 @@
           <div>
             <h3 class="section-title">Share survey link</h3>
             <p class="section-subtitle">Generate a new unique link for each respondent. One link — one response.</p>
-          </div>
+        </div>
         </div>
       </template>
       <div class="share-actions">
@@ -148,7 +161,9 @@
         <p v-if="shareLinkError" class="msg msg-error" role="alert">{{ shareLinkError }}</p>
       </div>
     </Card>
+    </div>
 
+    <div v-show="invitationsTab === 'personal'" class="invitations-tab-panel">
     <!-- Invitations list -->
     <Card class="section-card list-card">
       <template #header>
@@ -160,7 +175,7 @@
             <div>
               <h3 class="section-title">Invitations list</h3>
               <p class="section-subtitle">{{ invitations.length }} invitation{{ invitations.length === 1 ? '' : 's' }}</p>
-            </div>
+          </div>
           </div>
           <div v-if="pendingCount > 0" class="header-actions-inline">
             <span class="pending-badge">{{ pendingCount }} pending</span>
@@ -225,22 +240,88 @@
         </table>
       </div>
     </Card>
+    </div>
 
     <Modal v-model="showInviteModal" title="Send invitations" :closable="true">
       <div class="invite-form">
+        <div class="invite-methods">
         <div class="form-group">
-          <label for="invite-emails" class="label">Email addresses (one per line)</label>
+            <label for="invite-emails" class="label">Paste email addresses (one per line)</label>
           <textarea
-            id="invite-emails"
+              id="invite-emails"
             v-model="inviteEmails"
-            rows="6"
-            class="input textarea"
-            placeholder="user1@example.com&#10;user2@example.com"
-          />
+              rows="5"
+              class="input textarea"
+              placeholder="user1@example.com&#10;user2@example.com"
+            />
+          </div>
+          <div class="form-group invite-import-row">
+            <label class="label">Or import from file</label>
+            <input
+              ref="csvFileInput"
+              type="file"
+              accept=".csv"
+              class="input-file-hidden"
+              aria-label="Choose CSV file"
+              @change="onCsvFileSelected"
+            />
+            <button type="button" class="btn btn-secondary" @click="triggerCsvInput">
+              Import CSV
+            </button>
+            <p v-if="csvPreviewCount !== null" class="csv-preview">
+              {{ csvPreviewCount }} email{{ csvPreviewCount === 1 ? '' : 's' }} found
+              <template v-if="csvPreviewEmails.length"> (e.g. {{ csvPreviewEmails.slice(0, 3).join(', ') }}{{ csvPreviewEmails.length > 3 ? '…' : '' }})</template>
+            </p>
+            <p v-if="csvParseError" class="msg msg-error" role="alert">{{ csvParseError }}</p>
+          </div>
+          <div class="form-group hubspot-row">
+            <template v-if="hubspotConnected">
+              <label class="label">Import from HubSpot</label>
+              <div class="hubspot-import-row">
+                <select v-model="hubspotSegment" class="input input-narrow">
+                  <option value="all">All contacts</option>
+                  <option value="recent">Contacts (last 30 days)</option>
+                </select>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  :disabled="hubspotImportLoading"
+                  @click="importFromHubSpot"
+                >
+                  <span v-if="hubspotImportLoading" class="btn-spinner" aria-hidden="true"></span>
+                  {{ hubspotImportLoading ? 'Loading…' : 'Import' }}
+                </button>
+              </div>
+              <p v-if="hubspotImportError" class="msg msg-error" role="alert">{{ hubspotImportError }}</p>
+            </template>
+            <template v-else>
+              <button
+                type="button"
+                class="btn btn-ghost"
+                :class="{ 'btn-disabled': !hubspotConfigured }"
+                :disabled="!hubspotConfigured || hubspotConnectLoading"
+                :title="hubspotConfigured ? 'Connect your HubSpot account' : 'HubSpot integration is not configured by the administrator'"
+                @click="connectHubSpot"
+              >
+                <span v-if="hubspotConnectLoading" class="btn-spinner" aria-hidden="true"></span>
+                {{ hubspotConfigured ? 'Connect HubSpot' : 'Connect HubSpot (not configured)' }}
+              </button>
+            </template>
+          </div>
         </div>
       </div>
       <template #footer>
         <button type="button" class="btn btn-ghost" @click="showInviteModal = false">Cancel</button>
+        <button
+          v-if="csvPreviewCount !== null && csvPreviewCount > 0"
+          type="button"
+          class="btn btn-primary"
+          :disabled="sending"
+          @click="createInvitationsFromCsv"
+        >
+          <span v-if="sending" class="btn-spinner" aria-hidden="true"></span>
+          {{ sending ? 'Adding…' : `Add ${csvPreviewCount} invitation${csvPreviewCount === 1 ? '' : 's'}` }}
+        </button>
         <button type="button" class="btn btn-primary" :disabled="sending" @click="sendInvitations">
           <span v-if="sending" class="btn-spinner" aria-hidden="true"></span>
           {{ sending ? 'Sending…' : 'Send' }}
@@ -251,13 +332,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import Card from '@/shared/components/Card.vue';
 import Modal from '@/shared/components/Modal.vue';
 import PageHeader from '@/shared/components/PageHeader.vue';
 import { container } from '@/infrastructure/bootstrap/container';
+import { API_CONFIG } from '@/infrastructure/config/api.config';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { userContextService } from '@/shared/services/user-context.service';
 import { TYPES as PROJECT_TYPES } from '@/modules/projects/infrastructure/bootstrap/types';
 import type { InvitationPresenter } from '../../interface-adapters/presenters/invitation.presenter';
 import type { InvitationListItem } from '../../interface-adapters/presenters/invitation.presenter';
@@ -265,6 +348,7 @@ import { ProjectPresenter } from '@/modules/projects/interface-adapters/presente
 
 const route = useRoute();
 const projectId = route.params.projectId as string;
+const invitationsTab = ref<'public' | 'personal'>('public');
 
 const invitationPresenter = container.get<InvitationPresenter>(TYPES.InvitationPresenter);
 const projectPresenter = container.get<ProjectPresenter>(PROJECT_TYPES.ProjectPresenter);
@@ -294,8 +378,19 @@ const loadError = ref<string | null>(null);
 const showInviteModal = ref(false);
 const inviteEmails = ref('');
 const sending = ref(false);
+const csvFileInput = ref<HTMLInputElement | null>(null);
+const csvPreviewCount = ref<number | null>(null);
+const csvPreviewEmails = ref<string[]>([]);
+const csvParseError = ref('');
 const sendingPending = ref(false);
 const sendPendingResult = ref('');
+
+const hubspotConnected = ref(false);
+const hubspotConfigured = ref(false);
+const hubspotConnectLoading = ref(false);
+const hubspotSegment = ref<'all' | 'recent'>('all');
+const hubspotImportLoading = ref(false);
+const hubspotImportError = ref('');
 
 const pendingCount = computed(() =>
   invitations.value.filter(
@@ -325,7 +420,7 @@ let publicCopyFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
 const publicSurveyFullUrl = computed(() => {
   if (!publicSlug.value) return '';
   const base = typeof window !== 'undefined' ? window.location.origin : '';
-  return `${base}/survey/public/${publicSlug.value}`;
+  return `${base}/s/${publicSlug.value}`;
 });
 
 const getStatusLabel = (status: string): string => {
@@ -345,12 +440,124 @@ const formatDate = (date: Date | null): string => {
   return new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit' });
 };
 
+/** Parse a single CSV line respecting quoted fields (e.g. "a,b",c). */
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let i = 0;
+  while (i < line.length) {
+    if (line[i] === '"') {
+      let end = i + 1;
+      while (end < line.length) {
+        const next = line.indexOf('"', end);
+        if (next === -1) break;
+        if (line[next + 1] === '"') {
+          end = next + 2;
+          continue;
+        }
+        result.push(line.slice(i + 1, next).replace(/""/g, '"').trim());
+        end = next + 1;
+        break;
+      }
+      i = line.indexOf(',', end);
+      i = i === -1 ? line.length : i + 1;
+      continue;
+    }
+    const comma = line.indexOf(',', i);
+    const token = (comma === -1 ? line.slice(i) : line.slice(i, comma)).trim();
+    result.push(token);
+    i = comma === -1 ? line.length : comma + 1;
+  }
+  return result;
+}
+
+/** Extract email column from CSV text. Expects header row with "email" (case-insensitive). */
+function parseCsvForEmails(text: string): { emails: string[]; error?: string } {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) {
+    return { emails: [], error: 'CSV must have a header row and at least one data row' };
+  }
+  const headers = parseCsvLine(lines[0]);
+  const emailIdx = headers.findIndex(h => h.toLowerCase().trim() === 'email');
+  if (emailIdx === -1) {
+    return { emails: [], error: 'CSV must have an "email" column' };
+  }
+  const emails: string[] = [];
+  for (let r = 1; r < lines.length; r++) {
+    const cells = parseCsvLine(lines[r]);
+    const val = cells[emailIdx]?.trim();
+    if (val && val.includes('@')) emails.push(val);
+  }
+  return { emails };
+}
+
+function triggerCsvInput() {
+  csvParseError.value = '';
+  csvPreviewCount.value = null;
+  csvPreviewEmails.value = [];
+  csvFileInput.value?.click();
+}
+
+async function onCsvFileSelected(ev: Event) {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  csvParseError.value = '';
+  csvPreviewCount.value = null;
+  csvPreviewEmails.value = [];
+  try {
+    const text = await file.text();
+    const { emails, error } = parseCsvForEmails(text);
+    if (error) {
+      csvParseError.value = error;
+      return;
+    }
+    if (emails.length === 0) {
+      csvParseError.value = 'No valid email addresses found in the file';
+      return;
+    }
+    csvPreviewEmails.value = emails;
+    csvPreviewCount.value = emails.length;
+  } catch {
+    csvParseError.value = 'Failed to read file';
+  }
+  input.value = '';
+}
+
+async function createInvitationsFromCsv() {
+  if (csvPreviewEmails.value.length === 0) return;
+  sending.value = true;
+  try {
+    const result = await invitationPresenter.createInvitations(projectId, csvPreviewEmails.value);
+    if (result.error) {
+      alert(result.error);
+      return;
+    }
+    showInviteModal.value = false;
+    csvPreviewCount.value = null;
+    csvPreviewEmails.value = [];
+    invitations.value = [...invitations.value, ...result.invitations];
+  } catch (error) {
+    console.error('Failed to create invitations from CSV:', error);
+    alert(parseApiError(error));
+  } finally {
+    sending.value = false;
+  }
+}
+
+watch(showInviteModal, (open) => {
+  if (!open) {
+    csvPreviewCount.value = null;
+    csvPreviewEmails.value = [];
+    csvParseError.value = '';
+  }
+});
+
 const sendInvitations = async () => {
   const emails = inviteEmails.value
     .split('\n')
     .map(e => e.trim())
     .filter(e => e && e.includes('@'));
-
+  
   if (emails.length === 0) {
     alert('Please enter at least one email address');
     return;
@@ -566,9 +773,82 @@ const copyPublicLink = async () => {
   }
 };
 
+const loadHubspotStatus = async () => {
+  try {
+    const userId = userContextService.getOrCreateUserId();
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HUBSPOT_STATUS}`;
+    const res = await fetch(url, { headers: { 'x-user-id': userId } });
+    const data = await res.json().catch(() => ({}));
+    hubspotConnected.value = !!data.connected;
+    hubspotConfigured.value = !!data.configured;
+  } catch {
+    hubspotConnected.value = false;
+    hubspotConfigured.value = false;
+  }
+};
+
+const connectHubSpot = async () => {
+  if (!hubspotConfigured.value) return;
+  hubspotConnectLoading.value = true;
+  hubspotImportError.value = '';
+  try {
+    const userId = userContextService.getOrCreateUserId();
+    const returnTo = `/projects/${projectId}/invitations`;
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HUBSPOT_AUTHORIZE(returnTo)}&json=1`;
+    const res = await fetch(url, { headers: { 'x-user-id': userId } });
+    const data = await res.json().catch(() => ({}));
+    if (data.url) {
+      window.location.href = data.url;
+      return;
+    }
+    hubspotImportError.value = data.error || data.message || 'Failed to start HubSpot connection';
+  } catch (e) {
+    hubspotImportError.value = e instanceof Error ? e.message : 'Failed to connect';
+  } finally {
+    hubspotConnectLoading.value = false;
+  }
+};
+
+const importFromHubSpot = async () => {
+  if (!projectId) return;
+  hubspotImportLoading.value = true;
+  hubspotImportError.value = '';
+  try {
+    const userId = userContextService.getOrCreateUserId();
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HUBSPOT_CONTACTS(hubspotSegment.value)}`;
+    const res = await fetch(url, { headers: { 'x-user-id': userId } });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      hubspotImportError.value = data.error || data.message || `Request failed (${res.status})`;
+      return;
+    }
+    const emails = (data.emails || []).filter((e: string) => e && e.trim());
+    if (emails.length === 0) {
+      hubspotImportError.value = 'No contacts with email found in HubSpot.';
+      return;
+    }
+    const result = await invitationPresenter.createInvitations(projectId, emails);
+    if (result.error) {
+      hubspotImportError.value = result.error;
+      return;
+    }
+    await loadInvitations();
+    hubspotImportError.value = '';
+  } catch (e) {
+    hubspotImportError.value = e instanceof Error ? e.message : 'Import failed';
+  } finally {
+    hubspotImportLoading.value = false;
+  }
+};
+
+watch(showInviteModal, (open) => {
+  if (open) loadHubspotStatus();
+});
+
 onMounted(() => {
   loadInvitations();
   loadProject();
+  loadHubspotStatus();
 });
 </script>
 
@@ -578,9 +858,59 @@ onMounted(() => {
   max-width: var(--content-max-width, 56rem);
 }
 
+.onboarding-hint {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--color-accent-bg, #ccfbf1);
+  color: var(--color-accent-dark, #0f766e);
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+}
+
+.invitations-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.invitations-tabs button {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.invitations-tabs button:hover {
+  color: var(--color-text);
+}
+
+.invitations-tabs button.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.invitations-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 /* Section cards */
 .section-card {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.section-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .section-card :deep(.card-header) {
@@ -1065,6 +1395,56 @@ onMounted(() => {
 .textarea {
   min-height: 140px;
   resize: vertical;
+}
+
+.invite-methods {
+    display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.invite-import-row .label,
+.hubspot-row .label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.hubspot-import-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.input-file-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.invite-import-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.invite-import-row .btn {
+  flex-shrink: 0;
+}
+
+.csv-preview {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted, #64748b);
+  width: 100%;
+}
+
+.hubspot-row .btn-disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 @media (max-width: 640px) {

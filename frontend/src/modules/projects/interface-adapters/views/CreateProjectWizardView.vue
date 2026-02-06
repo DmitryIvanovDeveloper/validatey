@@ -12,184 +12,144 @@
       <Wizard :steps="wizardSteps" @complete="handleComplete" @step-change="handleStepChange">
         <template #default="{ step }">
           <div class="step-content">
-            <!-- Step 0: Segment -->
+            <!-- Step 0: Who & what? (Segment + Hypothesis + optional context) -->
             <div v-if="step === 0" class="step-panel">
-              <h2>Step 1: Define Target Segment</h2>
-              <p class="step-description">Describe the target audience for your hypothesis</p>
-              
-              <div class="form-group">
-                <label for="segment-description">Segment Description *</label>
-                <textarea
-                  id="segment-description"
-                  v-model="formData.segmentDescription"
-                  rows="4"
-                  placeholder="Example: Young professionals aged 25-35 working in IT and software development..."
-                  class="form-input"
-                ></textarea>
-              </div>
+              <h2>Step 1: Who & what?</h2>
+              <p class="step-description">Describe your audience and what you're testing</p>
 
-              <div class="form-group">
-                <label for="segment-demographics">Demographics *</label>
-                <textarea
-                  id="segment-demographics"
-                  v-model="formData.segmentDemographics"
-                  rows="3"
-                  placeholder="Example: Age: 25-35 | Location: Major cities | Profession: Software engineers..."
-                  class="form-input"
-                ></textarea>
-              </div>
-            </div>
+              <section class="wizard-section">
+                <h3 class="section-title">Who? (Segment)</h3>
+                <div class="form-group">
+                  <label for="segment-description">Segment Description *</label>
+                  <textarea
+                    id="segment-description"
+                    v-model="formData.segmentDescription"
+                    rows="3"
+                    placeholder="Example: Young professionals aged 25-35 working in IT..."
+                    class="form-input"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="segment-demographics">Demographics *</label>
+                  <textarea
+                    id="segment-demographics"
+                    v-model="formData.segmentDemographics"
+                    rows="2"
+                    placeholder="Example: Age: 25-35 | Location: Major cities | Profession: Software engineers"
+                    class="form-input"
+                  ></textarea>
+                </div>
+              </section>
 
-            <!-- Step 1: Hypothesis + optional context -->
-            <div v-if="step === 1" class="step-panel">
-              <h2>Step 2: Formulate Hypothesis</h2>
-              <p class="step-description">Describe your product hypothesis and assumptions (optional)</p>
-              
-              <div class="form-group">
-                <label for="hypothesis-description">Hypothesis Description</label>
-                <textarea
-                  id="hypothesis-description"
-                  v-model="formData.hypothesisDescription"
-                  rows="5"
-                  placeholder="Example: We believe that young IT professionals want to learn in a gamified format..."
-                  class="form-input"
-                ></textarea>
-              </div>
-
-              <div class="form-group">
-                <label>Assumptions</label>
-                <div class="assumptions-list">
-                  <div
-                    v-for="(assumption, index) in formData.hypothesisAssumptions"
-                    :key="index"
-                    class="assumption-item"
-                  >
-                    <input
-                      v-model="formData.hypothesisAssumptions[index]"
-                      type="text"
-                      :placeholder="`Assumption ${index + 1}`"
-                      class="form-input"
-                    />
-                    <button
-                      v-if="formData.hypothesisAssumptions.length > 1"
-                      @click="removeAssumption(index)"
-                      class="btn-remove"
-                      type="button"
+              <section class="wizard-section">
+                <h3 class="section-title">What are we testing?</h3>
+                <div class="form-group">
+                  <label for="hypothesis-description">Hypothesis Description</label>
+                  <textarea
+                    id="hypothesis-description"
+                    v-model="formData.hypothesisDescription"
+                    rows="3"
+                    placeholder="Example: We believe that young IT professionals want to learn in a gamified format..."
+                    class="form-input"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Assumptions</label>
+                  <div class="assumptions-list">
+                    <div
+                      v-for="(assumption, index) in formData.hypothesisAssumptions"
+                      :key="index"
+                      class="assumption-item"
                     >
-                      ×
-                    </button>
+                      <input
+                        v-model="formData.hypothesisAssumptions[index]"
+                        type="text"
+                        :placeholder="`Assumption ${index + 1}`"
+                        class="form-input"
+                      />
+                      <button
+                        v-if="formData.hypothesisAssumptions.length > 1"
+                        @click="removeAssumption(index)"
+                        class="btn-remove"
+                        type="button"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <button @click="addAssumption" class="btn-add" type="button">+ Add Assumption</button>
                   </div>
-                  <button @click="addAssumption" class="btn-add" type="button">
-                    + Add Assumption
+                </div>
+                <div class="ai-helper">
+                  <button @click="showAIHelper = true" class="btn-ai-helper" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                      <path d="M2 17l10 5 10-5"></path>
+                      <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    AI Helper for Formulation
                   </button>
                 </div>
-              </div>
-
-              <div class="ai-helper">
-                <button @click="showAIHelper = true" class="btn-ai-helper" type="button">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                    <path d="M2 17l10 5 10-5"></path>
-                    <path d="M2 12l10 5 10-5"></path>
-                  </svg>
-                  AI Helper for Formulation
-                </button>
-              </div>
-
-              <!-- Optional: Project context (collapsed by default) -->
-              <div class="context-accordion">
-                <button
-                  type="button"
-                  class="context-accordion-trigger"
-                  :aria-expanded="showContextSection"
-                  @click="showContextSection = !showContextSection"
-                >
-                  {{ showContextSection ? '▼' : '▶' }} Project context (optional, for report)
-                </button>
-                <div v-show="showContextSection" class="context-accordion-content">
-                  <div class="form-group">
-                    <label for="market-picture">Market Picture</label>
-                    <textarea
-                      id="market-picture"
-                      v-model="formData.marketPicture"
-                      rows="3"
-                      placeholder="Current market: main players, offerings, typical buyers..."
-                      class="form-input"
-                    ></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="market-fit">Market Fit</label>
-                    <textarea
-                      id="market-fit"
-                      v-model="formData.marketFit"
-                      rows="3"
-                      placeholder="How your product fits in the market..."
-                      class="form-input"
-                    ></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="differentiation">Differentiation</label>
-                    <textarea
-                      id="differentiation"
-                      v-model="formData.differentiation"
-                      rows="3"
-                      placeholder="How your product differs..."
-                      class="form-input"
-                    ></textarea>
-                  </div>
-                  <div class="market-context-ai-helper">
-                    <button
-                      type="button"
-                      class="btn btn-secondary"
-                      :disabled="marketContextSuggestLoading"
-                      @click="fetchMarketContextSuggestion"
-                    >
-                      {{ marketContextSuggestLoading ? 'Loading...' : 'Suggest with AI' }}
-                    </button>
-                    <p v-if="marketContextSuggestError" class="market-context-ai-error">{{ marketContextSuggestError }}</p>
+                <div class="context-accordion">
+                  <button
+                    type="button"
+                    class="context-accordion-trigger"
+                    :aria-expanded="showContextSection"
+                    @click="showContextSection = !showContextSection"
+                  >
+                    {{ showContextSection ? '▼' : '▶' }} Add market context (AI-assisted)
+                  </button>
+                  <div v-show="showContextSection" class="context-accordion-content">
+                    <div class="form-group">
+                      <label for="market-picture">Market Picture</label>
+                      <textarea id="market-picture" v-model="formData.marketPicture" rows="2" placeholder="Current market: main players, offerings..." class="form-input"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="market-fit">Market Fit</label>
+                      <textarea id="market-fit" v-model="formData.marketFit" rows="2" placeholder="How your product fits..." class="form-input"></textarea>
+                    </div>
+                    <div class="form-group">
+                      <label for="differentiation">Differentiation</label>
+                      <textarea id="differentiation" v-model="formData.differentiation" rows="2" placeholder="How your product differs..." class="form-input"></textarea>
+                    </div>
+                    <div class="market-context-ai-helper">
+                      <p v-if="!hasMarketContextInput" class="form-hint market-context-hint">Fill in segment or hypothesis above for a relevant suggestion.</p>
+                      <button type="button" class="btn btn-secondary" :disabled="marketContextSuggestLoading || !hasMarketContextInput" @click="fetchMarketContextSuggestion">
+                        {{ marketContextSuggestLoading ? 'Loading...' : 'Suggest with AI' }}
+                      </button>
+                      <p v-if="marketContextSuggestError" class="market-context-ai-error">{{ marketContextSuggestError }}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
 
-            <!-- Step 2: Scenario (template / AI / manual) -->
-            <div v-if="step === 2" class="step-panel">
-              <h2>Step 3: Scenario</h2>
-              <p class="step-description">Choose a template, generate with AI, or edit manually</p>
-              
-              <div class="scenario-source-options">
-                <label class="radio-option">
-                  <input v-model="scenarioSource" type="radio" value="template" />
-                  <span>Choose template</span>
-                </label>
-                <label class="radio-option">
-                  <input v-model="scenarioSource" type="radio" value="ai" />
-                  <span>Generate with AI [Beta]</span>
-                </label>
-                <label class="radio-option">
-                  <input v-model="scenarioSource" type="radio" value="manual" />
-                  <span>Edit manually</span>
-                </label>
-              </div>
+            <!-- Step 1: How will we ask? (template default + optional edit manually) -->
+            <div v-if="step === 1" class="step-panel">
+              <h2>Step 2: How will we ask?</h2>
+              <p class="step-description">Use a template or edit questions manually</p>
 
-              <!-- Template: select + load -->
-              <div v-if="scenarioSource === 'template'" class="template-section">
-                <div class="form-group">
-                  <label>Template</label>
-                  <select v-model="selectedTemplateSlug" class="form-input" @change="loadSelectedTemplate">
-                    <option value="">— Select template —</option>
-                    <option v-for="t in scenarioTemplates" :key="t.slug" :value="t.slug">{{ t.name }}</option>
-                  </select>
-                </div>
-                <div v-if="scenarioContent" class="scenario-editor">
-                  <ScenarioViewer
-                    :content="scenarioContent"
-                    @update:content="scenarioContent = $event"
-                  />
-                </div>
+              <div v-if="scenarioSource !== 'manual'" class="form-group">
+                <label>Template</label>
+                <select v-model="selectedTemplateSlug" class="form-input" @change="loadSelectedTemplate">
+                  <option value="">— Select template —</option>
+                  <option v-for="t in scenarioTemplates" :key="t.slug" :value="t.slug">{{ t.name }}</option>
+                </select>
               </div>
+              <label class="checkbox-option edit-manually-option">
+                <input
+                  type="checkbox"
+                  :checked="scenarioSource === 'manual'"
+                  @change="scenarioSource = ($event.target as HTMLInputElement).checked ? 'manual' : 'template'"
+                />
+                <span>Edit questions manually</span>
+              </label>
+              <button v-if="scenarioSource !== 'ai'" type="button" class="btn btn-ghost btn-sm link-ai-generate" @click="scenarioSource = 'ai'">
+                Generate with AI [Beta]
+              </button>
 
-              <!-- AI: generate -->
+              <div v-if="scenarioSource === 'template' && scenarioContent" class="scenario-editor">
+                <ScenarioViewer :content="scenarioContent" @update:content="scenarioContent = $event" />
+              </div>
               <div v-if="scenarioSource === 'ai'">
                 <div v-if="scenarioLoading" class="scenario-generating">
                   <LoadingSpinner />
@@ -200,49 +160,32 @@
                   <button @click="generateScenario" class="btn btn-secondary">Try Again</button>
                 </div>
                 <div v-else-if="scenarioContent" class="scenario-editor">
-                  <ScenarioViewer
-                    :content="scenarioContent"
-                    @update:content="scenarioContent = $event"
-                  />
-                  <button @click="regenerateScenario" class="btn-regenerate" type="button">🔄 Regenerate</button>
-                  <!-- Rate scenario quality (1-5) -->
+                  <ScenarioViewer :content="scenarioContent" @update:content="scenarioContent = $event" />
+                  <button @click="regenerateScenario" class="btn-regenerate" type="button">Regenerate</button>
                   <div v-if="currentScenarioId && !scenarioRatingSubmitted" class="scenario-rating-block">
                     <p class="scenario-rating-label">Rate scenario quality (1–5)</p>
                     <div class="scenario-rating-stars">
-                      <button
-                        v-for="n in 5"
-                        :key="n"
-                        type="button"
-                        :class="['rating-btn', { active: scenarioRatingValue === n }]"
-                        @click="submitScenarioRating(n)"
-                      >
-                        {{ n }}
-                      </button>
+                      <button v-for="n in 5" :key="n" type="button" :class="['rating-btn', { active: scenarioRatingValue === n }]" @click="submitScenarioRating(n)">{{ n }}</button>
                     </div>
                     <p v-if="scenarioRatingError" class="scenario-rating-error">{{ scenarioRatingError }}</p>
                   </div>
                   <p v-else-if="scenarioRatingSubmitted" class="scenario-rating-thanks">Thanks for your rating!</p>
                 </div>
                 <div v-else class="scenario-ai-prompt">
-                  <p>Project is ready. Click the button below to generate a scenario from your segment and hypothesis.</p>
+                  <p>Click below to generate a scenario from your segment and hypothesis.</p>
                   <button @click="generateScenario" class="btn btn-primary" type="button">Generate scenario</button>
                 </div>
               </div>
-
-              <!-- Manual: simple form — no JSON, just add/edit questions -->
               <div v-if="scenarioSource === 'manual'" class="scenario-editor">
-                <ScenarioManualEditor
-                  :content="scenarioContent || defaultManualScenario"
-                  @update:content="scenarioContent = $event"
-                />
+                <ScenarioManualEditor :content="scenarioContent || defaultManualScenario" @update:content="scenarioContent = $event" />
               </div>
             </div>
 
-            <!-- Step 3: Audience & how to find respondents -->
-            <div v-if="step === 3" class="step-panel">
-              <h2>Step 4: Audience & Launch</h2>
+            <!-- Step 2: Who will we ask? (Public link first, then email, then panel) -->
+            <div v-if="step === 2" class="step-panel">
+              <h2>Step 3: Who will we ask?</h2>
               <p class="step-description">Project name, size, and how you will find respondents</p>
-              
+
               <div class="form-group">
                 <label for="project-name">Project Name *</label>
                 <input
@@ -253,31 +196,15 @@
                   class="form-input"
                 />
               </div>
-
               <div class="form-row">
                 <div class="form-group">
                   <label for="audience-size">Audience Size *</label>
-                  <input
-                    id="audience-size"
-                    v-model.number="formData.audienceSize"
-                    type="number"
-                    min="1"
-                    placeholder="100"
-                    class="form-input"
-                  />
+                  <input id="audience-size" v-model.number="formData.audienceSize" type="number" min="1" placeholder="100" class="form-input" />
                   <span class="form-hint">Recommended: 100-200 respondents</span>
                 </div>
                 <div class="form-group">
                   <label for="price-per-response">Price per Response *</label>
-                  <input
-                    id="price-per-response"
-                    v-model.number="formData.pricePerResponse"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="5.00"
-                    class="form-input"
-                  />
+                  <input id="price-per-response" v-model.number="formData.pricePerResponse" type="number" min="0" step="0.01" placeholder="5.00" class="form-input" />
                   <span class="form-hint">Standard: $5-10 for 10-15 min</span>
                 </div>
               </div>
@@ -286,18 +213,20 @@
                 <label>How will you find respondents?</label>
                 <div class="scenario-source-options">
                   <label class="radio-option">
+                    <input v-model="audienceChoice" type="radio" value="share" />
+                    <span>Public link (I'll share in communities)</span>
+                  </label>
+                  <label class="radio-option">
                     <input v-model="audienceChoice" type="radio" value="email" />
                     <span>I have a list of emails</span>
                   </label>
+                  <p v-if="audienceChoice === 'email'" class="form-hint audience-hint">Import CSV or connect HubSpot on the Invitations page after creating the project.</p>
                   <label class="radio-option">
                     <input v-model="audienceChoice" type="radio" value="panel" />
                     <span>Buy audience [Soon]</span>
                   </label>
-                  <label class="radio-option">
-                    <input v-model="audienceChoice" type="radio" value="share" />
-                    <span>I'll share the link myself</span>
-                  </label>
                 </div>
+                <p class="form-hint audience-hint-general">You can enable a public link or share link on the Invitations page after creating the project.</p>
               </div>
 
               <div class="price-summary">
@@ -305,9 +234,7 @@
                   <span>Project Cost:</span>
                   <span class="price-amount">${{ totalPrice.toFixed(2) }}</span>
                 </div>
-                <div class="price-hint">
-                  {{ formData.audienceSize || 0 }} × ${{ formData.pricePerResponse || 0 }}
-                </div>
+                <div class="price-hint">{{ formData.audienceSize || 0 }} × ${{ formData.pricePerResponse || 0 }}</div>
               </div>
             </div>
           </div>
@@ -317,7 +244,8 @@
 
     <!-- AI Helper Modal -->
     <Modal v-model="showAIHelper" title="AI Helper for Hypothesis Formulation" @update:modelValue="onAIHelperClose">
-      <p class="ai-helper-intro">Based on your target segment (Step 1), AI suggests a hypothesis and testable assumptions. Fill Step 1 first for better results.</p>
+      <p class="ai-helper-intro">Based on your target segment (Step 1), AI suggests a hypothesis and testable assumptions. Fill Step 1 first for a relevant suggestion.</p>
+      <p v-if="!hasSegmentForHypothesis" class="form-hint">Fill in segment description or demographics on Step 1 to enable suggestion.</p>
       <div v-if="aiHelperLoading" class="ai-helper-loading">
         <LoadingSpinner />
         <p>Generating suggestion...</p>
@@ -342,7 +270,7 @@
           <button @click="applyAISuggestion" class="btn btn-primary">Apply to form</button>
         </template>
         <button @click="showAIHelper = false" class="btn btn-secondary">Close</button>
-        <button v-if="!aiHelperLoading && (!aiHelperSuggestion || aiHelperError)" @click="fetchAISuggestion" class="btn btn-primary" type="button">Get suggestion</button>
+        <button v-if="!aiHelperLoading && (!aiHelperSuggestion || aiHelperError)" type="button" class="btn btn-primary" :disabled="!hasSegmentForHypothesis" @click="fetchAISuggestion">Get suggestion</button>
       </template>
     </Modal>
 
@@ -361,7 +289,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import PageHeader from '@/shared/components/PageHeader.vue';
 import Wizard from '@/shared/components/Wizard.vue';
 import Modal from '@/shared/components/Modal.vue';
@@ -376,15 +304,18 @@ import { ScenarioPresenter } from '../../../scenarios/interface-adapters/present
 import { ScenarioViewModel } from '../../../scenarios/interface-adapters/view-models/scenario.view-model';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
 
+const route = useRoute();
 const router = useRouter();
 const projectPresenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
+
+const ONBOARDING_STORAGE_KEY = 'validatey_onboarding_completed';
+const ONBOARDING_HYPOTHESIS_KEY = 'validatey_onboarding_hypothesis';
 const scenarioPresenter = container.get<ScenarioPresenter>(SCENARIO_TYPES.ScenarioPresenter);
 
 const wizardSteps = [
-  { label: 'Segment' },
-  { label: 'Hypothesis' },
-  { label: 'Scenario' },
-  { label: 'Audience' },
+  { label: 'Who & what?' },
+  { label: 'How?' },
+  { label: 'Who to ask?' },
 ];
 
 const formData = ref({
@@ -409,13 +340,28 @@ const aiHelperError = ref<string | null>(null);
 const aiHelperSuggestion = ref<{ description: string; assumptions: string[] } | null>(null);
 const marketContextSuggestLoading = ref(false);
 const marketContextSuggestError = ref<string | null>(null);
+const hasSegmentForHypothesis = computed(() => {
+  const s = formData.value.segmentDescription?.trim() ?? '';
+  const d = formData.value.segmentDemographics?.trim() ?? '';
+  return s.length > 0 || d.length > 0;
+});
+
+const hasMarketContextInput = computed(() => {
+  const f = formData.value;
+  return !!(
+    (f.segmentDescription && f.segmentDescription.trim()) ||
+    (f.segmentDemographics && f.segmentDemographics.trim()) ||
+    (f.hypothesisDescription && f.hypothesisDescription.trim()) ||
+    (f.name && f.name.trim())
+  );
+});
 const currentProjectId = ref<string | null>(null);
 const scenarioViewModel = new ScenarioViewModel();
 const showContextSection = ref(false);
 const scenarioSource = ref<'template' | 'ai' | 'manual'>('template');
 const selectedTemplateSlug = ref('');
 const scenarioTemplates = ref<Array<{ slug: string; name: string; content: string }>>([]);
-const audienceChoice = ref<'email' | 'panel' | 'share'>('email');
+const audienceChoice = ref<'email' | 'panel' | 'share'>('share');
 
 const defaultManualScenario = JSON.stringify(
   { questions: [{ id: 'q_1', text: 'Your first question', type: 'open', required: true }] },
@@ -545,14 +491,19 @@ function buildMarketContextFromForm(): { marketPicture?: string; marketFit?: str
 }
 
 const handleStepChange = async (step: number) => {
-  // When entering step 2 (Scenario): ensure project exists; load templates for template path; trigger AI generate for AI path
-  if (step === 2) {
+  // When entering step 1 (How?): ensure project exists; load templates; default first template; trigger AI generate for AI path
+  if (step === 1) {
     await ensureProjectCreated();
-    if (scenarioSource.value === 'template') {
-      if (scenarioTemplates.value.length === 0) {
-        const { templates, error } = await scenarioPresenter.getTemplates();
-        if (!error) scenarioTemplates.value = templates;
+    if (scenarioTemplates.value.length === 0) {
+      const { templates, error } = await scenarioPresenter.getTemplates();
+      if (!error) scenarioTemplates.value = templates;
+      if (scenarioTemplates.value.length > 0 && !selectedTemplateSlug.value) {
+        selectedTemplateSlug.value = scenarioTemplates.value[0].slug;
+        await loadSelectedTemplate();
       }
+    } else if (scenarioTemplates.value.length > 0 && !selectedTemplateSlug.value) {
+      selectedTemplateSlug.value = scenarioTemplates.value[0].slug;
+      await loadSelectedTemplate();
     }
     if (scenarioSource.value === 'ai' && !scenarioContent.value) {
       await generateScenario();
@@ -739,9 +690,15 @@ async function doComplete() {
     }
   }
 
+  if (route.query.onboarding === '1' && typeof localStorage !== 'undefined') {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+  }
   const choice = audienceChoice.value;
+  const fromOnboarding = route.query.onboarding === '1';
   if (currentProjectId.value && (choice === 'email' || choice === 'share')) {
-    router.push(`/projects/${currentProjectId.value}/invitations`);
+    router.push(fromOnboarding
+      ? `/projects/${currentProjectId.value}/invitations?onboarding=1`
+      : `/projects/${currentProjectId.value}/invitations`);
   } else if (currentProjectId.value && choice === 'panel') {
     router.push(`/projects/${currentProjectId.value}/panel`);
   } else {
@@ -779,6 +736,20 @@ function saveAnyway() {
   closeValidationModal();
   doComplete();
 }
+
+onMounted(() => {
+  if (route.query.onboarding === '1' && typeof sessionStorage !== 'undefined') {
+    const hypothesis = sessionStorage.getItem(ONBOARDING_HYPOTHESIS_KEY);
+    if (hypothesis?.trim()) {
+      formData.value.hypothesisDescription = hypothesis.trim();
+      if (!formData.value.name?.trim()) {
+        const short = hypothesis.length > 50 ? hypothesis.slice(0, 47) + '...' : hypothesis;
+        formData.value.name = `Validation: ${short}`;
+      }
+      sessionStorage.removeItem(ONBOARDING_HYPOTHESIS_KEY);
+    }
+  }
+});
 </script>
 
 <style scoped>
@@ -805,6 +776,43 @@ function saveAnyway() {
 .step-panel {
   animation: fadeIn 0.3s;
   min-width: 0;
+}
+
+.wizard-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.wizard-section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+}
+
+.checkbox-option.edit-manually-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+.checkbox-option input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.link-ai-generate {
+  margin-top: 0.5rem;
+  margin-left: 0;
 }
 
 @keyframes fadeIn {

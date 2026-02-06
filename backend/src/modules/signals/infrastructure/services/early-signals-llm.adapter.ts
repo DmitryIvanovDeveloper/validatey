@@ -86,7 +86,7 @@ export class EarlySignalsLlmAdapter implements EarlySignalsLlmPort {
         .filter((item): item is Record<string, unknown> => item && typeof item === 'object')
         .map((item) => {
           const type = validTypes.includes((item.type as EarlySignalType)) ? (item.type as EarlySignalType) : 'neutral';
-          const title = typeof item.title === 'string' ? item.title.trim() || 'Signal' : 'Signal';
+          const title = typeof item.title === 'string' ? item.title.trim() : '';
           const description = typeof item.description === 'string' ? item.description.trim() : '';
 
           return {

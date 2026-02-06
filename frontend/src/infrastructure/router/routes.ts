@@ -33,26 +33,50 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: '/projects/:projectId',
-    name: 'project-details',
-    component: () => import('@/modules/projects/interface-adapters/views/ProjectDetailsView.vue'),
+    component: () => import('@/modules/projects/interface-adapters/views/ProjectDashboardView.vue'),
     meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'project-details',
+        component: () => import('@/modules/projects/interface-adapters/views/ProjectDetailsView.vue'),
+      },
+      {
+        path: 'research',
+        name: 'project-research',
+        component: () => import('@/modules/research/interface-adapters/views/ResearchCanvasView.vue'),
+      },
+      {
+        path: 'report',
+        name: 'project-report',
+        component: () => import('@/modules/project-reports/interface-adapters/views/ProjectReportView.vue'),
+      },
+      {
+        path: 'invitations',
+        name: 'project-invitations',
+        component: () => import('@/modules/invitations/interface-adapters/views/InvitationManagerView.vue'),
+      },
+      {
+        path: 'edit',
+        name: 'project-edit',
+        component: () => import('@/modules/projects/interface-adapters/views/EditProjectView.vue'),
+      },
+      {
+        path: 'progress',
+        name: 'project-progress',
+        component: () => import('@/modules/projects/interface-adapters/views/ProjectProgressView.vue'),
+      },
+      {
+        path: 'responses',
+        name: 'project-responses',
+        component: () => import('@/modules/projects/interface-adapters/views/ResponsesTableView.vue'),
+      },
+    ],
   },
   {
-    path: '/projects/:projectId/progress',
-    name: 'project-progress',
-    component: () => import('@/modules/projects/interface-adapters/views/ProjectProgressView.vue'),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/projects/:projectId/report',
-    name: 'project-report',
-    component: () => import('@/modules/project-reports/interface-adapters/views/ProjectReportView.vue'),
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/projects/:projectId/invitations',
-    name: 'project-invitations',
-    component: () => import('@/modules/invitations/interface-adapters/views/InvitationManagerView.vue'),
+    path: '/integrations/hubspot/callback',
+    name: 'hubspot-callback',
+    component: () => import('@/modules/integrations/interface-adapters/views/HubSpotCallbackView.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -64,6 +88,15 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/survey/public/:slug',
     name: 'survey-public',
+    component: () => import('@/modules/surveys/interface-adapters/views/SurveyPublicRedirectView.vue'),
+    meta: {
+      requiresAuth: false,
+      layout: 'empty',
+    },
+  },
+  {
+    path: '/s/:slug',
+    name: 'survey-public-short',
     component: () => import('@/modules/surveys/interface-adapters/views/SurveyPublicRedirectView.vue'),
     meta: {
       requiresAuth: false,

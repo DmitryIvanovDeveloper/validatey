@@ -116,15 +116,25 @@
               <h3 id="responses-heading" class="panel-title">Responses</h3>
               <span v-if="responses.length > 0" class="panel-count">{{ responses.length }} total</span>
               <div v-if="responses.length > 0" class="panel-actions">
-                <button type="button" class="btn btn-ghost btn-sm" :disabled="exportLoading" @click="exportResponses('json')">
+                <router-link :to="`/projects/${projectId}/responses`" class="btn btn-secondary btn-sm">View Responses Table</router-link>
+                <button type="button" class="btn btn-export btn-sm" :disabled="exportLoading" @click="exportResponses('json')">
                   {{ exportLoading ? 'Exporting…' : 'Export JSON' }}
                 </button>
-                <button type="button" class="btn btn-ghost btn-sm" :disabled="exportLoading" @click="exportResponses('csv')">
+                <button type="button" class="btn btn-export btn-sm" :disabled="exportLoading" @click="exportResponses('csv')">
                   Export CSV
                 </button>
               </div>
             </div>
-            <p class="panel-desc">Individual answers by respondent</p>
+            <p class="panel-desc">Individual answers by respondent. Open the Responses tab for filters, search, and full table.</p>
+            <div v-if="responses.length > 0" class="latest-responses-preview">
+              <h4 class="preview-title">Latest {{ Math.min(5, responses.length) }} responses</h4>
+              <ul class="preview-list">
+                <li v-for="(r, idx) in latestFiveResponses" :key="r.id" class="preview-item">
+                  <span class="preview-num">#{{ idx + 1 }}</span>
+                  <span class="preview-snippet">{{ responsePreviewSnippet(r) }}</span>
+                </li>
+              </ul>
+            </div>
             <div v-if="responses.length === 0" class="panel-empty">
               No responses yet. Complete invitations to see answers here.
             </div>
@@ -471,6 +481,16 @@ const signalsByType = computed(() => {
   earlySignals.value.forEach((s) => byType[s.type].push(s));
   return byType;
 });
+
+const latestFiveResponses = computed(() => responses.value.slice(0, 5));
+
+function responsePreviewSnippet(r: typeof responses.value[0]): string {
+  const keys = Object.keys(r.answers || {});
+  if (keys.length === 0) return r.transcript ? r.transcript.slice(0, 60) + '…' : '—';
+  const first = r.answers[keys[0]];
+  const str = typeof first === 'object' ? JSON.stringify(first) : String(first);
+  return str.length > 60 ? str.slice(0, 60) + '…' : str;
+}
 
 const toggleResponse = (id: string) => {
   const next = new Set(expandedResponses.value);
@@ -1230,6 +1250,46 @@ onMounted(async () => {
 .signals-panel,
 .responses-panel {
   margin-bottom: 1.5rem;
+}
+
+.latest-responses-preview {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+}
+.preview-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin: 0 0 0.5rem 0;
+}
+.preview-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.preview-item {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.preview-item:last-child {
+  border-bottom: none;
+}
+.preview-num {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+.preview-snippet {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .signals-grouped { display: flex; flex-direction: column; gap: 1rem; }

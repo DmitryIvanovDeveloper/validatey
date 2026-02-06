@@ -18,7 +18,23 @@
       <ErrorDisplay :error="viewModel.error.value" />
     </div>
     <div v-else-if="viewModel.projects.value.length === 0" class="empty-state">
+      <!-- Guided onboarding for first-time users -->
+      <div v-if="!onboardingCompleted" class="onboarding-block">
+        <h2 class="onboarding-title">Let's validate your first hypothesis</h2>
+        <p class="onboarding-description">Describe what you want to test in one sentence. We'll create a project and a shareable survey link.</p>
+        <form class="onboarding-form" @submit.prevent="startOnboarding">
+          <input
+            v-model="onboardingHypothesis"
+            type="text"
+            class="onboarding-input"
+            placeholder="e.g. Young professionals would pay for a gamified learning app"
+            required
+          />
+          <button type="submit" class="btn btn-primary btn-large">Create first project</button>
+        </form>
+      </div>
       <EmptyState
+        v-else
         title="No projects yet"
         description="Create your first project to validate a hypothesis and collect feedback."
       >
@@ -114,9 +130,26 @@ import { TYPES } from '../../infrastructure/bootstrap/types';
 import { userContextService } from '@/shared/services/user-context.service';
 import type { Project } from '../../domain/entities/project.entity';
 
+const ONBOARDING_STORAGE_KEY = 'validatey_onboarding_completed';
+const ONBOARDING_HYPOTHESIS_KEY = 'validatey_onboarding_hypothesis';
+
 const router = useRouter();
 const viewModel = new ProjectListViewModel();
 const presenter = container.get<ProjectListPresenter>(TYPES.ProjectListPresenter);
+
+const onboardingCompleted = ref(
+  typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_STORAGE_KEY) === 'true'
+);
+const onboardingHypothesis = ref('');
+
+function startOnboarding() {
+  const hypothesis = onboardingHypothesis.value?.trim();
+  if (!hypothesis) return;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.setItem(ONBOARDING_HYPOTHESIS_KEY, hypothesis);
+  }
+  router.push({ path: '/projects/new', query: { onboarding: '1' } });
+}
 
 const projectToDelete = ref<Project | null>(null);
 const deleteModalOpen = computed({
@@ -297,6 +330,47 @@ onUnmounted(() => {
 
 .delete-modal-btn-confirm:hover:not(:disabled) {
   background: #b91c1c;
+}
+
+.onboarding-block {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.onboarding-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--color-text);
+}
+
+.onboarding-description {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.onboarding-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+}
+
+.onboarding-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
 }
 </style>
 

@@ -80,6 +80,7 @@ import surveyRoutes from './modules/surveys/interface-adapters/routes/survey.rou
 import aiRoutes from './modules/ai/routes';
 import authRoutes from './modules/auth/interface-adapters/routes/auth.routes';
 import deletionRequestsRoutes from './modules/deletion-requests/interface-adapters/routes/deletion-requests.routes';
+import hubspotRoutes from './modules/integrations/interface-adapters/routes/hubspot.routes';
 
 app.use('/api/projects', projectsRoutes);
 app.use('/api/projects', projectsNestedRoutes); // Nested routes: /projects/:projectId/scenarios, /invitations, /report
@@ -98,6 +99,7 @@ app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/deletion-requests', deletionRequestsRoutes);
+app.use('/api/integrations/hubspot', hubspotRoutes);
 app.use('/survey', surveyRoutes);
 
 app.get('/api', (req: Request, res: Response) => {

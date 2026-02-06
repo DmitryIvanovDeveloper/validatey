@@ -84,9 +84,9 @@ export class MarketContextLlmAdapter implements MarketContextLlmPort {
       const differentiation = typeof obj.differentiation === 'string' ? obj.differentiation.trim() : '';
       if (!marketPicture && !marketFit && !differentiation) return null;
       return {
-        marketPicture: marketPicture || '(Not generated)',
-        marketFit: marketFit || '(Not generated)',
-        differentiation: differentiation || '(Not generated)',
+        marketPicture,
+        marketFit,
+        differentiation,
       };
     } catch {
       return null;

@@ -101,5 +101,19 @@ export class ScenarioPresenter {
   async validateScenarioStructure(scenarioContent: string, templateSlug: string): Promise<{ valid: boolean; warnings: string[] }> {
     return this._scenarioRepository.validateScenarioStructure(scenarioContent, templateSlug);
   }
+
+  /** Load latest scenario for a project (for Overview/details). Use this instead of calling repository from views. */
+  async getLatestByProjectId(projectId: string): Promise<
+    { content: string; id: string } | { error: string }
+  > {
+    const result = await this._scenarioRepository.getLatestByProjectId(projectId);
+    if (!result.isSuccess) {
+      const err = result.error;
+      const message = err?.message ?? 'Failed to load scenario';
+      return { error: message };
+    }
+    const scenario = result.data;
+    return { content: scenario.content ?? '', id: scenario.id };
+  }
 }
 

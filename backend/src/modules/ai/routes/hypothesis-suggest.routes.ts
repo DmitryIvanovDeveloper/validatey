@@ -9,9 +9,10 @@ const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 const router = Router();
 
 function buildSegmentUserContent(segmentDescription: string, segmentDemographics: string): string {
-  return segmentDescription || segmentDemographics
-    ? `Target segment:\n${segmentDescription ? `Description: ${segmentDescription}\n` : ''}${segmentDemographics ? `Demographics: ${segmentDemographics}` : ''}`
-    : 'No segment provided. Suggest a generic product hypothesis for B2B software.';
+  if (!segmentDescription.trim() && !segmentDemographics.trim()) {
+    return '';
+  }
+  return `Target segment:\n${segmentDescription ? `Description: ${segmentDescription}\n` : ''}${segmentDemographics ? `Demographics: ${segmentDemographics}` : ''}`.trim();
 }
 
 const SYSTEM_PROMPT = `You are a product manager assistant. Given a target audience/segment, suggest ONE product hypothesis and 3-5 testable assumptions.
@@ -35,8 +36,8 @@ function parseContentToSuggestion(content: string): { description: string; assum
     ? parsed.assumptions.filter((a) => typeof a === 'string').slice(0, 10)
     : [];
   return {
-    description: description || 'No description generated.',
-    assumptions: assumptions.length ? assumptions : ['Assumption 1', 'Assumption 2', 'Assumption 3'],
+    description: (description || '').trim(),
+    assumptions,
   };
 }
 
@@ -46,6 +47,11 @@ router.post('/hypothesis-suggest', async (req: Request, res: Response) => {
     const segmentDescription = (req.body?.segmentDescription ?? '').trim();
     const segmentDemographics = (req.body?.segmentDemographics ?? '').trim();
     const userContent = buildSegmentUserContent(segmentDescription, segmentDemographics);
+    if (!userContent) {
+      return res.status(400).json({
+        error: 'Provide segment description or demographics for a relevant hypothesis suggestion.',
+      });
+    }
     const httpClient = container.get<HttpClientPort>(TYPES.HttpClient);
 
     const fullPrompt = `${SYSTEM_PROMPT}\n\n---\nUser input:\n${userContent}`;

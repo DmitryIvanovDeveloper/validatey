@@ -33,7 +33,7 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
           id: scenario.id,
           project_id: scenario.projectId,
           version: scenario.version,
-          content: scenario.content,
+          content: this.contentToJsonb(scenario.content),
           is_generated: scenario.isGenerated,
           is_edited: scenario.isEdited,
           metadata: scenario.metadata,
@@ -143,7 +143,7 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
       const { data, error } = await supabase
         .from('scenarios')
         .update({
-          content: scenario.content,
+          content: this.contentToJsonb(scenario.content),
           is_generated: scenario.isGenerated,
           is_edited: scenario.isEdited,
           metadata: scenario.metadata,
@@ -199,6 +199,24 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
     }
   }
 
+  /** Normalize content from DB: JSONB column may return object; domain expects string. */
+  private contentToString(content: unknown): string {
+    if (content == null) return '';
+    if (typeof content === 'string') return content;
+    if (typeof content === 'object') return JSON.stringify(content);
+    return String(content);
+  }
+
+  /** Normalize content for DB: pass object for JSONB when we have a JSON string. */
+  private contentToJsonb(content: string): unknown {
+    if (!content || !content.trim()) return {};
+    try {
+      return JSON.parse(content) as unknown;
+    } catch {
+      return { questions: [{ type: 'open_ended', text: content }] };
+    }
+  }
+
   private mapToDomain(data: any): Scenario {
     const created_at = data?.created_at ?? data?.createdAt;
     const updated_at = data?.updated_at ?? data?.updatedAt;
@@ -206,7 +224,7 @@ export class SupabaseScenarioRepository implements ScenarioRepositoryPort {
       id: data.id,
       projectId: data.project_id,
       version: data.version,
-      content: data.content ?? '',
+      content: this.contentToString(data.content),
       isGenerated: data.is_generated ?? false,
       isEdited: data.is_edited ?? false,
       metadata: (data.metadata as ScenarioMetadata) ?? null,
