@@ -114,17 +114,16 @@ export class SupabaseDeletionRequestRepository implements DeletionRequestReposit
   }
 
   private mapToDomain(row: Record<string, unknown>): DeletionRequest {
-    const r = row as { id: string; project_id: string; identifier: string; status: string; requested_at: string; completed_at: string | null; requested_by: string | null; created_at: string; updated_at: string };
     return {
-      id: r.id,
-      projectId: r.project_id,
-      identifier: r.identifier,
-      status: r.status as DeletionRequestStatus,
-      requestedAt: new Date(r.requested_at),
-      completedAt: r.completed_at ? new Date(r.completed_at) : null,
-      requestedBy: r.requested_by,
-      createdAt: new Date(r.created_at),
-      updatedAt: new Date(r.updated_at),
+      id: String(row.id),
+      projectId: String(row.project_id),
+      identifier: String(row.identifier),
+      status: row.status as DeletionRequest['status'],
+      requestedAt: row.requested_at ? new Date(String(row.requested_at)) : new Date(String(row.created_at)),
+      completedAt: row.completed_at ? new Date(String(row.completed_at)) : null,
+      requestedBy: row.requested_by != null ? String(row.requested_by) : null,
+      createdAt: new Date(String(row.created_at)),
+      updatedAt: new Date(String(row.updated_at)),
     };
   }
 }

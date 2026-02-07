@@ -277,11 +277,12 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
               // Try to truncate if it's marketContext with long strings
               if (value && typeof value === 'object' && ('marketPicture' in value || 'marketFit' in value || 'differentiation' in value)) {
                 const truncated: Record<string, unknown> = {};
-                for (const key in value as Record<string, unknown>) {
-                  if (typeof (value as Record<string, unknown>)[key] === 'string') {
-                    truncated[key] = ((value as Record<string, unknown>)[key] as string).substring(0, 1024 * 1024); // 1MB per field
+                const obj = value as Record<string, unknown>;
+                for (const key in obj) {
+                  if (typeof obj[key] === 'string') {
+                    truncated[key] = (obj[key] as string).substring(0, 1024 * 1024); // 1MB per field
                   } else {
-                    truncated[key] = (value as Record<string, unknown>)[key];
+                    truncated[key] = obj[key];
                   }
                 }
                 return truncated;
@@ -337,6 +338,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         max_public_responses: project.maxPublicResponses != null ? Number(project.maxPublicResponses) : null,
         require_public_email: project.requirePublicEmail ?? false,
         captcha_enabled: project.captchaEnabled ?? false,
+        deadline: project.deadline != null && typeof project.deadline.toISOString === 'function' ? project.deadline.toISOString() : null,
         updated_at: project.updatedAt != null && typeof project.updatedAt.toISOString === 'function'
           ? project.updatedAt.toISOString()
           : new Date().toISOString(),
@@ -616,6 +618,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         maxPublicResponses: data.max_public_responses != null ? Number(data.max_public_responses) : null,
         requirePublicEmail: Boolean(data.require_public_email),
         captchaEnabled: Boolean(data.captcha_enabled),
+        deadline: data.deadline != null ? new Date(data.deadline as string | number) : null,
         createdAt,
         updatedAt,
       };

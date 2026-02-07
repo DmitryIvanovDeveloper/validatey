@@ -26,6 +26,8 @@ export type UpdateProjectUseCaseRequest = {
   maxPublicResponses?: number | null;
   requirePublicEmail?: boolean;
   captchaEnabled?: boolean;
+  /** Optional target date for validation decision. */
+  deadline?: string | Date | null;
 };
 
 export type UpdateProjectUseCaseResponse = {
@@ -49,6 +51,7 @@ export type UpdateProjectUseCaseResponse = {
     maxPublicResponses: number | null;
     requirePublicEmail: boolean;
     captchaEnabled: boolean;
+    deadline: Date | null;
     createdAt: Date;
     updatedAt: Date;
   };

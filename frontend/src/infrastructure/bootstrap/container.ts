@@ -14,6 +14,7 @@ import { bindProjectReports } from '../../modules/project-reports/infrastructure
 import { bindSurveys } from '../../modules/surveys/infrastructure/bootstrap/bind.surveys';
 import { bindSurveyResponses } from '../../modules/survey-responses/infrastructure/bootstrap/bind.survey-responses';
 import { bindAuth } from '../../modules/auth/infrastructure/bootstrap/bind.auth';
+import { bindScraper } from '../../modules/scraper/infrastructure/bootstrap/bind.scraper';
 const container = new Container();
 
 // Infrastructure bindings
@@ -28,5 +29,6 @@ bindProjectReports(container);
 bindSurveys(container);
 bindSurveyResponses(container);
 bindAuth(container);
+bindScraper(container);
 
 export { container, TYPES };

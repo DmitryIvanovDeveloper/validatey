@@ -73,7 +73,7 @@ export class SupabaseMetricsRepository implements MetricsRepositoryPort {
           const responseId = quote.id.split('_quote_')[0];
           const embedding = embeddingMap.get(responseId);
           if (embedding) {
-            quote.embedding = Array.isArray(embedding) ? embedding : JSON.parse(embedding as string);
+            quote.embedding = Array.isArray(embedding) ? embedding : JSON.parse(embedding as any);
           }
         });
       }

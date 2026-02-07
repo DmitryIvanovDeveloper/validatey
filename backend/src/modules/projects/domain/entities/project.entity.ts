@@ -34,6 +34,8 @@ export interface Project {
   readonly maxPublicResponses: number | null;
   readonly requirePublicEmail: boolean;
   readonly captchaEnabled: boolean;
+  /** Optional target date for validation decision (Overview Time Health). */
+  readonly deadline: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -71,6 +73,7 @@ export class ProjectEntity {
     public readonly maxPublicResponses: number | null,
     public readonly requirePublicEmail: boolean,
     public readonly captchaEnabled: boolean,
+    public readonly deadline: Date | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
@@ -113,6 +116,7 @@ export class ProjectEntity {
       null,
       false,
       false,
+      null,
       now,
       now
     );
@@ -139,6 +143,7 @@ export class ProjectEntity {
       data.maxPublicResponses ?? null,
       data.requirePublicEmail ?? false,
       data.captchaEnabled ?? false,
+      data.deadline ?? null,
       data.createdAt,
       data.updatedAt
     );
@@ -165,6 +170,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -191,6 +197,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -217,6 +224,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -243,6 +251,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -269,6 +278,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -301,6 +311,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -330,6 +341,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -356,6 +368,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -382,6 +395,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -408,6 +422,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -434,6 +449,7 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -460,6 +476,34 @@ export class ProjectEntity {
       this.maxPublicResponses,
       this.requirePublicEmail,
       this.captchaEnabled,
+      this.deadline,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withDeadline(deadline: Date | null): ProjectEntity {
+    return new ProjectEntity(
+      this.id,
+      this.userId,
+      this.name,
+      this.status,
+      this.segment,
+      this.hypothesis,
+      this.marketContext,
+      this.targetAudience,
+      this.cost,
+      this.consentText,
+      this.dataUsageText,
+      this.privacyPolicyUrl,
+      this.termsOfServiceUrl,
+      this.scenarioTemplateSlug,
+      this.publicAccessEnabled,
+      this.publicSlug,
+      this.maxPublicResponses,
+      this.requirePublicEmail,
+      this.captchaEnabled,
+      deadline,
       this.createdAt,
       new Date()
     );
@@ -492,6 +536,7 @@ export class ProjectEntity {
       settings.maxPublicResponses,
       settings.requirePublicEmail,
       settings.captchaEnabled,
+      this.deadline,
       this.createdAt,
       new Date()
     );
@@ -518,6 +563,7 @@ export class ProjectEntity {
       maxPublicResponses: this.maxPublicResponses,
       requirePublicEmail: this.requirePublicEmail,
       captchaEnabled: this.captchaEnabled,
+      deadline: this.deadline,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

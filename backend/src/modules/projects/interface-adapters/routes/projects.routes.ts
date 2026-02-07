@@ -5,6 +5,7 @@ import { ProjectController } from '../controllers/project.controller';
 
 const router = Router();
 const controller = container.get<ProjectController>(TYPES.ProjectController);
+const presenter = controller;
 
 // Create project
 router.post('/', async (req: Request, res: Response) => {
@@ -17,7 +18,7 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await controller.createProject({
+    const result = await presenter.createProject({
       userId,
       name: req.body?.name,
       segment: req.body?.segment,
@@ -68,7 +69,7 @@ router.get('/', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await controller.listProjects({
+    const result = await presenter.listProjects({
       userId,
       listAll,
     });
@@ -114,7 +115,7 @@ router.get('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await controller.getProject({
+    const result = await presenter.getProject({
       projectId: req.params.id,
       userId,
     });
@@ -162,7 +163,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       hasCost: req.body?.cost !== undefined,
     });
 
-    const result = await controller.updateProject({
+    const result = await presenter.updateProject({
       projectId,
       userId,
       name: req.body?.name,
@@ -182,6 +183,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       maxPublicResponses: req.body?.maxPublicResponses,
       requirePublicEmail: req.body?.requirePublicEmail,
       captchaEnabled: req.body?.captchaEnabled,
+      deadline: req.body?.deadline,
     });
 
     if (!result.isSuccess) {
@@ -201,15 +203,13 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     // Serialize dates to ISO strings for JSON response
+    const p = result.data.project;
     const responseData = {
       project: {
-        ...result.data.project,
-        createdAt: result.data.project.createdAt instanceof Date 
-          ? result.data.project.createdAt.toISOString() 
-          : result.data.project.createdAt,
-        updatedAt: result.data.project.updatedAt instanceof Date 
-          ? result.data.project.updatedAt.toISOString() 
-          : result.data.project.updatedAt,
+        ...p,
+        deadline: p.deadline instanceof Date ? p.deadline.toISOString() : p.deadline,
+        createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : p.createdAt,
+        updatedAt: p.updatedAt instanceof Date ? p.updatedAt.toISOString() : p.updatedAt,
       }
     };
 
@@ -236,7 +236,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       });
     }
 
-    const result = await controller.deleteProject({
+    const result = await presenter.deleteProject({
       projectId: req.params.id,
       userId,
     });

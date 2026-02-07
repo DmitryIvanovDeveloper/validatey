@@ -20,10 +20,13 @@ import { bindSurveys } from '../../modules/surveys/infrastructure/bootstrap/bind
 import { bindAi } from '../../modules/ai/infrastructure/bootstrap/bind.ai';
 import { bindSignals } from '../../modules/signals/infrastructure/bootstrap/bind.signals';
 import { bindResearch } from '../../modules/research/infrastructure/bootstrap/bind.research';
+import { bindScraper } from '../../modules/scraper/infrastructure/bootstrap/bind.scraper';
 import { bindDeletionRequests } from '../../modules/deletion-requests/infrastructure/bootstrap/bind.deletion-requests';
 import { bindAudit } from '../../modules/audit/infrastructure/bootstrap/bind.audit';
 import { bindAdmin } from '../../modules/admin/infrastructure/bootstrap/bind.admin';
 import { bindFeedback } from '../../modules/feedback/infrastructure/bootstrap/bind.feedback';
+import { bindRounds } from '../../modules/rounds/infrastructure/bootstrap/bind.rounds';
+import { bindOverview } from '../../modules/overview/infrastructure/bootstrap/bind.overview';
 
 const container = new Container();
 
@@ -46,10 +49,13 @@ bindSurveys(container);
 bindAi(container);
 bindSignals(container);
 bindResearch(container);
+bindScraper(container);
 bindDeletionRequests(container);
 bindAudit(container);
 bindAdmin(container);
 bindFeedback(container);
+bindRounds(container);
+bindOverview(container);
 
 export { container, TYPES };
 

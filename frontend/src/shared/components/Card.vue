@@ -32,18 +32,39 @@ const handleClick = () => {
 
 <style scoped>
 .card {
-  background: var(--color-bg);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border);
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 2rem;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0d9488, #0891b2, #7c3aed);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .card-hover:hover {
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.1);
-  transform: translateY(-3px);
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.12),
+    0 8px 16px rgba(0, 0, 0, 0.08);
   border-color: rgba(13, 148, 136, 0.3);
+}
+.card-hover:hover::before {
+  opacity: 1;
 }
 
 .card-clickable {
@@ -51,25 +72,36 @@ const handleClick = () => {
 }
 
 .card-header {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 1;
 }
 
 .card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
   margin: 0;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .card-body {
-  color: var(--color-text-muted);
+  color: #64748b;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
 }
 
 .card-footer {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 1;
 }
 </style>

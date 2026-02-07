@@ -32,6 +32,14 @@
           Research
         </router-link>
         <router-link
+          :to="`/projects/${projectId}/scraper`"
+          class="tab-link"
+          :class="{ active: isTabActive('scraper') }"
+          role="tab"
+        >
+          Scraper
+        </router-link>
+        <router-link
           :to="`/projects/${projectId}/invitations`"
           class="tab-link"
           :class="{ active: isTabActive('invitations') }"
@@ -82,6 +90,7 @@ function isTabActive(tab: string): boolean {
   const name = route.name as string;
   if (tab === 'overview') return name === 'project-details' || name === 'project-overview';
   if (tab === 'research') return name === 'project-research';
+  if (tab === 'scraper') return name === 'project-scraper';
   if (tab === 'report') return name === 'project-report';
   if (tab === 'invitations') return name === 'project-invitations';
   if (tab === 'progress') return name === 'project-progress';

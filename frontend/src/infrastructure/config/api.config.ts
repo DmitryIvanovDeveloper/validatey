@@ -60,11 +60,28 @@ export const API_CONFIG = {
     RESEARCH_COLLECT: (projectId: string) => `/projects/${projectId}/research/collect`,
     RESEARCH_ASSISTANT: (projectId: string) => `/projects/${projectId}/research/assistant`,
 
+    // Scraper (data sources: competitor sites, reviews, job market, etc.)
+    SCRAPER_SOURCES: (projectId: string) => `/projects/${projectId}/scraper`,
+    SCRAPER_SOURCE: (projectId: string, id: string) => `/projects/${projectId}/scraper/${id}`,
+    SCRAPER_RUN: (projectId: string, sourceId: string) => `/projects/${projectId}/scraper/${sourceId}/run`,
+    SCRAPER_RESULTS: (projectId: string) => `/projects/${projectId}/scraper/results`,
+    SCRAPER_PRESETS: (projectId: string) => `/projects/${projectId}/scraper/presets`,
+    SCRAPER_SUGGEST: (projectId: string) => `/projects/${projectId}/scraper/suggest`,
+    SCRAPER_STATS: (projectId: string) => `/projects/${projectId}/scraper/stats`,
+    SCRAPER_GENERATE_INSIGHTS: (projectId: string, runId: string) => `/projects/${projectId}/scraper/runs/${runId}/generate-insights`,
+
     // Reports
     REPORT: (projectId: string) => `/projects/${projectId}/report`,
     REPORT_HTML: (projectId: string) => `/projects/${projectId}/report/html`,
     REPORT_PDF: (projectId: string) => `/projects/${projectId}/report/pdf`,
-    
+
+    // Rounds (iterative validation rounds per project)
+    ROUNDS: (projectId: string) => `/projects/${projectId}/rounds`,
+    ROUND: (projectId: string, roundId: string) => `/projects/${projectId}/rounds/${roundId}`,
+
+    // Overview (command center: executive summary, pulse, smart actions, research context, decision pathway)
+    OVERVIEW: (projectId: string) => `/projects/${projectId}/overview`,
+
     // Survey (Respondent UI) - Note: /survey route is mounted directly, not under /api
     SURVEY_BY_TOKEN: (token: string) => `${getSurveyBaseUrl()}/survey/${token}`,
     SURVEY_PUBLIC: (slug: string) => `${getSurveyBaseUrl()}/survey/public/${slug}`,

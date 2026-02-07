@@ -98,6 +98,16 @@ export class UpdateProjectUseCase {
         updatedProject = updatedProject.withTermsOfServiceUrl(request.termsOfServiceUrl ?? null);
       }
 
+      if (request.deadline !== undefined) {
+        const deadline =
+          request.deadline === null || request.deadline === ''
+            ? null
+            : typeof request.deadline === 'string'
+              ? new Date(request.deadline)
+              : request.deadline;
+        updatedProject = updatedProject.withDeadline(deadline);
+      }
+
       if (
         request.publicAccessEnabled !== undefined ||
         request.publicSlug !== undefined ||

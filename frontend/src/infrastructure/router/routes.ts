@@ -47,6 +47,11 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/modules/research/interface-adapters/views/ResearchCanvasView.vue'),
       },
       {
+        path: 'scraper',
+        name: 'project-scraper',
+        component: () => import('@/modules/scraper/interface-adapters/views/ScraperView.vue'),
+      },
+      {
         path: 'report',
         name: 'project-report',
         component: () => import('@/modules/project-reports/interface-adapters/views/ProjectReportView.vue'),

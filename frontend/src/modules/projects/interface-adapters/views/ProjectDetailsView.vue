@@ -27,23 +27,51 @@
     </div>
 
     <div v-else-if="project" class="details-content overview-redesign">
-      <!-- 1. EXECUTIVE SUMMARY (top) -->
-      <section class="overview-executive">
+      <!-- 1. EXECUTIVE SUMMARY (command center header) -->
+      <section class="overview-executive card-elevated">
         <div class="executive-header">
-          <h2 class="executive-title">{{ project.name }}</h2>
-          <span :class="['status-badge', `status-${project.status}`]">{{ getStatusLabel(project.status) }}</span>
+          <h2 class="executive-title">
+            {{ overviewData?.executiveSummary?.projectName ?? project.name }}
+          </h2>
+          <span :class="['status-badge', `status-${overviewData?.executiveSummary?.status ?? project.status}`]">
+            {{ getStatusLabel((overviewData?.executiveSummary?.status ?? project.status) as ProjectStatus) }}
+          </span>
         </div>
-        <div class="executive-health-row">
-          <div class="progress-visual overview-progress-ring">
-            <div class="progress-ring" :style="{ '--p': overviewResponseRate }">
-              <span class="progress-value">{{ overviewResponseRate }}%</span>
-            </div>
-            <span class="progress-ring-label">Response rate</span>
+        <div v-if="overviewData?.executiveSummary" class="executive-validation-row">
+          <div class="executive-left">
+            <span class="validation-status" :class="`validation-${overviewData.executiveSummary.validationStatus}`">
+              {{ validationStatusLabel(overviewData.executiveSummary.validationStatus) }}
+            </span>
+            <p class="executive-stats">
+              {{ overviewData.executiveSummary.responded }}/{{ overviewData.executiveSummary.sent }} responded ({{ overviewData.executiveSummary.responseRatePct }}%)
+              <template v-if="overviewData.executiveSummary.neededForSignificance != null && overviewData.executiveSummary.neededForSignificance > 0">
+                · Need {{ overviewData.executiveSummary.neededForSignificance }} more for significance
+              </template>
+              <template v-if="overviewData.executiveSummary.daysRemaining != null">
+                · {{ overviewData.executiveSummary.daysRemaining }} days left
+              </template>
+              · {{ overviewData.executiveSummary.paceResponsesPerDay }} responses/day
+            </p>
+            <p v-if="overviewData.executiveSummary.keyInsight" class="executive-key-insight">
+              {{ overviewData.executiveSummary.keyInsight }}
+            </p>
+            <p v-if="overviewData.executiveSummary.aiVerdict" class="executive-ai-verdict">
+              {{ overviewData.executiveSummary.aiVerdict }}
+            </p>
           </div>
+          <div class="executive-right">
+            <div class="progress-visual overview-progress-ring">
+              <div class="progress-ring" :style="{ '--p': overviewData.executiveSummary.responseRatePct }">
+                <span class="progress-value">{{ overviewData.executiveSummary.responseRatePct }}%</span>
+              </div>
+              <span class="progress-ring-label">Response rate</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="executive-health-row">
           <div class="executive-metrics">
             <p class="executive-insight" v-if="overviewStats.sent > 0">
               {{ overviewStats.responded }} of {{ overviewStats.sent }} responded ({{ overviewResponseRate }}%)
-              <template v-if="overviewStats.sent > overviewStats.responded"> · {{ overviewStats.sent - overviewStats.responded }} pending</template>
             </p>
             <p class="executive-insight" v-else>No responses yet. Send invitations to start.</p>
             <p class="executive-meta">Created {{ formatDate(project.createdAt) }}</p>
@@ -51,80 +79,121 @@
         </div>
       </section>
 
-      <!-- 2. QUICK ACTIONS -->
-      <section class="overview-quick-actions">
-        <h3 class="section-label">Quick actions</h3>
-        <div class="quick-actions-grid">
-          <router-link :to="`/projects/${projectId}/invitations`" class="quick-action-btn">
-            <span class="quick-action-label">Send reminders</span>
-            <span class="quick-action-hint">Invitations</span>
-          </router-link>
-          <router-link :to="`/projects/${projectId}/invitations`" class="quick-action-btn">
-            <span class="quick-action-label">Share public link</span>
-            <span class="quick-action-hint">Copy & share</span>
-          </router-link>
-          <router-link :to="`/projects/${projectId}/report`" class="quick-action-btn">
-            <span class="quick-action-label">View report</span>
-            <span class="quick-action-hint">Results</span>
-          </router-link>
-          <router-link :to="`/projects/${projectId}/research`" class="quick-action-btn">
-            <span class="quick-action-label">Research Assistant</span>
-            <span class="quick-action-hint">AI insights</span>
-          </router-link>
+      <!-- 2. SMART ACTIONS (context-aware) -->
+      <section class="overview-smart-actions">
+        <h3 class="section-label">Smart actions</h3>
+        <div class="smart-actions-grid">
+          <template v-if="overviewData?.smartActions?.length">
+            <router-link
+              v-for="a in overviewData.smartActions"
+              :key="a.id"
+              :to="a.href"
+              class="smart-action-btn"
+            >
+              <span class="smart-action-label">{{ a.label }}</span>
+              <span class="smart-action-hint">{{ a.hint }}</span>
+            </router-link>
+          </template>
+          <template v-else>
+            <router-link :to="`/projects/${projectId}/invitations`" class="smart-action-btn">
+              <span class="smart-action-label">Send reminders</span>
+              <span class="smart-action-hint">Invitations</span>
+            </router-link>
+            <router-link :to="`/projects/${projectId}/report`" class="smart-action-btn">
+              <span class="smart-action-label">View report</span>
+              <span class="smart-action-hint">Results</span>
+            </router-link>
+            <router-link :to="`/projects/${projectId}/research`" class="smart-action-btn">
+              <span class="smart-action-label">Research Assistant</span>
+              <span class="smart-action-hint">AI insights</span>
+            </router-link>
+          </template>
         </div>
       </section>
 
-      <!-- 2b. Response progress (quick access to responses) -->
-      <section v-if="overviewStats.sent > 0" class="overview-response-progress">
-        <h3 class="section-label">Response progress</h3>
-        <div class="response-progress-card">
-          <p class="response-progress-stats">{{ overviewResponseRate }}% ({{ overviewStats.responded }}/{{ overviewStats.sent }} responded)</p>
-          <p v-if="latestInsightText" class="response-progress-insight">Latest insight: {{ latestInsightText }}</p>
-          <div class="response-progress-actions">
-            <button type="button" class="btn btn-ghost btn-sm" :disabled="overviewStats.responded === 0" @click="openRecentResponsesModal">
-              View 3 recent responses
-            </button>
-            <router-link v-if="overviewStats.responded > 0" :to="`/projects/${projectId}/responses`" class="btn btn-secondary btn-sm">See all responses</router-link>
-          </div>
+      <!-- 3. PROJECT PULSE (4 metrics with actions) -->
+      <section class="overview-pulse">
+        <h3 class="section-label">Project pulse</h3>
+        <div class="pulse-grid">
+          <template v-if="overviewData?.pulse?.length">
+            <div
+              v-for="m in overviewData.pulse"
+              :key="m.id"
+              :class="['pulse-cell', `pulse-${m.status}`]"
+            >
+              <span class="pulse-value">{{ m.value }}</span>
+              <span class="pulse-label">{{ m.label }}</span>
+              <span class="pulse-detail">{{ m.detail }}</span>
+              <router-link :to="m.actionHref" class="pulse-action">{{ m.actionLabel }}</router-link>
+            </div>
+          </template>
+          <template v-else>
+            <div class="pulse-cell">
+              <span class="pulse-value">{{ overviewResponseRate }}%</span>
+              <span class="pulse-label">Response rate</span>
+              <span class="pulse-detail">{{ overviewStats.responded }}/{{ overviewStats.sent }}</span>
+              <router-link :to="`/projects/${projectId}/invitations`" class="pulse-action">Send more</router-link>
+            </div>
+            <div class="pulse-cell">
+              <span class="pulse-value">—</span>
+              <span class="pulse-label">Data depth</span>
+              <span class="pulse-detail">View report</span>
+              <router-link :to="`/projects/${projectId}/report`" class="pulse-action">View</router-link>
+            </div>
+            <div class="pulse-cell">
+              <span class="pulse-value">—</span>
+              <span class="pulse-label">Time health</span>
+              <span class="pulse-detail">No deadline</span>
+              <span class="pulse-action mute">—</span>
+            </div>
+          </template>
         </div>
       </section>
 
-      <!-- 3. PROJECT HEALTH (metrics) -->
-      <section class="overview-health-metrics">
-        <h3 class="section-label">Project health</h3>
-        <div class="health-grid">
-          <div class="health-cell">
-            <span class="health-cell-value">{{ overviewResponseRate }}%</span>
-            <span class="health-cell-label">Response rate</span>
-            <span class="health-cell-detail">{{ overviewStats.responded }}/{{ overviewStats.sent }}</span>
-            <router-link :to="`/projects/${projectId}/invitations`" class="health-cell-action">Send more</router-link>
-          </div>
-          <div class="health-cell">
-            <span class="health-cell-value">—</span>
-            <span class="health-cell-label">Data quality</span>
-            <span class="health-cell-detail">View report</span>
-            <router-link :to="`/projects/${projectId}/report`" class="health-cell-action">View</router-link>
-          </div>
-          <div class="health-cell">
-            <span class="health-cell-value">—</span>
-            <span class="health-cell-label">Time remaining</span>
-            <span class="health-cell-detail">No deadline set</span>
-            <span class="health-cell-action mute">—</span>
-          </div>
-        </div>
+      <!-- 4. RESEARCH CONTEXT (from Research Assistant) -->
+      <section v-if="overviewData?.researchContext?.hasData" class="overview-research-context card-elevated">
+        <h3 class="section-label">Research context</h3>
+        <p v-if="overviewData.researchContext.summary" class="research-summary">{{ overviewData.researchContext.summary }}</p>
+        <p v-if="overviewData.researchContext.marketSnippet" class="research-snippet">Market: {{ overviewData.researchContext.marketSnippet }}</p>
+        <p v-if="overviewData.researchContext.competitorsSnippet" class="research-snippet">Competitors: {{ overviewData.researchContext.competitorsSnippet }}</p>
+        <router-link :to="`/projects/${projectId}/research`" class="btn btn-ghost btn-sm">More in Research →</router-link>
       </section>
 
-      <!-- 4. KEY INSIGHTS (placeholder until backend) -->
-      <section class="overview-insights">
-        <h3 class="section-label">Key insights</h3>
-        <div v-if="overviewStats.responded > 0" class="insights-placeholder">
-          <p>Run validation and view the Report tab for early signals and metrics.</p>
-          <router-link :to="`/projects/${projectId}/report`" class="btn btn-secondary btn-sm">View report</router-link>
+      <!-- 5. LEARNING JOURNEY (rounds as chain) -->
+      <section class="overview-learning-journey">
+        <h3 class="section-label">Learning journey</h3>
+        <div v-if="overviewData?.learningJourney?.rounds?.length" class="journey-chain">
+          <div
+            v-for="(r, idx) in overviewData.learningJourney.rounds"
+            :key="r.id"
+            class="journey-step"
+          >
+            <span v-if="idx > 0" class="journey-arrow">→</span>
+            <div class="journey-round">
+              <span :class="['journey-status', `journey-status-${r.status}`]">{{ r.status }}</span>
+              <span class="journey-type">{{ roundTypeLabel(r.type) }}</span>
+              <h4 class="journey-title">{{ r.title }}</h4>
+              <p v-if="r.keyFinding" class="journey-finding">{{ r.keyFinding }}</p>
+              <router-link :to="r.reportHref" class="btn btn-ghost btn-sm">Report</router-link>
+            </div>
+          </div>
         </div>
-        <div v-else class="insights-placeholder">
-          <p>Collect responses to see automatic insights here.</p>
-          <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-secondary btn-sm">Send invitations</router-link>
+        <div v-else-if="roundsLoading" class="rounds-loading">Loading rounds...</div>
+        <div v-else class="rounds-list">
+          <div v-for="r in roundsList" :key="r.id" class="round-card">
+            <span :class="['round-status', `round-status-${r.status}`]">{{ r.status }}</span>
+            <span class="round-type">{{ roundTypeLabel(r.type) }}</span>
+            <h4 class="round-title">{{ r.title }}</h4>
+            <p v-if="r.results?.keyFinding" class="round-finding">{{ r.results.keyFinding }}</p>
+            <router-link :to="`/projects/${projectId}/report?roundId=${r.id}`" class="btn btn-ghost btn-sm">Report</router-link>
+          </div>
+          <div v-if="roundsList.length === 0" class="rounds-empty">
+            <p>No rounds yet. Add a round to structure your validation.</p>
+          </div>
         </div>
+        <button type="button" class="btn btn-secondary btn-sm rounds-add-btn" @click="openCreateRoundModal">
+          Add round
+        </button>
       </section>
 
       <!-- 5. PROJECT DETAILS (collapsed by default feel: compact) -->
@@ -245,17 +314,69 @@
         </Card>
       </section>
 
-      <!-- 6. NEXT STEPS -->
-      <section class="overview-next-steps">
-        <h3 class="section-label">Next steps</h3>
-        <ol class="next-steps-list">
-          <li v-if="overviewStats.sent === 0">Send invitations to start collecting responses</li>
-          <li v-else-if="overviewStats.responded === 0">Wait for responses or send reminders from Invitations</li>
-          <li v-else>View the Report tab for validation results and recommendations</li>
-          <li>Use Research Assistant for market and competitor insights</li>
-        </ol>
+      <!-- 6. DECISION PATHWAY (path to solution) -->
+      <section class="overview-decision-pathway card-elevated">
+        <h3 class="section-label">Decision pathway</h3>
+        <template v-if="overviewData?.decisionPathway">
+          <div class="pathway-steps">
+            <div
+              v-for="s in overviewData.decisionPathway.steps"
+              :key="s.id"
+              :class="['pathway-step', `pathway-${s.status}`]"
+            >
+              <span class="pathway-step-label">{{ s.label }}</span>
+              <span class="pathway-step-progress">{{ s.progress }}</span>
+              <router-link v-if="s.actionHref" :to="s.actionHref" class="btn btn-ghost btn-sm">Go</router-link>
+            </div>
+          </div>
+          <div class="pathway-criteria">
+            <h4 class="pathway-criteria-title">Success criteria</h4>
+            <ul class="pathway-criteria-list">
+              <li
+                v-for="(c, i) in overviewData.decisionPathway.successCriteria"
+                :key="i"
+                :class="{ 'criteria-met': c.met }"
+              >
+                {{ c.label }}: {{ c.current }} (target: {{ c.target }})
+              </li>
+            </ul>
+          </div>
+        </template>
+        <template v-else>
+          <ol class="next-steps-list">
+            <li v-if="overviewStats.sent === 0">Send invitations to start collecting responses</li>
+            <li v-else-if="overviewStats.responded === 0">Wait for responses or send reminders from Invitations</li>
+            <li v-else>View the Report tab for validation results and recommendations</li>
+            <li>Use Research Assistant for market and competitor insights</li>
+          </ol>
+        </template>
       </section>
     </div>
+
+    <!-- Create round modal -->
+    <Modal v-model="showCreateRoundModal" title="Add round" :closable="true">
+      <p v-if="createRoundError" class="form-error">{{ createRoundError }}</p>
+      <label class="inline-label">Title</label>
+      <input v-model="createRoundTitle" type="text" class="overview-input" placeholder="e.g. Round 1: Quantitative Survey" />
+      <label class="inline-label">Type</label>
+      <select v-model="createRoundType" class="overview-input">
+        <option value="survey">Survey</option>
+        <option value="interview">Interview</option>
+        <option value="ab_test">A/B test</option>
+        <option value="field">Field study</option>
+      </select>
+      <label class="inline-label">Based on round (optional)</label>
+      <select v-model="createRoundParentId" class="overview-input">
+        <option value="">— None —</option>
+        <option v-for="r in roundsList" :key="r.id" :value="r.id">{{ r.title }}</option>
+      </select>
+      <template #footer>
+        <button type="button" class="btn btn-ghost" @click="closeCreateRoundModal">Cancel</button>
+        <button type="button" class="btn btn-primary" :disabled="createRoundSaving || !createRoundTitle.trim()" @click="submitCreateRound">
+          {{ createRoundSaving ? 'Creating…' : 'Create round' }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -286,6 +407,7 @@ const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 const scenarioPresenter = container.get<ScenarioPresenter>(SCENARIO_TYPES.ScenarioPresenter);
 const invitationPresenter = container.get<InvitationPresenter>(INVITATION_TYPES.InvitationPresenter);
+const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
 const scenarioContent = ref<string>('');
 const scenarioId = ref<string | null>(null);
@@ -314,6 +436,65 @@ const showRecentResponsesModal = ref(false);
 const recentResponsesLoading = ref(false);
 const recentResponsesQuotes = ref<Array<{ text: string }>>([]);
 const latestInsightText = ref('');
+
+const roundsList = ref<Array<{
+  id: string;
+  projectId: string;
+  parentRoundId: string | null;
+  title: string;
+  status: string;
+  type: string;
+  sortOrder: number;
+  results: { keyFinding?: string; confidence?: number; nextQuestions?: string[] } | null;
+  createdAt: string;
+  updatedAt: string;
+}>>([]);
+const roundsLoading = ref(false);
+
+/** Overview command center payload (executive summary, pulse, smart actions, research context, decision pathway). */
+type OverviewPayload = {
+  executiveSummary: {
+    projectName: string;
+    status: string;
+    validationStatus: string;
+    responded: number;
+    sent: number;
+    responseRatePct: number;
+    neededForSignificance: number | null;
+    keyInsight: string | null;
+    deadline: string | null;
+    daysRemaining: number | null;
+    paceResponsesPerDay: number;
+    aiVerdict: string | null;
+    createdAt: string;
+  };
+  pulse: Array<{
+    id: string;
+    label: string;
+    value: string;
+    detail: string;
+    status: string;
+    actionLabel: string;
+    actionHref: string;
+  }>;
+  smartActions: Array<{ id: string; label: string; hint: string; href: string }>;
+  researchContext: { summary: string | null; marketSnippet: string | null; competitorsSnippet: string | null; hasData: boolean };
+  learningJourney: { rounds: Array<{ id: string; title: string; type: string; status: string; keyFinding: string | null; reportHref: string }>; extendSuggestions: string[] };
+  decisionPathway: {
+    steps: Array<{ id: string; label: string; progress: string; status: string; actionHref: string | null }>;
+    successCriteria: Array<{ label: string; current: string; target: string; met: boolean }>;
+    decisionDate: string | null;
+  };
+};
+const overviewData = ref<OverviewPayload | null>(null);
+const overviewLoading = ref(false);
+const overviewError = ref<string | null>(null);
+const showCreateRoundModal = ref(false);
+const createRoundTitle = ref('');
+const createRoundType = ref<'survey' | 'interview' | 'ab_test' | 'field'>('survey');
+const createRoundParentId = ref('');
+const createRoundSaving = ref(false);
+const createRoundError = ref<string | null>(null);
 
 const project = computed(() => {
   return viewModel.project.value;
@@ -553,14 +734,25 @@ async function saveMarketContext() {
 }
 
 const getStatusLabel = (status: ProjectStatus): string => {
-  const labels: Record<ProjectStatus, string> = {
+  const labels: Record<string, string> = {
     draft: 'Draft',
+    active: 'Active',
     'in-progress': 'In progress',
     completed: 'Completed',
     archived: 'Archived',
   };
   return labels[status] || status;
 };
+
+function validationStatusLabel(v: string): string {
+  const map: Record<string, string> = {
+    no_data: 'No data yet',
+    weak_support: 'Weak support',
+    unclear_signal: 'Unclear signal',
+    validated: 'Validated',
+  };
+  return map[v] ?? v;
+}
 
 const formatDate = (date: Date | string): string => {
   if (!date) return '-';
@@ -592,6 +784,81 @@ async function loadOverviewInvitations() {
   if (!projectId) return;
   const { invitations } = await invitationPresenter.loadInvitations(projectId);
   overviewInvitations.value = invitations;
+}
+
+async function loadRounds() {
+  if (!projectId) return;
+  roundsLoading.value = true;
+  try {
+    const url = API_CONFIG.ENDPOINTS.ROUNDS(projectId);
+    const data = await httpClient.get<typeof roundsList.value>(url);
+    roundsList.value = Array.isArray(data) ? data : [];
+  } catch {
+    roundsList.value = [];
+  } finally {
+    roundsLoading.value = false;
+  }
+}
+
+async function loadOverview() {
+  if (!projectId) return;
+  overviewLoading.value = true;
+  overviewError.value = null;
+  try {
+    const url = API_CONFIG.ENDPOINTS.OVERVIEW(projectId);
+    const data = await httpClient.get<OverviewPayload>(url);
+    overviewData.value = data ?? null;
+  } catch {
+    overviewData.value = null;
+    overviewError.value = 'Overview unavailable';
+  } finally {
+    overviewLoading.value = false;
+  }
+}
+
+function roundTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    survey: 'Survey',
+    interview: 'Interview',
+    ab_test: 'A/B test',
+    field: 'Field study',
+  };
+  return labels[type] ?? type;
+}
+
+function openCreateRoundModal() {
+  createRoundTitle.value = '';
+  createRoundType.value = 'survey';
+  createRoundParentId.value = '';
+  createRoundError.value = null;
+  showCreateRoundModal.value = true;
+}
+
+function closeCreateRoundModal() {
+  showCreateRoundModal.value = false;
+}
+
+async function submitCreateRound() {
+  if (!projectId || !createRoundTitle.value.trim()) return;
+  createRoundSaving.value = true;
+  createRoundError.value = null;
+  try {
+    const url = API_CONFIG.ENDPOINTS.ROUNDS(projectId);
+    const body: { title: string; type: string; parentRoundId?: string } = {
+      title: createRoundTitle.value.trim(),
+      type: createRoundType.value,
+    };
+    if (createRoundParentId.value.trim()) {
+      body.parentRoundId = createRoundParentId.value.trim();
+    }
+    await httpClient.post(url, body);
+    await loadRounds();
+    closeCreateRoundModal();
+  } catch (e) {
+    createRoundError.value = e instanceof Error ? e.message : 'Failed to create round';
+  } finally {
+    createRoundSaving.value = false;
+  }
 }
 
 onMounted(() => {
@@ -631,6 +898,8 @@ watch(project, (p) => {
     syncEditFieldsFromProject();
     loadScenario();
     loadOverviewInvitations();
+    loadRounds();
+    loadOverview();
   }
 }, { immediate: true });
 
@@ -668,15 +937,69 @@ onMounted(() => scrollToHashSection());
 .overview-redesign {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  min-height: 100vh;
+  padding: 2rem 0;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger animations for sections */
+.overview-executive { animation-delay: 0.1s; }
+.overview-smart-actions { animation-delay: 0.2s; }
+.overview-pulse { animation-delay: 0.3s; }
+.overview-research-context { animation-delay: 0.4s; }
+.overview-learning-journey { animation-delay: 0.5s; }
+.overview-decision-pathway { animation-delay: 0.6s; }
+
+.overview-executive,
+.overview-smart-actions,
+.overview-pulse,
+.overview-research-context,
+.overview-learning-journey,
+.overview-decision-pathway {
+  animation: slideInUp 0.6s ease-out both;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .section-label {
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
-  margin: 0 0 0.75rem 0;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin: 0 0 1rem 0;
+  position: relative;
+}
+.section-label::after {
+  content: '';
+  position: absolute;
+  bottom: -0.25rem;
+  left: 0;
+  width: 2rem;
+  height: 2px;
+  background: linear-gradient(90deg, #0d9488, #0891b2);
+  border-radius: 1px;
 }
 
 .overview-response-progress { margin-bottom: 0; }
@@ -697,6 +1020,29 @@ onMounted(() => scrollToHashSection());
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.overview-rounds { margin-bottom: 0; }
+.rounds-intro { font-size: 0.875rem; color: var(--color-text-muted); margin: 0 0 0.75rem 0; }
+.rounds-loading { padding: 1rem; color: var(--color-text-muted); }
+.rounds-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+.round-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+.round-status { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-right: 0.5rem; }
+.round-status-draft { color: var(--color-text-muted); }
+.round-status-active { color: var(--color-accent); }
+.round-status-completed { color: var(--color-success, #38a169); }
+.round-status-archived { color: var(--color-text-muted); }
+.round-type { font-size: 0.75rem; color: var(--color-text-muted); }
+.round-title { font-size: 1rem; font-weight: 600; margin: 0.25rem 0 0.5rem 0; }
+.round-finding { font-size: 0.875rem; color: var(--color-text-muted); margin: 0 0 0.5rem 0; }
+.round-actions { margin-top: 0.5rem; }
+.rounds-empty { padding: 1rem; color: var(--color-text-muted); font-size: 0.875rem; }
+.rounds-add-btn { margin-top: 0.25rem; }
+
 .recent-loading, .recent-empty { padding: 1rem; color: var(--color-text-muted); }
 .recent-quotes-list { list-style: none; padding: 0; margin: 0; }
 .recent-quote {
@@ -706,24 +1052,159 @@ onMounted(() => scrollToHashSection());
 .recent-quote:last-child { border-bottom: none; }
 .recent-quote-label { font-size: 0.75rem; color: var(--color-text-muted); }
 .recent-quote-text { margin: 0.25rem 0 0 0; font-size: 0.875rem; }
+.card-elevated {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-elevated:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 64px rgba(0, 0, 0, 0.12),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+}
+.card-elevated::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0d9488, #0891b2, #7c3aed);
+  transition: all 0.3s ease;
+}
+.card-elevated:hover::before {
+  height: 4px;
+  box-shadow: 0 0 20px rgba(13, 148, 136, 0.3);
+}
 .overview-executive {
-  background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg, 0.75rem);
-  padding: 1.25rem 1.5rem;
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 1.25rem;
+  padding: 2rem 2.5rem;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 8px 16px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+.executive-validation-row {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.executive-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.executive-right {
+  flex-shrink: 0;
+}
+.validation-status {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.375rem 0.875rem;
+  border-radius: 2rem;
+  width: fit-content;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+.validation-no_data {
+  color: #64748b;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.15);
+}
+.validation-weak_support {
+  color: #92400e;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.15);
+}
+.validation-unclear_signal {
+  color: #0f766e;
+  background: linear-gradient(135deg, #ccfbf1, #99f6e4);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+}
+.validation-validated {
+  color: #166534;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.15);
+}
+.executive-stats {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+  line-height: 1.5;
+}
+.executive-key-insight {
+  font-size: 1rem;
+  color: #1e293b;
+  margin: 0.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid linear-gradient(180deg, #0d9488, #0891b2);
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.05), rgba(8, 145, 178, 0.05));
+  border-radius: 0 0.75rem 0.75rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.executive-key-insight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #0d9488, #0891b2);
+}
+.executive-ai-verdict {
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0.75rem 0 0 0;
+  font-style: italic;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 .executive-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 .executive-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
   margin: 0;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .executive-health-row {
   display: flex;
@@ -732,49 +1213,69 @@ onMounted(() => scrollToHashSection());
   flex-wrap: wrap;
 }
 
-/* Progress ring (same as Progress page) */
+/* Modern Progress ring */
 .overview-progress-ring {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  position: relative;
 }
 .overview-progress-ring .progress-ring {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: conic-gradient(
-    var(--color-accent, #0d9488) calc(var(--p, 0) * 3.6deg),
-    var(--color-border, #e2e8f0) 0
-  );
+  background:
+    conic-gradient(
+      #0d9488 calc(var(--p, 0) * 3.6deg),
+      #e2e8f0 0
+    ),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 0 0 5px var(--color-bg, #fff), 0 2px 8px rgba(13, 148, 136, 0.15);
+  box-shadow:
+    inset 0 0 0 8px rgba(255, 255, 255, 0.9),
+    0 8px 32px rgba(13, 148, 136, 0.2),
+    0 2px 8px rgba(13, 148, 136, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.4s ease;
 }
 .overview-progress-ring .progress-ring::before {
   content: '';
   position: absolute;
-  inset: 10px;
+  inset: 12px;
   border-radius: 50%;
-  background: var(--color-bg, #fff);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4)),
+    linear-gradient(135deg, rgba(13, 148, 136, 0.1), rgba(8, 145, 178, 0.1));
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .overview-progress-ring .progress-value {
-  font-size: 1.125rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--color-accent, #0d9488);
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #0d9488;
   position: relative;
   z-index: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: color 0.3s ease;
 }
 .progress-ring-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted, #64748b);
+  letter-spacing: 0.08em;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .executive-metrics {
@@ -792,39 +1293,398 @@ onMounted(() => scrollToHashSection());
   font-size: 0.8125rem;
   color: var(--color-text-muted);
 }
-.overview-quick-actions {
-  margin: 0;
-}
-.quick-actions-grid {
+.overview-smart-actions { margin: 0; }
+.smart-actions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
 }
-.quick-action-btn {
+.smart-action-btn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 0.75rem 1rem;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
   text-decoration: none;
-  color: var(--color-text);
-  transition: border-color 0.2s, background 0.2s;
+  color: #1e293b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
-.quick-action-btn:hover {
-  border-color: var(--color-accent);
-  background: rgba(13, 148, 136, 0.05);
+.smart-action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(13, 148, 136, 0.1), transparent);
+  transition: left 0.5s ease;
 }
-.quick-action-label {
+.smart-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(13, 148, 136, 0.15);
+  border-color: rgba(13, 148, 136, 0.3);
+}
+.smart-action-btn:hover::before {
+  left: 100%;
+}
+.smart-action-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+.smart-action-hint {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+  opacity: 0.8;
+}
+
+.overview-pulse { margin: 0; }
+.pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+.pulse-cell {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+.pulse-cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  transition: all 0.3s ease;
+}
+.pulse-cell.pulse-good {
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.1);
+}
+.pulse-cell.pulse-good::before {
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+}
+.pulse-cell.pulse-warn {
+  box-shadow: 0 4px 16px rgba(234, 179, 8, 0.1);
+}
+.pulse-cell.pulse-warn::before {
+  background: linear-gradient(180deg, #eab308, #ca8a04);
+}
+.pulse-cell.pulse-low {
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.1);
+}
+.pulse-cell.pulse-low::before {
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+}
+.pulse-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+.pulse-value {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.2;
+}
+.pulse-label {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  font-weight: 700;
+}
+.pulse-detail {
   font-size: 0.875rem;
-  font-weight: 600;
+  color: #64748b;
+  opacity: 0.9;
 }
-.quick-action-hint {
+.pulse-action {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0d9488;
+  text-decoration: none;
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.pulse-action::after {
+  content: '→';
+  font-size: 0.875rem;
+  transition: transform 0.2s ease;
+}
+.pulse-action:hover {
+  color: #0891b2;
+  transform: translateX(2px);
+}
+.pulse-action:hover::after {
+  transform: translateX(2px);
+}
+.pulse-action.mute {
+  color: #94a3b8;
+  cursor: default;
+}
+.pulse-action.mute::after {
+  display: none;
+}
+
+.overview-research-context {
+  padding: 1.75rem 2rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background:
+    linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%),
+    rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+.overview-research-context::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.research-summary {
+  font-size: 1rem;
+  margin: 0 0 0.75rem 0;
+  color: #1e293b;
+  font-weight: 500;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+.research-snippet {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0.375rem 0 0 0;
+  position: relative;
+  z-index: 1;
+}
+
+.overview-learning-journey { margin: 0; }
+.journey-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem 0;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+.journey-chain::before {
+  content: '';
+  position: absolute;
+  top: 2rem;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e2e8f0, #cbd5e1, #e2e8f0);
+  z-index: 0;
+}
+.journey-step {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+.journey-arrow {
+  color: #94a3b8;
+  font-weight: 800;
+  font-size: 1.125rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.journey-round {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem 1.75rem;
+  min-width: 240px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.journey-round:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+.journey-status {
   font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin-top: 0.15rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-right: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  display: inline-block;
 }
+.journey-status-draft {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.1);
+}
+.journey-status-active {
+  color: #0891b2;
+  background: rgba(8, 145, 178, 0.1);
+  box-shadow: 0 0 8px rgba(8, 145, 178, 0.2);
+}
+.journey-status-completed {
+  color: #166534;
+  background: rgba(22, 163, 74, 0.1);
+  box-shadow: 0 0 8px rgba(22, 163, 74, 0.2);
+}
+.journey-type {
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 500;
+}
+.journey-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.75rem 0;
+  color: #1e293b;
+}
+.journey-finding {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.5;
+}
+
+.overview-decision-pathway {
+  padding: 2rem 2.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+.pathway-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.pathway-step {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  position: relative;
+}
+.pathway-step:last-of-type { border-bottom: none; }
+.pathway-step:hover {
+  background: rgba(13, 148, 136, 0.02);
+  border-radius: 0.5rem;
+  margin: 0 -0.5rem;
+  padding: 1rem 0.5rem;
+}
+.pathway-step-label {
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  color: #1e293b;
+  font-size: 1rem;
+}
+.pathway-step-progress {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.pathway-done {
+  color: #166534;
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.pathway-criteria-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  color: #1e293b;
+  position: relative;
+}
+.pathway-criteria-title::after {
+  content: '';
+  position: absolute;
+  bottom: -0.25rem;
+  left: 0;
+  width: 3rem;
+  height: 2px;
+  background: linear-gradient(90deg, #0d9488, #0891b2);
+  border-radius: 1px;
+}
+.pathway-criteria-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.875rem;
+  display: grid;
+  gap: 0.75rem;
+}
+.pathway-criteria-list li {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+.pathway-criteria-list li:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+.pathway-criteria-list .criteria-met {
+  color: #166534;
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.05);
+}
+
 .overview-health-metrics { margin: 0; }
 .health-grid {
   display: grid;
@@ -883,19 +1743,44 @@ onMounted(() => scrollToHashSection());
 }
 .overview-details { margin: 0; }
 .overview-details .detail-card {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  animation: slideInUp 0.6s ease-out both;
 }
+.overview-details .detail-card:nth-child(1) { animation-delay: 0.1s; }
+.overview-details .detail-card:nth-child(2) { animation-delay: 0.2s; }
+.overview-details .detail-card:nth-child(3) { animation-delay: 0.3s; }
+.overview-details .detail-card:nth-child(4) { animation-delay: 0.4s; }
 .overview-details .detail-card:last-child {
   margin-bottom: 0;
 }
 .edit-link {
   font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-accent);
+  font-weight: 700;
+  color: #0d9488;
   text-decoration: none;
+  position: relative;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.edit-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #0d9488, #0891b2);
+  transition: width 0.3s ease;
+  border-radius: 1px;
 }
 .edit-link:hover {
-  text-decoration: underline;
+  color: #0891b2;
+  transform: translateY(-1px);
+}
+.edit-link:hover::after {
+  width: 100%;
 }
 .btn-inline {
   background: none;
@@ -909,12 +1794,75 @@ onMounted(() => scrollToHashSection());
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Modern action buttons for detail cards */
+.btn-edit,
+.btn-save,
+.btn-cancel {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.btn-edit {
+  background: rgba(13, 148, 136, 0.1);
+  color: #0d9488;
+  border-color: rgba(13, 148, 136, 0.3);
+}
+
+.btn-edit:hover:not(:disabled) {
+  background: rgba(13, 148, 136, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #0d9488, #0891b2);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+}
+
+.btn-save:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0891b2, #0d9488);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.4);
+}
+
+.btn-cancel {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.btn-edit:disabled,
+.btn-save:disabled,
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
 .inline-label {
   display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  margin: 0.5rem 0 0.25rem 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0.75rem 0 0.375rem 0;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
 }
 .inline-label:first-of-type {
   margin-top: 0;
@@ -922,17 +1870,39 @@ onMounted(() => scrollToHashSection());
 .overview-input,
 .overview-textarea {
   width: 100%;
-  padding: 0.5rem 0.75rem;
+  padding: 0.875rem 1rem;
   font-size: 0.875rem;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md, 0.5rem);
-  background: var(--color-bg);
-  color: var(--color-text);
-  margin-bottom: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
+
+.overview-input:focus,
+.overview-textarea:focus {
+  outline: none;
+  border-color: rgba(13, 148, 136, 0.5);
+  box-shadow:
+    0 0 0 3px rgba(13, 148, 136, 0.1),
+    0 4px 12px rgba(13, 148, 136, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.overview-input::placeholder,
+.overview-textarea::placeholder {
+  color: #94a3b8;
+  opacity: 0.8;
+}
+
 .overview-textarea {
-  min-height: 2.5rem;
+  min-height: 3rem;
   resize: vertical;
+  line-height: 1.5;
 }
 .form-error {
   color: var(--color-error, #dc2626);
@@ -946,46 +1916,102 @@ onMounted(() => scrollToHashSection());
   margin-left: 0.5rem;
 }
 .demographics-inline {
-  margin: 0.5rem 0 0 0;
+  margin: 0.75rem 0 0 0;
   font-size: 0.875rem;
-  color: var(--color-text-muted);
-  line-height: 1.5;
+  color: #64748b;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .market-context-card .collapsible-header {
   cursor: pointer;
   user-select: none;
+  transition: all 0.2s ease;
+}
+.market-context-card .collapsible-header:hover {
+  transform: translateY(-1px);
 }
 .collapse-icon {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-left: 0.5rem;
+  transition: transform 0.3s ease;
 }
 .market-context-inner {
-  padding-top: 0.5rem;
+  padding-top: 1rem;
+  animation: fadeInDown 0.4s ease-out;
 }
 .market-context-inner p {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  padding: 0.875rem 1rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .assumptions-compact {
-  margin: 0.5rem 0 0 0;
+  margin: 0.75rem 0 0 0;
   font-size: 0.8125rem;
-  color: var(--color-text-muted);
+  color: #64748b;
   cursor: help;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
+}
+.assumptions-compact:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
 }
 .scenario-summary {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.875rem;
-  color: var(--color-text);
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9375rem;
+  color: #1e293b;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 0.875rem 1rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 .scenario-details-toggle {
-  margin-top: 0.75rem;
+  margin-top: 1rem;
   font-size: 0.875rem;
 }
 .scenario-details-toggle summary {
   cursor: pointer;
-  color: var(--color-accent);
-  font-weight: 500;
+  color: #0d9488;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  background: rgba(13, 148, 136, 0.05);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(13, 148, 136, 0.1);
+}
+.scenario-details-toggle summary:hover {
+  background: rgba(13, 148, 136, 0.1);
+  transform: translateY(-1px);
 }
 .scenario-viewer-embed {
   margin-top: 1rem;
@@ -1094,29 +2120,60 @@ onMounted(() => scrollToHashSection());
 .formatted-text {
   white-space: pre-line;
   margin: 0;
-  color: var(--color-text-muted);
-  line-height: 1.6;
+  color: #64748b;
+  line-height: 1.7;
+  font-size: 0.9375rem;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .assumptions-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
 }
 
 .assumptions-list li {
-  padding: 0.5rem 0;
-  padding-left: 1.5rem;
+  padding: 0.75rem 1rem 0.75rem 2rem;
   position: relative;
-  color: #4a5568;
+  color: #64748b;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.assumptions-list li:last-child {
+  border-bottom: none;
+}
+
+.assumptions-list li:hover {
+  background: rgba(13, 148, 136, 0.02);
+  padding-left: 2.25rem;
 }
 
 .assumptions-list li::before {
-  content: '•';
+  content: '▹';
   position: absolute;
-  left: 0;
-  color: #4299e1;
+  left: 0.75rem;
+  top: 0.75rem;
+  color: #0d9488;
   font-weight: bold;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.assumptions-list li:hover::before {
+  color: #0891b2;
+  transform: scale(1.2);
 }
 
 .loading-state,
@@ -1130,35 +2187,71 @@ onMounted(() => scrollToHashSection());
 }
 
 .btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
   text-decoration: none;
-  display: inline-block;
-  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-primary {
-  background: var(--color-accent);
+  background: linear-gradient(135deg, #0d9488, #0891b2);
   color: white;
-  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
+  box-shadow:
+    0 4px 16px rgba(13, 148, 136, 0.3),
+    0 2px 8px rgba(13, 148, 136, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .btn-primary:hover {
-  background: var(--color-accent-hover);
-  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
+  background: linear-gradient(135deg, #0891b2, #0d9488);
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 32px rgba(13, 148, 136, 0.4),
+    0 4px 16px rgba(13, 148, 136, 0.3);
 }
 
 .btn-secondary {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  color: #64748b;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .btn-secondary:hover {
-  background: var(--color-border);
-  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.9);
+  color: #475569;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .card-header-row {
@@ -1167,13 +2260,24 @@ onMounted(() => scrollToHashSection());
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  position: relative;
 }
 
 .card-header-row .card-title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1a202c;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1e293b;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card-header-row .card-title:hover {
+  transform: translateY(-1px);
 }
 
 .card-header-actions {
@@ -1195,6 +2299,13 @@ onMounted(() => scrollToHashSection());
   }
   .executive-health-row {
     flex-direction: column;
+  }
+  .executive-validation-row {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .executive-right {
+    align-self: center;
   }
 }
 </style>

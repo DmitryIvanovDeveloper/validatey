@@ -26,6 +26,7 @@
   "dependencies": {
     "@google/genai": "^1.19.0",
     "@supabase/supabase-js": "^2.84.0",
+    "cheerio": "^1.2.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -38,6 +39,7 @@
     "multer": "^2.0.2",
     "nodemailer": "^6.9.16",
     "pg": "^8.11.3",
+    "puppeteer": "^24.15.0",
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.1",
     "zod": "^4.1.5"

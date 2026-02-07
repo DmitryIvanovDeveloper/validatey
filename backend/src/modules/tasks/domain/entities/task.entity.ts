@@ -5,7 +5,8 @@ export type TaskType =
   | 'invitation-send'
   | 'response-process'
   | 'report-build'
-  | 'metrics-calculate';
+  | 'metrics-calculate'
+  | 'scraper-collect';
 
 export interface Task {
   readonly id: string;
