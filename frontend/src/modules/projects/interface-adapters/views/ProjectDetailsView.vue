@@ -26,175 +26,323 @@
       <ErrorDisplay :error="viewModel.error.value" />
     </div>
 
-    <div v-else-if="project" class="details-content overview-redesign">
-      <!-- 1. EXECUTIVE SUMMARY (command center header) -->
-      <section class="overview-executive card-elevated">
-        <div class="executive-header">
-          <h2 class="executive-title">
-            {{ overviewData?.executiveSummary?.projectName ?? project.name }}
-          </h2>
-          <span :class="['status-badge', `status-${overviewData?.executiveSummary?.status ?? project.status}`]">
-            {{ getStatusLabel((overviewData?.executiveSummary?.status ?? project.status) as ProjectStatus) }}
-          </span>
-        </div>
-        <div v-if="overviewData?.executiveSummary" class="executive-validation-row">
-          <div class="executive-left">
-            <span class="validation-status" :class="`validation-${overviewData.executiveSummary.validationStatus}`">
-              {{ validationStatusLabel(overviewData.executiveSummary.validationStatus) }}
-            </span>
-            <p class="executive-stats">
-              {{ overviewData.executiveSummary.responded }}/{{ overviewData.executiveSummary.sent }} responded ({{ overviewData.executiveSummary.responseRatePct }}%)
-              <template v-if="overviewData.executiveSummary.neededForSignificance != null && overviewData.executiveSummary.neededForSignificance > 0">
-                · Need {{ overviewData.executiveSummary.neededForSignificance }} more for significance
-              </template>
-              <template v-if="overviewData.executiveSummary.daysRemaining != null">
-                · {{ overviewData.executiveSummary.daysRemaining }} days left
-              </template>
-              · {{ overviewData.executiveSummary.paceResponsesPerDay }} responses/day
-            </p>
-            <p v-if="overviewData.executiveSummary.keyInsight" class="executive-key-insight">
-              {{ overviewData.executiveSummary.keyInsight }}
-            </p>
-            <p v-if="overviewData.executiveSummary.aiVerdict" class="executive-ai-verdict">
-              {{ overviewData.executiveSummary.aiVerdict }}
-            </p>
-          </div>
-          <div class="executive-right">
-            <div class="progress-visual overview-progress-ring">
-              <div class="progress-ring" :style="{ '--p': overviewData.executiveSummary.responseRatePct }">
-                <span class="progress-value">{{ overviewData.executiveSummary.responseRatePct }}%</span>
+    <div v-else-if="project" class="overview-container">
+      <div class="overview-grid">
+        <!-- Main Content -->
+        <div class="overview-main">
+          <!-- Executive Summary -->
+          <div class="overview-card">
+            <h2 class="card-title">Executive Summary</h2>
+
+            <!-- AI Verdict -->
+            <div v-if="overviewData?.executiveSummary?.aiVerdict" class="ai-verdict-card" :class="getVerdictClass(overviewData.executiveSummary.aiVerdict)">
+              <div class="verdict-icon">
+                <svg v-if="isPositiveVerdict(overviewData.executiveSummary.aiVerdict)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22,4 12,14.01 9,11.01"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="15" y1="9" x2="9" y2="15"/>
+                  <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
               </div>
-              <span class="progress-ring-label">Response rate</span>
+              <div class="verdict-content">
+                <div class="verdict-title">
+                  AI Verdict: {{ getVerdictLabel(overviewData.executiveSummary.aiVerdict) }}
+                </div>
+                <div class="verdict-description">
+                  {{ getVerdictDescription(overviewData.executiveSummary.aiVerdict) }}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div v-else class="executive-health-row">
-          <div class="executive-metrics">
-            <p class="executive-insight" v-if="overviewStats.sent > 0">
-              {{ overviewStats.responded }} of {{ overviewStats.sent }} responded ({{ overviewResponseRate }}%)
-            </p>
-            <p class="executive-insight" v-else>No responses yet. Send invitations to start.</p>
-            <p class="executive-meta">Created {{ formatDate(project.createdAt) }}</p>
-          </div>
-        </div>
-      </section>
 
-      <!-- 2. SMART ACTIONS (context-aware) -->
-      <section class="overview-smart-actions">
-        <h3 class="section-label">Smart actions</h3>
-        <div class="smart-actions-grid">
-          <template v-if="overviewData?.smartActions?.length">
-            <router-link
-              v-for="a in overviewData.smartActions"
-              :key="a.id"
-              :to="a.href"
-              class="smart-action-btn"
-            >
-              <span class="smart-action-label">{{ a.label }}</span>
-              <span class="smart-action-hint">{{ a.hint }}</span>
-            </router-link>
-          </template>
-          <template v-else>
-            <router-link :to="`/projects/${projectId}/invitations`" class="smart-action-btn">
-              <span class="smart-action-label">Send reminders</span>
-              <span class="smart-action-hint">Invitations</span>
-            </router-link>
-            <router-link :to="`/projects/${projectId}/report`" class="smart-action-btn">
-              <span class="smart-action-label">View report</span>
-              <span class="smart-action-hint">Results</span>
-            </router-link>
-            <router-link :to="`/projects/${projectId}/research`" class="smart-action-btn">
-              <span class="smart-action-label">Research Assistant</span>
-              <span class="smart-action-hint">AI insights</span>
-            </router-link>
-          </template>
-        </div>
-      </section>
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-label">Response Rate</div>
+                <div class="metric-value">{{ overviewData?.executiveSummary?.responseRatePct ?? 0 }}%</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Total Responses</div>
+                <div class="metric-value">{{ overviewData?.executiveSummary?.responded ?? 0 }}/{{ overviewData?.executiveSummary?.sent ?? 0 }}</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Daily Pace</div>
+                <div class="metric-value">{{ overviewData?.executiveSummary?.paceResponsesPerDay ?? 0 }}/day</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Status</div>
+                <div class="metric-value">{{ getStatusLabel((overviewData?.executiveSummary?.status ?? project.status) as ProjectStatus) }}</div>
+              </div>
+            </div>
 
-      <!-- 3. PROJECT PULSE (4 metrics with actions) -->
-      <section class="overview-pulse">
-        <h3 class="section-label">Project pulse</h3>
-        <div class="pulse-grid">
-          <template v-if="overviewData?.pulse?.length">
-            <div
-              v-for="m in overviewData.pulse"
-              :key="m.id"
-              :class="['pulse-cell', `pulse-${m.status}`]"
-            >
-              <span class="pulse-value">{{ m.value }}</span>
-              <span class="pulse-label">{{ m.label }}</span>
-              <span class="pulse-detail">{{ m.detail }}</span>
-              <router-link :to="m.actionHref" class="pulse-action">{{ m.actionLabel }}</router-link>
+            <!-- Key Insights -->
+            <div v-if="overviewData?.executiveSummary?.keyInsight" class="key-insight">
+              <div class="insight-icon">💡</div>
+              <div class="insight-text">{{ overviewData.executiveSummary.keyInsight }}</div>
             </div>
-          </template>
-          <template v-else>
-            <div class="pulse-cell">
-              <span class="pulse-value">{{ overviewResponseRate }}%</span>
-              <span class="pulse-label">Response rate</span>
-              <span class="pulse-detail">{{ overviewStats.responded }}/{{ overviewStats.sent }}</span>
-              <router-link :to="`/projects/${projectId}/invitations`" class="pulse-action">Send more</router-link>
-            </div>
-            <div class="pulse-cell">
-              <span class="pulse-value">—</span>
-              <span class="pulse-label">Data depth</span>
-              <span class="pulse-detail">View report</span>
-              <router-link :to="`/projects/${projectId}/report`" class="pulse-action">View</router-link>
-            </div>
-            <div class="pulse-cell">
-              <span class="pulse-value">—</span>
-              <span class="pulse-label">Time health</span>
-              <span class="pulse-detail">No deadline</span>
-              <span class="pulse-action mute">—</span>
-            </div>
-          </template>
-        </div>
-      </section>
 
-      <!-- 4. RESEARCH CONTEXT (from Research Assistant) -->
-      <section v-if="overviewData?.researchContext?.hasData" class="overview-research-context card-elevated">
-        <h3 class="section-label">Research context</h3>
-        <p v-if="overviewData.researchContext.summary" class="research-summary">{{ overviewData.researchContext.summary }}</p>
-        <p v-if="overviewData.researchContext.marketSnippet" class="research-snippet">Market: {{ overviewData.researchContext.marketSnippet }}</p>
-        <p v-if="overviewData.researchContext.competitorsSnippet" class="research-snippet">Competitors: {{ overviewData.researchContext.competitorsSnippet }}</p>
-        <router-link :to="`/projects/${projectId}/research`" class="btn btn-ghost btn-sm">More in Research →</router-link>
-      </section>
-
-      <!-- 5. LEARNING JOURNEY (rounds as chain) -->
-      <section class="overview-learning-journey">
-        <h3 class="section-label">Learning journey</h3>
-        <div v-if="overviewData?.learningJourney?.rounds?.length" class="journey-chain">
-          <div
-            v-for="(r, idx) in overviewData.learningJourney.rounds"
-            :key="r.id"
-            class="journey-step"
-          >
-            <span v-if="idx > 0" class="journey-arrow">→</span>
-            <div class="journey-round">
-              <span :class="['journey-status', `journey-status-${r.status}`]">{{ r.status }}</span>
-              <span class="journey-type">{{ roundTypeLabel(r.type) }}</span>
-              <h4 class="journey-title">{{ r.title }}</h4>
-              <p v-if="r.keyFinding" class="journey-finding">{{ r.keyFinding }}</p>
-              <router-link :to="r.reportHref" class="btn btn-ghost btn-sm">Report</router-link>
+            <!-- Significance Alert -->
+            <div v-if="overviewData?.executiveSummary?.neededForSignificance && overviewData.executiveSummary.neededForSignificance > 0" class="significance-alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>Need {{ overviewData.executiveSummary.neededForSignificance }} more responses for statistical significance</span>
             </div>
           </div>
-        </div>
-        <div v-else-if="roundsLoading" class="rounds-loading">Loading rounds...</div>
-        <div v-else class="rounds-list">
-          <div v-for="r in roundsList" :key="r.id" class="round-card">
-            <span :class="['round-status', `round-status-${r.status}`]">{{ r.status }}</span>
-            <span class="round-type">{{ roundTypeLabel(r.type) }}</span>
-            <h4 class="round-title">{{ r.title }}</h4>
-            <p v-if="r.results?.keyFinding" class="round-finding">{{ r.results.keyFinding }}</p>
-            <router-link :to="`/projects/${projectId}/report?roundId=${r.id}`" class="btn btn-ghost btn-sm">Report</router-link>
+
+          <!-- Project Pulse -->
+          <div class="overview-card">
+            <h2 class="card-title">Project Pulse</h2>
+            <div class="pulse-grid">
+              <template v-if="overviewData?.pulse?.length">
+                <div
+                  v-for="metric in overviewData.pulse"
+                  :key="metric.id"
+                  class="pulse-card"
+                  :class="`pulse-${metric.status}`"
+                >
+                  <div class="pulse-icon">
+                    <svg v-if="metric.id === 'pace'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="23,4 23,10 17,10"/>
+                      <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"/>
+                    </svg>
+                    <svg v-else-if="metric.id === 'richness'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14,2H6a2,2,0,0,0-2,2V22a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8Z"/>
+                      <polyline points="14,2 14,8 20,8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                      <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                    <svg v-else-if="metric.id === 'coverage'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12,1a9,9,0,0,0-9,9c0,5.5,9,13,9,13s9-7.5,9-13A9,9,0,0,0,12,1Z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                  </div>
+                  <div class="pulse-content">
+                    <div class="pulse-label">{{ metric.label }}</div>
+                    <div class="pulse-value">{{ metric.value }}</div>
+                    <div class="pulse-detail">{{ metric.detail }}</div>
+                  </div>
+                </div>
+              </template>
+            </div>
           </div>
-          <div v-if="roundsList.length === 0" class="rounds-empty">
-            <p>No rounds yet. Add a round to structure your validation.</p>
+
+          <!-- Research Context -->
+          <div v-if="overviewData?.researchContext?.hasData" class="overview-card">
+            <h2 class="card-title">Research Context</h2>
+            <div class="research-content">
+              <div v-if="overviewData.researchContext.summary" class="research-section">
+                <div class="research-label">Summary</div>
+                <div class="research-text">{{ overviewData.researchContext.summary }}</div>
+              </div>
+              <div v-if="overviewData.researchContext.marketSnippet" class="research-section">
+                <div class="research-label">Market</div>
+                <div class="research-text">{{ overviewData.researchContext.marketSnippet }}</div>
+              </div>
+              <div v-if="overviewData.researchContext.competitorsSnippet" class="research-section">
+                <div class="research-label">Competitors</div>
+                <div class="research-text">{{ overviewData.researchContext.competitorsSnippet }}</div>
+              </div>
+              <router-link :to="`/projects/${projectId}/research`" class="research-link">
+                More in Research →
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Learning Journey -->
+          <div class="overview-card">
+            <h2 class="card-title">Learning Journey</h2>
+            <div v-if="overviewData?.learningJourney?.rounds?.length" class="journey-timeline">
+              <div
+                v-for="(round, idx) in overviewData.learningJourney.rounds"
+                :key="round.id"
+                class="journey-step"
+              >
+                <div v-if="idx > 0" class="journey-connector"></div>
+                <div class="journey-node" :class="`journey-${round.status}`">
+                  <div class="journey-type">{{ roundTypeLabel(round.type) }}</div>
+                  <div class="journey-title">{{ round.title }}</div>
+                  <div v-if="round.keyFinding" class="journey-finding">{{ round.keyFinding }}</div>
+                  <router-link :to="round.reportHref" class="journey-link">Report</router-link>
+                </div>
+              </div>
+            </div>
+            <div v-else class="journey-empty">
+              <p>No validation rounds yet. Start your first round to begin the learning journey.</p>
+              <button type="button" class="btn btn-primary" @click="openCreateRoundModal">
+                Create Round
+              </button>
+            </div>
+          </div>
+
+          <!-- Decision Pathway -->
+          <div class="overview-card">
+            <h2 class="card-title">Decision Pathway</h2>
+            <template v-if="overviewData?.decisionPathway">
+              <div class="decision-steps">
+                <div
+                  v-for="step in overviewData.decisionPathway.steps"
+                  :key="step.id"
+                  class="decision-step"
+                  :class="{ 'step-completed': step.status === 'done', 'step-active': step.status === 'in_progress' }"
+                >
+                  <div class="step-indicator">
+                    <svg v-if="step.status === 'done'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22,4 12,14.01 9,11.01"/>
+                    </svg>
+                  </div>
+                  <div class="step-content">
+                    <div class="step-label">{{ step.label }}</div>
+                    <div class="step-progress">{{ step.progress }}</div>
+                    <router-link v-if="step.actionHref" :to="step.actionHref" class="step-action">Go</router-link>
+                  </div>
+                </div>
+              </div>
+
+              <div class="success-criteria">
+                <h3 class="criteria-title">Success Criteria</h3>
+                <div class="criteria-list">
+                  <div
+                    v-for="criterion in overviewData.decisionPathway.successCriteria"
+                    :key="criterion.label"
+                    class="criterion-item"
+                    :class="{ 'criterion-met': criterion.met }"
+                  >
+                    <div class="criterion-check">
+                      <svg v-if="criterion.met" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20,6 9,17 4,12"/>
+                      </svg>
+                    </div>
+                    <div class="criterion-content">
+                      <div class="criterion-label">{{ criterion.label }}</div>
+                      <div class="criterion-value">{{ criterion.current }} (target: {{ criterion.target }})</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
-        <button type="button" class="btn btn-secondary btn-sm rounds-add-btn" @click="openCreateRoundModal">
-          Add round
-        </button>
-      </section>
+
+        <!-- Sidebar -->
+        <div class="overview-sidebar">
+          <!-- Smart Actions -->
+          <div class="sidebar-card">
+            <h3 class="sidebar-title">Smart Actions</h3>
+            <div class="smart-actions-list">
+              <template v-if="overviewData?.smartActions?.length">
+                <router-link
+                  v-for="action in overviewData.smartActions"
+                  :key="action.id"
+                  :to="action.href"
+                  class="smart-action-item"
+                >
+                  <div class="action-icon">
+                    <svg v-if="action.id === 'reminders'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22,4 22,10 17,10"/>
+                      <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"/>
+                    </svg>
+                    <svg v-else-if="action.id === 'share'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M10,13A5,5,0,0,0,2,13V11A5,5,0,0,1,10,6h8"/>
+                      <polyline points="14,2 20,2 20,8"/>
+                      <line x1="20" y1="2" x2="10" y2="12"/>
+                    </svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14.7,6.3a1,1,0,0,0,0,1.4l1.6,1.6a1,1,0,0,0,1.4,0L21,8"/>
+                      <path d="M17,21H3a2,2,0,0,1-2-2V5a2,2,0,0,1,2-2H9"/>
+                      <line x1="9" y1="9" x2="4" y2="4"/>
+                      <polyline points="9,9 9,21 13,21"/>
+                    </svg>
+                  </div>
+                  <div class="action-content">
+                    <div class="action-label">{{ action.label }}</div>
+                    <div class="action-hint">{{ action.hint }}</div>
+                  </div>
+                </router-link>
+              </template>
+              <template v-else>
+                <router-link :to="`/projects/${projectId}/invitations`" class="smart-action-item">
+                  <div class="action-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22,4 22,10 17,10"/>
+                      <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"/>
+                    </svg>
+                  </div>
+                  <div class="action-content">
+                    <div class="action-label">Send reminders</div>
+                    <div class="action-hint">Invitations</div>
+                  </div>
+                </router-link>
+                <router-link :to="`/projects/${projectId}/report`" class="smart-action-item">
+                  <div class="action-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14,2H6a2,2,0,0,0-2,2V22a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8Z"/>
+                      <polyline points="14,2 14,8 20,8"/>
+                    </svg>
+                  </div>
+                  <div class="action-content">
+                    <div class="action-label">View report</div>
+                    <div class="action-hint">Results</div>
+                  </div>
+                </router-link>
+              </template>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="sidebar-card">
+            <h3 class="sidebar-title">Quick Stats</h3>
+            <div class="stats-list">
+              <div class="stat-item">
+                <span class="stat-label">Responses</span>
+                <span class="stat-value">{{ overviewStats.responded }}/{{ overviewStats.sent }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Response Rate</span>
+                <span class="stat-value">{{ overviewResponseRate }}%</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Project Age</span>
+                <span class="stat-value">{{ getProjectAge() }} days</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Status</span>
+                <span class="stat-value">{{ getStatusLabel(project.status as ProjectStatus) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project Details -->
+          <div class="sidebar-card">
+            <h3 class="sidebar-title">Project Details</h3>
+            <div class="project-meta">
+              <div class="meta-item">
+                <span class="meta-label">Created</span>
+                <span class="meta-value">{{ formatDate(project.createdAt) }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Last Updated</span>
+                <span class="meta-value">{{ formatDate(project.updatedAt) }}</span>
+              </div>
+            </div>
+            <router-link :to="`/projects/${projectId}/edit`" class="edit-link">
+              Edit Project
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
       <!-- 5. PROJECT DETAILS (collapsed by default feel: compact) -->
       <section class="overview-details">
@@ -377,7 +525,6 @@
         </button>
       </template>
     </Modal>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -760,6 +907,48 @@ const formatDate = (date: Date | string): string => {
   return d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
+const getProjectAge = (): number => {
+  if (!project.value) return 0;
+  const created = typeof project.value.createdAt === 'string'
+    ? new Date(project.value.createdAt)
+    : project.value.createdAt;
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - created.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+const isPositiveVerdict = (verdict: string): boolean => {
+  return verdict.toLowerCase().includes('go') || verdict.toLowerCase().includes('positive') ||
+         verdict.toLowerCase().includes('validated') || verdict.toLowerCase().includes('confirmed');
+};
+
+const getVerdictClass = (verdict: string): string => {
+  if (isPositiveVerdict(verdict)) {
+    return 'verdict-positive';
+  } else if (verdict.toLowerCase().includes('no-go') || verdict.toLowerCase().includes('negative')) {
+    return 'verdict-negative';
+  } else {
+    return 'verdict-neutral';
+  }
+};
+
+const getVerdictLabel = (verdict: string): string => {
+  if (verdict.toLowerCase().includes('go')) return 'GO';
+  if (verdict.toLowerCase().includes('no-go')) return 'NO-GO';
+  if (verdict.toLowerCase().includes('unclear')) return 'UNCLEAR';
+  return verdict;
+};
+
+const getVerdictDescription = (verdict: string): string => {
+  if (isPositiveVerdict(verdict)) {
+    return 'Hypothesis confirmed. Data shows strong interest and product-market fit.';
+  } else if (verdict.toLowerCase().includes('no-go')) {
+    return 'Hypothesis not confirmed. Insufficient interest or poor product-market fit.';
+  } else {
+    return 'Hypothesis validation inconclusive. Additional testing recommended.';
+  }
+};
+
 async function loadScenario() {
   if (!projectId) return;
   scenarioLoading.value = true;
@@ -956,32 +1145,22 @@ onMounted(() => scrollToHashSection());
 }
 
 /* Stagger animations for sections */
-.overview-executive { animation-delay: 0.1s; }
-.overview-smart-actions { animation-delay: 0.2s; }
-.overview-pulse { animation-delay: 0.3s; }
-.overview-research-context { animation-delay: 0.4s; }
-.overview-learning-journey { animation-delay: 0.5s; }
-.overview-decision-pathway { animation-delay: 0.6s; }
+.overview-card:nth-child(1) { animation-delay: 0.1s; }
+.overview-card:nth-child(2) { animation-delay: 0.2s; }
+.overview-card:nth-child(3) { animation-delay: 0.3s; }
+.overview-card:nth-child(4) { animation-delay: 0.4s; }
+.sidebar-card:nth-child(1) { animation-delay: 0.2s; }
+.sidebar-card:nth-child(2) { animation-delay: 0.3s; }
+.sidebar-card:nth-child(3) { animation-delay: 0.4s; }
 
-.overview-executive,
-.overview-smart-actions,
-.overview-pulse,
-.overview-research-context,
-.overview-learning-journey,
-.overview-decision-pathway {
+.overview-card,
+.sidebar-card {
   animation: slideInUp 0.6s ease-out both;
 }
 
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* New Overview Design Styles */
+
+.overview-container {
 .section-label {
   font-size: 0.8125rem;
   font-weight: 700;
@@ -2306,6 +2485,778 @@ onMounted(() => scrollToHashSection());
   }
   .executive-right {
     align-self: center;
+  }
+}
+
+/* New Overview Design Styles */
+.overview-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.overview-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.overview-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 2rem;
+}
+
+.overview-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+/* AI Verdict Styles */
+.ai-verdict-card {
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.verdict-positive {
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+}
+
+.verdict-negative {
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+}
+
+.verdict-neutral {
+  background: #fefce8;
+  border: 1px solid #fde68a;
+}
+
+.verdict-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  margin-top: 0.125rem;
+}
+
+.verdict-positive .verdict-icon {
+  color: #16a34a;
+}
+
+.verdict-negative .verdict-icon {
+  color: #dc2626;
+}
+
+.verdict-neutral .verdict-icon {
+  color: #d97706;
+}
+
+.verdict-content {
+  flex: 1;
+}
+
+.verdict-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.verdict-positive .verdict-title {
+  color: #166534;
+}
+
+.verdict-negative .verdict-title {
+  color: #991b1b;
+}
+
+.verdict-neutral .verdict-title {
+  color: #92400e;
+}
+
+.verdict-description {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.verdict-positive .verdict-description {
+  color: #166534;
+}
+
+.verdict-negative .verdict-description {
+  color: #991b1b;
+}
+
+.verdict-neutral .verdict-description {
+  color: #92400e;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-card {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Key Insight */
+.key-insight {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.insight-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.insight-text {
+  color: #1e40af;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Significance Alert */
+.significance-alert {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #92400e;
+}
+
+.significance-alert svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Project Pulse */
+.pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.pulse-card {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.pulse-card:hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+
+.pulse-good {
+  border-left: 4px solid #10b981;
+}
+
+.pulse-warn {
+  border-left: 4px solid #f59e0b;
+}
+
+.pulse-low {
+  border-left: 4px solid #ef4444;
+}
+
+.pulse-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.pulse-good .pulse-icon {
+  color: #10b981;
+}
+
+.pulse-warn .pulse-icon {
+  color: #f59e0b;
+}
+
+.pulse-low .pulse-icon {
+  color: #ef4444;
+}
+
+.pulse-good .pulse-icon svg {
+  color: #10b981;
+}
+
+.pulse-warn .pulse-icon svg {
+  color: #f59e0b;
+}
+
+.pulse-low .pulse-icon svg {
+  color: #ef4444;
+}
+
+.pulse-content {
+  flex: 1;
+}
+
+.pulse-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.pulse-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.125rem;
+}
+
+.pulse-detail {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Research Context */
+.research-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.research-section {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+}
+
+.research-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.research-text {
+  color: #374151;
+  line-height: 1.5;
+}
+
+.research-link {
+  color: #0d9488;
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.research-link:hover {
+  color: #0891b2;
+}
+
+/* Learning Journey */
+.journey-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.journey-step {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.journey-step:not(:last-child) {
+  padding-bottom: 1rem;
+}
+
+.journey-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 2rem;
+  bottom: -0.5rem;
+  width: 2px;
+  background: #e5e7eb;
+}
+
+.journey-node {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  position: relative;
+}
+
+.journey-node::before {
+  content: '';
+  position: absolute;
+  left: -0.375rem;
+  top: 1rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: #e5e7eb;
+}
+
+.journey-pending {
+  border-color: #e5e7eb;
+}
+
+.journey-pending::before {
+  background: #e5e7eb;
+}
+
+.journey-in_progress {
+  border-color: #0d9488;
+  background: #ecfdf5;
+}
+
+.journey-in_progress::before {
+  background: #0d9488;
+}
+
+.journey-completed {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.journey-completed::before {
+  background: #10b981;
+}
+
+.journey-type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.journey-title {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.journey-finding {
+  font-size: 0.875rem;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+.journey-link {
+  color: #0d9488;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.journey-link:hover {
+  color: #0891b2;
+}
+
+.journey-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.journey-empty p {
+  margin-bottom: 1rem;
+}
+
+/* Decision Pathway */
+.decision-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.decision-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+}
+
+.step-completed {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.step-active {
+  border-color: #0d9488;
+  background: #ecfdf5;
+}
+
+.step-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.step-completed .step-indicator {
+  background: #10b981;
+}
+
+.step-active .step-indicator {
+  background: #0d9488;
+}
+
+.step-completed .step-indicator svg,
+.step-active .step-indicator svg {
+  width: 14px;
+  height: 14px;
+  color: white;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-label {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.step-progress {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.step-action {
+  color: #0d9488;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.step-action:hover {
+  color: #0891b2;
+}
+
+.success-criteria {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+}
+
+.criteria-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.criteria-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.criterion-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+.criterion-met {
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+}
+
+.criterion-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.criterion-met .criterion-check {
+  background: #10b981;
+}
+
+.criterion-met .criterion-check svg {
+  width: 12px;
+  height: 12px;
+  color: white;
+}
+
+.criterion-content {
+  flex: 1;
+}
+
+.criterion-label {
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.125rem;
+}
+
+.criterion-value {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Sidebar Cards */
+.sidebar-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
+}
+
+.sidebar-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+/* Smart Actions */
+.smart-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.smart-action-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.smart-action-item:hover {
+  background: #f9fafb;
+}
+
+.action-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.action-icon svg {
+  width: 16px;
+  height: 16px;
+  color: #6b7280;
+}
+
+.smart-action-item:hover .action-icon {
+  background: #0d9488;
+}
+
+.smart-action-item:hover .action-icon svg {
+  color: white;
+}
+
+.action-content {
+  flex: 1;
+}
+
+.action-label {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.125rem;
+}
+
+.action-hint {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Quick Stats */
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Project Meta */
+.project-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.meta-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.meta-value {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.edit-link {
+  color: #0d9488;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.edit-link:hover {
+  color: #0891b2;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .overview-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .overview-sidebar {
+    position: static;
+    order: -1;
+  }
+
+  .pulse-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .overview-container {
+    padding: 1rem;
+  }
+
+  .overview-card {
+    padding: 1rem;
+  }
+
+  .ai-verdict-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .verdict-icon {
+    margin-top: 0;
   }
 }
 </style>
