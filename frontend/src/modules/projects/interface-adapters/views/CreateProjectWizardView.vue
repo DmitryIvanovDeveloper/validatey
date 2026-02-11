@@ -177,7 +177,7 @@
                     @click="generateScenario"
                     variant="primary"
                     :loading="scenarioLoading"
-                    :show-spinner="false"
+                    :show-spinner="true"
                     text="Generate scenario"
                     type="button"
                   >

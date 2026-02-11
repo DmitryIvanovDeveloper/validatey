@@ -90,7 +90,7 @@
           type="submit"
           variant="primary"
           :loading="saving"
-          :show-spinner="false"
+          :show-spinner="true"
           text="Save changes"
           :disabled="saving"
         >

@@ -116,7 +116,7 @@
           type="button"
           variant="danger"
           :loading="!!viewModel.deletingId.value"
-          :show-spinner="false"
+          :show-spinner="true"
           text="Delete project"
           :disabled="!!viewModel.deletingId.value"
           @click="confirmDelete"
