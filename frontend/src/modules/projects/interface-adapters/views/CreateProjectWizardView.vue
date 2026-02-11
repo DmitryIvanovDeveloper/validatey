@@ -9,7 +9,7 @@
       ]"
     />
     <div class="wizard-container">
-      <Wizard :steps="wizardSteps" @complete="handleComplete" @step-change="handleStepChange">
+      <Wizard :steps="wizardSteps" :loading="completingProject" @complete="handleComplete" @step-change="handleStepChange">
         <template #default="{ step }">
           <div class="step-content">
             <!-- Step 0: Who & what? (Segment + Hypothesis + optional context) -->
@@ -173,7 +173,16 @@
                 </div>
                 <div v-else class="scenario-ai-prompt">
                   <p>Click below to generate a scenario from your segment and hypothesis.</p>
-                  <button @click="generateScenario" class="btn btn-primary" type="button">Generate scenario</button>
+                  <Button
+                    @click="generateScenario"
+                    variant="primary"
+                    :loading="scenarioLoading"
+                    :show-spinner="false"
+                    text="Generate scenario"
+                    type="button"
+                  >
+                    {{ scenarioLoading ? 'Generating...' : 'Generate scenario' }}
+                  </Button>
                 </div>
               </div>
               <div v-if="scenarioSource === 'manual'" class="scenario-editor">
@@ -294,6 +303,7 @@ import PageHeader from '../../../../shared/components/PageHeader.vue';
 import Wizard from '../../../../shared/components/Wizard.vue';
 import Modal from '../../../../shared/components/Modal.vue';
 import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import Button from '../../../../shared/components/atoms/Button.vue';
 import ScenarioViewer from './components/ScenarioViewer.vue';
 import ScenarioManualEditor from './components/ScenarioManualEditor.vue';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
@@ -340,6 +350,7 @@ const aiHelperError = ref<string | null>(null);
 const aiHelperSuggestion = ref<{ description: string; assumptions: string[] } | null>(null);
 const marketContextSuggestLoading = ref(false);
 const marketContextSuggestError = ref<string | null>(null);
+const completingProject = ref(false);
 const hasSegmentForHypothesis = computed(() => {
   const s = formData.value.segmentDescription?.trim() ?? '';
   const d = formData.value.segmentDemographics?.trim() ?? '';
@@ -709,6 +720,8 @@ async function doComplete() {
 const handleComplete = async () => {
   if (!currentProjectId.value) return;
 
+  completingProject.value = true;
+
   const slug = selectedTemplateSlug.value?.trim();
   const content = (scenarioContent.value ?? '').trim() || (scenarioSource.value === 'manual' ? defaultManualScenario.trim() : '');
   if (slug && content) {
@@ -724,7 +737,11 @@ const handleComplete = async () => {
     }
   }
 
-  await doComplete();
+  try {
+    await doComplete();
+  } finally {
+    completingProject.value = false;
+  }
 };
 
 function closeValidationModal() {
@@ -734,7 +751,10 @@ function closeValidationModal() {
 
 function saveAnyway() {
   closeValidationModal();
-  doComplete();
+  completingProject.value = true;
+  doComplete().finally(() => {
+    completingProject.value = false;
+  });
 }
 
 onMounted(() => {

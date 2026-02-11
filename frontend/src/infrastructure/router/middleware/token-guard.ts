@@ -27,8 +27,22 @@ export async function tokenGuard(
   _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ): Promise<void> {
-  const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
-  const session = await authService.getSession();
+  let session: Awaited<ReturnType<AuthServicePort['getSession']>> = null;
+
+  try {
+    const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
+
+    // Add timeout to prevent hanging
+    const sessionPromise = authService.getSession();
+    const timeoutPromise = new Promise<null>((_, reject) =>
+      setTimeout(() => reject(new Error('Auth timeout')), 5000)
+    );
+
+    session = await Promise.race([sessionPromise, timeoutPromise]).catch(() => null);
+  } catch (error) {
+    console.warn('Auth service error in tokenGuard:', error);
+    // Continue without session if auth fails - session is already null
+  }
 
   // Survey by token: only validate token, no auth required
   if (to.name === 'respondent-survey') {

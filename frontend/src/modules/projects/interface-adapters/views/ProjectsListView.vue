@@ -59,15 +59,26 @@
           </router-link>
         </template>
         <template #actions>
-          <button
+          <router-link
+            :to="`/projects/${project.id}/edit`"
+            class="project-card-edit"
+            :aria-label="`Edit ${project.name}`"
+            @click.stop
+          >
+            Edit
+          </router-link>
+          <Button
             type="button"
-            class="project-card-delete"
-            :disabled="viewModel.deletingId.value === project.id"
+            variant="danger"
+            size="sm"
+            :loading="viewModel.deletingId.value === project.id"
+            :show-spinner="false"
+            text="Delete"
             :aria-label="`Delete ${project.name}`"
             @click.stop="openDeleteModal(project)"
           >
-            Delete
-          </button>
+            {{ viewModel.deletingId.value === project.id ? 'Deleting...' : 'Delete' }}
+          </Button>
         </template>
       </ProjectCard>
     </div>
@@ -101,14 +112,17 @@
         >
           Cancel
         </button>
-        <button
+        <Button
           type="button"
-          class="delete-modal-btn delete-modal-btn-confirm"
+          variant="danger"
+          :loading="!!viewModel.deletingId.value"
+          :show-spinner="false"
+          text="Delete project"
           :disabled="!!viewModel.deletingId.value"
           @click="confirmDelete"
         >
           {{ viewModel.deletingId.value ? 'Deleting…' : 'Delete project' }}
-        </button>
+        </Button>
       </template>
     </Modal>
   </div>
@@ -123,6 +137,7 @@ import EmptyState from '../../../../shared/components/EmptyState.vue';
 import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
 import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
 import Modal from '../../../../shared/components/Modal.vue';
+import Button from '../../../../shared/components/atoms/Button.vue';
 import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { container } from '../../../../infrastructure/bootstrap/container';
@@ -213,6 +228,26 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+}
+
+.project-card-edit {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-accent);
+  background: transparent;
+  border: 1px solid var(--color-accent-bg);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  display: inline-block;
+  text-align: center;
+}
+
+.project-card-edit:hover {
+  background: var(--color-accent-bg);
+  color: var(--color-accent-hover);
 }
 
 .project-card-delete {

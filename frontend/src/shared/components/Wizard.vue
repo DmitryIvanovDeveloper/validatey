@@ -27,7 +27,9 @@
       <button v-if="currentStep > 0" @click="prevStep" class="btn btn-secondary">Back</button>
       <div class="spacer"></div>
       <button v-if="currentStep < steps.length - 1" @click="nextStep" class="btn btn-primary">Next</button>
-      <button v-else @click="$emit('complete')" class="btn btn-primary">Complete</button>
+      <button v-else @click="$emit('complete')" class="btn btn-primary" :disabled="props.loading">
+        {{ props.loading ? 'Creating...' : 'Complete' }}
+      </button>
     </div>
   </div>
 </template>
@@ -43,6 +45,7 @@ export interface WizardStep {
 const props = defineProps<{
   steps: WizardStep[];
   initialStep?: number;
+  loading?: boolean;
 }>();
 
 const emit = defineEmits<{

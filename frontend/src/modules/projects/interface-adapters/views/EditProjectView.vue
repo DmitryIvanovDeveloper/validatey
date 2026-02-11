@@ -86,9 +86,16 @@
 
       <div class="form-actions">
         <router-link :to="`/projects/${projectId}`" class="btn btn-secondary">Cancel</router-link>
-        <button type="submit" class="btn btn-primary" :disabled="saving">
+        <Button
+          type="submit"
+          variant="primary"
+          :loading="saving"
+          :show-spinner="false"
+          text="Save changes"
+          :disabled="saving"
+        >
           {{ saving ? 'Saving…' : 'Save changes' }}
-        </button>
+        </Button>
       </div>
     </form>
   </div>
@@ -101,6 +108,7 @@ import { ProjectViewModel } from '../view-models/project.view-model';
 import { ProjectPresenter } from '../presenters/project.presenter';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import Button from '../../../../shared/components/atoms/Button.vue';
 
 const route = useRoute();
 const router = useRouter();

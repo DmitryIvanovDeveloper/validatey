@@ -9,7 +9,7 @@
   },
   "scripts": {
     "predev": "kill-port 3000",
-    "dev": "nodemon --exec \"ts-node\" src/server.ts",
+    "dev": "nodemon --exec \"ts-node --transpile-only\" src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "type-check": "tsc --noEmit",
