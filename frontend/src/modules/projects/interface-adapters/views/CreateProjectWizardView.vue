@@ -1,11 +1,11 @@
 <template>
   <div class="create-project-wizard">
     <PageHeader
-      title="Create New Project"
+      :title="isEditing ? 'Edit Project' : 'Create New Project'"
       subtitle="Define segment, hypothesis, scenario, and audience"
       :breadcrumbs="[
         { label: 'Projects', path: '/projects' },
-        { label: 'New Project' }
+        { label: isEditing ? 'Edit Project' : 'New Project' }
       ]"
     />
     <div class="wizard-container">
@@ -347,6 +347,9 @@ const scenarioError = ref<string | null>(null);
 const showAIHelper = ref(false);
 const aiHelperLoading = ref(false);
 const aiHelperError = ref<string | null>(null);
+const isEditing = ref(false);
+const editingProjectId = ref<string | null>(null);
+const loadingProject = ref(false);
 const aiHelperSuggestion = ref<{ description: string; assumptions: string[] } | null>(null);
 const marketContextSuggestLoading = ref(false);
 const marketContextSuggestError = ref<string | null>(null);
@@ -523,7 +526,7 @@ const handleStepChange = async (step: number) => {
 };
 
 async function ensureProjectCreated(): Promise<void> {
-  if (currentProjectId.value) return;
+  if (currentProjectId.value || isEditing.value) return;
   const projectName = formData.value.name || `Project ${new Date().toLocaleDateString()}`;
   const marketContext = buildMarketContextFromForm();
   const createResult = await projectPresenter.createProject(
@@ -552,8 +555,8 @@ const generateScenario = async () => {
   try {
     const marketContext = buildMarketContextFromForm();
 
-    // 1. Create project if not created yet
-    if (!currentProjectId.value) {
+    // 1. Create project if not created yet (skip in edit mode)
+    if (!currentProjectId.value && !isEditing.value) {
       const projectName = formData.value.name || `Project ${new Date().toLocaleDateString()}`;
       const createResult = await projectPresenter.createProject(
         projectName,
@@ -676,10 +679,11 @@ const validationWarnings = ref<string[]>([]);
 const showValidationModal = ref(false);
 
 async function doComplete() {
-  if (!currentProjectId.value) return;
+  const projectId = currentProjectId.value || editingProjectId.value;
+  if (!projectId) return;
   const marketContext = buildMarketContextFromForm();
   await projectPresenter.updateProject(
-    currentProjectId.value,
+    projectId,
     formData.value.name || undefined,
     formData.value.segmentDescription || undefined,
     formData.value.segmentDemographics || undefined,
@@ -695,7 +699,7 @@ async function doComplete() {
   const generatedContent = scenarioViewModel.scenario.value?.content?.trim() ?? '';
   const needsSave = content.length > 0 && content !== generatedContent;
   if (needsSave) {
-    const saveResult = await scenarioPresenter.saveScenarioVersion(currentProjectId.value, content);
+    const saveResult = await scenarioPresenter.saveScenarioVersion(projectId, content);
     if (saveResult.error) {
       console.error('Failed to save scenario version:', saveResult.error);
     }
@@ -704,6 +708,12 @@ async function doComplete() {
   if (route.query.onboarding === '1' && typeof localStorage !== 'undefined') {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
   }
+  // В режиме редактирования всегда возвращаемся к странице проекта
+  if (isEditing.value) {
+    router.push(`/projects/${projectId}`);
+    return;
+  }
+
   const choice = audienceChoice.value;
   const fromOnboarding = route.query.onboarding === '1';
   if (currentProjectId.value && (choice === 'email' || choice === 'share')) {
@@ -718,7 +728,8 @@ async function doComplete() {
 }
 
 const handleComplete = async () => {
-  if (!currentProjectId.value) return;
+  // В режиме редактирования используем editingProjectId, иначе currentProjectId
+  if (!currentProjectId.value && !editingProjectId.value) return;
 
   completingProject.value = true;
 
@@ -757,16 +768,73 @@ function saveAnyway() {
   });
 }
 
-onMounted(() => {
-  if (route.query.onboarding === '1' && typeof sessionStorage !== 'undefined') {
-    const hypothesis = sessionStorage.getItem(ONBOARDING_HYPOTHESIS_KEY);
-    if (hypothesis?.trim()) {
-      formData.value.hypothesisDescription = hypothesis.trim();
-      if (!formData.value.name?.trim()) {
-        const short = hypothesis.length > 50 ? hypothesis.slice(0, 47) + '...' : hypothesis;
-        formData.value.name = `Validation: ${short}`;
+// Функция для загрузки существующего проекта для редактирования
+async function loadProjectForEditing(projectId: string) {
+  loadingProject.value = true;
+  try {
+    // Создаем временный viewModel для загрузки проекта
+    const tempViewModel = {
+      project: ref(null),
+      loading: ref(false),
+      error: ref(null)
+    };
+
+    await projectPresenter.loadProject(projectId, tempViewModel);
+
+    if (tempViewModel.project.value) {
+      const project = tempViewModel.project.value;
+
+      // Заполняем formData данными проекта
+      formData.value.name = project.name;
+      if (project.segment) {
+        formData.value.segmentDescription = project.segment.description;
+        // Преобразуем demographics в строку если нужно
+        if (typeof project.segment.demographics === 'object') {
+          formData.value.segmentDemographics = JSON.stringify(project.segment.demographics, null, 2);
+        } else {
+          formData.value.segmentDemographics = String(project.segment.demographics || '');
+        }
       }
-      sessionStorage.removeItem(ONBOARDING_HYPOTHESIS_KEY);
+      if (project.hypothesis) {
+        formData.value.hypothesisDescription = project.hypothesis.description;
+        formData.value.hypothesisAssumptions = project.hypothesis.assumptions || [''];
+      }
+      if (project.marketContext) {
+        formData.value.marketPicture = project.marketContext.marketPicture || '';
+        formData.value.marketFit = project.marketContext.marketFit || '';
+        formData.value.differentiation = project.marketContext.differentiation || '';
+      }
+
+      currentProjectId.value = projectId;
+      isEditing.value = true;
+      editingProjectId.value = projectId;
+    }
+  } catch (error) {
+    console.error('Failed to load project for editing:', error);
+  } finally {
+    loadingProject.value = false;
+  }
+}
+
+onMounted(async () => {
+  // Проверяем, есть ли projectId в route params для режима редактирования
+  const projectId = route.params.projectId;
+  const projectIdStr = Array.isArray(projectId) ? projectId[0] : projectId;
+
+  if (projectIdStr) {
+    await loadProjectForEditing(projectIdStr);
+  } else {
+    // Обычный режим создания проекта
+    if (route.query.onboarding === '1' && typeof sessionStorage !== 'undefined') {
+      const hypothesis = sessionStorage.getItem(ONBOARDING_HYPOTHESIS_KEY);
+      if (hypothesis?.trim()) {
+        formData.value.hypothesisDescription = hypothesis.trim();
+        if (!formData.value.name?.trim()) {
+          const short = hypothesis.length > 50 ? hypothesis.slice(0, 47) + '...' : hypothesis;
+          formData.value.name = `Validation: ${short}`;
+        }
+        sessionStorage.removeItem(ONBOARDING_HYPOTHESIS_KEY);
+      }
     }
   }
 });

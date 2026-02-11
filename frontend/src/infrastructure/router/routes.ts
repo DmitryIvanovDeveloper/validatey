@@ -64,7 +64,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'edit',
         name: 'project-edit',
-        component: () => import('@/modules/projects/interface-adapters/views/EditProjectView.vue'),
+        component: () => import('@/modules/projects/interface-adapters/views/CreateProjectWizardView.vue'),
       },
       {
         path: 'progress',
