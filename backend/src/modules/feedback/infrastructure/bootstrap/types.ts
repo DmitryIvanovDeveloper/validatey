@@ -1,6 +1,6 @@
 export const TYPES = {
-  FeedbackRepositoryPort: Symbol.for('FeedbackRepositoryPort'),
-  FeedbackAnalysisLlmPort: Symbol.for('FeedbackAnalysisLlmPort'),
+  FeedbackRepository: Symbol.for('FeedbackRepository'),
+  FeedbackAnalysisLlm: Symbol.for('FeedbackAnalysisLlm'),
   SubmitFeedbackUseCase: Symbol.for('SubmitFeedbackUseCase'),
   ListFeedbackUseCase: Symbol.for('ListFeedbackUseCase'),
   AnalyzeFeedbackUseCase: Symbol.for('AnalyzeFeedbackUseCase'),

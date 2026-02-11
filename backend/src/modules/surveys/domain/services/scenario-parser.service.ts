@@ -5,7 +5,7 @@ interface RawQuestion {
   text: string;
   type: string;
   required?: boolean;
-  options?: any;
+  options?: QuestionOptions;
 }
 
 interface ScenarioJson {

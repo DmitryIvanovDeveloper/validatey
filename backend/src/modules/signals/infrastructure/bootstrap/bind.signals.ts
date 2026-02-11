@@ -8,7 +8,7 @@ import { SupabaseEarlySignalsRepository } from '../repositories/supabase-early-s
 import { EarlySignalsController } from '../../interface-adapters/controllers/early-signals.controller';
 
 export function bindSignals(container: Container): void {
-  container.bind<EarlySignalsLlmPort>(TYPES.EarlySignalsLlmPort).to(EarlySignalsLlmAdapter);
+  container.bind<EarlySignalsLlmPort>(TYPES.EarlySignalsLlm).to(EarlySignalsLlmAdapter);
   container.bind<EarlySignalsRepositoryPort>(TYPES.EarlySignalsRepository).to(SupabaseEarlySignalsRepository);
   container.bind<GetEarlySignalsByProjectIdUseCase>(TYPES.GetEarlySignalsByProjectIdUseCase).to(GetEarlySignalsByProjectIdUseCase);
   container.bind<EarlySignalsController>(TYPES.EarlySignalsController).to(EarlySignalsController);

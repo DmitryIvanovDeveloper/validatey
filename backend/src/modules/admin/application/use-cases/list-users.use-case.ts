@@ -14,9 +14,9 @@ export class ListUsersUseCase {
   constructor(
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort,
-    @inject(TYPES.GetCallerRolePort)
+    @inject(TYPES.GetCallerRole)
     private readonly _getCallerRole: GetCallerRolePort,
-    @inject(TYPES.ListUsersPort)
+    @inject(TYPES.ListUsers)
     private readonly _listUsers: ListUsersPort
   ) {}
 

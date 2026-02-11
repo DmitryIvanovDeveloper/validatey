@@ -9,8 +9,8 @@ import { SupabaseFeedbackRepository } from '../repositories/supabase-feedback.re
 import { FeedbackAnalysisLlmAdapter } from '../services/feedback-analysis-llm.adapter';
 
 export function bindFeedback(container: Container): void {
-  container.bind<FeedbackRepositoryPort>(TYPES.FeedbackRepositoryPort).to(SupabaseFeedbackRepository);
-  container.bind<FeedbackAnalysisLlmPort>(TYPES.FeedbackAnalysisLlmPort).to(FeedbackAnalysisLlmAdapter);
+  container.bind<FeedbackRepositoryPort>(TYPES.FeedbackRepository).to(SupabaseFeedbackRepository);
+  container.bind<FeedbackAnalysisLlmPort>(TYPES.FeedbackAnalysisLlm).to(FeedbackAnalysisLlmAdapter);
   container.bind<SubmitFeedbackUseCase>(TYPES.SubmitFeedbackUseCase).to(SubmitFeedbackUseCase);
   container.bind<ListFeedbackUseCase>(TYPES.ListFeedbackUseCase).to(ListFeedbackUseCase);
   container.bind<AnalyzeFeedbackUseCase>(TYPES.AnalyzeFeedbackUseCase).to(AnalyzeFeedbackUseCase);

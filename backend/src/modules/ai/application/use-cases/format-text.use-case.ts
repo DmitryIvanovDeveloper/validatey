@@ -8,7 +8,7 @@ import { TYPES } from '../../infrastructure/bootstrap/types';
 @injectable()
 export class FormatTextUseCase {
   constructor(
-    @inject(TYPES.TextFormattingPort)
+    @inject(TYPES.TextFormatting)
     private readonly _formattingPort: TextFormattingPort
   ) {}
 

@@ -1,5 +1,5 @@
 export const TYPES = {
-  GetCallerRolePort: Symbol.for('GetCallerRolePort'),
-  ListUsersPort: Symbol.for('ListUsersPort'),
+  GetCallerRole: Symbol.for('GetCallerRole'),
+  ListUsers: Symbol.for('ListUsers'),
   ListUsersUseCase: Symbol.for('ListUsersUseCase'),
 } as const;

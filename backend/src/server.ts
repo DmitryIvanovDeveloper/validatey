@@ -4,7 +4,7 @@ import { createServer } from 'http';
 import app from './app';
 import { logEnvStatus } from './infrastructure/config/env-check';
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = parseInt(process.env.PORT || '8080', 10);
 
 // Create HTTP server
 const server = createServer(app);

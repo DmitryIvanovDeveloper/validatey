@@ -8,7 +8,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "predev": "kill-port 3000",
+    "predev": "kill-port 8080",
     "dev": "nodemon --exec \"ts-node --transpile-only\" src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",

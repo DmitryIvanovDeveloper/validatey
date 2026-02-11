@@ -1,7 +1,7 @@
 export const TYPES = {
   SearchService: Symbol.for('AiSearchService'),
-  MarketContextLlmPort: Symbol.for('MarketContextLlmPort'),
+  MarketContextLlm: Symbol.for('MarketContextLlm'),
   SuggestMarketContextUseCase: Symbol.for('SuggestMarketContextUseCase'),
-  TextFormattingPort: Symbol.for('TextFormattingPort'),
+  TextFormatting: Symbol.for('TextFormatting'),
   FormatTextUseCase: Symbol.for('FormatTextUseCase'),
 } as const;

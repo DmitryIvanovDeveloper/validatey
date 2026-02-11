@@ -1,3 +1,3 @@
 export const AUTH_TYPES = {
-  GetUserRolePort: Symbol.for('GetUserRolePort'),
+  GetUserRole: Symbol.for('GetUserRole'),
 } as const;

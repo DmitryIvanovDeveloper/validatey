@@ -14,9 +14,9 @@ export class ListFeedbackUseCase {
   constructor(
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort,
-    @inject(AUTH_TYPES.GetUserRolePort)
+    @inject(AUTH_TYPES.GetUserRole)
     private readonly _getUserRole: GetUserRolePort,
-    @inject(TYPES.FeedbackRepositoryPort)
+    @inject(TYPES.FeedbackRepository)
     private readonly _repository: FeedbackRepositoryPort
   ) {}
 

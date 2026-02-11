@@ -18,11 +18,11 @@ export class AnalyzeFeedbackUseCase {
   constructor(
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort,
-    @inject(AUTH_TYPES.GetUserRolePort)
+    @inject(AUTH_TYPES.GetUserRole)
     private readonly _getUserRole: GetUserRolePort,
-    @inject(TYPES.FeedbackRepositoryPort)
+    @inject(TYPES.FeedbackRepository)
     private readonly _repository: FeedbackRepositoryPort,
-    @inject(TYPES.FeedbackAnalysisLlmPort)
+    @inject(TYPES.FeedbackAnalysisLlm)
     private readonly _llm: FeedbackAnalysisLlmPort
   ) {}
 

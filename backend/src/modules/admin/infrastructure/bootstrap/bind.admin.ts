@@ -9,8 +9,8 @@ import type { GetUserRolePort } from '../../../auth/application/ports/get-user-r
 import { AUTH_TYPES } from '../../../auth/infrastructure/bootstrap/types';
 
 export function bindAdmin(container: Container): void {
-  container.bind<GetCallerRolePort>(TYPES.GetCallerRolePort).to(UserRoleRepository);
-  container.bind<GetUserRolePort>(AUTH_TYPES.GetUserRolePort).to(UserRoleRepository);
-  container.bind<ListUsersPort>(TYPES.ListUsersPort).to(SupabaseAuthListUsersAdapter);
+  container.bind<GetCallerRolePort>(TYPES.GetCallerRole).to(UserRoleRepository);
+  container.bind<GetUserRolePort>(AUTH_TYPES.GetUserRole).to(UserRoleRepository);
+  container.bind<ListUsersPort>(TYPES.ListUsers).to(SupabaseAuthListUsersAdapter);
   container.bind<ListUsersUseCase>(TYPES.ListUsersUseCase).to(ListUsersUseCase);
 }

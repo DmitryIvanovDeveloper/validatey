@@ -14,7 +14,7 @@ export class SuggestMarketContextUseCase {
   constructor(
     @inject(TYPES.SearchService)
     private readonly _searchService: SearchServicePort,
-    @inject(TYPES.MarketContextLlmPort)
+    @inject(TYPES.MarketContextLlm)
     private readonly _llmPort: MarketContextLlmPort
   ) {}
 

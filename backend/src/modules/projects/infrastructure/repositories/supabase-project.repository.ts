@@ -369,7 +369,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
       // Try to update with retry logic for network errors
       let data, error;
       let retries = 2;
-      let lastError: any = null;
+      let lastError: unknown = null;
 
       while (retries >= 0) {
         try {

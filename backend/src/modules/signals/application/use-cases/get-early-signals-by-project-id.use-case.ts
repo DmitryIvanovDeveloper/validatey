@@ -70,7 +70,7 @@ export class GetEarlySignalsByProjectIdUseCase {
     private readonly _logger: LoggerPort,
     @inject(RESPONSES_TYPES.ResponseRepository)
     private readonly _responseRepository: ResponseRepositoryPort,
-    @inject(TYPES.EarlySignalsLlmPort)
+    @inject(TYPES.EarlySignalsLlm)
     private readonly _llmPort: EarlySignalsLlmPort,
     @inject(TYPES.EarlySignalsRepository)
     private readonly _signalsRepository: EarlySignalsRepositoryPort

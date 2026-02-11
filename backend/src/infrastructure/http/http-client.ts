@@ -8,7 +8,7 @@ export class HttpClient implements HttpClientPort {
     return response.json() as Promise<T>;
   }
 
-  async post<T>(url: string, data?: any, headers?: Record<string, string>): Promise<T> {
+  async post<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
     const response = await fetch(url, { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json', ...headers },
@@ -32,7 +32,7 @@ export class HttpClient implements HttpClientPort {
     return response.json() as Promise<T>;
   }
 
-  async put<T>(url: string, data?: any, headers?: Record<string, string>): Promise<T> {
+  async put<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
     const response = await fetch(url, { 
       method: 'PUT', 
       headers: { 'Content-Type': 'application/json', ...headers },

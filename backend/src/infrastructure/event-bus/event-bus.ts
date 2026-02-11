@@ -3,9 +3,9 @@ import { EventBusPort } from './ports/event-bus.port';
 
 @injectable()
 export class EventBus implements EventBusPort {
-  private listeners: Map<string, Set<(data?: any) => void>> = new Map();
+  private listeners: Map<string, Set<(data?: unknown) => void>> = new Map();
 
-  emit(event: string, data?: any): void {
+  emit(event: string, data?: unknown): void {
     const eventListeners = this.listeners.get(event);
     if (eventListeners) {
       console.log(`📢 EventBus: Emitting event "${event}" to ${eventListeners.size} listener(s)`);
@@ -21,7 +21,7 @@ export class EventBus implements EventBusPort {
     }
   }
 
-  on(event: string, callback: (data?: any) => void): void {
+  on(event: string, callback: (data?: unknown) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
@@ -29,7 +29,7 @@ export class EventBus implements EventBusPort {
     console.log(`📝 EventBus: Registered listener for "${event}" (total: ${this.listeners.get(event)!.size})`);
   }
 
-  off(event: string, callback: (data?: any) => void): void {
+  off(event: string, callback: (data?: unknown) => void): void {
     const eventListeners = this.listeners.get(event);
     if (eventListeners) {
       eventListeners.delete(callback);

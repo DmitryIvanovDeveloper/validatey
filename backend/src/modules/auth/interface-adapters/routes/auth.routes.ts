@@ -73,7 +73,7 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!session.accessToken) {
       return res.status(500).json({ error: 'Sign in failed' });
     }
-    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRolePort);
+    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRole);
     const role = await getRole.getRole(session.user.id);
     setSessionCookies(res, session.accessToken, session.refreshToken);
     return res.json({ user: session.user, role });
@@ -108,7 +108,7 @@ router.post('/session', async (req: Request, res: Response) => {
     if (!user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
-    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRolePort);
+    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRole);
     const role = await getRole.getRole(user.id);
     res.cookie(COOKIE_NAME, accessToken, COOKIE_OPTS);
     return res.json({ user, role });
@@ -122,7 +122,7 @@ router.get('/session', async (req: Request, res: Response) => {
   try {
     const token = req.cookies?.[COOKIE_NAME];
     const refreshToken = req.cookies?.[COOKIE_REFRESH_NAME];
-    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRolePort);
+    const getRole = container.get<GetUserRolePort>(AUTH_TYPES.GetUserRole);
 
     if (token) {
       const user = await authProvider.getUserFromAccessToken(token);

@@ -15,7 +15,7 @@ export class SubmitFeedbackUseCase {
   constructor(
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort,
-    @inject(TYPES.FeedbackRepositoryPort)
+    @inject(TYPES.FeedbackRepository)
     private readonly _repository: FeedbackRepositoryPort
   ) {}
 

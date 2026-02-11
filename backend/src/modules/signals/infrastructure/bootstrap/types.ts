@@ -1,5 +1,5 @@
 export const TYPES = {
-  EarlySignalsLlmPort: Symbol.for('EarlySignalsLlmPort'),
+  EarlySignalsLlm: Symbol.for('EarlySignalsLlm'),
   EarlySignalsRepository: Symbol.for('EarlySignalsRepository'),
   GetEarlySignalsByProjectIdUseCase: Symbol.for('GetEarlySignalsByProjectIdUseCase'),
   EarlySignalsController: Symbol.for('EarlySignalsController'),

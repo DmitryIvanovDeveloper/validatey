@@ -11,8 +11,8 @@ import { TextFormattingLlmAdapter } from '../services/text-formatting-llm.adapte
 
 export function bindAi(container: Container): void {
   container.bind<SearchServicePort>(TYPES.SearchService).to(SerperSearchService);
-  container.bind<MarketContextLlmPort>(TYPES.MarketContextLlmPort).to(MarketContextLlmAdapter);
+  container.bind<MarketContextLlmPort>(TYPES.MarketContextLlm).to(MarketContextLlmAdapter);
   container.bind<SuggestMarketContextUseCase>(TYPES.SuggestMarketContextUseCase).to(SuggestMarketContextUseCase);
-  container.bind<TextFormattingPort>(TYPES.TextFormattingPort).to(TextFormattingLlmAdapter);
+  container.bind<TextFormattingPort>(TYPES.TextFormatting).to(TextFormattingLlmAdapter);
   container.bind<FormatTextUseCase>(TYPES.FormatTextUseCase).to(FormatTextUseCase);
 }
