@@ -7,9 +7,25 @@
     <div class="project-card__inner">
       <header class="project-card__header">
         <h3 class="project-card__title">{{ project.name }}</h3>
-        <span :class="['project-card__status', `project-card__status--${project.status}`]">
-          {{ statusLabel }}
-        </span>
+        <div class="project-card__menu" @click.stop>
+          <button
+            type="button"
+            class="project-card__menu-trigger"
+            :aria-label="`Menu for ${project.name}`"
+            @click="toggleMenu"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="12" cy="5" r="1" />
+              <circle cx="12" cy="19" r="1" />
+            </svg>
+          </button>
+          <div v-if="menuOpen" class="project-card__menu-dropdown" v-click-outside="closeMenu">
+            <div v-if="$slots.actions" class="project-card__menu-actions">
+              <slot name="actions" />
+            </div>
+          </div>
+        </div>
       </header>
       <div class="project-card__meta">
         <span class="project-card__date">
@@ -22,7 +38,7 @@
           {{ formattedDate }}
         </span>
       </div>
-      <footer v-if="$slots.footer || $slots.actions" class="project-card__footer">
+      <footer v-if="$slots.footer" class="project-card__footer">
         <slot name="footer">
           <router-link :to="`/projects/${project.id}`" class="project-card__link" @click.stop>
             View project
@@ -31,16 +47,13 @@
             </svg>
           </router-link>
         </slot>
-        <div v-if="$slots.actions" class="project-card__actions" @click.stop>
-          <slot name="actions" />
-        </div>
       </footer>
     </div>
   </article>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import type { Project, ProjectStatus } from '../../../domain/entities/project.entity';
 
 const props = defineProps<{
@@ -50,6 +63,31 @@ const props = defineProps<{
 const emit = defineEmits<{
   click: [];
 }>();
+
+const menuOpen = ref(false);
+
+function toggleMenu() {
+  menuOpen.value = !menuOpen.value;
+}
+
+function closeMenu() {
+  menuOpen.value = false;
+}
+
+// Close menu when clicking outside
+function handleClickOutside(event: Event) {
+  if (!(event.target as Element).closest('.project-card__menu')) {
+    closeMenu();
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 
 const statusLabels: Record<ProjectStatus, string> = {
   draft: 'Draft',
@@ -239,9 +277,83 @@ const formattedDate = computed(() => {
   transition: transform 0.15s ease;
 }
 
-.project-card__actions {
+/* Menu in top-right corner */
+.project-card__menu {
+  position: relative;
+}
+
+.project-card__menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.project-card__menu-trigger:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.project-card__menu-trigger svg {
+  width: 16px;
+  height: 16px;
+}
+
+.project-card__menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  min-width: 160px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.1), 0 4px 8px -2px rgba(15, 23, 42, 0.08);
+  padding: 0.5rem 0;
+  margin-top: 4px;
+}
+
+.project-card__menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.project-card__menu-actions :deep(.project-card-edit),
+.project-card__menu-actions :deep(.btn) {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0;
+  text-decoration: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.project-card__menu-actions :deep(.project-card-edit:hover),
+.project-card__menu-actions :deep(.btn:not(.btn-danger):hover) {
+  background: var(--color-bg-subtle);
+}
+
+.project-card__menu-actions :deep(.btn-danger) {
+  color: var(--color-error);
+}
+
+.project-card__menu-actions :deep(.btn-danger:hover) {
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 </style>
