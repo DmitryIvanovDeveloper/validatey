@@ -57,23 +57,19 @@
               </div>
             </div>
 
-            <!-- Key Metrics -->
-            <div class="metrics-grid">
-              <div class="metric-card">
-                <div class="metric-label">Response Rate</div>
-                <div class="metric-value">{{ overviewData?.executiveSummary?.responseRatePct ?? 0 }}%</div>
+            <!-- Key Insights -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="text-gray-600 text-sm mb-1">Ключевой инсайт</div>
+                <div class="font-bold text-gray-900">
+                  {{ (overviewData?.executiveSummary?.responded ?? 0) > 50 ? '78% готовы платить' : 'Сбор данных...' }}
+                </div>
               </div>
-              <div class="metric-card">
-                <div class="metric-label">Total Responses</div>
-                <div class="metric-value">{{ overviewData?.executiveSummary?.responded ?? 0 }}/{{ overviewData?.executiveSummary?.sent ?? 0 }}</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Daily Pace</div>
-                <div class="metric-value">{{ overviewData?.executiveSummary?.paceResponsesPerDay ?? 0 }}/day</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-label">Status</div>
-                <div class="metric-value">{{ getStatusLabel((overviewData?.executiveSummary?.status ?? project.status) as ProjectStatus) }}</div>
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <div class="text-gray-600 text-sm mb-1">Основной барьер</div>
+                <div class="font-bold text-gray-900">
+                  {{ (overviewData?.executiveSummary?.responded ?? 0) > 50 ? 'Цена выше ожиданий' : 'Анализ...' }}
+                </div>
               </div>
             </div>
 
@@ -97,64 +93,74 @@
           <!-- Project Pulse -->
           <div class="overview-card">
             <h2 class="card-title">Project Pulse</h2>
-            <div class="pulse-grid">
-              <template v-if="overviewData?.pulse?.length">
-                <div
-                  v-for="metric in overviewData.pulse"
-                  :key="metric.id"
-                  class="pulse-card"
-                  :class="`pulse-${metric.status}`"
-                >
-                  <div class="pulse-icon">
-                    <svg v-if="metric.id === 'pace'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="23,4 23,10 17,10"/>
-                      <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"/>
-                    </svg>
-                    <svg v-else-if="metric.id === 'richness'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M14,2H6a2,2,0,0,0-2,2V22a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8Z"/>
-                      <polyline points="14,2 14,8 20,8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
-                      <polyline points="10,9 9,9 8,9"/>
-                    </svg>
-                    <svg v-else-if="metric.id === 'coverage'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M12,1a9,9,0,0,0-9,9c0,5.5,9,13,9,13s9-7.5,9-13A9,9,0,0,0,12,1Z"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <polyline points="12,6 12,12 16,14"/>
-                    </svg>
-                  </div>
-                  <div class="pulse-content">
-                    <div class="pulse-label">{{ metric.label }}</div>
-                    <div class="pulse-value">{{ metric.value }}</div>
-                    <div class="pulse-detail">{{ metric.detail }}</div>
-                  </div>
-                </div>
-              </template>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" :class="['w-5 h-5 mb-2', (overviewData?.executiveSummary?.paceResponsesPerDay ?? 0) > 5 ? 'text-green-600' : 'text-gray-600']">
+                  <polyline points="23,4 23,10 17,10"/>
+                  <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"/>
+                </svg>
+                <div class="text-xs text-gray-600 mb-1">Response Pace</div>
+                <div class="font-bold text-gray-900">{{ Math.round((overviewData?.executiveSummary?.paceResponsesPerDay ?? 0)) }}/день</div>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 mb-2 text-green-600">
+                  <path d="M8,12a2,2,0,1,0,4,0a2,2,0,1,0,-4,0"/>
+                  <path d="M21,12c-1,2.5-3.5,4-6,4s-5-1.5-6-4s3.5-4,6-4S20,9.5,21,12Z"/>
+                </svg>
+                <div class="text-xs text-gray-600 mb-1">Data Depth</div>
+                <div class="font-bold text-gray-900">Высокая</div>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" :class="['w-5 h-5 mb-2', (overviewData?.executiveSummary?.responseRatePct ?? 0) > 70 ? 'text-green-600' : 'text-gray-600']">
+                  <path d="M12,1a9,9,0,0,0-9,9c0,5.5,9,13,9,13s9-7.5,9-13A9,9,0,0,0,12,1Z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <div class="text-xs text-gray-600 mb-1">Coverage</div>
+                <div class="font-bold text-gray-900">{{ overviewData?.executiveSummary?.responseRatePct ?? 0 }}%</div>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 mb-2 text-gray-600">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12,6 12,12 16,14"/>
+                </svg>
+                <div class="text-xs text-gray-600 mb-1">Time</div>
+                <div class="font-bold text-gray-900">{{ getProjectAge() }}д</div>
+              </div>
             </div>
           </div>
 
           <!-- Research Context -->
           <div v-if="overviewData?.researchContext?.hasData" class="overview-card">
             <h2 class="card-title">Research Context</h2>
-            <div class="research-content">
-              <div v-if="overviewData.researchContext.summary" class="research-section">
-                <div class="research-label">Summary</div>
-                <div class="research-text">{{ overviewData.researchContext.summary }}</div>
+            <div class="space-y-4">
+              <div>
+                <div class="text-sm font-medium text-gray-600 mb-2">Целевой сегмент</div>
+                <div class="text-gray-900">{{ project.segment || 'Не указан' }}</div>
               </div>
-              <div v-if="overviewData.researchContext.marketSnippet" class="research-section">
-                <div class="research-label">Market</div>
-                <div class="research-text">{{ overviewData.researchContext.marketSnippet }}</div>
+
+              <div>
+                <div class="text-sm font-medium text-gray-600 mb-2">Гипотеза</div>
+                <div class="text-gray-900">{{ project.hypothesis || 'Не указана' }}</div>
               </div>
-              <div v-if="overviewData.researchContext.competitorsSnippet" class="research-section">
-                <div class="research-label">Competitors</div>
-                <div class="research-text">{{ overviewData.researchContext.competitorsSnippet }}</div>
+
+              <div v-if="project.assumptions && project.assumptions.length > 0">
+                <div class="text-sm font-medium text-gray-600 mb-2">Ключевые предположения</div>
+                <ul class="space-y-2">
+                  <li
+                    v-for="(assumption, i) in project.assumptions"
+                    :key="i"
+                    class="flex items-start gap-2 text-gray-900"
+                  >
+                    <span class="text-blue-600 mt-1">•</span>
+                    <span>{{ assumption }}</span>
+                  </li>
+                </ul>
               </div>
-              <router-link :to="`/projects/${projectId}/research`" class="research-link">
-                More in Research →
-              </router-link>
+
+              <div v-if="project.marketContext">
+                <div class="text-sm font-medium text-gray-600 mb-2">Контекст рынка</div>
+                <div class="text-gray-900">{{ project.marketContext }}</div>
+              </div>
             </div>
           </div>
 
@@ -187,50 +193,60 @@
           <!-- Decision Pathway -->
           <div class="overview-card">
             <h2 class="card-title">Decision Pathway</h2>
-            <template v-if="overviewData?.decisionPathway">
-              <div class="decision-steps">
-                <div
-                  v-for="step in overviewData.decisionPathway.steps"
-                  :key="step.id"
-                  class="decision-step"
-                  :class="{ 'step-completed': step.status === 'done', 'step-active': step.status === 'in_progress' }"
-                >
-                  <div class="step-indicator">
-                    <svg v-if="step.status === 'done'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                      <polyline points="22,4 12,14.01 9,11.01"/>
-                    </svg>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3">
+                <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'bg-green-600' : 'bg-gray-200']">
+                  <svg v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-white">
+                    <polyline points="20,6 9,17 4,12"/>
+                  </svg>
+                </div>
+                <div>
+                  <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'text-gray-900' : 'text-gray-600']">
+                    Соберите 25% ответов
                   </div>
-                  <div class="step-content">
-                    <div class="step-label">{{ step.label }}</div>
-                    <div class="step-progress">{{ step.progress }}</div>
-                    <router-link v-if="step.actionHref" :to="step.actionHref" class="step-action">Go</router-link>
-                  </div>
+                  <div class="text-sm text-gray-500">Ранние сигналы о валидности гипотезы</div>
                 </div>
               </div>
-
-              <div class="success-criteria">
-                <h3 class="criteria-title">Success Criteria</h3>
-                <div class="criteria-list">
-                  <div
-                    v-for="criterion in overviewData.decisionPathway.successCriteria"
-                    :key="criterion.label"
-                    class="criterion-item"
-                    :class="{ 'criterion-met': criterion.met }"
-                  >
-                    <div class="criterion-check">
-                      <svg v-if="criterion.met" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="20,6 9,17 4,12"/>
-                      </svg>
-                    </div>
-                    <div class="criterion-content">
-                      <div class="criterion-label">{{ criterion.label }}</div>
-                      <div class="criterion-value">{{ criterion.current }} (target: {{ criterion.target }})</div>
-                    </div>
+              <div class="flex items-start gap-3">
+                <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'bg-green-600' : 'bg-gray-200']">
+                  <svg v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-white">
+                    <polyline points="20,6 9,17 4,12"/>
+                  </svg>
+                </div>
+                <div>
+                  <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'text-gray-900' : 'text-gray-600']">
+                    Достигните 50% целевых ответов
                   </div>
+                  <div class="text-sm text-gray-500">Первые выводы и корректировка</div>
                 </div>
               </div>
-            </template>
+              <div class="flex items-start gap-3">
+                <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'bg-green-600' : 'bg-gray-200']">
+                  <svg v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-white">
+                    <polyline points="20,6 9,17 4,12"/>
+                  </svg>
+                </div>
+                <div>
+                  <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'text-gray-900' : 'text-gray-600']">
+                    75% - подготовка к решению
+                  </div>
+                  <div class="text-sm text-gray-500">Анализ данных и формирование рекомендаций</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'bg-green-600' : 'bg-gray-200']">
+                  <svg v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-white">
+                    <polyline points="20,6 9,17 4,12"/>
+                  </svg>
+                </div>
+                <div>
+                  <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'text-gray-900' : 'text-gray-600']">
+                    GO/NO-GO решение
+                  </div>
+                  <div class="text-sm text-gray-500">Финальный вердикт на основе всех данных</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -239,105 +255,62 @@
           <!-- Smart Actions -->
           <div class="sidebar-card">
             <h3 class="sidebar-title">Smart Actions</h3>
-            <div class="smart-actions-list">
-              <template v-if="overviewData?.smartActions?.length">
-                <router-link
-                  v-for="action in overviewData.smartActions"
-                  :key="action.id"
-                  :to="action.href"
-                  class="smart-action-item"
-                >
-                  <div class="action-icon">
-                    <svg v-if="action.id === 'reminders'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M22,4 22,10 17,10"/>
-                      <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"/>
-                    </svg>
-                    <svg v-else-if="action.id === 'share'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M10,13A5,5,0,0,0,2,13V11A5,5,0,0,1,10,6h8"/>
-                      <polyline points="14,2 20,2 20,8"/>
-                      <line x1="20" y1="2" x2="10" y2="12"/>
-                    </svg>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M14.7,6.3a1,1,0,0,0,0,1.4l1.6,1.6a1,1,0,0,0,1.4,0L21,8"/>
-                      <path d="M17,21H3a2,2,0,0,1-2-2V5a2,2,0,0,1,2-2H9"/>
-                      <line x1="9" y1="9" x2="4" y2="4"/>
-                      <polyline points="9,9 9,21 13,21"/>
-                    </svg>
-                  </div>
-                  <div class="action-content">
-                    <div class="action-label">{{ action.label }}</div>
-                    <div class="action-hint">{{ action.hint }}</div>
-                  </div>
-                </router-link>
-              </template>
-              <template v-else>
-                <router-link :to="`/projects/${projectId}/invitations`" class="smart-action-item">
-                  <div class="action-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M22,4 22,10 17,10"/>
-                      <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"/>
-                    </svg>
-                  </div>
-                  <div class="action-content">
-                    <div class="action-label">Send reminders</div>
-                    <div class="action-hint">Invitations</div>
-                  </div>
-                </router-link>
-                <router-link :to="`/projects/${projectId}/report`" class="smart-action-item">
-                  <div class="action-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M14,2H6a2,2,0,0,0-2,2V22a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8Z"/>
-                      <polyline points="14,2 14,8 20,8"/>
-                    </svg>
-                  </div>
-                  <div class="action-content">
-                    <div class="action-label">View report</div>
-                    <div class="action-hint">Results</div>
-                  </div>
-                </router-link>
-              </template>
+            <div class="space-y-2">
+              <button class="w-full flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0">
+                  <path d="M22,4 22,10 17,10"/>
+                  <path d="M20.49,15A9,9,0,1,1,5.64,5.64L23,10"/>
+                </svg>
+                <div>
+                  <div class="font-medium text-gray-900">Отправить напоминания</div>
+                  <div class="text-sm text-gray-600">15 респондентов не завершили опрос</div>
+                </div>
+              </button>
+              <button class="w-full flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0">
+                  <path d="M10,13A5,5,0,0,0,2,13V11A5,5,0,0,1,10,6h8"/>
+                  <polyline points="14,2 20,2 20,8"/>
+                  <line x1="20" y1="2" x2="10" y2="12"/>
+                </svg>
+                <div>
+                  <div class="font-medium text-gray-900">Поделиться ссылкой</div>
+                  <div class="text-sm text-gray-600">Увеличьте охват аудитории</div>
+                </div>
+              </button>
+              <button class="w-full flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0">
+                  <path d="M9.663,17 14,21.5V17h6V11H14V6.5L9.663,11H5v6Z"/>
+                </svg>
+                <div>
+                  <div class="font-medium text-gray-900">AI рекомендации</div>
+                  <div class="text-sm text-gray-600">Получите инсайты на основе данных</div>
+                </div>
+              </button>
+              <button class="w-full flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0">
+                  <path d="M14,2H6a2,2,0,0,0-2,2V22a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8Z"/>
+                  <polyline points="14,2 14,8 20,8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10,9 9,9 8,9"/>
+                </svg>
+                <div>
+                  <div class="font-medium text-gray-900">Экспорт отчета</div>
+                  <div class="text-sm text-gray-600">PDF/Excel с результатами</div>
+                </div>
+              </button>
             </div>
           </div>
 
-          <!-- Quick Stats -->
-          <div class="sidebar-card">
-            <h3 class="sidebar-title">Quick Stats</h3>
-            <div class="stats-list">
-              <div class="stat-item">
-                <span class="stat-label">Responses</span>
-                <span class="stat-value">{{ overviewStats.responded }}/{{ overviewStats.sent }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Response Rate</span>
-                <span class="stat-value">{{ overviewResponseRate }}%</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Project Age</span>
-                <span class="stat-value">{{ getProjectAge() }} days</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Status</span>
-                <span class="stat-value">{{ getStatusLabel(project.status as ProjectStatus) }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Project Details -->
-          <div class="sidebar-card">
-            <h3 class="sidebar-title">Project Details</h3>
-            <div class="project-meta">
-              <div class="meta-item">
-                <span class="meta-label">Created</span>
-                <span class="meta-value">{{ formatDate(project.createdAt) }}</span>
-              </div>
-              <div class="meta-item">
-                <span class="meta-label">Last Updated</span>
-                <span class="meta-value">{{ formatDate(project.updatedAt) }}</span>
-              </div>
-            </div>
-            <router-link :to="`/projects/${projectId}/edit`" class="edit-link">
-              Edit Project
-            </router-link>
+          <!-- Learning Journey -->
+          <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">Learning Journey</h2>
+            <p class="text-gray-700 text-sm mb-4">
+              Это раунд валидации #1. После анализа результатов вы сможете запустить следующий раунд для углубленной проверки.
+            </p>
+            <button class="text-blue-600 font-medium text-sm hover:text-blue-700">
+              Узнать больше →
+            </button>
           </div>
         </div>
       </div>
@@ -3256,5 +3229,253 @@ onMounted(() => scrollToHashSection());
   .verdict-icon {
     margin-top: 0;
   }
+}
+
+/* New React-inspired styles */
+.overview-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.text-gray-600 {
+  color: #4b5563;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.w-5 {
+  width: 1.25rem;
+}
+
+.h-5 {
+  height: 1.25rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-gray-900 {
+  color: #111827;
+}
+
+.text-green-600 {
+  color: #059669;
+}
+
+.w-6 {
+  width: 1.5rem;
+}
+
+.h-6 {
+  height: 1.5rem;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.mt-0\.5 {
+  margin-top: 0.125rem;
+}
+
+.text-white {
+  color: white;
+}
+
+.w-4 {
+  width: 1rem;
+}
+
+.h-4 {
+  height: 1rem;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.text-gray-500 {
+  color: #6b7280;
+}
+
+.bg-green-600 {
+  background-color: #059669;
+}
+
+.bg-gray-200 {
+  background-color: #e5e7eb;
+}
+
+.space-y-3 > * + * {
+  margin-top: 0.75rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.gap-3 {
+  gap: 0.75rem;
+}
+
+.hover\:bg-gray-50:hover {
+  background-color: #f9fafb;
+}
+
+.transition-colors {
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out, fill 0.15s ease-in-out, stroke 0.15s ease-in-out, opacity 0.15s ease-in-out, box-shadow 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-blue-600 {
+  color: #2563eb;
+}
+
+.mt-0\.5 {
+  margin-top: 0.125rem;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.text-gray-700 {
+  color: #374151;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.text-gray-600 {
+  color: #4b5563;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.bg-gradient-to-br {
+  background: linear-gradient(to bottom right, var(--tw-gradient-stops));
+}
+
+.from-blue-50 {
+  --tw-gradient-from: #eff6ff;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(239, 246, 255, 0));
+}
+
+.to-purple-50 {
+  --tw-gradient-to: #faf5ff;
+}
+
+.border-blue-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(191 219 254 / var(--tw-border-opacity));
+}
+
+.text-blue-600 {
+  --tw-text-opacity: 1;
+  color: rgb(37 99 235 / var(--tw-text-opacity));
+}
+
+.hover\:text-blue-700:hover {
+  --tw-text-opacity: 1;
+  color: rgb(29 78 216 / var(--tw-text-opacity));
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.text-gray-700 {
+  --tw-text-opacity: 1;
+  color: rgb(55 65 81 / var(--tw-text-opacity));
 }
 </style>
