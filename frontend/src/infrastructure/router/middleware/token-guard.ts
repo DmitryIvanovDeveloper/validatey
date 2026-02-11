@@ -1,8 +1,8 @@
 import { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 import { TokenValidator } from '../../../shared/validation/token-validator';
-import { container } from '@/infrastructure/bootstrap/container';
-import { TYPES as AUTH_TYPES } from '@/modules/auth/infrastructure/bootstrap/types';
-import type { AuthServicePort } from '@/modules/auth/application/ports/auth-service.port';
+import { container } from '../../bootstrap/container';
+import { TYPES as AUTH_TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
+import type { AuthServicePort } from '../../../modules/auth/application/ports/auth-service.port';
 
 /** Routes that are allowed without authentication (no redirect to login). */
 const PUBLIC_ROUTE_NAMES = new Set(['login', 'auth-callback', 'respondent-survey', 'survey-public', 'survey-public-short']);

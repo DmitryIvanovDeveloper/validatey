@@ -313,7 +313,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { container } from '@/infrastructure/bootstrap/container';
+import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { ScraperViewModel } from '../view-models/scraper.view-model';
 import { ScraperPresenter } from '../presenters/scraper.presenter';

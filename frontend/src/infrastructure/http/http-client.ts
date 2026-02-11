@@ -70,7 +70,7 @@ export class HttpClient implements HttpClientPort {
     return response.blob();
   }
 
-  async post<T>(url: string, data?: any, headers?: Record<string, string>): Promise<T> {
+  async post<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
     const fullUrl = this.buildUrl(url);
     
     try {
@@ -136,7 +136,7 @@ export class HttpClient implements HttpClientPort {
     }
   }
 
-  async put<T>(url: string, data?: any, headers?: Record<string, string>): Promise<T> {
+  async put<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
     const fullUrl = this.buildUrl(url);
     const requestHeaders = {
       'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ export class HttpClient implements HttpClientPort {
     return response.json();
   }
 
-  async patch<T>(url: string, data?: any, headers?: Record<string, string>): Promise<T> {
+  async patch<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
     const fullUrl = this.buildUrl(url);
     const requestHeaders = {
       'Content-Type': 'application/json',

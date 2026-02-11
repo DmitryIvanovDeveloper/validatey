@@ -69,7 +69,7 @@ modules/[module-name]/
 Создайте файл `.env` в корне проекта (см. `.env.example`):
 
 ```env
-VITE_API_BASE_URL=http://localhost:3000/api
+VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
 Авторизация через Google идёт через бэкенд; ключи Supabase нужны только на бэкенде.

@@ -5,25 +5,25 @@ import { container } from '../bootstrap/container';
 
 @injectable()
 export class EventBus implements EventBusPort {
-  private listeners: Map<string, Set<(data?: any) => void>> = new Map();
+  private listeners: Map<string, Set<(data?: unknown) => void>> = new Map();
   private handlers: Map<string, (ISyncEventHandler<IEvent> | IAsyncEventHandler<IEvent>)[]> = new Map();
 
   // Legacy API для обратной совместимости
-  emit(event: string, data?: any): void {
+  emit(event: string, data?: unknown): void {
     const eventListeners = this.listeners.get(event);
     if (eventListeners) {
       eventListeners.forEach(callback => callback(data));
     }
   }
 
-  on(event: string, callback: (data?: any) => void): void {
+  on(event: string, callback: (data?: unknown) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback);
   }
 
-  off(event: string, callback: (data?: any) => void): void {
+  off(event: string, callback: (data?: unknown) => void): void {
     const eventListeners = this.listeners.get(event);
     if (eventListeners) {
       eventListeners.delete(callback);
@@ -101,9 +101,12 @@ export class EventBus implements EventBusPort {
     }
   }
 
-  private extractGenericType(handler: any): string {
-    const name = handler.constructor.name;
-    const match = /Handler<(.*?)>/.exec(name);
-    return match ? match[1] : 'UnknownEvent';
+  private extractGenericType(handler: unknown): string {
+    if (typeof handler === 'function' && handler.constructor && typeof handler.constructor.name === 'string') {
+      const name = handler.constructor.name;
+      const match = /Handler<(.*?)>/.exec(name);
+      return match ? match[1] : 'UnknownEvent';
+    }
+    return 'UnknownEvent';
   }
 }

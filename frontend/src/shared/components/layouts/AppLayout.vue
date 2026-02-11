@@ -35,11 +35,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { container } from '@/infrastructure/bootstrap/container';
-import { TYPES } from '@/modules/auth/infrastructure/bootstrap/types';
-import type { AuthPresenter } from '@/modules/auth/interface-adapters/presenters/auth.presenter';
-import { AuthViewModel } from '@/modules/auth/interface-adapters/view-models/auth.view-model';
-import { userContextService } from '@/shared/services/user-context.service';
+import { container } from '../../../infrastructure/bootstrap/container';
+import { TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
+import type { AuthPresenter } from '../../../modules/auth/interface-adapters/presenters/auth.presenter';
+import { AuthViewModel } from '../../../modules/auth/interface-adapters/view-models/auth.view-model';
+import { userContextService } from '../../services/user-context.service';
 
 const route = useRoute();
 const router = useRouter();

@@ -505,20 +505,25 @@ function buildMarketContextFromForm(): { marketPicture?: string; marketFit?: str
 }
 
 const handleStepChange = async (step: number) => {
-  // When entering step 1 (How?): ensure project exists; load templates; default first template; trigger AI generate for AI path
+  // When entering step 1 (How?): ensure project exists; load templates if needed; trigger AI generate for AI path
   if (step === 1) {
     await ensureProjectCreated();
-    if (scenarioTemplates.value.length === 0) {
-      const { templates, error } = await scenarioPresenter.getTemplates();
-      if (!error) scenarioTemplates.value = templates;
-      if (scenarioTemplates.value.length > 0 && !selectedTemplateSlug.value) {
+
+    // Загружаем шаблоны ТОЛЬКО если нет существующего сценария (режим редактирования)
+    if (!scenarioContent.value.trim()) {
+      if (scenarioTemplates.value.length === 0) {
+        const { templates, error } = await scenarioPresenter.getTemplates();
+        if (!error) scenarioTemplates.value = templates;
+        if (scenarioTemplates.value.length > 0 && !selectedTemplateSlug.value) {
+          selectedTemplateSlug.value = scenarioTemplates.value[0].slug;
+          await loadSelectedTemplate();
+        }
+      } else if (scenarioTemplates.value.length > 0 && !selectedTemplateSlug.value) {
         selectedTemplateSlug.value = scenarioTemplates.value[0].slug;
         await loadSelectedTemplate();
       }
-    } else if (scenarioTemplates.value.length > 0 && !selectedTemplateSlug.value) {
-      selectedTemplateSlug.value = scenarioTemplates.value[0].slug;
-      await loadSelectedTemplate();
     }
+
     if (scenarioSource.value === 'ai' && !scenarioContent.value) {
       await generateScenario();
     }
@@ -808,6 +813,14 @@ async function loadProjectForEditing(projectId: string) {
       currentProjectId.value = projectId;
       isEditing.value = true;
       editingProjectId.value = projectId;
+
+      // Загружаем существующий сценарий проекта
+      const scenarioResult = await scenarioPresenter.getLatestByProjectId(projectId);
+      if (!('error' in scenarioResult)) {
+        scenarioContent.value = scenarioResult.content;
+        // Для существующих сценариев устанавливаем режим ручного редактирования
+        scenarioSource.value = 'manual';
+      }
     }
   } catch (error) {
     console.error('Failed to load project for editing:', error);
