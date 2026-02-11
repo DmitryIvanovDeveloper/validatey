@@ -135,9 +135,9 @@ async function handleSignOut() {
 }
 
 .header-inner {
-  max-width: 1200px;
+  max-width: 1600px; /* Increased from 1200px for wider screens */
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem; /* Increased padding for more space on sides */
   height: 3.5rem;
   display: flex;
   align-items: center;
@@ -174,7 +174,9 @@ async function handleSignOut() {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-left: 1rem;
+  margin-left: 2rem; /* Increased from 1rem for more spacing */
+  flex: 1; /* Take available space to center navigation */
+  justify-content: center; /* Center the nav items within the flex space */
 }
 
 .nav-link {
@@ -274,6 +276,19 @@ async function handleSignOut() {
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Responsive header layout */
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 0 1rem;
+  }
+
+  .header-nav {
+    margin-left: 1rem;
+    flex: none;
+    justify-content: flex-start;
+  }
 }
 
 .main-content {
