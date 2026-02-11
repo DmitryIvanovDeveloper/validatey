@@ -76,7 +76,7 @@ export class GetOverviewUseCase {
     const sent = d.invitations.filter(
       (i) => i.status === 'sent' || i.status === 'responded' || i.status === 'completed'
     ).length;
-    const responded = d.invitations.filter((i) => i.status === 'responded' || i.status === 'completed').length;
+    const responded = d.responses.length; // Count actual responses instead of invitation statuses
     const responseRatePct = sent > 0 ? Math.round((responded / sent) * 100) : 0;
     const pace = this.computePace(d.responses);
     const validationStatus = this.inferValidationStatus(responded, responseRatePct, d.earlySignals.length);
@@ -165,7 +165,7 @@ export class GetOverviewUseCase {
     const sent = d.invitations.filter(
       (i) => i.status === 'sent' || i.status === 'responded' || i.status === 'completed'
     ).length;
-    const responded = d.invitations.filter((i) => i.status === 'responded' || i.status === 'completed').length;
+    const responded = d.responses.length; // Count actual responses instead of invitation statuses
     const responseRatePct = sent > 0 ? Math.round((responded / sent) * 100) : 0;
     const pace = this.computePace(d.responses);
     const richness = this.computeDataRichness(d);
@@ -235,7 +235,7 @@ export class GetOverviewUseCase {
     const sent = d.invitations.filter(
       (i) => i.status === 'sent' || i.status === 'responded' || i.status === 'completed'
     ).length;
-    const responded = d.invitations.filter((i) => i.status === 'responded' || i.status === 'completed').length;
+    const responded = d.responses.length; // Count actual responses instead of invitation statuses
     const pending = sent - responded;
     const responseRatePct = sent > 0 ? Math.round((responded / sent) * 100) : 0;
     const actions: SmartAction[] = [];
@@ -310,7 +310,7 @@ export class GetOverviewUseCase {
     const sent = d.invitations.filter(
       (i) => i.status === 'sent' || i.status === 'responded' || i.status === 'completed'
     ).length;
-    const responded = d.invitations.filter((i) => i.status === 'responded' || i.status === 'completed').length;
+    const responded = d.responses.length; // Count actual responses instead of invitation statuses
     const steps = [
       {
         id: '1',
