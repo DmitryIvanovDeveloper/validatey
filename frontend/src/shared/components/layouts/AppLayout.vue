@@ -278,10 +278,23 @@ async function handleSignOut() {
 
 .main-content {
   flex: 1;
-  max-width: 1120px;
+  max-width: min(1120px, 95vw); /* Responsive: 95% viewport width or 1120px, whichever is smaller */
   width: 100%;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+/* Allow full width on very large screens */
+@media (min-width: 1400px) {
+  .main-content {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .main-content {
+    max-width: 1440px;
+  }
 }
 </style>
 
