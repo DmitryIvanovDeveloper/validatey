@@ -1161,6 +1161,11 @@ onMounted(() => scrollToHashSection());
 /* New Overview Design Styles */
 
 .overview-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
 .section-label {
   font-size: 0.8125rem;
   font-weight: 700;
@@ -2486,13 +2491,6 @@ onMounted(() => scrollToHashSection());
   .executive-right {
     align-self: center;
   }
-}
-
-/* New Overview Design Styles */
-.overview-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1.5rem;
 }
 
 .overview-grid {
