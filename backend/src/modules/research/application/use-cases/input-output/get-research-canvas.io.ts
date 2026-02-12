@@ -12,6 +12,11 @@ export type RecommendedTemplate = {
 
 export type GetResearchCanvasResponse = {
   canvas: ResearchCanvas;
+  synthesisReport?: {
+    summary: string;
+    recommendations: string[];
+  } | null;
   projectName?: string;
+  projectHypothesis?: string;
   recommendedTemplate?: RecommendedTemplate;
 };

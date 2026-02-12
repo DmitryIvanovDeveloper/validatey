@@ -14,6 +14,7 @@ import { CollectResearchDataUseCase } from '../../application/use-cases/collect-
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
 import { SupabaseResearchRepository } from '../repositories/supabase-research.repository';
 import { SynthesisLlmAdapter } from '../services/synthesis-llm.adapter';
+import { SynthesisLlmStubAdapter } from '../services/synthesis-llm-stub.adapter';
 import { ResearchAssistantLlmAdapter } from '../services/research-assistant-llm.adapter';
 import { MarketDataProviderStubAdapter } from '../services/market-data-provider-stub.adapter';
 import { CompetitorDataProviderStubAdapter } from '../services/competitor-data-provider-stub.adapter';
@@ -24,10 +25,12 @@ import { GooglePlaceAutocompleteAdapter } from '../services/google-place-autocom
 import { AutocompleteDataProviderAdapter } from '../services/autocomplete-data-provider.adapter';
 import { ResearchController } from '../../interface-adapters/controllers/research.controller';
 
-const useLlmResearchProviders = !!process.env.SERPER_API_KEY?.trim();
+// Enable real LLM providers for market and competitor research
+const useLlmResearchProviders = true;
 
 export function bindResearch(container: Container): void {
   container.bind<ResearchDataRepositoryPort>(TYPES.ResearchDataRepository).to(SupabaseResearchRepository);
+  // Use real synthesis LLM for comprehensive analysis
   container.bind<SynthesisLlmPort>(TYPES.SynthesisLlm).to(SynthesisLlmAdapter);
   container.bind<ResearchAssistantLlmPort>(TYPES.ResearchAssistantLlm).to(ResearchAssistantLlmAdapter);
   container

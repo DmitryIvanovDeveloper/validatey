@@ -71,9 +71,11 @@ export class GetResearchCanvasUseCase {
         autocompleteInsights: stored?.autocompleteInsights ?? null,
       };
 
+      const synthesisReport = stored?.synthesisReport ?? null;
       const recommendedTemplate = this.getRecommendedTemplate(project.scenarioTemplateSlug ?? 'wtp');
+      const projectHypothesis = project.hypothesis?.description ?? null;
 
-      return ResultEx.success({ canvas, projectName: project.name, recommendedTemplate });
+      return ResultEx.success({ canvas, synthesisReport, projectName: project.name, projectHypothesis, recommendedTemplate });
     } catch (error) {
       this._logger.error('get-research-canvas.exception', { projectId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));

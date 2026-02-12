@@ -15,6 +15,8 @@ import { bindSurveys } from '../../modules/surveys/infrastructure/bootstrap/bind
 import { bindSurveyResponses } from '../../modules/survey-responses/infrastructure/bootstrap/bind.survey-responses';
 import { bindAuth } from '../../modules/auth/infrastructure/bootstrap/bind.auth';
 import { bindScraper } from '../../modules/scraper/infrastructure/bootstrap/bind.scraper';
+import { bindResearch } from '../../modules/research/infrastructure/bootstrap/bind.research';
+import { bindResponses } from '../../modules/responses/infrastructure/bootstrap/bind.responses';
 const container = new Container();
 
 // Infrastructure bindings
@@ -30,5 +32,7 @@ bindSurveys(container);
 bindSurveyResponses(container);
 bindAuth(container);
 bindScraper(container);
+bindResearch(container);
+bindResponses(container);
 
 export { container, TYPES };

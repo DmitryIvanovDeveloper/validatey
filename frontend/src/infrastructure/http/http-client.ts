@@ -1,12 +1,20 @@
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { HttpClientPort } from './ports/http-client.port';
 import { API_CONFIG } from '../config/api.config';
 import { userContextService } from '../../shared/services/user-context.service';
+import { TYPES } from '../bootstrap/types';
+import { TYPES as AUTH_TYPES } from '../../modules/auth/infrastructure/bootstrap/types';
+import type { AuthServicePort } from '../../modules/auth/application/ports/auth-service.port';
 
 @injectable()
 export class HttpClient implements HttpClientPort {
   /** Always use absolute API URL to avoid requests going to frontend origin (404). */
   private readonly baseUrl = HttpClient.ensureAbsolute(API_CONFIG.BASE_URL);
+
+  constructor(
+    @inject(AUTH_TYPES.AuthService)
+    private readonly _authService: AuthServicePort
+  ) {}
 
   private static ensureAbsolute(url: string): string {
     if (/^https?:\/\//i.test(url)) return url;
@@ -32,195 +40,129 @@ export class HttpClient implements HttpClientPort {
     };
   }
 
-  async get<T>(url: string, headers?: Record<string, string>): Promise<T> {
+  private async requestWithAuthRetry<T = any>(
+    method: string,
+    url: string,
+    body?: any,
+    headers?: Record<string, string>
+  ): Promise<T> {
     const fullUrl = this.buildUrl(url);
     const requestHeaders = this.getHeaders(headers);
-    const response = await fetch(fullUrl, { method: 'GET', headers: requestHeaders });
-    
+    let response = await fetch(fullUrl, {
+      method,
+      headers: requestHeaders,
+      body: body ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined
+    });
+
+    // If we get 401, try to refresh session and retry once
+    if (response.status === 401) {
+      console.log('🔄 Got 401, trying to refresh session...');
+      try {
+        const session = await this._authService.getSession();
+        if (session) {
+          console.log('✅ Session refreshed, retrying request...');
+          // Retry the request with new session
+          response = await fetch(fullUrl, {
+            method,
+            headers: requestHeaders,
+            body: body ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined
+          });
+        }
+      } catch (error) {
+        console.warn('❌ Failed to refresh session:', error);
+      }
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ HTTP Error:', response.status, errorText);
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
-    
+
     // Handle empty responses (204 No Content)
     if (response.status === 204 || response.headers.get('content-length') === '0') {
       return undefined as T;
     }
-    
+
     // Check if response has content
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      // If not JSON, return text or empty
+      // If not JSON, return text or blob
+      if (contentType?.includes('application/octet-stream')) {
+        return await response.blob() as T;
+      }
       const text = await response.text();
       return (text || undefined) as T;
     }
-    
-    return response.json();
+
+    const result = await response.json();
+    return result;
   }
 
-  async getBlob(url: string, headers?: Record<string, string>): Promise<Blob> {
-    const fullUrl = this.buildUrl(url);
-    const requestHeaders = this.getHeaders(headers);
-    const response = await fetch(fullUrl, { method: 'GET', headers: requestHeaders });
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
-    return response.blob();
+  async get<T>(url: string, headers?: Record<string, string>): Promise<T> {
+    console.log('🚀 HTTP GET Request:', { url: this.buildUrl(url), headers });
+    const result = await this.requestWithAuthRetry('GET', url, undefined, headers);
+    console.log('📥 HTTP GET Response:', result);
+    return result;
   }
 
   async post<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
-    const fullUrl = this.buildUrl(url);
-    
-    try {
-      // Если данные - FormData, не устанавливаем Content-Type
-      const isFormData = data instanceof FormData;
-      const baseHeaders = this.getHeaders();
-      const requestHeaders = isFormData 
-        ? { ...baseHeaders, ...headers } 
-        : { 'Content-Type': 'application/json', ...baseHeaders, ...headers };
-      
-      const body = isFormData ? data : JSON.stringify(data);
-      
-      console.log('🚀 HTTP POST Request:', {
-        url: fullUrl,
-        method: 'POST',
-        headers: requestHeaders,
-        body: isFormData ? '[FormData]' : body
-      });
-      console.log('📤 POST Request details:', JSON.stringify({
-        url: fullUrl,
-        headers: Object.keys(requestHeaders),
-        bodySize: isFormData ? '[FormData]' : (body && typeof body === 'string' ? body.length : 0)
-      }, null, 2));
-      
-      const response = await fetch(fullUrl, { 
-        method: 'POST', 
-        headers: requestHeaders,
-        body
-      });
-      
-      console.log('📥 HTTP POST Response:', {
-        url: fullUrl,
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ HTTP Error:', response.status, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-      
-      // Handle empty responses (204 No Content)
-      if (response.status === 204 || response.headers.get('content-length') === '0') {
-        return undefined as T;
-      }
-      
-      // Check if response has content
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        // If not JSON, return text or empty
-        const text = await response.text();
-        return (text || undefined) as T;
-      }
-      
-      const result = await response.json();
-      return result;
-      
-    } catch (error) {
-      console.error('❌ HTTP Request failed:', error);
-      throw error;
-    }
+    // Если данные - FormData, не устанавливаем Content-Type
+    const isFormData = data instanceof FormData;
+    const requestHeaders = isFormData
+      ? headers
+      : { 'Content-Type': 'application/json', ...headers };
+
+    console.log('🚀 HTTP POST Request:', {
+      url: this.buildUrl(url),
+      headers: requestHeaders,
+      bodySize: isFormData ? '[FormData]' : JSON.stringify(data).length
+    });
+
+    const result = await this.requestWithAuthRetry('POST', url, data, requestHeaders);
+    console.log('📥 HTTP POST Response:', result);
+    return result;
   }
 
   async put<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
-    const fullUrl = this.buildUrl(url);
-    const requestHeaders = {
-      'Content-Type': 'application/json',
-      ...this.getHeaders(),
-      ...headers,
-    };
-    
-    const response = await fetch(fullUrl, { 
-      method: 'PUT', 
+    const requestHeaders = { 'Content-Type': 'application/json', ...headers };
+
+    console.log('🚀 HTTP PUT Request:', {
+      url: this.buildUrl(url),
       headers: requestHeaders,
-      body: JSON.stringify(data)
+      bodySize: JSON.stringify(data).length
     });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ HTTP Error:', response.status, errorText);
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
-    
-    // Handle empty responses (204 No Content)
-    if (response.status === 204 || response.headers.get('content-length') === '0') {
-      return undefined as T;
-    }
-    
-    // Check if response has content
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      // If not JSON, return text or empty
-      const text = await response.text();
-      return (text || undefined) as T;
-    }
-    
-    return response.json();
+
+    const result = await this.requestWithAuthRetry('PUT', url, data, requestHeaders);
+    console.log('📥 HTTP PUT Response:', result);
+    return result;
+  }
+
+  async getBlob(url: string, headers?: Record<string, string>): Promise<Blob> {
+    console.log('🚀 HTTP GET Blob Request:', { url: this.buildUrl(url), headers });
+    const result = await this.requestWithAuthRetry('GET', url, undefined, headers);
+    console.log('📥 HTTP GET Blob Response: [Blob]');
+    return result as Blob;
   }
 
   async patch<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
-    const fullUrl = this.buildUrl(url);
-    const requestHeaders = {
-      'Content-Type': 'application/json',
-      ...this.getHeaders(),
-      ...headers,
-    };
-    const response = await fetch(fullUrl, {
-      method: 'PATCH',
+    const requestHeaders = { 'Content-Type': 'application/json', ...headers };
+
+    console.log('🚀 HTTP PATCH Request:', {
+      url: this.buildUrl(url),
       headers: requestHeaders,
-      body: data !== undefined ? JSON.stringify(data) : undefined,
+      bodySize: JSON.stringify(data).length
     });
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ HTTP Error:', response.status, errorText);
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
-    if (response.status === 204 || response.headers.get('content-length') === '0') {
-      return undefined as T;
-    }
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      const text = await response.text();
-      return (text || undefined) as T;
-    }
-    return response.json();
+
+    const result = await this.requestWithAuthRetry('PATCH', url, data, requestHeaders);
+    console.log('📥 HTTP PATCH Response:', result);
+    return result;
   }
 
   async delete<T>(url: string, headers?: Record<string, string>): Promise<T> {
-    const fullUrl = this.buildUrl(url);
-    const requestHeaders = this.getHeaders(headers);
-    
-    const response = await fetch(fullUrl, { 
-      method: 'DELETE', 
-      headers: requestHeaders 
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ HTTP Error:', response.status, errorText);
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
-    
-    // DELETE может не возвращать тело
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return response.json();
-    }
-    
-    return undefined as T;
+    console.log('🚀 HTTP DELETE Request:', { url: this.buildUrl(url), headers });
+    const result = await this.requestWithAuthRetry('DELETE', url, undefined, headers);
+    console.log('📥 HTTP DELETE Response:', result);
+    return result;
   }
 }

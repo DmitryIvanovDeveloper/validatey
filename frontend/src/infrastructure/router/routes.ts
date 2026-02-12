@@ -44,7 +44,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'research',
         name: 'project-research',
-        component: () => import('@/modules/research/interface-adapters/views/ResearchCanvasView.vue'),
+        component: () => import('@/modules/research/interface-adapters/views/ResearchTab.vue'),
       },
       {
         path: 'scraper',
@@ -74,7 +74,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'responses',
         name: 'project-responses',
-        component: () => import('@/modules/projects/interface-adapters/views/ResponsesTableView.vue'),
+        component: () => import('@/modules/responses/interface-adapters/views/ResponsesTableView.vue'),
       },
     ],
   },

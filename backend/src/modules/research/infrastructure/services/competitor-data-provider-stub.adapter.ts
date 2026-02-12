@@ -4,7 +4,7 @@ import type { CompetitorDataProviderPort } from '../../application/ports/competi
 import type { CompetitorInfoBlock } from '../../domain/value-objects/competitor-info-block.vo';
 import type { ResearchIntent } from '../../application/use-cases/input-output/collect-research-data.io';
 
-/** Stub: returns null until real integration (e.g. Crunchbase, App Store) is added. */
+/** Stub: competitor data is not available until real integration is added. */
 @injectable()
 export class CompetitorDataProviderStubAdapter implements CompetitorDataProviderPort {
   async fetchCompetitorData(

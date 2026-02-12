@@ -12,7 +12,6 @@
           <span class="brand-text">Validatey</span>
         </router-link>
         <nav v-if="authViewModel.user.value" class="header-nav" aria-label="Main">
-          <router-link v-if="authViewModel.role.value !== 'admin'" to="/projects" class="nav-link">Projects</router-link>
           <router-link v-if="authViewModel.role.value === 'admin'" to="/admin/users" class="nav-link">Users</router-link>
         </nav>
         <div class="header-actions">
@@ -94,6 +93,24 @@ watch(
   { immediate: true }
 );
 
+// Session refresh interval
+let sessionRefreshInterval: NodeJS.Timeout | null = null;
+let lastActivityTime = Date.now();
+
+// User activity handler
+const handleUserActivity = () => {
+  const now = Date.now();
+  if (now - lastActivityTime > 10 * 60 * 1000 && authViewModel.user.value) { // 10 minutes
+    console.log('🔄 Refreshing session due to user activity...');
+    lastActivityTime = now;
+    authPresenter.loadSession(authViewModel).catch(error => {
+      console.warn('❌ Failed to refresh session on activity:', error);
+    });
+  } else {
+    lastActivityTime = now;
+  }
+};
+
 onMounted(async () => {
   await authPresenter.loadSession(authViewModel);
   sessionLoaded.value = true;
@@ -102,10 +119,43 @@ onMounted(async () => {
     window.dispatchEvent(new CustomEvent('validatey-session-ready'));
   }
   unsubscribeAuth = authPresenter.subscribeToAuthState(authViewModel);
+
+  // Refresh session every 5 minutes to prevent expiration
+  console.log('🚀 Starting session refresh interval');
+  sessionRefreshInterval = setInterval(async () => {
+    if (authViewModel.user.value) {
+      console.log('🔄 Refreshing session...');
+      try {
+        await authPresenter.loadSession(authViewModel);
+        console.log('✅ Session refreshed successfully');
+      } catch (error) {
+        console.warn('❌ Failed to refresh session:', error);
+      }
+    }
+  }, 5 * 60 * 1000); // 5 minutes
+
+  // Listen for user activity
+  if (typeof window !== 'undefined') {
+    window.addEventListener('mousedown', handleUserActivity);
+    window.addEventListener('keydown', handleUserActivity);
+    window.addEventListener('scroll', handleUserActivity);
+    window.addEventListener('touchstart', handleUserActivity);
+  }
 });
 
 onUnmounted(() => {
   unsubscribeAuth?.();
+  if (sessionRefreshInterval) {
+    clearInterval(sessionRefreshInterval);
+    sessionRefreshInterval = null;
+  }
+  // Clean up event listeners
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('mousedown', handleUserActivity);
+    window.removeEventListener('keydown', handleUserActivity);
+    window.removeEventListener('scroll', handleUserActivity);
+    window.removeEventListener('touchstart', handleUserActivity);
+  }
 });
 
 async function handleSignOut() {

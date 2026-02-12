@@ -337,6 +337,7 @@ import { useRoute } from 'vue-router';
 import Card from '../../../../shared/components/Card.vue';
 import Modal from '../../../../shared/components/Modal.vue';
 import PageHeader from '../../../../shared/components/PageHeader.vue';
+import { SendRemindersButton, ResponsePaceCard } from './components';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { TYPES } from '../../infrastructure/bootstrap/types';
@@ -345,6 +346,7 @@ import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstr
 import type { InvitationPresenter } from '../presenters/invitation.presenter';
 import type { InvitationListItem } from '../presenters/invitation.presenter';
 import { ProjectPresenter } from '../../../projects/interface-adapters/presenters/project.presenter';
+import type { Response } from '../../../projects/domain/entities/response.entity';
 
 const route = useRoute();
 const projectId = route.params.projectId as string;
