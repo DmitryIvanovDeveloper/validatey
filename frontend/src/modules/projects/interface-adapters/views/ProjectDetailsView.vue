@@ -16,18 +16,18 @@
             <h3 class="section-title">Research Context</h3>
           </template>
           <div class="space-y-4">
-            <div>
-              <p class="section-subtitle mb-2">Target Segment</p>
+            <div class="mb-4">
+              <p class="section-subtitle">Target Segment</p>
               <div class="text-gray-900">{{ project?.segment?.description || 'Not specified' }}</div>
             </div>
 
-            <div>
-              <p class="section-subtitle mb-2">Hypothesis</p>
+            <div class="mb-4">
+              <p class="section-subtitle">Hypothesis</p>
               <div class="text-gray-900">{{ project?.hypothesis?.description || 'Not specified' }}</div>
             </div>
 
-            <div v-if="project?.hypothesis?.assumptions && project.hypothesis.assumptions.length > 0">
-              <p class="section-subtitle mb-2">Key Assumptions</p>
+            <div v-if="project?.hypothesis?.assumptions && project.hypothesis.assumptions.length > 0" class="mb-4">
+              <p class="section-subtitle">Key Assumptions</p>
               <ul class="space-y-2">
                 <li
                   v-for="(assumption, i) in project.hypothesis.assumptions"
@@ -40,8 +40,8 @@
               </ul>
             </div>
 
-            <div v-if="project?.marketContext">
-              <p class="section-subtitle mb-3">Market Context</p>
+            <div v-if="project?.marketContext" class="mb-4">
+              <p class="section-subtitle">Market Context</p>
               <div class="space-y-3">
                 <div v-if="project.marketContext.marketPicture" class="bg-blue-50 p-3 rounded-lg">
                   <div class="text-sm font-medium text-blue-800 mb-1">Market Picture</div>

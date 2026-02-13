@@ -55,7 +55,7 @@ defineProps<Props>();
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--color-text-muted);
-  margin: 0.5rem 0 0;
+  margin: 0;
 }
 
 </style>
