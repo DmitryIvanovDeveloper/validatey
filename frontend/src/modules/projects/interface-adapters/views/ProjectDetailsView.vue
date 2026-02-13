@@ -11,104 +11,101 @@
         />
 
         <!-- Research Context -->
-        <div class="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 class="heading-3 text-gray-900 mb-6">Research Context</h2>
-
-            <div class="space-y-4">
-              <div>
-                <div class="text-sm font-medium text-gray-600 mb-2">Target Segment</div>
-                <div class="text-gray-900">{{ project?.segment?.description || 'Not specified' }}</div>
-              </div>
-
-              <div>
-                <div class="text-sm font-medium text-gray-600 mb-2">Hypothesis</div>
-                <div class="text-gray-900">{{ project?.hypothesis?.description || 'Not specified' }}</div>
-              </div>
-
-              <div v-if="project?.hypothesis?.assumptions && project.hypothesis.assumptions.length > 0">
-                <div class="text-sm font-medium text-gray-600 mb-2">Key Assumptions</div>
-                <ul class="space-y-2">
-                  <li
-                    v-for="(assumption, i) in project.hypothesis.assumptions"
-                    :key="i"
-                    class="flex items-start gap-2 text-gray-900"
-                  >
-                    <span class="text-blue-600 mt-1">•</span>
-                    <span>{{ assumption }}</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div v-if="project?.marketContext">
-                <div class="text-sm font-medium text-gray-600 mb-3">Market Context</div>
-                <div class="space-y-3">
-                  <div v-if="project.marketContext.marketPicture" class="bg-blue-50 p-3 rounded-lg">
-                    <div class="text-sm font-medium text-blue-800 mb-1">Market Picture</div>
-                    <div class="text-gray-700">{{ project.marketContext.marketPicture }}</div>
-                  </div>
-                  <div v-if="project.marketContext.marketFit" class="bg-green-50 p-3 rounded-lg">
-                    <div class="text-sm font-medium text-green-800 mb-1">Market Fit</div>
-                    <div class="text-gray-700">{{ project.marketContext.marketFit }}</div>
-                  </div>
-                  <div v-if="project.marketContext.differentiation" class="bg-purple-50 p-3 rounded-lg">
-                    <div class="text-sm font-medium text-purple-800 mb-1">Differentiation</div>
-                    <div class="text-gray-700">{{ project.marketContext.differentiation }}</div>
-                  </div>
-                </div>
-              </div>
+        <SectionCard title="Research Context">
+          <div class="space-y-4">
+            <div>
+              <div class="text-sm font-medium text-gray-600 mb-2">Target Segment</div>
+              <div class="text-gray-900">{{ project?.segment?.description || 'Not specified' }}</div>
             </div>
-        </div>
 
-        <!-- Decision Pathway -->
-        <div class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="heading-3 text-gray-900 mb-6">Decision Pathway</h2>
-            <div class="space-y-3">
-              <div class="flex items-start gap-3">
-                <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'bg-green-600' : 'bg-gray-200']">
-                  <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25" class="w-4 h-4 text-white" />
+            <div>
+              <div class="text-sm font-medium text-gray-600 mb-2">Hypothesis</div>
+              <div class="text-gray-900">{{ project?.hypothesis?.description || 'Not specified' }}</div>
+            </div>
+
+            <div v-if="project?.hypothesis?.assumptions && project.hypothesis.assumptions.length > 0">
+              <div class="text-sm font-medium text-gray-600 mb-2">Key Assumptions</div>
+              <ul class="space-y-2">
+                <li
+                  v-for="(assumption, i) in project.hypothesis.assumptions"
+                  :key="i"
+                  class="flex items-start gap-2 text-gray-900"
+                >
+                  <span class="text-blue-600 mt-1">•</span>
+                  <span>{{ assumption }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <div v-if="project?.marketContext">
+              <div class="text-sm font-medium text-gray-600 mb-3">Market Context</div>
+              <div class="space-y-3">
+                <div v-if="project.marketContext.marketPicture" class="bg-blue-50 p-3 rounded-lg">
+                  <div class="text-sm font-medium text-blue-800 mb-1">Market Picture</div>
+                  <div class="text-gray-700">{{ project.marketContext.marketPicture }}</div>
                 </div>
-                <div>
-                  <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'text-gray-900' : 'text-gray-600']">
-                    Соберите 25% ответов
-                  </div>
-                  <div class="text-sm text-gray-500">Ранние сигналы о валидности гипотезы</div>
+                <div v-if="project.marketContext.marketFit" class="bg-green-50 p-3 rounded-lg">
+                  <div class="text-sm font-medium text-green-800 mb-1">Market Fit</div>
+                  <div class="text-gray-700">{{ project.marketContext.marketFit }}</div>
                 </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'bg-green-600' : 'bg-gray-200']">
-                  <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5" class="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'text-gray-900' : 'text-gray-600']">
-                    Достигните 50% целевых ответов
-                  </div>
-                  <div class="text-sm text-gray-500">Первые выводы и корректировка</div>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'bg-green-600' : 'bg-gray-200']">
-                  <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75" class="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'text-gray-900' : 'text-gray-600']">
-                    75% - подготовка к решению
-                  </div>
-                  <div class="text-sm text-gray-500">Анализ данных и формирование рекомендаций</div>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'bg-green-600' : 'bg-gray-200']">
-                  <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0)" class="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'text-gray-900' : 'text-gray-600']">
-                    GO/NO-GO решение
-                  </div>
-                  <div class="text-sm text-gray-500">Финальный вердикт на основе всех данных</div>
+                <div v-if="project.marketContext.differentiation" class="bg-purple-50 p-3 rounded-lg">
+                  <div class="text-sm font-medium text-purple-800 mb-1">Differentiation</div>
+                  <div class="text-gray-700">{{ project.marketContext.differentiation }}</div>
                 </div>
               </div>
             </div>
           </div>
+        </SectionCard>
+
+        <!-- Decision Pathway -->
+        <SectionCard title="Decision Pathway">
+          <div class="space-y-3">
+            <div class="flex items-start gap-3">
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'bg-green-600' : 'bg-gray-200']">
+                <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25" class="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'text-gray-900' : 'text-gray-600']">
+                  Соберите 25% ответов
+                </div>
+                <div class="text-sm text-gray-500">Ранние сигналы о валидности гипотезы</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'bg-green-600' : 'bg-gray-200']">
+                <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5" class="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'text-gray-900' : 'text-gray-600']">
+                  Достигните 50% целевых ответов
+                </div>
+                <div class="text-sm text-gray-500">Первые выводы и корректировка</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'bg-green-600' : 'bg-gray-200']">
+                <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75" class="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'text-gray-900' : 'text-gray-600']">
+                  75% - подготовка к решению
+                </div>
+                <div class="text-sm text-gray-500">Анализ данных и формирование рекомендаций</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'bg-green-600' : 'bg-gray-200']">
+                <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0)" class="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'text-gray-900' : 'text-gray-600']">
+                  GO/NO-GO решение
+                </div>
+                <div class="text-sm text-gray-500">Финальный вердикт на основе всех данных</div>
+              </div>
+            </div>
+          </div>
+        </SectionCard>
       </div>
 
       <!-- Sidebar -->
@@ -180,6 +177,7 @@ import type { ResearchPresenter } from '../../../research/interface-adapters/pre
 import ResponsePaceWidget from '../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
 import { ExecutiveSummaryWidget, StartResearchWidget, ShowDetailsWidget } from '../../../research/interface-adapters';
 import TopPainPointsWidget from '../../../research/interface-adapters/views/components/TopPainPointsWidget.vue';
+import SectionCard from '../../../../shared/components/SectionCard.vue';
 
 const route = useRoute();
 const router = useRouter();
