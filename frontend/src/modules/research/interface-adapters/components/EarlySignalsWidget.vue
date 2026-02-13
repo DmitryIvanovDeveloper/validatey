@@ -403,7 +403,8 @@ onMounted(() => {
 
 .confidence-indicator.low {
   background: var(--color-text-muted);
-  box-shadow: 0 0 8px rgba(100, 116, 139, 0.2);
+  box-shadow: 0 0 8px rgba(100, 116, 139, 0.1);
+  opacity: 0.6;
 }
 
 .signal-confidence-list {
@@ -431,6 +432,20 @@ onMounted(() => {
   box-shadow: var(--shadow-sm);
   border-color: var(--color-border);
   transform: translateY(-1px);
+}
+
+.confidence-low .signal-card {
+  opacity: 0.7;
+  border-color: var(--color-border-light);
+}
+
+.confidence-low .signal-card:hover {
+  opacity: 0.8;
+  transform: none;
+}
+
+.confidence-low .signal-confidence-label {
+  opacity: 0.7;
 }
 
 .signal-positive {
@@ -501,6 +516,7 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
+  opacity: 0.8;
 }
 
 .confidence-note p {
