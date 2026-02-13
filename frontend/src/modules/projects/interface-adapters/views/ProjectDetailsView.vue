@@ -4,46 +4,15 @@
       <!-- Main Content -->
       <div class="lg:col-span-2 space-y-6">
         <!-- Executive Summary -->
-        <div class="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Executive Summary</h2>
-
-          <div class="space-y-4">
-            <div v-if="overviewData?.executiveSummary?.aiVerdict" class="ai-verdict-card" :class="getVerdictClass(overviewData.executiveSummary.aiVerdict)">
-              <div class="verdict-icon">
-                <CheckCircle v-if="isPositiveVerdict(overviewData.executiveSummary.aiVerdict)" />
-                <AlertCircle v-else />
-              </div>
-              <div class="verdict-content">
-                <div class="verdict-title">
-                  AI Verdict: {{ getVerdictLabel(overviewData.executiveSummary.aiVerdict) }}
-                </div>
-                <div class="verdict-description">
-                  {{ getVerdictDescription(overviewData.executiveSummary.aiVerdict) }}
-                </div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div class="p-4 bg-gray-50 rounded-lg">
-                <div class="text-gray-600 text-sm mb-1">Key insight</div>
-                <div class="font-bold text-gray-900">
-                  {{ (overviewData?.executiveSummary?.responded ?? 0) > 50 ? '78% willing to pay' : 'Collecting data...' }}
-                </div>
-              </div>
-              <div class="p-4 bg-gray-50 rounded-lg">
-                <div class="text-gray-600 text-sm mb-1">Main barrier</div>
-                <div class="font-bold text-gray-900">
-                  {{ (overviewData?.executiveSummary?.responded ?? 0) > 50 ? 'Price above expectations' : 'Analyzing...' }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <ExecutiveSummaryWidget
+          :summary="researchData?.synthesisReport?.summary || null"
+          :loading="executiveSummaryLoading"
+          @show-details="handleShowDetails"
+        />
 
         <!-- Research Context -->
         <div class="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Research Context</h2>
+          <h2 class="heading-3 text-gray-900 mb-6">Research Context</h2>
 
             <div class="space-y-4">
               <div>
@@ -92,7 +61,7 @@
 
         <!-- Decision Pathway -->
         <div class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Decision Pathway</h2>
+            <h2 class="heading-3 text-gray-900 mb-6">Decision Pathway</h2>
             <div class="space-y-3">
               <div class="flex items-start gap-3">
                 <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'bg-green-600' : 'bg-gray-200']">
@@ -144,69 +113,34 @@
 
       <!-- Sidebar -->
       <div class="space-y-6">
-        <!-- Smart Actions -->
-        <div class="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Smart Actions</h2>
-          <div class="space-y-2">
-            <SendRemindersButton
-              :project-id="projectId"
-              :invitations="overviewInvitations"
-              @reminders-sent="handleRemindersSent"
-            />
-            <button class="smart-action-btn" @click="goToInvitationsTab">
-              <LinkIcon class="smart-action-icon" />
-              <div class="smart-action-content">
-                <div class="smart-action-label">Share link</div>
-                <div class="smart-action-description">Increase audience reach</div>
-              </div>
-            </button>
-            <button class="smart-action-btn" @click="goToReportTab">
-              <BarChart3 class="smart-action-icon" />
-              <div class="smart-action-content">
-                <div class="smart-action-label">Export report</div>
-                <div class="smart-action-description">PDF/Excel with results</div>
-              </div>
-            </button>
-          </div>
-        </div>
+        <!-- Start Research -->
+        <StartResearchWidget
+          :project-id="projectId"
+          @research-started="handleResearchStarted"
+          @research-completed="handleResearchCompleted"
+        />
 
-        <!-- Quick Stats -->
-        <div class="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Статистика</h2>
+        <!-- Show Details -->
+        <ShowDetailsWidget
+          :project-id="projectId"
+          :research-data="researchData"
+          :is-modal-open="isShowDetailsModalOpen"
+          :response-count="overviewData?.executiveSummary?.responded || 0"
+          @update:is-modal-open="isShowDetailsModalOpen = $event"
+        />
 
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-600 text-sm">Всего ответов</span>
-              <span class="font-bold text-gray-900">
-                {{ overviewStats.responded }}
-                <span class="text-gray-400">/{{ overviewStats.sent }}</span>
-              </span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-600 text-sm">Процент завершения</span>
-              <span class="font-bold text-gray-900">{{ Math.round(overviewStats.responded / Math.max(overviewStats.sent, 1) * 100) }}%</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-600 text-sm">Среднее время</span>
-              <span class="font-bold text-gray-900">3:42 мин</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-gray-600 text-sm">Активных респондентов</span>
-              <span class="font-bold text-gray-900">12</span>
-            </div>
-          </div>
-        </div>
+        <!-- Top Pain Points -->
+        <TopPainPointsWidget :project-id="projectId" />
 
         <!-- Response Pace -->
         <ResponsePaceWidget
           :project-id="projectId"
-          :invitations="overviewInvitations"
           :target-pace="5"
         />
 
         <!-- Learning Journey -->
         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
-          <h2 class="text-xl font-bold text-gray-900 mb-2">Learning Journey</h2>
+          <h2 class="heading-3 text-gray-900 mb-4">Learning Journey</h2>
           <p class="text-gray-700 text-sm mb-4">
             Это раунд валидации #1. После анализа результатов вы сможете запустить следующий раунд для углубленной проверки.
           </p>
@@ -224,9 +158,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   Send,
-  Link as LinkIcon,
   Sparkles,
-  BarChart3,
   TrendingUp,
   MessageSquare,
   Target,
@@ -243,7 +175,11 @@ import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
 import type { InvitationPresenter } from '../../../invitations/interface-adapters/presenters/invitation.presenter';
-import { SendRemindersButton, ResponsePaceWidget } from '../../../invitations/interface-adapters/components';
+import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootstrap/types';
+import type { ResearchPresenter } from '../../../research/interface-adapters/presenters/research.presenter';
+import ResponsePaceWidget from '../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
+import { ExecutiveSummaryWidget, StartResearchWidget, ShowDetailsWidget } from '../../../research/interface-adapters';
+import TopPainPointsWidget from '../../../research/interface-adapters/views/components/TopPainPointsWidget.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -251,6 +187,7 @@ const projectId = route.params.projectId as string;
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 const invitationPresenter = container.get<InvitationPresenter>(INVITATION_TYPES.InvitationPresenter);
+const researchPresenter = container.get<ResearchPresenter>(RESEARCH_TYPES.ResearchPresenter);
 const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
 const overviewInvitations = ref<Array<{ id: string; email: string; status: string }>>([]);
@@ -291,6 +228,9 @@ type OverviewPayload = {
   };
 };
 const overviewData = ref<OverviewPayload | null>(null);
+const researchData = ref<any>(null);
+const executiveSummaryLoading = ref(false);
+const isShowDetailsModalOpen = ref(false);
 
 const project = computed(() => {
   return viewModel.project.value;
@@ -313,41 +253,7 @@ const getProjectAge = (): number => {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-const isPositiveVerdict = (verdict: string): boolean => {
-  return verdict.toLowerCase().includes('go') || verdict.toLowerCase().includes('positive') ||
-         verdict.toLowerCase().includes('validated') || verdict.toLowerCase().includes('confirmed');
-};
 
-const getVerdictClass = (verdict: string): string => {
-  if (isPositiveVerdict(verdict)) {
-    return 'verdict-positive';
-  } else if (verdict.toLowerCase().includes('no-go') || verdict.toLowerCase().includes('negative')) {
-    return 'verdict-negative';
-  } else {
-    return 'verdict-neutral';
-  }
-};
-
-const getVerdictLabel = (verdict: string): string => {
-  if (verdict.toLowerCase().includes('go')) return 'GO';
-  if (verdict.toLowerCase().includes('no-go')) return 'NO-GO';
-  if (verdict.toLowerCase().includes('unclear')) return 'UNCLEAR';
-  return verdict;
-};
-
-const getVerdictDescription = (verdict: string): string => {
-  if (isPositiveVerdict(verdict)) {
-    return 'Hypothesis confirmed. Data shows strong interest and product-market fit.';
-  } else if (verdict.toLowerCase().includes('no-go')) {
-    return 'Hypothesis not confirmed. Insufficient interest or poor product-market fit.';
-  } else {
-    return 'Hypothesis validation inconclusive. Additional testing recommended.';
-  }
-};
-
-function goToInvitationsTab() {
-  router.push(`/projects/${projectId}/invitations`);
-}
 
 function goToReportTab() {
   router.push(`/projects/${projectId}/report`);
@@ -370,16 +276,36 @@ async function loadOverview() {
   }
 }
 
-function handleRemindersSent(result: { sent: number; failed: number; errors?: string[] }) {
-  console.log('Reminders sent:', result);
-  // Reload invitations to update status
-  loadOverviewInvitations();
-  // You could show a toast notification here
+async function loadResearchData() {
+  if (!projectId) return;
+  try {
+    const result = await researchPresenter.getResearchCanvas(projectId);
+    researchData.value = result;
+  } catch {
+    researchData.value = null;
+  }
+}
+
+
+function handleResearchStarted() {
+  executiveSummaryLoading.value = true;
+}
+
+function handleResearchCompleted() {
+  executiveSummaryLoading.value = false;
+  // Reload research data to get updated summary
+  loadResearchData();
+}
+
+function handleShowDetails() {
+  isShowDetailsModalOpen.value = true;
 }
 
 onMounted(() => {
   if (projectId) {
     presenter.loadProject(projectId, viewModel);
+    loadOverview();
+    loadResearchData();
   }
 });
 
@@ -1714,88 +1640,6 @@ watch(project, (p) => {
   margin-bottom: 1.5rem;
 }
 
-/* AI Verdict Styles */
-.ai-verdict-card {
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.verdict-positive {
-  background: #ecfdf5;
-  border: 1px solid #d1fae5;
-}
-
-.verdict-negative {
-  background: #fef2f2;
-  border: 1px solid #fee2e2;
-}
-
-.verdict-neutral {
-  background: #fefce8;
-  border: 1px solid #fde68a;
-}
-
-.verdict-icon {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  margin-top: 0.125rem;
-}
-
-.verdict-positive .verdict-icon {
-  color: #16a34a;
-}
-
-.verdict-negative .verdict-icon {
-  color: #dc2626;
-}
-
-.verdict-neutral .verdict-icon {
-  color: #d97706;
-}
-
-.verdict-content {
-  flex: 1;
-}
-
-.verdict-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.verdict-positive .verdict-title {
-  color: #166534;
-}
-
-.verdict-negative .verdict-title {
-  color: #991b1b;
-}
-
-.verdict-neutral .verdict-title {
-  color: #92400e;
-}
-
-.verdict-description {
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.verdict-positive .verdict-description {
-  color: #166534;
-}
-
-.verdict-negative .verdict-description {
-  color: #991b1b;
-}
-
-.verdict-neutral .verdict-description {
-  color: #92400e;
-}
-
 /* Metrics Grid */
 .metrics-grid {
   display: grid;
@@ -2756,88 +2600,6 @@ watch(project, (p) => {
 
 .justify-between {
   justify-content: space-between;
-}
-
-/* AI Verdict Styles */
-.ai-verdict-card {
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.verdict-positive {
-  background: #ecfdf5;
-  border: 1px solid #d1fae5;
-}
-
-.verdict-negative {
-  background: #fef2f2;
-  border: 1px solid #fee2e2;
-}
-
-.verdict-neutral {
-  background: #fefce8;
-  border: 1px solid #fde68a;
-}
-
-.verdict-icon {
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  margin-top: 0.125rem;
-}
-
-.verdict-positive .verdict-icon {
-  color: #16a34a;
-}
-
-.verdict-negative .verdict-icon {
-  color: #dc2626;
-}
-
-.verdict-neutral .verdict-icon {
-  color: #d97706;
-}
-
-.verdict-content {
-  flex: 1;
-}
-
-.verdict-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.verdict-positive .verdict-title {
-  color: #166534;
-}
-
-.verdict-negative .verdict-title {
-  color: #991b1b;
-}
-
-.verdict-neutral .verdict-title {
-  color: #92400e;
-}
-
-.verdict-description {
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.verdict-positive .verdict-description {
-  color: #166534;
-}
-
-.verdict-negative .verdict-description {
-  color: #991b1b;
-}
-
-.verdict-neutral .verdict-description {
-  color: #92400e;
 }
 
 /* Button styles */

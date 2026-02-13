@@ -12,34 +12,13 @@
         </div>
       </div>
 
-      <div v-if="insights?.topPains?.length || insights?.wtp || insights?.retentionHint" class="signals-content">
+      <div v-if="insights?.wtp || insights?.retentionHint" class="signals-content">
         <div class="signals-header">
           <h4 class="signals-title">📊 User Validation Signals</h4>
           <p class="signals-subtitle">Key insights from respondent feedback</p>
         </div>
 
         <div class="signals-grid">
-          <!-- Top Pain Points -->
-          <div v-if="insights.topPains?.length" class="signal-card signal-pains">
-            <div class="signal-header">
-              <span class="signal-icon">
-                <Frown class="w-5 h-5" />
-              </span>
-              <h5 class="signal-title">Top Pain Points</h5>
-            </div>
-            <div class="signal-content">
-              <ul class="signal-list">
-                <li
-                  v-for="pain in insights.topPains"
-                  :key="pain"
-                  class="signal-list-item"
-                >
-                  {{ pain }}
-                </li>
-              </ul>
-            </div>
-          </div>
-
           <!-- Willingness to Pay -->
           <div v-if="insights.wtp" class="signal-card signal-wtp">
             <div class="signal-header">

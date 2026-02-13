@@ -1,5 +1,6 @@
 import { inject, injectable } from 'inversify';
 import type { ResearchRepositoryPort } from '../ports/research-repository.port';
+import type { ResearchCanvas } from '../../domain/entities/research-canvas.entity';
 import type {
   CollectResearchDataRequest,
   CollectResearchDataResponse,
@@ -14,11 +15,31 @@ export class CollectResearchDataUseCase {
   ) {}
 
   async execute(request: CollectResearchDataRequest): Promise<CollectResearchDataResponse> {
-    const result = await this._researchRepository.collectResearchData(
-      request.projectId,
-      request.intent
-    );
+    try {
+      const result = await this._researchRepository.collectResearchData(
+        request.projectId,
+        request.intent
+      );
 
-    return result;
+      return {
+        canvas: result.canvas,
+      };
+    } catch (error) {
+      return {
+        canvas: this.createEmptyCanvas(request.projectId),
+        error: error instanceof Error ? error.message : 'Failed to collect research data',
+      };
+    }
+  }
+
+  private createEmptyCanvas(projectId: string) {
+    return {
+      projectId,
+      marketData: {},
+      competitorInfo: {},
+      userInsights: {},
+      autocompleteInsights: null,
+      earlySignals: null,
+    };
   }
 }

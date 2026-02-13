@@ -7,8 +7,6 @@ export interface CollectResearchDataRequest {
 }
 
 export interface CollectResearchDataResponse {
-  readonly collected: boolean;
-  readonly marketDataCollected: boolean;
-  readonly competitorDataCollected: boolean;
-  readonly autocompleteDataCollected: boolean;
+  readonly canvas: ResearchCanvas;
+  readonly error?: string;
 }

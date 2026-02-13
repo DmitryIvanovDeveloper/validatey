@@ -286,13 +286,6 @@ export class GetOverviewUseCase {
         priority: 3,
       });
     }
-    actions.push({
-      id: 'research',
-      label: 'Research Assistant',
-      hint: 'Market & insights',
-      href: `/projects/${projectId}/research`,
-      priority: 4,
-    });
 
     return actions.sort((a, b) => a.priority - b.priority).slice(0, 4);
   }

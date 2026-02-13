@@ -16,22 +16,7 @@
           Overview
         </router-link>
         <router-link
-          :to="`/projects/${projectId}/progress`"
-          class="tab-link"
-          :class="{ active: isTabActive('progress') }"
-          role="tab"
-        >
-          Progress
-        </router-link>
-        <router-link
-          :to="`/projects/${projectId}/research`"
-          class="tab-link"
-          :class="{ active: isTabActive('research') }"
-          role="tab"
-        >
-          Research
-        </router-link>
-        <router-link
+          v-if="false"
           :to="`/projects/${projectId}/scraper`"
           class="tab-link"
           :class="{ active: isTabActive('scraper') }"
@@ -56,6 +41,7 @@
           Responses
         </router-link>
         <router-link
+          v-if="false"
           :to="`/projects/${projectId}/report`"
           class="tab-link"
           :class="{ active: isTabActive('report') }"
@@ -89,11 +75,7 @@ const projectName = computed(() => viewModel.project.value?.name ?? 'Project');
 function isTabActive(tab: string): boolean {
   const name = route.name as string;
   if (tab === 'overview') return name === 'project-details' || name === 'project-overview';
-  if (tab === 'research') return name === 'project-research';
-  if (tab === 'scraper') return name === 'project-scraper';
-  if (tab === 'report') return name === 'project-report';
   if (tab === 'invitations') return name === 'project-invitations';
-  if (tab === 'progress') return name === 'project-progress';
   if (tab === 'responses') return name === 'project-responses';
   return false;
 }

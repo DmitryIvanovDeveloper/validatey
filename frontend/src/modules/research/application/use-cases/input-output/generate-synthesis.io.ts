@@ -6,4 +6,5 @@ export interface GenerateSynthesisRequest {
 
 export interface GenerateSynthesisResponse {
   readonly report: SynthesisReport;
+  readonly error?: string;
 }

@@ -7,4 +7,5 @@ export interface ResearchAssistantResponse {
   readonly reply: string;
   readonly suggestedMethods?: string[];
   readonly clarificationQuestions?: string[];
+  readonly error?: string;
 }

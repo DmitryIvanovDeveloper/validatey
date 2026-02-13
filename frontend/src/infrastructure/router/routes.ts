@@ -42,11 +42,6 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/modules/projects/interface-adapters/views/ProjectDetailsView.vue'),
       },
       {
-        path: 'research',
-        name: 'project-research',
-        component: () => import('@/modules/research/interface-adapters/views/ResearchTab.vue'),
-      },
-      {
         path: 'scraper',
         name: 'project-scraper',
         component: () => import('@/modules/scraper/interface-adapters/views/ScraperView.vue'),
@@ -65,11 +60,6 @@ export const routes: RouteRecordRaw[] = [
         path: 'edit',
         name: 'project-edit',
         component: () => import('@/modules/projects/interface-adapters/views/CreateProjectWizardView.vue'),
-      },
-      {
-        path: 'progress',
-        name: 'project-progress',
-        component: () => import('@/modules/projects/interface-adapters/views/ProjectProgressView.vue'),
       },
       {
         path: 'responses',

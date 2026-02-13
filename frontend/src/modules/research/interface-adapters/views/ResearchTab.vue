@@ -90,7 +90,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import QuickStartTab from './components/QuickStartTab.vue';
 import CompetitorsTab from './components/CompetitorsTab.vue';
 import SearchSuggestionsTab from './components/SearchSuggestionsTab.vue';
 import UserSignalsTab from './components/UserSignalsTab.vue';

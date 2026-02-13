@@ -12,6 +12,7 @@ import type { ResearchDataRepositoryPort } from '../ports/research-data-reposito
 import { CalculateMetricsUseCase } from '../../../metrics/application/use-cases/calculate-metrics.use-case';
 import type {
   ResearchCanvas,
+  EarlySignal,
   MarketDataBlock,
   CompetitorInfoBlock,
   UserInsightsBlock,
@@ -63,12 +64,15 @@ export class GetResearchCanvasUseCase {
       const competitorInfo: CompetitorInfoBlock = stored?.competitorData ?? { competitors: [], priceRange: '', rating: '' };
       const userInsights: UserInsightsBlock = await this.buildUserInsightsBlock(projectId, project.scenarioTemplateSlug ?? 'wtp', signals);
 
+      const earlySignals = this.buildEarlySignalsBlock(signals);
+
       const canvas: ResearchCanvas = {
         projectId,
         marketData,
         competitorInfo,
         userInsights,
         autocompleteInsights: stored?.autocompleteInsights ?? null,
+        earlySignals,
       };
 
       const synthesisReport = stored?.synthesisReport ?? null;
@@ -129,5 +133,18 @@ export class GetResearchCanvasUseCase {
     }
 
     return { topPains: topPains.length ? topPains : undefined, wtp, retentionHint };
+  }
+
+  private buildEarlySignalsBlock(signals: any[]): EarlySignal[] | null {
+    if (!signals || signals.length === 0) {
+      return null;
+    }
+
+    return signals.map(signal => ({
+      id: signal.id,
+      type: signal.type,
+      title: signal.title,
+      description: signal.description,
+    }));
   }
 }

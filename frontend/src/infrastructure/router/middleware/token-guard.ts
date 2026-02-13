@@ -12,12 +12,10 @@ const USER_APP_ROUTE_NAMES = new Set([
   'projects',
   'create-project',
   'project-details',
-  'project-research',
   'project-scraper',
   'project-report',
   'project-invitations',
   'project-edit',
-  'project-progress',
   'project-responses',
   'project-panel',
 ]);

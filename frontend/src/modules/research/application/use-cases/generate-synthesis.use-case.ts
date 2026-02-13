@@ -14,10 +14,17 @@ export class GenerateSynthesisUseCase {
   ) {}
 
   async execute(request: GenerateSynthesisRequest): Promise<GenerateSynthesisResponse> {
-    const report = await this._researchRepository.generateSynthesis(request.projectId);
+    try {
+      const report = await this._researchRepository.generateSynthesis(request.projectId);
 
-    return {
-      report,
-    };
+      return {
+        report,
+      };
+    } catch (error) {
+      return {
+        report: { summary: '', recommendations: [] },
+        error: error instanceof Error ? error.message : 'Failed to generate synthesis',
+      };
+    }
   }
 }

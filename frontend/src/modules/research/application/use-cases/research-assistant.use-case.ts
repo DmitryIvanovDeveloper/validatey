@@ -14,6 +14,13 @@ export class ResearchAssistantUseCase {
   ) {}
 
   async execute(request: ResearchAssistantRequest): Promise<ResearchAssistantResponse> {
-    return this._researchRepository.askAssistant(request.projectId, request.question);
+    try {
+      return await this._researchRepository.askAssistant(request.projectId, request.question);
+    } catch (error) {
+      return {
+        reply: 'I apologize, but I\'m unable to provide assistance at the moment.',
+        error: error instanceof Error ? error.message : 'Failed to get assistant response',
+      };
+    }
   }
 }

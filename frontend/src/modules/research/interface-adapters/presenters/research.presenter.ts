@@ -5,6 +5,12 @@ import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-s
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
 import type { ResearchCanvas, SynthesisReport } from '../../domain/entities/research-canvas.entity';
 import type { ResearchIntent } from '../../domain/value-objects/research-intent.vo';
+import type {
+  GetResearchCanvasResponse,
+  CollectResearchDataResponse,
+  GenerateSynthesisResponse,
+  AskAssistantResponse
+} from '../../domain/types/research.types';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
@@ -24,21 +30,7 @@ export class ResearchPresenter {
     private readonly _logger: LoggerPort
   ) {}
 
-  async getResearchCanvas(projectId: string): Promise<{
-    canvas: ResearchCanvas;
-    synthesisReport?: {
-      summary: string;
-      recommendations: string[];
-    } | null;
-    projectName?: string;
-    projectHypothesis?: string;
-    recommendedTemplate?: {
-      name: string;
-      slug: string;
-      description: string;
-    };
-    error?: string;
-  }> {
+  async getResearchCanvas(projectId: string): Promise<GetResearchCanvasResponse> {
     try {
       const result = await this._getResearchCanvasUseCase.execute({ projectId });
       return result;
@@ -51,10 +43,7 @@ export class ResearchPresenter {
     }
   }
 
-  async collectResearchData(projectId: string, intent: ResearchIntent): Promise<{
-    canvas: ResearchCanvas;
-    error?: string;
-  }> {
+  async collectResearchData(projectId: string, intent: ResearchIntent): Promise<CollectResearchDataResponse> {
     try {
       const result = await this._collectResearchDataUseCase.execute({ projectId, intent });
       return result;
@@ -67,10 +56,7 @@ export class ResearchPresenter {
     }
   }
 
-  async generateSynthesis(projectId: string): Promise<{
-    report: SynthesisReport;
-    error?: string;
-  }> {
+  async generateSynthesis(projectId: string): Promise<GenerateSynthesisResponse> {
     try {
       const result = await this._generateSynthesisUseCase.execute({ projectId });
       return result;
@@ -83,12 +69,7 @@ export class ResearchPresenter {
     }
   }
 
-  async askAssistant(projectId: string, question: string): Promise<{
-    reply: string;
-    suggestedMethods?: string[];
-    clarificationQuestions?: string[];
-    error?: string;
-  }> {
+  async askAssistant(projectId: string, question: string): Promise<AskAssistantResponse> {
     try {
       const result = await this._researchAssistantUseCase.execute({ projectId, question });
       return result;
@@ -108,6 +89,7 @@ export class ResearchPresenter {
       competitorInfo: {},
       userInsights: {},
       autocompleteInsights: null,
+      earlySignals: null,
     };
   }
 }

@@ -1,0 +1,263 @@
+<template>
+  <div class="executive-summary-widget">
+    <div class="section-card signals-card">
+      <div class="section-card-header">
+        <span class="section-icon section-icon-brain" aria-hidden="true">
+          <FileText class="w-5 h-5" />
+        </span>
+        <div class="header-content">
+          <div>
+            <h3 class="section-title">Executive Summary</h3>
+            <p class="section-subtitle">AI-powered research insights</p>
+          </div>
+          <button @click="handleShowDetails" class="show-details-btn">
+            <span class="btn-icon">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+            <span class="btn-text">Details</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div v-if="loading" class="loading-state">
+        <div class="loading-dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <p class="loading-text">Analyzing research data...</p>
+      </div>
+
+      <!-- Content -->
+      <div v-else-if="summary?.trim()" class="summary-content">
+        <p class="summary-text">{{ summary }}</p>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else class="empty-state">
+        <p class="empty-text">No research insights available yet</p>
+        <p class="empty-subtext">Start research to generate AI-powered analysis</p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { watch } from 'vue';
+import { FileText } from 'lucide-vue-next';
+
+interface Props {
+  summary: string | null;
+  loading?: boolean;
+}
+
+const props = defineProps<Props>();
+
+const handleShowDetails = () => {
+  emit('show-details');
+};
+
+const emit = defineEmits<{
+  'show-details': [];
+}>();
+</script>
+
+<style scoped>
+.executive-summary-widget {
+  width: 100%;
+}
+
+.section-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  padding: 1.5rem;
+}
+
+.section-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 1rem;
+}
+
+.section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
+.section-icon-brain {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.section-title {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.section-subtitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.show-details-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.show-details-btn:hover {
+  background: var(--color-accent-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-text {
+  display: inline;
+}
+
+@media (max-width: 640px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .show-details-btn {
+    align-self: flex-end;
+  }
+
+  .btn-text {
+    display: none;
+  }
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.summary-text {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) 0;
+  gap: var(--space-3);
+}
+
+.loading-dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: loading-dots 1.4s ease-in-out infinite both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes loading-dots {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.loading-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  gap: var(--space-2);
+}
+
+.empty-text {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.empty-subtext {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+</style>

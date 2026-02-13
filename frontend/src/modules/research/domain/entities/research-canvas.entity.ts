@@ -1,3 +1,10 @@
+export interface EarlySignal {
+  readonly id: string;
+  readonly type: 'positive' | 'negative' | 'neutral';
+  readonly title: string;
+  readonly description: string;
+}
+
 export interface ResearchCanvas {
   readonly projectId: string;
   readonly marketData: {
@@ -19,6 +26,7 @@ export interface ResearchCanvas {
     searchPhrases: string[];
     results: ReadonlyArray<{ phrase: string; suggestions: string[] }>;
   } | null;
+  readonly earlySignals?: EarlySignal[] | null;
 }
 
 export interface SynthesisReport {

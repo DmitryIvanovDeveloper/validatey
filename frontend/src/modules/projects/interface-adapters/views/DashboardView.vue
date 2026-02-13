@@ -105,14 +105,6 @@
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </router-link>
-              <router-link
-                v-if="project.status === 'in-progress'"
-                :to="`/projects/${project.id}/progress`"
-                class="dashboard-card-progress"
-                @click.stop
-              >
-                Progress
-              </router-link>
             </div>
           </template>
         </ProjectCard>

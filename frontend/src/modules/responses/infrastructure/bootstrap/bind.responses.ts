@@ -6,6 +6,7 @@ import { GetResponsesUseCase } from '../../application/use-cases/get-responses.u
 import { ExportResponsesUseCase } from '../../application/use-cases/export-responses.use-case';
 import { ModerateResponseUseCase } from '../../application/use-cases/moderate-response.use-case';
 import { ListResponsesForModerationUseCase } from '../../application/use-cases/list-responses-for-moderation.use-case';
+import { GetProjectMetadataUseCase } from '../../application/use-cases/get-project-metadata.use-case';
 import { TYPES } from './types';
 
 export function bindResponses(container: Container): void {
@@ -20,6 +21,7 @@ export function bindResponses(container: Container): void {
   container.bind(ExportResponsesUseCase).toSelf();
   container.bind(ModerateResponseUseCase).toSelf();
   container.bind(ListResponsesForModerationUseCase).toSelf();
+  container.bind(GetProjectMetadataUseCase).toSelf();
 
   // Presenters
   container.bind(TYPES.ResponsePresenter).to(ResponsePresenter).inSingletonScope();
