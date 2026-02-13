@@ -143,7 +143,7 @@
 
         <!-- Learning Journey -->
         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
-          <h2 class="heading-3 text-gray-900 mb-4">Learning Journey</h2>
+          <h3 class="section-title">Learning Journey</h3>
           <p class="text-gray-700 text-sm mb-4">
             This is validation round #1. After analyzing the results, you can launch the next round for deeper verification.
           </p>
