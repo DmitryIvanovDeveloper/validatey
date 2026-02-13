@@ -1248,12 +1248,6 @@ onMounted(() => {
   letter-spacing: -0.01em;
 }
 
-.section-subtitle {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted, #64748b);
-  margin: 0;
-  line-height: 1.4;
-}
 
 /* Switch (toggle) */
 .switch-row {

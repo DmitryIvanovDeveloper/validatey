@@ -109,16 +109,6 @@ const emit = defineEmits<{
   margin: 0;
 }
 
-.section-subtitle {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--leading-normal);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin: 0;
-}
-
 .show-details-btn {
   display: inline-flex;
   align-items: center;

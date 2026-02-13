@@ -48,14 +48,4 @@ defineProps<Props>();
   margin: 0;
 }
 
-.section-subtitle {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--leading-normal);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin: 0;
-}
-
 </style>

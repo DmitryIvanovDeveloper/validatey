@@ -279,11 +279,6 @@ const props = defineProps<Props>();
   margin: 0 0 0.5rem 0;
 }
 
-.section-subtitle {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  margin: 0 0 1.5rem 0;
-}
 
 .pain-points-list {
   display: flex;
