@@ -11,7 +11,10 @@
         />
 
         <!-- Research Context -->
-        <SectionCard title="Research Context">
+        <SectionCard>
+          <template #header>
+            <h3 class="section-title">Research Context</h3>
+          </template>
           <div class="space-y-4">
             <div>
               <div class="text-sm font-medium text-gray-600 mb-2">Target Segment</div>
@@ -58,7 +61,10 @@
         </SectionCard>
 
         <!-- Decision Pathway -->
-        <SectionCard title="Decision Pathway">
+        <SectionCard>
+          <template #header>
+            <h3 class="section-title">Decision Pathway</h3>
+          </template>
           <div class="space-y-3">
             <div class="flex items-start gap-3">
               <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'bg-green-600' : 'bg-gray-200']">
