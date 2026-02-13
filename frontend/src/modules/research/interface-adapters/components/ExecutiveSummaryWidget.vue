@@ -2,9 +2,6 @@
   <div class="executive-summary-widget">
     <div class="section-card signals-card">
       <div class="section-card-header">
-        <span class="section-icon section-icon-brain" aria-hidden="true">
-          <FileText class="w-5 h-5" />
-        </span>
         <div class="header-content">
           <div>
             <h3 class="section-title">Executive Summary</h3>
@@ -110,7 +107,7 @@ const emit = defineEmits<{
 }
 
 .section-title {
-  font-size: var(--text-3xl);
+  font-size: var(--text-xl);
   font-weight: var(--font-weight-semibold);
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-tight);
