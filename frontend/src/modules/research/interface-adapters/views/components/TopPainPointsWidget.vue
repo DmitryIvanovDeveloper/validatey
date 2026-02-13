@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject } from 'vue';
+import { ref, onMounted, inject, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { Frown } from 'lucide-vue-next';
 import { container } from '../../../../../infrastructure/bootstrap/container';
@@ -100,6 +100,12 @@ const loadPainPoints = async () => {
 onMounted(() => {
   loadPainPoints();
 });
+
+watch(() => props.projectId, (newProjectId) => {
+  if (newProjectId) {
+    loadPainPoints();
+  }
+}, { immediate: false });
 </script>
 
 <style scoped>

@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { Clock, AlertCircle, TrendingUp, Target } from 'lucide-vue-next';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { ResponsePresenter } from '../presenters/response.presenter';
@@ -175,6 +175,12 @@ const loadResponsePace = async () => {
 onMounted(() => {
   loadResponsePace();
 });
+
+watch(() => props.projectId, (newProjectId) => {
+  if (newProjectId) {
+    loadResponsePace();
+  }
+}, { immediate: false });
 </script>
 
 <style scoped>

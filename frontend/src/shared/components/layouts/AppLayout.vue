@@ -185,7 +185,7 @@ async function handleSignOut() {
 }
 
 .header-inner {
-  max-width: 1600px; /* Increased from 1200px for wider screens */
+  max-width: 1440px; /* Increased from 1200px for wider screens */
   margin: 0 auto;
   padding: 0 2rem; /* Increased padding for more space on sides */
   height: 3.5rem;
