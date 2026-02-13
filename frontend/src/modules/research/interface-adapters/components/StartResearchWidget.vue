@@ -78,7 +78,7 @@ const emit = defineEmits<{
   background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
   color: #fff;
   border: none;
-  padding: 1rem 2rem;
+  padding: 2rem 2rem;
   border-radius: 12px;
   font-weight: 600;
   font-size: var(--text-base);
