@@ -18,25 +18,19 @@
         </div>
       </div>
 
-      <!-- Loading state -->
-      <div v-if="loading" class="loading-state">
+      <!-- Content -->
+      <div v-if="summary?.trim()" class="summary-content">
+        <p class="summary-text">{{ summary }}</p>
+      </div>
+
+      <!-- Loading state (when no data available) -->
+      <div v-else class="loading-state">
         <div class="loading-dots">
           <div class="dot"></div>
           <div class="dot"></div>
           <div class="dot"></div>
         </div>
         <p class="loading-text">Analyzing research data...</p>
-      </div>
-
-      <!-- Content -->
-      <div v-else-if="summary?.trim()" class="summary-content">
-        <p class="summary-text">{{ summary }}</p>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else class="empty-state">
-        <p class="empty-text">No research insights available yet</p>
-        <p class="empty-subtext">Start research to generate AI-powered analysis</p>
       </div>
     </div>
   </div>
