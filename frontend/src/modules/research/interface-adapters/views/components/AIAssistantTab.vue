@@ -199,6 +199,7 @@ onMounted(() => {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, border-color 0.2s;
+  padding: 1.5rem;
 }
 
 .section-card:hover {
@@ -209,7 +210,8 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1.5rem;
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem;
   border-bottom: 1px solid var(--color-border-light);
 }
 

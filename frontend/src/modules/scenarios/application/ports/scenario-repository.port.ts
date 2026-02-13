@@ -21,8 +21,8 @@ export interface ScenarioRepositoryPort {
   update(projectId: string, scenarioId: string, content: string): Promise<Result<Scenario, ScenarioNotFoundError>>;
   /** Save a new scenario version (POST) - used when completing wizard with edited or template content */
   saveVersion(projectId: string, content: string): Promise<Result<Scenario, ScenarioNotFoundError>>;
-  /** List scenario templates (WTP, Feature Demand, Value Prop) */
-  getTemplates(): Promise<Result<Array<{ slug: string; name: string; content: string }>, ScenarioNotFoundError>>;
+  /** List scenario templates (Problem Validation, Solution Validation, etc.) */
+  getTemplates(): Promise<Result<Array<{ slug: string; name: string; significanceTarget: number; content?: string }>, ScenarioNotFoundError>>;
   /** Save scenario quality rating (1-5) after AI generation */
   rateScenario(projectId: string, scenarioId: string, rating: number): Promise<Result<{ id: string }, ScenarioNotFoundError>>;
   /** Validate scenario structure for template (POST /scenarios/validate). Returns { valid, warnings }. */

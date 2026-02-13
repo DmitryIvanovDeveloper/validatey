@@ -3,12 +3,9 @@
     <!-- User Signals -->
     <div class="section-card signals-card">
       <div class="section-card-header">
-        <span class="section-icon section-icon-signals" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/>
-            <path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/>
-          </svg>
-        </span>
+          <span class="section-icon section-icon-signals" aria-hidden="true">
+            <MapPin class="w-5 h-5" />
+          </span>
         <div>
           <h3 class="section-title">User Signals</h3>
           <p class="section-subtitle">Early signals from respondent answers</p>
@@ -16,31 +13,59 @@
       </div>
 
       <div v-if="insights?.topPains?.length || insights?.wtp || insights?.retentionHint" class="signals-content">
-        <!-- Top Pains -->
-        <div v-if="insights.topPains?.length" class="signal-item signal-pains">
-          <h4 class="signal-title">Top Pain Points</h4>
-          <ul class="signal-list">
-            <li
-              v-for="pain in insights.topPains"
-              :key="pain"
-              class="signal-list-item"
-            >
-              {{ pain }}
-            </li>
-          </ul>
+        <div class="signals-header">
+          <h4 class="signals-title">📊 User Validation Signals</h4>
+          <p class="signals-subtitle">Key insights from respondent feedback</p>
         </div>
 
-        <!-- Willingness to Pay -->
-        <div v-if="insights.wtp" class="signal-item signal-wtp">
-          <h4 class="signal-title">💰 Willingness to Pay</h4>
-          <p class="signal-content">{{ insights.wtp }}</p>
-          <p class="signal-note">Strong validation signal!</p>
-        </div>
+        <div class="signals-grid">
+          <!-- Top Pain Points -->
+          <div v-if="insights.topPains?.length" class="signal-card signal-pains">
+            <div class="signal-header">
+              <span class="signal-icon">
+                <Frown class="w-5 h-5" />
+              </span>
+              <h5 class="signal-title">Top Pain Points</h5>
+            </div>
+            <div class="signal-content">
+              <ul class="signal-list">
+                <li
+                  v-for="pain in insights.topPains"
+                  :key="pain"
+                  class="signal-list-item"
+                >
+                  {{ pain }}
+                </li>
+              </ul>
+            </div>
+          </div>
 
-        <!-- Retention Hint -->
-        <div v-if="insights.retentionHint" class="signal-item signal-retention">
-          <h4 class="signal-title">Customer Retention</h4>
-          <p class="signal-content">{{ insights.retentionHint }}</p>
+          <!-- Willingness to Pay -->
+          <div v-if="insights.wtp" class="signal-card signal-wtp">
+            <div class="signal-header">
+              <span class="signal-icon">
+                <DollarSign class="w-5 h-5" />
+              </span>
+              <h5 class="signal-title">Willingness to Pay</h5>
+            </div>
+            <div class="signal-content">
+              <p class="signal-value">{{ insights.wtp }}</p>
+              <p class="signal-note">Strong validation signal!</p>
+            </div>
+          </div>
+
+          <!-- Retention Hint -->
+          <div v-if="insights.retentionHint" class="signal-card signal-retention">
+            <div class="signal-header">
+              <span class="signal-icon">
+                <RotateCcw class="w-5 h-5" />
+              </span>
+              <h5 class="signal-title">Customer Retention</h5>
+            </div>
+            <div class="signal-content">
+              <p class="signal-value">{{ insights.retentionHint }}</p>
+            </div>
+          </div>
         </div>
 
         <!-- Actions -->
@@ -87,6 +112,8 @@
 </template>
 
 <script setup lang="ts">
+import { MapPin, Frown, DollarSign, RotateCcw } from 'lucide-vue-next';
+
 interface Props {
   insights?: {
     topPains?: string[];
@@ -113,6 +140,7 @@ defineProps<Props>();
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, border-color 0.2s;
+  padding: 1.5rem;
 }
 
 .section-card:hover {
@@ -123,7 +151,8 @@ defineProps<Props>();
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1.5rem;
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem;
   border-bottom: 1px solid var(--color-border-light);
 }
 
@@ -158,16 +187,52 @@ defineProps<Props>();
 }
 
 .signals-content {
-  padding: 1.5rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+}
+
+.signals-header {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.signals-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.signals-subtitle {
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.signals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.25rem;
 }
 
-.signal-item {
-  padding: 1.25rem;
-  border-radius: 8px;
+.signal-card {
+  background: var(--color-bg);
   border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.signal-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border);
 }
 
 .signal-pains,
@@ -180,27 +245,59 @@ defineProps<Props>();
   border-color: #bbf7d0;
 }
 
+.signal-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.signal-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(13, 148, 136, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.signal-wtp .signal-icon {
+  background: rgba(21, 128, 61, 0.1);
+}
+
 .signal-title {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  margin: 0 0 0.75rem 0;
-  color: var(--color-text, #0f172a);
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.3;
 }
 
 .signal-wtp .signal-title {
   color: #14532d;
 }
 
+.signal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .signal-list {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .signal-list-item {
-  padding: 0.375rem 0;
-  color: var(--color-text, #0f172a);
   font-size: 0.875rem;
+  color: var(--color-text);
   line-height: 1.5;
   position: relative;
   padding-left: 1.25rem;
@@ -208,26 +305,28 @@ defineProps<Props>();
 
 .signal-list-item:before {
   content: '•';
-  color: var(--color-accent, #0d9488);
+  color: var(--color-accent);
   font-weight: bold;
   position: absolute;
   left: 0;
+  top: 0;
 }
 
-.signal-content {
-  color: var(--color-text, #0f172a);
-  margin: 0 0 0.5rem 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
+.signal-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.4;
 }
 
-.signal-wtp .signal-content {
+.signal-wtp .signal-value {
   color: #166534;
 }
 
 .signal-note {
-  color: #15803d;
   font-size: 0.8125rem;
+  color: #15803d;
   margin: 0;
   font-style: italic;
 }
@@ -236,7 +335,7 @@ defineProps<Props>();
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
-  padding-top: 1rem;
+  padding-top: 1.5rem;
   border-top: 1px solid var(--color-border-light);
 }
 
@@ -244,7 +343,7 @@ defineProps<Props>();
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.625rem 1.25rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 10px;
   font-weight: 500;
   font-size: 0.875rem;
@@ -259,7 +358,7 @@ defineProps<Props>();
   color: #fff;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: var(--color-accent-hover, #0f766e);
   box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
 }

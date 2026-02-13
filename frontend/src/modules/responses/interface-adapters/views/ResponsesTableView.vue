@@ -101,7 +101,7 @@
                 <h4>All answers</h4>
                 <dl class="detail-answers">
                   <template v-for="qId in questionIds" :key="qId">
-                    <dt>{{ getQuestionLabel(qId) }}</dt>
+                    <dt>{{ getQuestionLabel(qId, detailResponse) }}</dt>
                     <dd>{{ formatAnswerFull(detailResponse.answers[qId]) }}</dd>
                   </template>
                 </dl>
@@ -202,11 +202,24 @@ function parseQuestionsFromScenario(content: string): Record<string, string> {
   return labels;
 }
 
-function getQuestionLabel(questionId: string): string {
+function getQuestionLabel(questionId: string, response?: ResponseListItem): string {
+  // Сначала проверяем questionLabels в конкретном response
+  if (response?.questionLabels?.[questionId]) {
+    return response.questionLabels[questionId];
+  }
+
+  // Альтернативные варианты ID для response
+  const altResponse = questionId.startsWith('q_') ? questionId.replace('q_', 'q') : `q_${questionId.replace(/^q/, '')}`;
+  if (response?.questionLabels?.[altResponse]) {
+    return response.questionLabels[altResponse];
+  }
+
+  // Fallback к глобальным labels (для обратной совместимости)
   const labels = questionLabels.value;
   if (labels[questionId]) return labels[questionId];
-  const alt = questionId.startsWith('q_') ? questionId.replace('q_', 'q') : `q_${questionId.replace(/^q/, '')}`;
-  if (labels[alt]) return labels[alt];
+  if (labels[altResponse]) return labels[altResponse];
+
+  // Последний fallback
   const match = questionId.match(/^q_?(\d+)$/i);
   return match ? `Question ${match[1]}` : questionId;
 }
@@ -277,15 +290,17 @@ async function loadResponses() {
   error.value = null;
 
   try {
-    // Load scenario for question labels (this might need to be moved to a separate service)
-    // For now, we'll skip this and use default question labels
-
     const result = await responsePresenter.getResponses(projectId);
     if (result.error) {
       error.value = result.error;
       responses.value = [];
     } else {
       responses.value = result.responses;
+
+      // Extract question labels from the first response (all responses should have the same labels)
+      if (responses.value.length > 0 && responses.value[0].questionLabels) {
+        questionLabels.value = { ...responses.value[0].questionLabels };
+      }
     }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load responses';

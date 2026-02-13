@@ -11,7 +11,7 @@ import { AiModuleError } from '../../domain/errors/ai.error';
 
 const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 
-const SYSTEM_PROMPT = `You are a market analyst. Using the provided search snippets and context, write three short paragraphs in Russian.
+const SYSTEM_PROMPT = `You are a market analyst. Using the provided search snippets and context, write three short paragraphs in English.
 
 Respond with ONLY a valid JSON object in this exact format (no markdown, no extra text):
 {"marketPicture":"...","marketFit":"...","differentiation":"..."}

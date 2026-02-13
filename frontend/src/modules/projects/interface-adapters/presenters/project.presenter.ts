@@ -29,7 +29,8 @@ export class ProjectPresenter {
     segmentDemographics?: string,
     hypothesisDescription?: string,
     hypothesisAssumptions?: string[],
-    marketContext?: MarketContext | null
+    marketContext?: MarketContext | null,
+    scenarioTemplateSlug?: string
   ): Promise<{ projectId: string | null; error?: string }> {
     try {
       // Валидация и создание Segment
@@ -72,7 +73,14 @@ export class ProjectPresenter {
 
       // Создаём проект
       console.log('🔄 Creating project with name:', name);
-      const result = await this._createProjectUseCase.execute({ name });
+      const result = await this._createProjectUseCase.execute({
+        userId: this._userId,
+        name,
+        segment,
+        hypothesis,
+        marketContext,
+        scenarioTemplateSlug
+      });
 
       if (!result.isSuccess) {
         // Безопасное извлечение сообщения об ошибке

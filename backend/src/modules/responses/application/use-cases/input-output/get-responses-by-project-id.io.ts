@@ -10,6 +10,7 @@ export type GetResponsesByProjectIdUseCaseResponse = {
     answers: Record<string, any>;
     audioUrl: string | null;
     transcript: string | null;
+    questionLabels: Record<string, string>;
     createdAt: Date;
     updatedAt: Date;
   }>;

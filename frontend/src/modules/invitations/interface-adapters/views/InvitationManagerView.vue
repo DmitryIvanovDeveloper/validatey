@@ -29,6 +29,7 @@
     <nav class="invitations-tabs" role="tablist">
       <button type="button" role="tab" :class="{ active: invitationsTab === 'public' }" @click="invitationsTab = 'public'">Public link</button>
       <button type="button" role="tab" :class="{ active: invitationsTab === 'personal' }" @click="invitationsTab = 'personal'">Personal invitations</button>
+      <button type="button" role="tab" :class="{ active: invitationsTab === 'consent' }" @click="invitationsTab = 'consent'">Survey consent</button>
     </nav>
 
     <div v-show="invitationsTab === 'public'" class="invitations-tab-panel">
@@ -328,12 +329,181 @@
         </button>
       </template>
     </Modal>
+
+    <div v-show="invitationsTab === 'consent'" class="invitations-tab-panel">
+    <!-- Survey Consent Settings -->
+    <Card class="section-card consent-card">
+      <template #header>
+        <div class="section-card-header">
+          <span class="section-icon section-icon-consent" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 3 3-3v7c0 5.55-3.84 9.74-9 11-5.16-1.26-9-5.45-9-11V2l3 3 3-3"/><circle cx="12" cy="11" r="2"/><path d="m9 11 2 2 4-4"/></svg>
+          </span>
+          <div>
+            <h3 class="section-title">Survey Consent</h3>
+            <p class="section-subtitle">Configure GDPR consent text and privacy settings for your survey.</p>
+          </div>
+        </div>
+      </template>
+
+      <div class="consent-form">
+        <div v-if="projectLoadError" class="msg msg-error" role="alert">{{ projectLoadError }}</div>
+        <div v-else>
+          <!-- Consent Toggle -->
+          <div class="consent-toggle-section">
+            <div class="switch-row">
+              <div class="switch-content">
+                <div class="switch-label">
+                  Enable GDPR Consent
+                  <span v-if="consentRecommendation === 'required'" class="recommendation-badge required">
+                    <AlertCircle size="14" />
+                    Required
+                  </span>
+                  <span v-else-if="consentRecommendation === 'recommended'" class="recommendation-badge recommended">
+                    <Info size="14" />
+                    Recommended
+                  </span>
+                  <span v-else class="recommendation-badge optional">
+                    <CheckCircle size="14" />
+                    Optional
+                  </span>
+                </div>
+                <div class="switch-description">{{ getRecommendationText(consentRecommendation) }}</div>
+              </div>
+              <label class="switch">
+                <input
+                  v-model="consentEnabled"
+                  type="checkbox"
+                  :disabled="consentRecommendation === 'required'"
+                  :title="consentRecommendation === 'required' ? 'Consent is required for this configuration' : undefined"
+                />
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+
+            <!-- Recommendation reasons -->
+            <div v-if="getRecommendationReasons().length > 0" class="consent-reasons">
+              <div class="reasons-title">
+                <HelpCircle size="16" class="help-icon" />
+                Why this recommendation:
+              </div>
+              <ul class="reasons-list">
+                <li v-for="reason in getRecommendationReasons()" :key="reason">{{ reason }}</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Consent Settings (shown when enabled) -->
+          <div v-if="consentEnabled" class="form-group">
+            <label for="consent-text" class="form-label">
+              <FileText class="label-icon" size="16" />
+              Consent Text
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <textarea
+                id="consent-text"
+                v-model="consentText"
+                rows="6"
+                placeholder="I consent to participate in this survey and understand that my responses will be collected and processed according to the privacy policy."
+                class="form-input enhanced-textarea"
+                :class="{ error: consentText.trim() === '', 'has-content': consentText.trim() }"
+              ></textarea>
+              <div class="input-icon">
+                <Edit3 size="16" />
+              </div>
+            </div>
+            <p class="form-hint">This text will be shown to respondents before they start the survey. Be clear about data collection and usage.</p>
+          </div>
+
+          <!-- URL Fields Grid -->
+          <div v-if="consentEnabled" class="url-fields-grid">
+            <div class="form-group">
+              <label for="privacy-policy-url" class="form-label">
+                <Shield class="label-icon" size="16" />
+                Privacy Policy URL
+                <span class="form-optional">(optional)</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  id="privacy-policy-url"
+                  v-model="privacyPolicyUrl"
+                  type="url"
+                  placeholder="https://example.com/privacy-policy"
+                  class="form-input enhanced-input"
+                  :class="{ 'has-content': privacyPolicyUrl.trim() }"
+                />
+                <div class="input-icon">
+                  <Link size="16" />
+                </div>
+              </div>
+              <p class="form-hint">Link to your privacy policy</p>
+            </div>
+
+            <div class="form-group">
+              <label for="terms-of-service-url" class="form-label">
+                <ScrollText class="label-icon" size="16" />
+                Terms of Service URL
+                <span class="form-optional">(optional)</span>
+              </label>
+              <div class="input-wrapper">
+                <input
+                  id="terms-of-service-url"
+                  v-model="termsOfServiceUrl"
+                  type="url"
+                  placeholder="https://example.com/terms-of-service"
+                  class="form-input enhanced-input"
+                  :class="{ 'has-content': termsOfServiceUrl.trim() }"
+                />
+                <div class="input-icon">
+                  <Link size="16" />
+                </div>
+              </div>
+              <p class="form-hint">Link to your terms of service</p>
+            </div>
+          </div>
+
+          <!-- Consent Preview -->
+          <div v-if="consentEnabled && consentText.trim()" class="consent-preview">
+            <h4 class="preview-title">Preview</h4>
+            <div class="preview-card">
+              <div class="preview-consent-text">{{ consentText }}</div>
+              <div v-if="privacyPolicyUrl || termsOfServiceUrl" class="preview-links">
+                <div v-if="privacyPolicyUrl" class="preview-link">
+                  <a :href="privacyPolicyUrl" target="_blank" rel="noopener">📋 Privacy Policy</a>
+                </div>
+                <div v-if="termsOfServiceUrl" class="preview-link">
+                  <a :href="termsOfServiceUrl" target="_blank" rel="noopener">📄 Terms of Service</a>
+                </div>
+              </div>
+              <div class="preview-actions">
+                <button class="btn btn-secondary">Decline</button>
+                <button class="btn btn-primary">Accept & Continue</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="savingConsent || (consentEnabled && !consentText.trim())"
+              @click="saveConsentSettings"
+            >
+              <span v-if="savingConsent" class="btn-spinner" aria-hidden="true"></span>
+              {{ savingConsent ? 'Saving...' : 'Save Settings' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Card>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { FileText, Shield, ScrollText, Link, Edit3, AlertCircle, Info, CheckCircle, HelpCircle } from 'lucide-vue-next';
 import Card from '../../../../shared/components/Card.vue';
 import Modal from '../../../../shared/components/Modal.vue';
 import PageHeader from '../../../../shared/components/PageHeader.vue';
@@ -350,7 +520,77 @@ import type { Response } from '../../../projects/domain/entities/response.entity
 
 const route = useRoute();
 const projectId = route.params.projectId as string;
-const invitationsTab = ref<'public' | 'personal'>('public');
+const invitationsTab = ref<'public' | 'personal' | 'consent'>('public');
+
+// Audience collection method (for consent recommendations)
+const audienceChoice = ref<'survey' | 'email' | 'panel'>('survey');
+
+// Consent settings
+const consentText = ref('');
+const privacyPolicyUrl = ref('');
+const termsOfServiceUrl = ref('');
+const savingConsent = ref(false);
+const consentEnabled = ref(false);
+
+// Consent recommendation logic
+const consentRecommendation = computed(() => {
+  // Factor 1: Collecting personal data (email, names, etc.)
+  const collectsPersonalData = requirePublicEmail.value ||
+                              audienceChoice.value === 'email' ||
+                              hubspotConfigured.value;
+
+  // Factor 2: Public access to survey
+  const hasPublicAccess = publicAccessEnabled.value;
+
+  // Factor 3: Research type requiring detailed consent
+  const requiresDetailedConsent = false; // Can be extended based on template type
+
+  // Factor 4: Using tools with automatic processing
+  const usesProcessingTools = hubspotConfigured.value;
+
+  // Factor 5: Any external integrations or data sharing
+  const hasExternalIntegrations = hubspotConfigured.value;
+
+  if (collectsPersonalData || requiresDetailedConsent) {
+    return 'required';
+  } else if (hasPublicAccess || usesProcessingTools || hasExternalIntegrations) {
+    return 'recommended';
+  } else {
+    return 'optional';
+  }
+});
+
+const getRecommendationText = (level) => {
+  switch (level) {
+    case 'required':
+      return 'Required for legal compliance and data protection.';
+    case 'recommended':
+      return 'Recommended for ethical data collection practices.';
+    case 'optional':
+      return 'Optional for anonymous surveys without personal data.';
+    default:
+      return 'Show consent form before survey starts.';
+  }
+};
+
+const getRecommendationReasons = () => {
+  const reasons = [];
+
+  if (requirePublicEmail.value) {
+    reasons.push('You collect email addresses');
+  }
+  if (audienceChoice.value === 'email') {
+    reasons.push('You send personal invitations');
+  }
+  if (hubspotConfigured.value) {
+    reasons.push('You use CRM integration');
+  }
+  if (publicAccessEnabled.value) {
+    reasons.push('Public survey access enabled');
+  }
+
+  return reasons;
+};
 
 const invitationPresenter = container.get<InvitationPresenter>(TYPES.InvitationPresenter);
 const projectPresenter = container.get<ProjectPresenter>(PROJECT_TYPES.ProjectPresenter);
@@ -700,6 +940,14 @@ const loadProject = async () => {
   maxPublicResponsesInput.value = p.maxPublicResponses ?? '';
   requirePublicEmail.value = p.requirePublicEmail;
   captchaEnabled.value = p.captchaEnabled;
+
+  // Load consent settings
+  consentText.value = p.consentText ?? '';
+  privacyPolicyUrl.value = p.privacyPolicyUrl ?? '';
+  termsOfServiceUrl.value = p.termsOfServiceUrl ?? '';
+
+  // Auto-enable consent if already configured, otherwise let recommendation handle it
+  consentEnabled.value = !!p.consentText?.trim();
 };
 
 const savePublicSettings = async () => {
@@ -842,6 +1090,48 @@ const importFromHubSpot = async () => {
     hubspotImportLoading.value = false;
   }
 };
+
+const saveConsentSettings = async () => {
+  if (!projectId) return;
+
+  savingConsent.value = true;
+  try {
+    await projectPresenter.updateProject(
+      projectId,
+      undefined, // name
+      undefined, // segmentDescription
+      undefined, // segmentDemographics
+      undefined, // hypothesisDescription
+      undefined, // hypothesisAssumptions
+      undefined, // status
+      undefined, // marketContext
+      undefined, // scenarioTemplateSlug
+      consentEnabled.value ? (consentText.value || null) : null, // consentText
+      undefined, // dataUsageText
+      privacyPolicyUrl.value || null, // privacyPolicyUrl
+      termsOfServiceUrl.value || null, // termsOfServiceUrl
+      undefined, // publicAccessEnabled
+      undefined, // publicSlug
+      undefined, // maxPublicResponses
+      undefined, // requirePublicEmail
+      undefined // captchaEnabled
+    );
+
+    // Reload project to get updated data
+    await loadProject();
+  } catch (e) {
+    console.error('Failed to save consent settings:', e);
+  } finally {
+    savingConsent.value = false;
+  }
+};
+
+// Auto-enable consent when it becomes required
+watch(consentRecommendation, (newRecommendation) => {
+  if (newRecommendation === 'required' && !consentEnabled.value) {
+    consentEnabled.value = true;
+  }
+});
 
 watch(showInviteModal, (open) => {
   if (open) loadHubspotStatus();
@@ -1471,6 +1761,381 @@ onMounted(() => {
 
   .btn-copy {
     width: 100%;
+  }
+}
+
+/* Survey Consent Styles */
+.consent-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.consent-toggle-section {
+  padding: 1.5rem;
+  background: var(--color-bg-subtle, #f8fafc);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.switch-content {
+  flex: 1;
+}
+
+.switch-label {
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.switch-description {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* Recommendation badges */
+.recommendation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-left: 0.75rem;
+}
+
+.recommendation-badge.required {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.recommendation-badge.required svg {
+  color: #dc2626;
+}
+
+.recommendation-badge.recommended {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.recommendation-badge.recommended svg {
+  color: #d97706;
+}
+
+.recommendation-badge.optional {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.recommendation-badge.optional svg {
+  color: #059669;
+}
+
+/* Consent reasons */
+.consent-reasons {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.reasons-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+}
+
+.help-icon {
+  color: var(--color-accent);
+  opacity: 0.8;
+}
+
+.reasons-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.reasons-list li {
+  position: relative;
+  padding-left: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.reasons-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);
+  font-weight: bold;
+}
+
+/* Switch Toggle */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 3rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-border);
+  transition: 0.3s;
+  border-radius: 1.5rem;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 1.125rem;
+  width: 1.125rem;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .switch-slider {
+  background-color: var(--color-accent);
+}
+
+.switch input:checked + .switch-slider:before {
+  transform: translateX(1.5rem);
+}
+
+.switch input:disabled + .switch-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.switch input:disabled {
+  cursor: not-allowed;
+}
+
+
+.url-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .url-fields-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-optional {
+  font-weight: normal;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.consent-preview {
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.preview-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+}
+
+.preview-card {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.preview-consent-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.preview-links {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.preview-link a {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.preview-link a:hover {
+  text-decoration: underline;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.preview-actions .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Enhanced Form Styles */
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.label-icon {
+  opacity: 0.8;
+  color: var(--color-accent);
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper .input-icon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.enhanced-input,
+.enhanced-textarea {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: white;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.enhanced-input:focus,
+.enhanced-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  transform: translateY(-1px);
+}
+
+.enhanced-input:hover,
+.enhanced-textarea:hover {
+  border-color: var(--color-accent);
+}
+
+.enhanced-input.has-content + .input-icon,
+.enhanced-textarea.has-content + .input-icon {
+  opacity: 1;
+  color: var(--color-accent);
+}
+
+.enhanced-input.error,
+.enhanced-textarea.error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.enhanced-input.error:focus,
+.enhanced-textarea.error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+.enhanced-textarea {
+  resize: vertical;
+  min-height: 120px;
+  padding-right: 0.75rem;
+}
+
+.enhanced-textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.enhanced-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+/* Form hints enhancement */
+.form-hint {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-top: 0.375rem;
+  line-height: 1.4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .enhanced-input,
+  .enhanced-textarea {
+    font-size: 1rem; /* Prevent zoom on iOS */
+  }
+
+  .input-wrapper .input-icon {
+    right: 0.5rem;
+  }
+
+  .enhanced-input,
+  .enhanced-textarea {
+    padding: 0.625rem 2rem 0.625rem 0.625rem;
   }
 }
 </style>

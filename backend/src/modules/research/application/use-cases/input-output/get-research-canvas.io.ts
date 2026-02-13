@@ -1,4 +1,5 @@
 import type { ResearchCanvas } from '../../../domain/value-objects/research-canvas.vo';
+import type { SynthesisReport } from '../../../domain/value-objects/synthesis-report.vo';
 
 export type GetResearchCanvasRequest = {
   projectId: string;
@@ -12,10 +13,7 @@ export type RecommendedTemplate = {
 
 export type GetResearchCanvasResponse = {
   canvas: ResearchCanvas;
-  synthesisReport?: {
-    summary: string;
-    recommendations: string[];
-  } | null;
+  synthesisReport?: SynthesisReport | null;
   projectName?: string;
   projectHypothesis?: string;
   recommendedTemplate?: RecommendedTemplate;

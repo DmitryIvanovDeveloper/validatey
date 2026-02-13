@@ -27,7 +27,7 @@
       <button v-if="currentStep > 0" @click="prevStep" class="btn btn-secondary">Back</button>
       <div class="spacer"></div>
       <button v-if="currentStep < steps.length - 1" @click="nextStep" class="btn btn-primary">Next</button>
-      <button v-else @click="$emit('complete')" class="btn btn-primary" :disabled="props.loading">
+      <button v-else @click="handleComplete" class="btn btn-primary" :disabled="props.loading">
         {{ props.loading ? 'Creating...' : 'Complete' }}
       </button>
     </div>
@@ -46,6 +46,8 @@ const props = defineProps<{
   steps: WizardStep[];
   initialStep?: number;
   loading?: boolean;
+  canProceed?: (currentStep: number) => boolean;
+  canComplete?: () => boolean;
 }>();
 
 const emit = defineEmits<{
@@ -64,6 +66,10 @@ const goToStep = (step: number) => {
 
 const nextStep = () => {
   if (currentStep.value < props.steps.length - 1) {
+    // Check if we can proceed to next step
+    if (props.canProceed && !props.canProceed(currentStep.value)) {
+      return;
+    }
     currentStep.value++;
     emit('stepChange', currentStep.value);
   }
@@ -74,6 +80,14 @@ const prevStep = () => {
     currentStep.value--;
     emit('stepChange', currentStep.value);
   }
+};
+
+const handleComplete = () => {
+  // Check if we can complete
+  if (props.canComplete && !props.canComplete()) {
+    return;
+  }
+  emit('complete');
 };
 
 watch(() => props.initialStep, (newStep) => {
@@ -111,16 +125,19 @@ defineExpose({ currentStep, goToStep, nextStep, prevStep });
   position: relative;
 }
 
-.step-number {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.step-indicator .step-number {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   font-weight: 600;
   margin-bottom: 0.5rem;
   transition: all 0.3s;
+  flex-shrink: 0;
 }
 
 .step-label {

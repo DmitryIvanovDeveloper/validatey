@@ -5,12 +5,7 @@
       <div class="section-card competitors-card">
         <div class="section-card-header">
           <span class="section-icon section-icon-competitors" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M22 2l-4 4"/>
-              <path d="M18 2l4 4"/>
-            </svg>
+            <Users class="w-5 h-5" />
           </span>
           <div>
             <h3 class="section-title">Competitive Analysis</h3>
@@ -31,7 +26,7 @@
             />
           </div>
 
-          <div v-if="canvas.competitorInfo.priceRange" class="price-range-section">
+          <div v-if="canvas.competitorInfo.priceRange && canvas.competitorInfo.priceRange !== 'Unknown'" class="price-range-section">
             <h4 class="price-range-title">Price Range</h4>
             <p class="price-range-text">{{ canvas.competitorInfo.priceRange }}</p>
           </div>
@@ -41,19 +36,55 @@
       <!-- Gap Analysis -->
       <div class="section-card gap-analysis-card">
         <div class="section-card-header">
-          <span class="section-icon section-icon-target" aria-hidden="true">🎯</span>
+          <span class="section-icon section-icon-target" aria-hidden="true">
+            <Target class="w-5 h-5" />
+          </span>
           <div>
-            <h3 class="section-title">Gap Analysis</h3>
-            <p class="section-subtitle">Identify competitive advantages</p>
+            <h3 class="section-title">Competitive Strategy</h3>
+            <p class="section-subtitle">Positioning and differentiation insights</p>
           </div>
         </div>
 
-        <ul class="gap-analysis-list">
-          <li class="gap-analysis-item">Competitor analysis will help identify unique advantages</li>
-          <li class="gap-analysis-item">Determine how your solution differs from existing ones</li>
-          <li class="gap-analysis-item">Find underserved market needs</li>
-          <li class="gap-analysis-item">Develop a competitive advantage strategy</li>
-        </ul>
+        <div class="gap-analysis-content">
+          <div class="gap-analysis-grid">
+            <div class="gap-strategy-item">
+              <div class="strategy-icon">
+                <Lightbulb class="w-5 h-5" />
+              </div>
+              <div class="strategy-content">
+                <h5 class="strategy-title">Unique Value Proposition</h5>
+                <p class="strategy-desc">Define what makes your solution different from competitors</p>
+              </div>
+            </div>
+            <div class="gap-strategy-item">
+              <div class="strategy-icon">
+                <Target class="w-5 h-5" />
+              </div>
+              <div class="strategy-content">
+                <h5 class="strategy-title">Target Market Focus</h5>
+                <p class="strategy-desc">Identify underserved segments and market gaps</p>
+              </div>
+            </div>
+            <div class="gap-strategy-item">
+              <div class="strategy-icon">
+                <Zap class="w-5 h-5" />
+              </div>
+              <div class="strategy-content">
+                <h5 class="strategy-title">Competitive Advantages</h5>
+                <p class="strategy-desc">Leverage your strengths against competitor weaknesses</p>
+              </div>
+            </div>
+            <div class="gap-strategy-item">
+              <div class="strategy-icon">
+                <TrendingUp class="w-5 h-5" />
+              </div>
+              <div class="strategy-content">
+                <h5 class="strategy-title">Growth Opportunities</h5>
+                <p class="strategy-desc">Explore expansion and scaling strategies</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -75,6 +106,7 @@
 
 <script setup lang="ts">
 import CompetitorCard from './CompetitorCard.vue';
+import { Target, Users, Lightbulb, Zap, TrendingUp } from 'lucide-vue-next';
 
 interface Props {
   canvas?: {
@@ -104,6 +136,7 @@ defineProps<Props>();
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, border-color 0.2s;
   margin-bottom: 1.5rem;
+  padding: 1.5rem;
 }
 
 .section-card:hover {
@@ -118,6 +151,9 @@ defineProps<Props>();
   display: flex;
   align-items: flex-start;
   gap: 1rem;
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .section-icon {
@@ -157,10 +193,14 @@ defineProps<Props>();
 }
 
 .competitors-content {
-  padding: 1.5rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.gap-analysis-content {
+  padding: 0;
 }
 
 .competitors-list {
@@ -189,27 +229,61 @@ defineProps<Props>();
   line-height: 1.5;
 }
 
-.gap-analysis-list {
-  margin: 0;
+.gap-analysis-content {
   padding: 1.5rem;
-  list-style: none;
 }
 
-.gap-analysis-item {
-  padding: 0.5rem 0;
-  color: var(--color-text, #0f172a);
+.gap-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.gap-strategy-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--color-bg-subtle, #f8fafc);
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.gap-strategy-item:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border);
+}
+
+.strategy-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: rgba(13, 148, 136, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.strategy-content {
+  flex: 1;
+}
+
+.strategy-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+}
+
+.strategy-desc {
   font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
   line-height: 1.5;
-  position: relative;
-  padding-left: 1.5rem;
-}
-
-.gap-analysis-item:before {
-  content: '•';
-  color: var(--color-accent, #0d9488);
-  font-weight: bold;
-  position: absolute;
-  left: 0;
 }
 
 /* States */

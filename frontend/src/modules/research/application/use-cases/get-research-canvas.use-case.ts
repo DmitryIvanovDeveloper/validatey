@@ -14,12 +14,14 @@ export class GetResearchCanvasUseCase {
   ) {}
 
   async execute(request: GetResearchCanvasRequest): Promise<GetResearchCanvasResponse> {
-    const canvas = await this._researchRepository.getResearchCanvas(request.projectId);
+    const result = await this._researchRepository.getResearchCanvas(request.projectId);
 
     return {
-      canvas,
-      projectName: `Project ${request.projectId}`,
-      recommendedTemplate: {
+      canvas: result.canvas,
+      synthesisReport: result.synthesisReport,
+      projectName: result.projectName ?? `Project ${request.projectId}`,
+      projectHypothesis: result.projectHypothesis,
+      recommendedTemplate: result.recommendedTemplate ?? {
         name: 'Market Research Template',
         slug: 'market-research',
         description: 'Comprehensive market analysis with competitor insights',

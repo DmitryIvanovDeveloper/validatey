@@ -14,6 +14,7 @@ export interface GetResponsesUseCaseResponse {
     audioUrl: string | null;
     transcript: string | null;
     moderationStatus: 'pending' | 'approved' | 'rejected' | null;
+    questionLabels: Record<string, string>;
     createdAt: Date;
     updatedAt: Date;
     wordCount?: number;

@@ -52,11 +52,47 @@ export class ProxyScenarioService implements LLMServicePort {
         }
       );
 
-      const content = (proxyResponse?.response ?? '').trim();
+      let content = (proxyResponse?.response ?? '').trim();
       if (!content) {
         this._logger.error('proxy-scenario.generate.empty-response', {});
         return ResultEx.failure(
           new ScenarioGenerationError('Empty response from AI proxy')
+        );
+      }
+
+      // Extract JSON from response if wrapped in markdown or extra text
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        content = jsonMatch[0];
+      }
+
+      // Validate that content is a valid scenario format
+      try {
+        const parsed = JSON.parse(content);
+        if (!Array.isArray(parsed.questions) || parsed.questions.length === 0) {
+          throw new Error('Invalid scenario format: missing or empty questions array');
+        }
+        
+        // Ensure all questions have required fields
+        for (const question of parsed.questions) {
+          if (!question.id || !question.text || !question.type) {
+            throw new Error(`Invalid question format: missing id, text, or type in question ${JSON.stringify(question)}`);
+          }
+          
+          // Validate question type
+          const validTypes = ['scale', 'open', 'multiple_choice', 'audio'];
+          if (!validTypes.includes(question.type)) {
+            throw new Error(`Invalid question type: ${question.type}. Valid types are: ${validTypes.join(', ')}`);
+          }
+        }
+        
+        // Convert back to string to store as content
+        content = JSON.stringify(parsed);
+      } catch (parseError) {
+        const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown parsing error';
+        this._logger.error('proxy-scenario.generate.invalid-json', { error: errorMessage, content });
+        return ResultEx.failure(
+          new ScenarioGenerationError(`Invalid JSON response from AI: ${errorMessage}`)
         );
       }
 
@@ -89,27 +125,35 @@ CORE PRINCIPLES TO FOLLOW:
 6. Listen for contradictions between what people say and what they do
 7. Ask about specific situations, not general opinions
 
-SCRIPT STRUCTURE:
-- Start with a brief, friendly introduction that explains the purpose
-- Build rapport by asking about their background/role first
-- Ask open-ended questions that explore the problem space
-- Use follow-up questions to dig deeper ("Why?" "Tell me more about that")
-- Include branching logic based on responses
-- End with next steps or contact information
-
-QUESTION TYPES TO INCLUDE:
-- Problem discovery questions (current pain points)
-- Solution exploration (what they've tried before)
-- Behavior validation (what they actually do vs. what they say)
-- Assumption testing (challenge key hypotheses)
-- Emotional context (why they care about this problem)
-
 OUTPUT FORMAT:
-Write a natural, conversational interview script. Include:
-- Interviewer instructions in [brackets]
-- Natural dialogue flow
-- Follow-up questions based on responses
-- 8-15 questions total
+Respond with ONLY a valid JSON object (no markdown, no extra text):
+{
+  "questions": [
+    {
+      "id": "unique_question_id",
+      "text": "Question text",
+      "type": "scale|open|multiple_choice|audio",
+      "required": true|false,
+      "options": {
+        // For scale questions:
+        "min": number,
+        "max": number,
+        "label": "optional label"
+        // For multiple_choice questions:
+        "choices": ["choice1", "choice2", ...],
+        "multiple": true|false
+      }
+    }
+  ]
+}
+
+Available question types:
+- "scale": for rating questions (e.g. 1-5 scale)
+- "open": for open-ended text responses
+- "multiple_choice": for multiple choice questions
+- "audio": for audio responses
+
+Include 8-15 questions total. Mix different question types to get comprehensive validation data.
 
 Remember: People lie, exaggerate, or don't know what they want. Your job is to find the truth through careful questioning.`;
   }
@@ -165,6 +209,17 @@ Remember: People lie, exaggerate, or don't know what they want. Your job is to f
         '• Use specific examples and scenarios to get concrete answers',
         '• Follow up with "Why?" and "Tell me more" to dig deeper',
         '• Watch for contradictions between what they say and what they actually do'
+      );
+    }
+
+    if (request.significanceTarget) {
+      parts.push(
+        '',
+        `📊 SAMPLE SIZE TARGET: ${request.significanceTarget} respondents`,
+        `• Design questions optimized for ${request.significanceTarget} responses`,
+        `• Focus on qualitative insights over quantitative metrics`,
+        `• Each question should provide actionable data with this sample size`,
+        `• Avoid questions requiring large samples for statistical significance`
       );
     }
 

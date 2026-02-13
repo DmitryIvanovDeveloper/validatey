@@ -42,6 +42,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       segment: req.body.segment,
       hypothesis: req.body.hypothesis,
       marketContext: req.body.marketContext,
+      templateSlug: req.body.templateSlug,
       metadata: req.body.metadata,
       prompt: req.body.prompt, // Optional prompt override
     });

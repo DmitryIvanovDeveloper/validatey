@@ -1,7 +1,8 @@
 export type ScenarioTemplate = {
   slug: string;
   name: string;
-  content: string;
+  significanceTarget: number;
+  content?: string; // Optional for backward compatibility
 };
 
 export interface ScenarioTemplateRepositoryPort {

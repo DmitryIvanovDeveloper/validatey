@@ -30,7 +30,8 @@ export class CreateProjectUseCase {
         request.hypothesis,
         request.marketContext,
         request.targetAudience,
-        request.cost
+        request.cost,
+        request.scenarioTemplateSlug
       );
 
       const saveResult = await this._repository.create(project.toData());

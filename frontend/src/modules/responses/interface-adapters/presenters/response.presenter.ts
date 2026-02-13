@@ -14,6 +14,7 @@ export interface ResponseListItem {
   audioUrl: string | null;
   transcript: string | null;
   moderationStatus: ModerationStatus | null;
+  questionLabels: Record<string, string>;
   createdAt: Date;
   updatedAt: Date;
   // Additional computed properties for UI

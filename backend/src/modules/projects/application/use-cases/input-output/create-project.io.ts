@@ -8,6 +8,7 @@ export type CreateProjectUseCaseRequest = {
   marketContext?: MarketContext;
   targetAudience?: string;
   cost?: number;
+  scenarioTemplateSlug?: string;
 };
 
 export type CreateProjectUseCaseResponse = {

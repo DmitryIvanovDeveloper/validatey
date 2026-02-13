@@ -9,6 +9,7 @@ export interface Response {
   readonly transcript: string | null;
   /** For public-link responses: pending | approved | rejected. Null for personal invitations. */
   readonly moderationStatus: ModerationStatus | null;
+  readonly questionLabels: Record<string, string>;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -22,6 +23,7 @@ export class ResponseEntity {
     public readonly audioUrl: string | null,
     public readonly transcript: string | null,
     public readonly moderationStatus: ModerationStatus | null,
+    public readonly questionLabels: Record<string, string>,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
@@ -35,6 +37,7 @@ export class ResponseEntity {
       data.audioUrl,
       data.transcript,
       data.moderationStatus ?? null,
+      data.questionLabels,
       data.createdAt,
       data.updatedAt
     );
@@ -49,6 +52,7 @@ export class ResponseEntity {
       audioUrl: this.audioUrl,
       transcript: this.transcript,
       moderationStatus: this.moderationStatus,
+      questionLabels: this.questionLabels,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

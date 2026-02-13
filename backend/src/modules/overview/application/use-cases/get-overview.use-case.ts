@@ -1,10 +1,12 @@
 import { injectable, inject } from 'inversify';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
+import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import { ProjectNotFoundError, ProjectAccessDeniedError } from '../../../projects/domain/errors/project.error';
+import { ScenarioTemplateRepositoryPort } from '../../../scenarios/application/ports/scenario-template-repository.port';
 import { OverviewDataProviderPort } from '../ports/overview-data-provider.port';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import type {
@@ -20,7 +22,7 @@ import type {
 } from './input-output/get-overview.io';
 import type { OverviewRawData } from '../../application/ports/overview-data-provider.port';
 
-const SIGNIFICANCE_TARGET = 50;
+const DEFAULT_SIGNIFICANCE_TARGET = 50; // Fallback if template not found
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 @injectable()
@@ -30,6 +32,8 @@ export class GetOverviewUseCase {
     private readonly _logger: LoggerPort,
     @inject(PROJECT_TYPES.ProjectRepository)
     private readonly _projectRepository: ProjectRepositoryPort,
+    @inject(SCENARIO_TYPES.ScenarioTemplateRepository)
+    private readonly _scenarioTemplateRepository: ScenarioTemplateRepositoryPort,
     @inject(TYPES.OverviewDataProvider)
     private readonly _dataProvider: OverviewDataProviderPort
   ) {}
@@ -55,7 +59,7 @@ export class GetOverviewUseCase {
     }
 
     const d = dataResult.data;
-    const executiveSummary = this.buildExecutiveSummary(d);
+    const executiveSummary = await this.buildExecutiveSummary(d);
     const pulse = this.buildPulse(d, request.projectId);
     const smartActions = this.buildSmartActions(d, request.projectId);
     const researchContext = this.buildResearchContext(d);
@@ -72,7 +76,7 @@ export class GetOverviewUseCase {
     });
   }
 
-  private buildExecutiveSummary(d: OverviewRawData): ExecutiveSummary {
+  private async buildExecutiveSummary(d: OverviewRawData): Promise<ExecutiveSummary> {
     const sent = d.invitations.filter(
       (i) => i.status === 'sent' || i.status === 'responded' || i.status === 'completed'
     ).length;
@@ -80,8 +84,11 @@ export class GetOverviewUseCase {
     const responseRatePct = sent > 0 ? Math.round((responded / sent) * 100) : 0;
     const pace = this.computePace(d.responses);
     const validationStatus = this.inferValidationStatus(responded, responseRatePct, d.earlySignals.length);
+
+    // Get significance target from selected template or use default
+    const significanceTarget = await this.getSignificanceTarget(d.project.scenarioTemplateSlug);
     const neededForSignificance =
-      responded < SIGNIFICANCE_TARGET ? Math.max(0, SIGNIFICANCE_TARGET - responded) : null;
+      responded < significanceTarget ? Math.max(0, significanceTarget - responded) : null;
     const keyInsight =
       d.earlySignals.length > 0
         ? d.earlySignals[0].description || d.earlySignals[0].title
@@ -127,9 +134,23 @@ export class GetOverviewUseCase {
     signalsCount: number
   ): ValidationStatus {
     if (responded === 0) return 'no_data';
-    if (responded >= SIGNIFICANCE_TARGET && responseRatePct >= 40 && signalsCount > 0) return 'validated';
+    if (responded >= DEFAULT_SIGNIFICANCE_TARGET && responseRatePct >= 40 && signalsCount > 0) return 'validated';
     if (responded >= 10 && signalsCount > 0) return 'unclear_signal';
     return 'weak_support';
+  }
+
+  private async getSignificanceTarget(templateSlug: string | null): Promise<number> {
+    if (!templateSlug) {
+      return DEFAULT_SIGNIFICANCE_TARGET;
+    }
+
+    try {
+      const template = await this._scenarioTemplateRepository.getBySlug(templateSlug);
+      return template?.significanceTarget ?? DEFAULT_SIGNIFICANCE_TARGET;
+    } catch (error) {
+      this._logger.warn('Failed to get significance target from template', { templateSlug, error });
+      return DEFAULT_SIGNIFICANCE_TARGET;
+    }
   }
 
   private buildAiVerdict(
@@ -155,7 +176,7 @@ export class GetOverviewUseCase {
         parts.push(`At current pace, extend deadline or accelerate collection.`);
       }
     }
-    if (parts.length === 0 && responded >= SIGNIFICANCE_TARGET) {
+    if (parts.length === 0 && responded >= DEFAULT_SIGNIFICANCE_TARGET) {
       return 'Hypothesis looks promising with enough data. Review Report for full insights.';
     }
     return parts.length > 0 ? parts.join(' ') : 'Keep collecting responses and check Early Signals on the Report.';
@@ -314,10 +335,10 @@ export class GetOverviewUseCase {
     const steps = [
       {
         id: '1',
-        label: `Collect ${SIGNIFICANCE_TARGET} responses`,
-        progress: `${responded}/${SIGNIFICANCE_TARGET}`,
-        status: (responded >= SIGNIFICANCE_TARGET ? 'done' : responded > 0 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
-        actionHref: responded < SIGNIFICANCE_TARGET ? `/projects/${d.project.id}/invitations` : null,
+        label: `Collect ${DEFAULT_SIGNIFICANCE_TARGET} responses`,
+        progress: `${responded}/${DEFAULT_SIGNIFICANCE_TARGET}`,
+        status: (responded >= DEFAULT_SIGNIFICANCE_TARGET ? 'done' : responded > 0 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
+        actionHref: responded < DEFAULT_SIGNIFICANCE_TARGET ? `/projects/${d.project.id}/invitations` : null,
       },
       {
         id: '2',
@@ -350,10 +371,10 @@ export class GetOverviewUseCase {
         met: (wtpMedian ?? 0) > 0,
       },
       {
-        label: `N ≥ ${SIGNIFICANCE_TARGET}`,
+        label: `N ≥ ${DEFAULT_SIGNIFICANCE_TARGET}`,
         current: `${responded}`,
-        target: String(SIGNIFICANCE_TARGET),
-        met: responded >= SIGNIFICANCE_TARGET,
+        target: String(DEFAULT_SIGNIFICANCE_TARGET),
+        met: responded >= DEFAULT_SIGNIFICANCE_TARGET,
       },
     ];
     return {

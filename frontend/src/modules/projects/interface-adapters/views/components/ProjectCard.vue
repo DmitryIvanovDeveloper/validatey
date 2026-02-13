@@ -343,6 +343,13 @@ const formattedDate = computed(() => {
   gap: 0.5rem;
 }
 
+.project-card__menu-actions :deep(.project-card-edit svg),
+.project-card__menu-actions :deep(.btn svg) {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
 .project-card__menu-actions :deep(.project-card-edit:hover),
 .project-card__menu-actions :deep(.btn:not(.btn-danger):hover) {
   background: var(--color-bg-subtle);
@@ -354,6 +361,6 @@ const formattedDate = computed(() => {
 
 .project-card__menu-actions :deep(.btn-danger:hover) {
   background: var(--color-error-bg);
-  color: var(--color-error);
+  color: var(--color-error-hover);
 }
 </style>

@@ -7,6 +7,7 @@ export type GenerateScenarioUseCaseRequest = {
   segment?: Segment | null;
   hypothesis?: Hypothesis | null;
   marketContext?: MarketContextForScenario | null;
+  templateSlug?: string;
   metadata?: {
     tone?: string;
     length?: number;

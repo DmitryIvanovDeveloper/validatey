@@ -214,10 +214,10 @@ export class ScenarioRepository implements ScenarioRepositoryPort {
     }
   }
 
-  async getTemplates(): Promise<Result<Array<{ slug: string; name: string; content: string }>, ScenarioNotFoundError>> {
+  async getTemplates(): Promise<Result<Array<{ slug: string; name: string; significanceTarget: number; content?: string }>, ScenarioNotFoundError>> {
     try {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SCENARIOS_TEMPLATES}`;
-      const response = await this._httpClient.get<{ templates: Array<{ slug: string; name: string; content: string }> }>(url);
+      const response = await this._httpClient.get<{ templates: Array<{ slug: string; name: string; significanceTarget: number; content?: string }> }>(url);
       const list = response.templates ?? [];
       return Result.success(list);
     } catch (error) {

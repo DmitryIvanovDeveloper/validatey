@@ -85,7 +85,8 @@ export class ProjectEntity {
     hypothesis?: Hypothesis,
     marketContext?: MarketContext | null,
     targetAudience?: string,
-    cost?: number
+    cost?: number,
+    scenarioTemplateSlug?: string
   ): ProjectEntity {
     if (!name || name.trim().length === 0) {
       throw new Error('Project name is required');
@@ -110,7 +111,7 @@ export class ProjectEntity {
       null,
       null,
       null,
-      null,
+      scenarioTemplateSlug || null,
       false,
       null,
       null,

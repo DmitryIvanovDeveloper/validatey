@@ -24,6 +24,8 @@ export interface GenerateScenarioRequest {
   segment?: Segment | null;
   hypothesis?: Hypothesis | null;
   marketContext?: MarketContextForScenario | null;
+  templateSlug?: string;
+  significanceTarget?: number;
   metadata?: {
     tone?: string;
     length?: number;

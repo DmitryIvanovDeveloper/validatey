@@ -11,8 +11,10 @@
     </PageHeader>
 
     <div v-if="viewModel.loading.value" class="loading-state">
-      <LoadingSpinner />
-      <p>Loading projects...</p>
+      <div class="loading-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <p>Loading projects…</p>
     </div>
     <div v-else-if="viewModel.error.value" class="error-state">
       <ErrorDisplay :error="viewModel.error.value" />
@@ -239,6 +241,34 @@ onUnmounted(() => {
   gap: 1.5rem;
 }
 
+.projects-grid > * {
+  display: block !important;
+  min-width: 0;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
 .project-card-edit {
   padding: 0.35rem 0.75rem;
   font-size: 0.8125rem;
@@ -250,8 +280,16 @@ onUnmounted(() => {
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   text-align: center;
+}
+
+.project-card-edit svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .project-card-edit:hover {
@@ -269,10 +307,20 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.project-card-delete svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .project-card-delete:hover:not(:disabled) {
   background: var(--color-error-bg);
+  color: var(--color-error);
 }
 
 .project-card-delete:disabled {
@@ -416,5 +464,6 @@ onUnmounted(() => {
   outline: none;
   border-color: var(--color-accent);
 }
+
 </style>
 

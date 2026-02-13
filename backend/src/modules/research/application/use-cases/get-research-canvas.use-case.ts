@@ -73,7 +73,7 @@ export class GetResearchCanvasUseCase {
 
       const synthesisReport = stored?.synthesisReport ?? null;
       const recommendedTemplate = this.getRecommendedTemplate(project.scenarioTemplateSlug ?? 'wtp');
-      const projectHypothesis = project.hypothesis?.description ?? null;
+      const projectHypothesis = project.hypothesis?.description ?? undefined;
 
       return ResultEx.success({ canvas, synthesisReport, projectName: project.name, projectHypothesis, recommendedTemplate });
     } catch (error) {

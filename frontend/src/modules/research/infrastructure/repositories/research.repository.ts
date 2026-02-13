@@ -14,9 +14,29 @@ export class ResearchRepository implements ResearchRepositoryPort {
     private readonly _httpClient: HttpClientPort
   ) {}
 
-  async getResearchCanvas(projectId: string): Promise<ResearchCanvas> {
+  async getResearchCanvas(projectId: string): Promise<{
+    canvas: ResearchCanvas;
+    synthesisReport?: SynthesisReport | null;
+    projectName?: string;
+    projectHypothesis?: string;
+    recommendedTemplate?: {
+      name: string;
+      slug: string;
+      description: string;
+    };
+  }> {
     try {
-      const response = await this._httpClient.get<ResearchCanvas>(
+      const response = await this._httpClient.get<{
+        canvas: ResearchCanvas;
+        synthesisReport?: SynthesisReport | null;
+        projectName?: string;
+        projectHypothesis?: string;
+        recommendedTemplate?: {
+          name: string;
+          slug: string;
+          description: string;
+        };
+      }>(
         API_CONFIG.ENDPOINTS.RESEARCH_CANVAS(projectId)
       );
       return response;

@@ -47,6 +47,7 @@ export class ResponseRepository implements ResponseRepositoryPort {
         audioUrl: r.audioUrl,
         transcript: r.transcript,
         moderationStatus: r.moderationStatus,
+        questionLabels: r.questionLabels,
         createdAt: new Date(r.createdAt),
         updatedAt: new Date(r.updatedAt),
       }));
@@ -146,6 +147,7 @@ export class ResponseRepository implements ResponseRepositoryPort {
         audioUrl: r.audioUrl,
         transcript: r.transcript,
         moderationStatus: r.moderationStatus,
+        questionLabels: r.questionLabels,
         createdAt: new Date(r.createdAt),
         updatedAt: new Date(r.updatedAt),
       }));

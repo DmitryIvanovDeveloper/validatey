@@ -11,6 +11,7 @@ export interface Response {
   readonly transcript: string | null;
   /** For public-link responses: pending | approved | rejected. Null for personal invitations. */
   readonly moderationStatus: ModerationStatus | null;
+  readonly questionLabels: Record<string, string>;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -24,6 +25,7 @@ export class ResponseEntity {
     public readonly audioUrl: string | null,
     public readonly transcript: string | null,
     public readonly moderationStatus: ModerationStatus | null,
+    public readonly questionLabels: Record<string, string>,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
@@ -33,7 +35,8 @@ export class ResponseEntity {
     projectId: string,
     answers: Record<string, any>,
     audioUrl?: string,
-    moderationStatus?: ModerationStatus | null
+    moderationStatus?: ModerationStatus | null,
+    questionLabels?: Record<string, string>
   ): ResponseEntity {
     if (!answers || Object.keys(answers).length === 0) {
       throw new Error('Response answers are required');
@@ -48,6 +51,7 @@ export class ResponseEntity {
       audioUrl || null,
       null,
       moderationStatus ?? null,
+      questionLabels ?? {},
       now,
       now
     );
@@ -62,6 +66,7 @@ export class ResponseEntity {
       data.audioUrl,
       data.transcript,
       data.moderationStatus ?? null,
+      data.questionLabels,
       data.createdAt,
       data.updatedAt
     );
@@ -76,6 +81,7 @@ export class ResponseEntity {
       this.audioUrl,
       transcript,
       this.moderationStatus,
+      this.questionLabels,
       this.createdAt,
       new Date()
     );
@@ -96,6 +102,7 @@ export class ResponseEntity {
       this.audioUrl,
       this.transcript,
       status,
+      this.questionLabels,
       this.createdAt,
       new Date()
     );
@@ -110,6 +117,7 @@ export class ResponseEntity {
       audioUrl: this.audioUrl,
       transcript: this.transcript,
       moderationStatus: this.moderationStatus,
+      questionLabels: this.questionLabels,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

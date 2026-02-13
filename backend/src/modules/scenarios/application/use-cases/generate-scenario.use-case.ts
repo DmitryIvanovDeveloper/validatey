@@ -6,6 +6,7 @@ import { ScenarioEntity } from '../../domain/entities/scenario.entity';
 import { ScenarioGenerationError, InvalidScenarioDataError } from '../../domain/errors/scenario.error';
 import { ScenarioRepositoryPort } from '../ports/scenario-repository.port';
 import { LLMServicePort } from '../ports/llm-service.port';
+import { ScenarioTemplateRepositoryPort } from '../ports/scenario-template-repository.port';
 import { GenerateScenarioUseCaseRequest, GenerateScenarioUseCaseResponse } from './input-output/generate-scenario.io';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
@@ -21,6 +22,8 @@ export class GenerateScenarioUseCase {
     private readonly _repository: ScenarioRepositoryPort,
     @inject(TYPES.LLMService)
     private readonly _llmService: LLMServicePort,
+    @inject(TYPES.ScenarioTemplateRepository)
+    private readonly _templateRepository: ScenarioTemplateRepositoryPort,
     @inject(PROJECT_TYPES.ProjectRepository)
     private readonly _projectRepository: ProjectRepositoryPort
   ) {}
@@ -55,16 +58,28 @@ export class GenerateScenarioUseCase {
       const versionResult = await this._repository.getLatestVersion(request.projectId);
       const nextVersion = versionResult.isSuccess ? versionResult.data + 1 : 1;
 
-      // Step 4: Generate scenario via LLM
+      // Step 4: Get significance target from template if provided
+      let significanceTarget: number | undefined;
+      if (request.templateSlug) {
+        const templateResult = await this._templateRepository.getBySlug(request.templateSlug);
+        if (templateResult) {
+          significanceTarget = templateResult.significanceTarget;
+        }
+      }
+
+      // Step 5: Generate scenario via LLM
       // LLM service will form the prompt based on:
       // - segment.description, segment.demographics
       // - hypothesis.description, hypothesis.assumptions
+      // - significance target from template
       // - custom prompt if provided
       const llmResult = await this._llmService.generateScenario({
         projectId: request.projectId,
         segment: segment,
         hypothesis: hypothesis,
         marketContext,
+        templateSlug: request.templateSlug,
+        significanceTarget,
         metadata: request.metadata,
         prompt: request.prompt, // Pass custom prompt if provided
       });

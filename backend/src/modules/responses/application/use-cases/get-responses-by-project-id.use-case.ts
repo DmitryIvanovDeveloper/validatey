@@ -38,6 +38,7 @@ export class GetResponsesByProjectIdUseCase {
         answers: res.answers,
         audioUrl: res.audioUrl,
         transcript: res.transcript,
+        questionLabels: res.questionLabels,
         createdAt: res.createdAt,
         updatedAt: res.updatedAt,
       }));

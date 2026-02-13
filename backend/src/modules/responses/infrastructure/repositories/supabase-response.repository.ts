@@ -7,6 +7,8 @@ import { Response } from '../../domain/entities/response.entity';
 import type { ModerationStatus } from '../../domain/entities/response.entity';
 import { ResponseNotFoundError, InvalidResponseDataError } from '../../domain/errors/response.error';
 import { ResponseRepositoryPort } from '../../application/ports/response-repository.port';
+import { ScenarioParserService } from '../../../surveys/domain/services/scenario-parser.service';
+import type { SurveyQuestion } from '../../../surveys/domain/entities/survey.entity';
 
 @injectable()
 export class SupabaseResponseRepository implements ResponseRepositoryPort {
@@ -39,7 +41,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
         return ResultEx.failure(new InvalidResponseDataError(error.message));
       }
 
-      return ResultEx.success(this.mapToDomain(data));
+      return ResultEx.success(this.mapToDomain({ ...data, questionLabels: {} }));
     } catch (error) {
       this._logger.error('supabase-response-repository.create-exception', { error });
       return ResultEx.failure(
@@ -59,7 +61,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
         return ResultEx.failure(new ResponseNotFoundError(id));
       }
 
-      return ResultEx.success(this.mapToDomain(data));
+      return ResultEx.success(this.mapToDomain({ ...data, questionLabels: {} }));
     } catch (error) {
       this._logger.error('supabase-response-repository.find-by-id-exception', { id, error });
       return ResultEx.failure(new ResponseNotFoundError(id));
@@ -80,7 +82,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
         return ResultEx.failure(new Error(error.message));
       }
 
-      return ResultEx.success(data ? this.mapToDomain(data) : null);
+      return ResultEx.success(data ? this.mapToDomain({ ...data, questionLabels: {} }) : null);
     } catch (error) {
       this._logger.error('supabase-response-repository.find-by-invitation-id-exception', { invitationId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
@@ -91,19 +93,41 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
     try {
       const supabase = getSupabaseClient();
 
-      const { data, error } = await supabase
+      // Сначала получаем latest scenario для извлечения вопросов
+      const { data: scenarioData, error: scenarioError } = await supabase
+        .from('scenarios')
+        .select('content')
+        .eq('project_id', projectId)
+        .order('version', { ascending: false })
+        .limit(1)
+        .single();
+
+      const questionLabels = scenarioData && !scenarioError
+        ? this.extractQuestionLabels(scenarioData.content)
+        : {};
+
+      // Получаем responses
+      const { data: responseData, error: responseError } = await supabase
         .from('responses')
         .select('*')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        this._logger.error('supabase-response-repository.find-by-project-id-error', { projectId, error });
-        return ResultEx.failure(new Error(error.message));
+      if (responseError) {
+        this._logger.error('supabase-response-repository.find-by-project-id-error', { projectId, error: responseError });
+        return ResultEx.failure(new Error(responseError.message));
       }
 
-      return ResultEx.success(data.map((item) => this.mapToDomain(item)));
-      return ResultEx.success((data ?? []).map((item) => this.mapToDomain(item)));
+      return ResultEx.success(
+        (responseData ?? []).map((item) => {
+          const response = this.mapToDomain(item);
+          // Merge questionLabels with the ones extracted from scenario
+          return {
+            ...response,
+            questionLabels: { ...response.questionLabels, ...questionLabels }
+          };
+        })
+      );
     } catch (error) {
       this._logger.error('supabase-response-repository.find-by-project-id-exception', { projectId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
@@ -129,7 +153,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
         this._logger.error('supabase-response-repository.list-by-project-id-error', { projectId, error });
         return ResultEx.failure(new Error(error.message));
       }
-      return ResultEx.success((data ?? []).map((item) => this.mapToDomain(item)));
+      return ResultEx.success((data ?? []).map((item) => this.mapToDomain({ ...item, questionLabels: {} })));
     } catch (error) {
       this._logger.error('supabase-response-repository.list-by-project-id-exception', { projectId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
@@ -179,7 +203,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
         return ResultEx.failure(new InvalidResponseDataError(error.message));
       }
 
-      return ResultEx.success(this.mapToDomain(data));
+      return ResultEx.success(this.mapToDomain({ ...data, questionLabels: {} }));
     } catch (error) {
       this._logger.error('supabase-response-repository.update-exception', { error });
       return ResultEx.failure(
@@ -208,7 +232,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
         this._logger.error('supabase-response-repository.update-moderation-status-error', { responseId, error });
         return ResultEx.failure(new InvalidResponseDataError(error.message));
       }
-      return ResultEx.success(this.mapToDomain(data));
+      return ResultEx.success(this.mapToDomain({ ...data, questionLabels: {} }));
     } catch (error) {
       this._logger.error('supabase-response-repository.update-moderation-status-exception', { responseId, error });
       return ResultEx.failure(
@@ -217,8 +241,40 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
     }
   }
 
+  private extractQuestionLabels(content: string): Record<string, string> {
+    if (!content) return {};
+
+    try {
+      const questions = ScenarioParserService.parse(content);
+      const labels: Record<string, string> = {};
+
+      questions.forEach((q: SurveyQuestion) => {
+        labels[q.id] = q.text;
+        // Альтернативные варианты ID
+        const alt = q.id.startsWith('q_') ? q.id.replace('q_', 'q') : `q_${q.id.replace(/^q/, '')}`;
+        if (alt !== q.id) labels[alt] = q.text;
+      });
+
+      return labels;
+    } catch (error) {
+      this._logger.warn('Failed to parse scenario questions', { error });
+      return {};
+    }
+  }
+
   private mapToDomain(data: Record<string, unknown>): Response {
-    const d = data as { id: string; invitation_id: string; project_id: string; answers: Response['answers']; audio_url: string | null; transcript: string | null; moderation_status: string | null; created_at: string; updated_at: string };
+    const d = data as {
+      id: string;
+      invitation_id: string;
+      project_id: string;
+      answers: Response['answers'];
+      audio_url: string | null;
+      transcript: string | null;
+      moderation_status: string | null;
+      questionLabels: Record<string, string>;
+      created_at: string;
+      updated_at: string;
+    };
     return {
       id: d.id,
       invitationId: d.invitation_id,
@@ -227,6 +283,7 @@ export class SupabaseResponseRepository implements ResponseRepositoryPort {
       audioUrl: d.audio_url,
       transcript: d.transcript,
       moderationStatus: (d.moderation_status ?? null) as Response['moderationStatus'],
+      questionLabels: d.questionLabels || {},
       createdAt: new Date(d.created_at),
       updatedAt: new Date(d.updated_at),
     };

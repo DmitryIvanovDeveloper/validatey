@@ -60,6 +60,8 @@ export class HttpLLMService implements LLMServicePort {
         projectId: request.projectId,
         segment: segment,
         hypothesis: hypothesis,
+        templateSlug: request.templateSlug,
+        significanceTarget: request.significanceTarget,
         metadata: request.metadata,
         prompt: request.prompt, // Include custom prompt if provided
       };

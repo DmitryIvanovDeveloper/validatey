@@ -34,8 +34,56 @@
       </PageHeader>
 
       <div v-if="viewModel.loading.value" class="loading-state">
-        <LoadingSpinner />
-        <p>Loading projects...</p>
+        <div class="projects-grid">
+          <div class="skeleton-project-card project-card">
+            <div class="skeleton-card-inner project-card__inner">
+              <div class="skeleton-card-header project-card__header">
+                <div class="skeleton-line skeleton-title project-card__title"></div>
+                <div class="skeleton-menu project-card__menu" aria-hidden="true">
+                  <div class="skeleton-menu-trigger project-card__menu-trigger"></div>
+                </div>
+              </div>
+              <div class="skeleton-card-meta project-card__meta">
+                <div class="skeleton-line skeleton-date project-card__date"></div>
+              </div>
+              <div class="skeleton-card-footer project-card__footer">
+                <div class="skeleton-line skeleton-footer-link project-card__link"></div>
+              </div>
+            </div>
+          </div>
+          <div class="skeleton-project-card project-card">
+            <div class="skeleton-card-inner project-card__inner">
+              <div class="skeleton-card-header project-card__header">
+                <div class="skeleton-line skeleton-title project-card__title"></div>
+                <div class="skeleton-menu project-card__menu" aria-hidden="true">
+                  <div class="skeleton-menu-trigger project-card__menu-trigger"></div>
+                </div>
+              </div>
+              <div class="skeleton-card-meta project-card__meta">
+                <div class="skeleton-line skeleton-date project-card__date"></div>
+              </div>
+              <div class="skeleton-card-footer project-card__footer">
+                <div class="skeleton-line skeleton-footer-link project-card__link"></div>
+              </div>
+            </div>
+          </div>
+          <div class="skeleton-project-card project-card">
+            <div class="skeleton-card-inner project-card__inner">
+              <div class="skeleton-card-header project-card__header">
+                <div class="skeleton-line skeleton-title project-card__title"></div>
+                <div class="skeleton-menu project-card__menu" aria-hidden="true">
+                  <div class="skeleton-menu-trigger project-card__menu-trigger"></div>
+                </div>
+              </div>
+              <div class="skeleton-card-meta project-card__meta">
+                <div class="skeleton-line skeleton-date project-card__date"></div>
+              </div>
+              <div class="skeleton-card-footer project-card__footer">
+                <div class="skeleton-line skeleton-footer-link project-card__link"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div v-else-if="viewModel.error.value" class="error-state">
@@ -184,6 +232,198 @@ const goToProject = (projectId: string) => {
 @media (max-width: 768px) {
   .projects-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Skeleton Loading Styles */
+.skeleton-project-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-card-inner {
+  padding: 1.25rem 1.5rem;
+}
+
+.skeleton-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  height: 1rem;
+  border-radius: 0.25rem;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+}
+
+.skeleton-menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-menu-trigger:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.skeleton-menu-svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+/* Добавим специфичные стили для элементов, имитирующих кнопки действия */
+.skeleton-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.skeleton-menu-action-btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+  height: 2rem;
+}
+
+.skeleton-menu-action-btn:hover {
+  background: var(--color-bg-subtle);
+}
+
+.skeleton-menu-action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.skeleton-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  min-width: 160px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.1), 0 4px 8px -2px rgba(15, 23, 42, 0.08);
+  padding: 0.5rem 0;
+  margin-top: 4px;
+  display: none; /* Initially hidden */
+}
+
+.skeleton-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.skeleton-menu-action-btn {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+  height: 2rem;
+}
+
+.skeleton-card-meta {
+  margin-bottom: 1rem;
+}
+
+.skeleton-date {
+  width: 120px;
+  height: 1rem;
+  border-radius: 0.25rem;
+}
+
+.skeleton-date-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.skeleton-footer-link {
+  width: 100px;
+  height: 1rem;
+  border-radius: 0.25rem;
+}
+
+.skeleton-link-arrow {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }
 </style>

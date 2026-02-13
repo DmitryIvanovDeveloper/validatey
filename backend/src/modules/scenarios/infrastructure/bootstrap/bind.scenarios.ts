@@ -22,7 +22,7 @@ export function bindScenarios(container: Container): void {
   container.bind<ScenarioTemplateRepositoryPort>(TYPES.ScenarioTemplateRepository).to(InMemoryScenarioTemplateRepository);
   container.bind<ScenarioRatingRepositoryPort>(TYPES.ScenarioRatingRepository).to(SupabaseScenarioRatingRepository);
 
-  // LLM Service: only proxy API (cerebras-api.vercel.app/api/prompt)
+  // LLM Service: only proxy API (cerebras-api.vercel.app/api/prompt) - no API key needed
   container.bind<LLMServicePort>(TYPES.LLMService).to(ProxyScenarioService);
 
   // Use Cases

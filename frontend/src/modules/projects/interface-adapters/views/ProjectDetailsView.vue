@@ -25,15 +25,15 @@
 
             <div class="grid grid-cols-2 gap-4">
               <div class="p-4 bg-gray-50 rounded-lg">
-                <div class="text-gray-600 text-sm mb-1">Ключевой инсайт</div>
+                <div class="text-gray-600 text-sm mb-1">Key insight</div>
                 <div class="font-bold text-gray-900">
-                  {{ (overviewData?.executiveSummary?.responded ?? 0) > 50 ? '78% готовы платить' : 'Сбор данных...' }}
+                  {{ (overviewData?.executiveSummary?.responded ?? 0) > 50 ? '78% willing to pay' : 'Collecting data...' }}
                 </div>
               </div>
               <div class="p-4 bg-gray-50 rounded-lg">
-                <div class="text-gray-600 text-sm mb-1">Основной барьер</div>
+                <div class="text-gray-600 text-sm mb-1">Main barrier</div>
                 <div class="font-bold text-gray-900">
-                  {{ (overviewData?.executiveSummary?.responded ?? 0) > 50 ? 'Цена выше ожиданий' : 'Анализ...' }}
+                  {{ (overviewData?.executiveSummary?.responded ?? 0) > 50 ? 'Price above expectations' : 'Analyzing...' }}
                 </div>
               </div>
             </div>
@@ -153,21 +153,14 @@
               :invitations="overviewInvitations"
               @reminders-sent="handleRemindersSent"
             />
-            <button class="smart-action-btn">
+            <button class="smart-action-btn" @click="goToInvitationsTab">
               <LinkIcon class="smart-action-icon" />
               <div class="smart-action-content">
                 <div class="smart-action-label">Share link</div>
                 <div class="smart-action-description">Increase audience reach</div>
               </div>
             </button>
-            <button class="smart-action-btn">
-              <Sparkles class="smart-action-icon" />
-              <div class="smart-action-content">
-                <div class="smart-action-label">AI recommendations</div>
-                <div class="smart-action-description">Get insights based on data</div>
-              </div>
-            </button>
-            <button class="smart-action-btn">
+            <button class="smart-action-btn" @click="goToReportTab">
               <BarChart3 class="smart-action-icon" />
               <div class="smart-action-content">
                 <div class="smart-action-label">Export report</div>
@@ -228,7 +221,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import {
   Send,
   Link as LinkIcon,
@@ -253,6 +246,7 @@ import type { InvitationPresenter } from '../../../invitations/interface-adapter
 import { SendRemindersButton, ResponsePaceWidget } from '../../../invitations/interface-adapters/components';
 
 const route = useRoute();
+const router = useRouter();
 const projectId = route.params.projectId as string;
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
@@ -350,6 +344,14 @@ const getVerdictDescription = (verdict: string): string => {
     return 'Hypothesis validation inconclusive. Additional testing recommended.';
   }
 };
+
+function goToInvitationsTab() {
+  router.push(`/projects/${projectId}/invitations`);
+}
+
+function goToReportTab() {
+  router.push(`/projects/${projectId}/report`);
+}
 
 async function loadOverviewInvitations() {
   if (!projectId) return;

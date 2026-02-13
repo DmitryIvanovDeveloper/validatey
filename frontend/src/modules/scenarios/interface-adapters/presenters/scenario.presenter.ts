@@ -24,6 +24,7 @@ export class ScenarioPresenter {
     segment?: { description: string; demographics: Record<string, unknown> } | null,
     hypothesis?: { description: string; assumptions: string[] } | null,
     marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null,
+    templateSlug?: string,
     prompt?: string
   ): Promise<void> {
     viewModel.loading.value = true;
@@ -34,6 +35,7 @@ export class ScenarioPresenter {
       segment,
       hypothesis,
       marketContext: marketContext ?? null,
+      templateSlug,
       prompt,
     });
 
@@ -76,9 +78,9 @@ export class ScenarioPresenter {
     return {};
   }
 
-  /** Load scenario templates (WTP, Feature Demand, Value Prop) for the wizard. */
+  /** Load scenario templates (Problem Validation, Solution Validation, etc.) for the wizard. */
   async getTemplates(): Promise<{
-    templates: Array<{ slug: string; name: string; content: string }>;
+    templates: Array<{ slug: string; name: string; significanceTarget: number; content?: string }>;
     error?: string;
   }> {
     const result = await this._scenarioRepository.getTemplates();

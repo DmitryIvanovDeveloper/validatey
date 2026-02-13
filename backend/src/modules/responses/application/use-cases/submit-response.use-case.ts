@@ -10,6 +10,9 @@ import { SubmitResponseUseCaseRequest, SubmitResponseUseCaseResponse } from './i
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { InvitationRepositoryPort } from '../../../invitations/application/ports/invitation-repository.port';
 import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
+import { ScenarioRepositoryPort } from '../../../scenarios/application/ports/scenario-repository.port';
+import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
+import { ScenarioParserService } from '../../../surveys/domain/services/scenario-parser.service';
 
 @injectable()
 export class SubmitResponseUseCase {
@@ -21,7 +24,9 @@ export class SubmitResponseUseCase {
     @inject(TYPES.StorageService)
     private readonly _storageService: StorageServicePort,
     @inject(INVITATION_TYPES.InvitationRepository)
-    private readonly _invitationRepository: InvitationRepositoryPort
+    private readonly _invitationRepository: InvitationRepositoryPort,
+    @inject(SCENARIO_TYPES.ScenarioRepository)
+    private readonly _scenarioRepository: ScenarioRepositoryPort
   ) {}
 
   async execute(
@@ -38,6 +43,20 @@ export class SubmitResponseUseCase {
       }
 
       const invitation = invitationResult.data;
+
+      // Get latest scenario for the project to extract question labels
+      const scenariosResult = await this._scenarioRepository.findByProjectId(invitation.projectId);
+
+      let questionLabels: Record<string, string> = {};
+      if (scenariosResult.isSuccess && scenariosResult.data && scenariosResult.data.length > 0) {
+        // Get the latest scenario (first in array, sorted by version desc)
+        const latestScenario = scenariosResult.data[0];
+        const questions = ScenarioParserService.parse(latestScenario.content);
+        questionLabels = questions.reduce((labels, q) => {
+          labels[q.id] = q.text;
+          return labels;
+        }, {} as Record<string, string>);
+      }
 
       // Upload audio if provided
       let audioUrl: string | null = null;
@@ -66,7 +85,8 @@ export class SubmitResponseUseCase {
         invitation.projectId,
         request.answers,
         audioUrl || undefined,
-        moderationStatus
+        moderationStatus,
+        questionLabels
       );
 
       // Save response

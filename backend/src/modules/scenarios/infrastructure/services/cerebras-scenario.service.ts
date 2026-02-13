@@ -206,6 +206,17 @@ Remember: People lie, exaggerate, or don't know what they want. Your job is to f
       );
     }
 
+    if (request.significanceTarget) {
+      parts.push(
+        '',
+        `📊 SAMPLE SIZE TARGET: ${request.significanceTarget} respondents`,
+        `• Design questions optimized for ${request.significanceTarget} responses`,
+        `• Focus on qualitative insights over quantitative metrics`,
+        `• Each question should provide actionable data with this sample size`,
+        `• Avoid questions requiring large samples for statistical significance`
+      );
+    }
+
     const tone = request.metadata?.tone || 'professional';
     const length = request.metadata?.length ?? 10;
     parts.push(

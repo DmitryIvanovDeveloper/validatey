@@ -5,10 +5,9 @@
     :disabled="disabled || loading"
     @click="handleClick"
   >
-    <LoadingSpinner
+    <SmallSpinner
       v-if="loading && showSpinner"
       class="button-spinner"
-      :message="null"
     />
     <slot v-else>
       {{ text }}
@@ -18,7 +17,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import LoadingSpinner from '../LoadingSpinner.vue';
+import SmallSpinner from '../SmallSpinner.vue';
 
 interface Props {
   type?: 'button' | 'submit' | 'reset';
@@ -147,16 +146,25 @@ function handleClick(event: Event) {
 
 /* Loading spinner */
 .button-spinner {
-  width: 20px;
-  height: 20px;
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
 .button-spinner .spinner {
-  width: 20px;
-  height: 20px;
+  width: 1rem;
+  height: 1rem;
   border-width: 2px;
   border-color: currentColor;
   border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

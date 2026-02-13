@@ -3,12 +3,9 @@
     <!-- Search Suggestions -->
     <div class="section-card suggestions-card">
       <div class="section-card-header">
-        <span class="section-icon section-icon-search" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-        </span>
+          <span class="section-icon section-icon-search" aria-hidden="true">
+            <Search class="w-5 h-5" />
+          </span>
         <div>
           <h3 class="section-title">Search Suggestions</h3>
           <p class="section-subtitle">What people search for in your market</p>
@@ -16,28 +13,49 @@
       </div>
 
       <div v-if="insights?.results?.length" class="suggestions-content">
-        <div
-          v-for="(result, idx) in insights.results"
-          :key="idx"
-          class="suggestion-item"
-        >
-          <h4 class="suggestion-phrase">{{ result.phrase }}</h4>
+        <div class="suggestions-header">
+          <h4 class="suggestions-title">
+            <Search class="w-5 h-5 mr-2" />
+            User Search Intent
+          </h4>
+          <p class="suggestions-subtitle">What people are searching for in your market</p>
+        </div>
 
-          <ul v-if="result.suggestions?.length" class="suggestion-list">
-            <li
-              v-for="(suggestion, i) in result.suggestions"
-              :key="i"
-              class="suggestion-list-item"
-            >
-              {{ suggestion }}
-            </li>
-          </ul>
+        <div class="suggestions-grid">
+          <div
+            v-for="(result, idx) in insights.results.slice(0, 6)"
+            :key="idx"
+            class="suggestion-card"
+          >
+            <div class="suggestion-header">
+              <span class="suggestion-icon">🔎</span>
+              <h5 class="suggestion-phrase">{{ result.phrase }}</h5>
+            </div>
+
+            <div v-if="result.suggestions?.length" class="suggestion-results">
+              <div class="suggestion-count">{{ result.suggestions.length }} related searches</div>
+              <ul class="suggestion-list">
+                <li
+                  v-for="(suggestion, i) in result.suggestions.slice(0, 3)"
+                  :key="i"
+                  class="suggestion-list-item"
+                >
+                  {{ suggestion }}
+                </li>
+                <li v-if="result.suggestions.length > 3" class="suggestion-more">
+                  +{{ result.suggestions.length - 3 }} more...
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- No data message -->
       <div v-else class="state state-empty">
-        <span class="state-icon" aria-hidden="true">🔍</span>
+        <span class="state-icon" aria-hidden="true">
+          <Search class="w-8 h-8" />
+        </span>
         <p class="state-title">No search suggestions collected yet</p>
         <p class="state-desc">Use "Research market with AI" to gather Google Places autocomplete data.</p>
       </div>
@@ -46,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+import { Search } from 'lucide-vue-next';
+
 interface Props {
   insights?: {
     searchPhrases: string[];
@@ -70,6 +90,7 @@ defineProps<Props>();
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, border-color 0.2s;
+  padding: 1.5rem;
 }
 
 .section-card:hover {
@@ -80,7 +101,8 @@ defineProps<Props>();
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1.5rem;
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem;
   border-bottom: 1px solid var(--color-border-light);
 }
 
@@ -115,47 +137,127 @@ defineProps<Props>();
 }
 
 .suggestions-content {
-  padding: 1.5rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
-.suggestion-item {
-  padding: 1.25rem;
+.suggestions-header {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.suggestions-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.suggestions-title .w-5 {
+  flex-shrink: 0;
+}
+
+.suggestions-subtitle {
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.25rem;
+}
+
+.suggestion-card {
+  background: var(--color-bg);
   border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.suggestion-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border);
+}
+
+.suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.suggestion-icon {
+  width: 2rem;
+  height: 2rem;
+  background: rgba(13, 148, 136, 0.1);
   border-radius: 8px;
-  background: var(--color-bg-subtle, #f8fafc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .suggestion-phrase {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text, #0f172a);
-  margin: 0 0 0.75rem 0;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.suggestion-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.suggestion-count {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .suggestion-list {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .suggestion-list-item {
-  padding: 0.375rem 0;
-  color: var(--color-text, #0f172a);
   font-size: 0.875rem;
-  line-height: 1.5;
+  color: var(--color-text);
+  line-height: 1.4;
   position: relative;
-  padding-left: 1.25rem;
+  padding-left: 1rem;
 }
 
 .suggestion-list-item:before {
   content: '•';
-  color: var(--color-accent, #0d9488);
+  color: var(--color-accent);
   font-weight: bold;
   position: absolute;
   left: 0;
+  top: 0;
+}
+
+.suggestion-more {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 /* States */

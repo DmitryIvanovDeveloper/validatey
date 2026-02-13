@@ -13,12 +13,62 @@
         <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">
           <span class="btn-icon" aria-hidden="true">←</span> Back
         </router-link>
+        <button
+          @click="handleStartResearch"
+          :disabled="collectLoading"
+          class="btn btn-research-primary"
+        >
+          <span class="btn-icon" v-if="collectLoading" aria-hidden="true">
+            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+          <span class="btn-icon" v-else aria-hidden="true">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </span>
+          {{ collectLoading ? 'Researching...' : 'Start Research' }}
+        </button>
       </template>
     </PageHeader>
 
+    <!-- Research Settings -->
+    <div class="research-settings-section">
+      <div class="section-card settings-card">
+        <div class="section-card-header">
+          <span class="section-icon section-icon-target" aria-hidden="true">
+            <Target class="w-5 h-5" />
+          </span>
+          <div>
+            <h3 class="section-title">Research Settings</h3>
+            <p class="section-subtitle">Configure research parameters (optional)</p>
+          </div>
+        </div>
+
+        <div class="settings-form">
+          <div class="input-group">
+            <input
+              v-model="researchGeography"
+              type="text"
+              class="input-field"
+              placeholder="Geography (e.g. US, EU)"
+              :disabled="collectLoading"
+            />
+            <input
+              v-model="researchSegment"
+              type="text"
+              class="input-field"
+              placeholder="Segment (e.g. B2B SMB)"
+              :disabled="collectLoading"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <nav class="invitations-tabs" role="tablist">
-      <button type="button" role="tab" :class="{ active: activeTab === 'quick-start' }" @click="activeTab = 'quick-start'">Quick Start</button>
-      <button type="button" role="tab" :class="{ active: activeTab === 'market' }" @click="activeTab = 'market'">Market Analysis</button>
       <button type="button" role="tab" :class="{ active: activeTab === 'competitors' }" @click="activeTab = 'competitors'">Competitors</button>
       <button type="button" role="tab" :class="{ active: activeTab === 'search' }" @click="activeTab = 'search'">Search Suggestions</button>
       <button type="button" role="tab" :class="{ active: activeTab === 'signals' }" @click="activeTab = 'signals'">User Signals</button>
@@ -28,20 +78,10 @@
 
     <div class="invitations-tab-panel">
       <!-- Tab Content -->
-      <QuickStartTab
-        v-if="activeTab === 'quick-start'"
-        :project-id="projectId"
-        :recommended-template="recommendedTemplate"
-        :collect-loading="collectLoading"
-        :collect-error="collectError"
-        :synthesis-error="synthesisError"
-        @start-research="handleStartResearch"
-      />
-      <MarketAnalysisTab v-if="activeTab === 'market'" :key="canvasKey" :canvas="canvas" />
       <CompetitorsTab v-if="activeTab === 'competitors'" :key="canvasKey" :canvas="canvas" />
       <SearchSuggestionsTab v-if="activeTab === 'search'" :key="canvasKey" :insights="canvas?.autocompleteInsights" />
       <UserSignalsTab v-if="activeTab === 'signals'" :insights="canvas?.userInsights" :project-id="projectId" />
-      <SynthesisTab v-if="activeTab === 'synthesis'" :key="synthesisReport ? 'has-report' : 'no-report'" :synthesis-report="synthesisReport" />
+      <SynthesisTab v-if="activeTab === 'synthesis'" :key="'synthesis-' + (synthesisReport ? JSON.stringify(synthesisReport) : 'no-report')" :synthesis-report="synthesisReport" @start-research="handleStartResearch" />
       <AIAssistantTab v-if="activeTab === 'assistant'" :project-id="projectId" />
     </div>
   </div>
@@ -51,7 +91,6 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import QuickStartTab from './components/QuickStartTab.vue';
-import MarketAnalysisTab from './components/MarketAnalysisTab.vue';
 import CompetitorsTab from './components/CompetitorsTab.vue';
 import SearchSuggestionsTab from './components/SearchSuggestionsTab.vue';
 import UserSignalsTab from './components/UserSignalsTab.vue';
@@ -61,13 +100,14 @@ import PageHeader from '../../../../shared/components/PageHeader.vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../presenters/research.presenter';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { Target } from 'lucide-vue-next';
 import type { ResearchCanvas, SynthesisReport } from '../../domain/entities/research-canvas.entity';
 import type { ResearchIntent } from '../../domain/value-objects/research-intent.vo';
 
 const route = useRoute();
 const projectId = computed(() => route.params.projectId as string);
 
-const activeTab = ref<'quick-start' | 'market' | 'competitors' | 'search' | 'signals' | 'synthesis' | 'assistant'>('quick-start');
+const activeTab = ref<'competitors' | 'search' | 'signals' | 'synthesis' | 'assistant'>('competitors');
 
 const presenter = container.get<ResearchPresenter>(TYPES.ResearchPresenter);
 
@@ -83,11 +123,6 @@ const recommendedTemplate = ref<{ name: string; slug: string; description: strin
 const projectHypothesis = ref<string | null>(null);
 
 // Computed properties for UI state
-const hasMarketData = computed(() => {
-  const m = canvas.value?.marketData;
-  return !!(m && (m.size || m.growth || (m.trends && m.trends.length)));
-});
-
 const hasCompetitorData = computed(() => {
   const c = canvas.value?.competitorInfo;
   return !!(c && (c.competitors?.length || c.priceRange || c.rating));
@@ -108,6 +143,10 @@ const canvasKey = computed(() => {
   return canvas.value ? JSON.stringify(canvas.value) : 'empty';
 });
 
+// Research settings
+const researchGeography = ref('');
+const researchSegment = ref('');
+
 // Business logic functions
 async function loadCanvas() {
   if (!projectId.value) return;
@@ -118,9 +157,15 @@ async function loadCanvas() {
   try {
     const result = await presenter.getResearchCanvas(projectId.value);
     // Handle nested canvas structure from backend
-    const canvasData = result.canvas?.canvas || result.canvas;
+    const canvasData = result.canvas;
     canvas.value = { ...canvasData }; // Ensure reactivity
-    synthesisReport.value = result.synthesisReport ?? null;
+
+    // Only update synthesisReport if we got a valid one from backend
+    // Don't overwrite existing synthesisReport with null
+    if (result.synthesisReport) {
+      synthesisReport.value = result.synthesisReport;
+    }
+
     recommendedTemplate.value = result.recommendedTemplate ?? null;
     projectHypothesis.value = result.projectHypothesis ?? null;
     if (result.error) {
@@ -184,20 +229,23 @@ async function generateSynthesis() {
   try {
     const result = await presenter.generateSynthesis(projectId.value);
     if (result.report) {
-      // Handle nested report structure from backend
-      synthesisReport.value = result.report.report || result.report;
+      synthesisReport.value = result.report;
+    } else {
+      // If synthesis generation failed but we have existing data, keep it
+      // Don't overwrite existing synthesisReport with null
+      console.warn('Synthesis generation returned no report', { projectId: projectId.value });
     }
-    // Don't show synthesis errors in UI - synthesis is optional in test environments
   } catch (err) {
     // Synthesis is optional - don't show errors to user
+    console.warn('Synthesis generation failed', { projectId: projectId.value, error: err });
   } finally {
     synthesisLoading.value = false;
   }
 }
 
 // Event handlers
-const handleStartResearch = (geography?: string, segment?: string) => {
-  collectData(geography, segment);
+const handleStartResearch = () => {
+  collectData(researchGeography.value || undefined, researchSegment.value || undefined);
 };
 
 // Initialize
@@ -210,6 +258,123 @@ onMounted(async () => {
 .research-tab-view {
   padding: 0;
   max-width: var(--content-max-width, 56rem);
+}
+
+.research-settings-section {
+  margin-bottom: 2rem;
+}
+
+.settings-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, border-color 0.2s;
+  padding: 1.5rem;
+}
+
+.settings-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.section-icon-target {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.settings-form {
+  padding: 0;
+}
+
+.btn-research-primary {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
+}
+
+.btn-research-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-research-primary:active {
+  transform: translateY(0);
+}
+
+.btn-research-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.input-field {
+  flex: 1;
+  min-width: 12rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-accent, #0d9488);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+
+.input-field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .input-group {
+    flex-direction: column;
+  }
+
+  .input-field {
+    width: 100%;
+  }
+}
+
+.btn-research-primary .btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .invitations-tabs {
