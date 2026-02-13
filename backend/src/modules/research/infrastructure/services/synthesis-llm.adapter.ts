@@ -9,15 +9,15 @@ import { SynthesisGenerationError } from '../../domain/errors/research.error';
 
 const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 
-const SYSTEM_PROMPT = `You are a research analyst. Based on the provided project context (hypothesis, market, competitors, autocomplete/search intents, user insights, early signals), produce a short synthesis report.
+const SYSTEM_PROMPT = `You are a research analyst. Based on the provided project context (hypothesis, market, competitors, autocomplete/search intents, user insights, early signals), produce a well-formatted executive summary.
 
 Respond with ONLY a valid JSON object (no markdown, no extra text):
-{"summary":"2-4 sentence overall summary","recommendations":["recommendation 1","recommendation 2",...]}
+{"summary":"Write a 2-4 sentence executive summary that synthesizes all the research findings. Use clear, professional language with proper formatting including paragraphs where appropriate. Focus on key insights, market opportunities, and validation signals.","recommendations":["recommendation 1","recommendation 2",...]}
 
 Rules:
-- summary: concise synthesis of the main findings; if autocomplete data is provided, incorporate what users actually search for.
-- recommendations: 2-5 actionable recommendations
-- Use English.`;
+- summary: Well-structured executive summary with proper formatting, paragraphs, and clear insights
+- recommendations: 2-5 actionable recommendations based on the research
+- Use English and professional business writing style`;
 
 @injectable()
 export class SynthesisLlmAdapter implements SynthesisLlmPort {
