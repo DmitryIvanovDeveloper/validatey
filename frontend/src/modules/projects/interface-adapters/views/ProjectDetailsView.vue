@@ -72,9 +72,9 @@
               </div>
               <div>
                 <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'text-gray-900' : 'text-gray-600']">
-                  Соберите 25% ответов
+                  Collect 25% responses
                 </div>
-                <div class="text-sm text-gray-500">Ранние сигналы о валидности гипотезы</div>
+                <div class="text-sm text-gray-500">Early signals about hypothesis validity</div>
               </div>
             </div>
             <div class="flex items-start gap-3">
@@ -83,9 +83,9 @@
               </div>
               <div>
                 <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'text-gray-900' : 'text-gray-600']">
-                  Достигните 50% целевых ответов
+                  Reach 50% target responses
                 </div>
-                <div class="text-sm text-gray-500">Первые выводы и корректировка</div>
+                <div class="text-sm text-gray-500">First insights and adjustments</div>
               </div>
             </div>
             <div class="flex items-start gap-3">
@@ -94,9 +94,9 @@
               </div>
               <div>
                 <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'text-gray-900' : 'text-gray-600']">
-                  75% - подготовка к решению
+                  75% - preparation for decision
                 </div>
-                <div class="text-sm text-gray-500">Анализ данных и формирование рекомендаций</div>
+                <div class="text-sm text-gray-500">Data analysis and recommendation formation</div>
               </div>
             </div>
             <div class="flex items-start gap-3">
@@ -105,9 +105,9 @@
               </div>
               <div>
                 <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'text-gray-900' : 'text-gray-600']">
-                  GO/NO-GO решение
+                  GO/NO-GO decision
                 </div>
-                <div class="text-sm text-gray-500">Финальный вердикт на основе всех данных</div>
+                <div class="text-sm text-gray-500">Final verdict based on all data</div>
               </div>
             </div>
           </div>
@@ -145,10 +145,10 @@
         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
           <h2 class="heading-3 text-gray-900 mb-4">Learning Journey</h2>
           <p class="text-gray-700 text-sm mb-4">
-            Это раунд валидации #1. После анализа результатов вы сможете запустить следующий раунд для углубленной проверки.
+            This is validation round #1. After analyzing the results, you can launch the next round for deeper verification.
           </p>
           <button class="learn-more-btn">
-            Узнать больше →
+            Learn more →
           </button>
         </div>
       </div>
