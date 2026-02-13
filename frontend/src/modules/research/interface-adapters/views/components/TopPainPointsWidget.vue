@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, inject, watch } from 'vue';
+import { ref, onMounted, inject, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { Frown } from 'lucide-vue-next';
 import { container } from '../../../../../infrastructure/bootstrap/container';
@@ -62,10 +62,12 @@ import { TYPES } from '../../../infrastructure/bootstrap/types';
 
 interface Props {
   projectId?: string;
+  externalLoading?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   projectId: undefined,
+  externalLoading: false,
 });
 
 const route = useRoute();
@@ -74,12 +76,15 @@ const projectId = props.projectId || route.params.projectId as string;
 const presenter = container.get<ResearchPresenter>(TYPES.ResearchPresenter);
 
 const painPoints = ref<string[]>([]);
-const loading = ref(true);
+const internalLoading = ref(true);
 const error = ref<string | null>(null);
+
+// Combined loading state that considers both internal and external loading
+const loading = computed(() => internalLoading.value || props.externalLoading);
 
 const loadPainPoints = async () => {
   try {
-    loading.value = true;
+    internalLoading.value = true;
     error.value = null;
 
     const result = await presenter.getResearchCanvas(projectId);
@@ -93,7 +98,7 @@ const loadPainPoints = async () => {
     error.value = err instanceof Error ? err.message : 'Failed to load pain points';
     console.error('Failed to load top pain points:', err);
   } finally {
-    loading.value = false;
+    internalLoading.value = false;
   }
 };
 

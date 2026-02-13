@@ -133,13 +133,10 @@
         />
 
         <!-- Top Pain Points -->
-        <TopPainPointsWidget :project-id="projectId" />
+        <TopPainPointsWidget ref="painPointsRef" :project-id="projectId" :external-loading="widgetsLoading" />
 
         <!-- Response Pace -->
-        <ResponsePaceWidget
-          :project-id="projectId"
-          :target-pace="5"
-        />
+        <ResponsePaceWidget ref="responsePaceRef" :project-id="projectId" :target-pace="5" :external-loading="widgetsLoading" />
 
         <!-- Learning Journey -->
         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
@@ -196,6 +193,10 @@ const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
 const overviewInvitations = ref<Array<{ id: string; email: string; status: string }>>([]);
 
+// Refs for widget components
+const painPointsRef = ref();
+const responsePaceRef = ref();
+
 /** Overview command center payload (executive summary, pulse, smart actions, research context, decision pathway). */
 type OverviewPayload = {
   executiveSummary: {
@@ -234,6 +235,7 @@ type OverviewPayload = {
 const overviewData = ref<OverviewPayload | null>(null);
 const researchData = ref<any>(null);
 const executiveSummaryLoading = ref(false);
+const widgetsLoading = ref(false); // External loading state for Pain Points and Response Pace widgets
 const isShowDetailsModalOpen = ref(false);
 
 const project = computed(() => {
@@ -293,10 +295,12 @@ async function loadResearchData() {
 
 function handleResearchStarted() {
   executiveSummaryLoading.value = true;
+  widgetsLoading.value = true; // Show loading in Pain Points and Response Pace widgets
 }
 
 function handleResearchCompleted() {
   executiveSummaryLoading.value = false;
+  widgetsLoading.value = false; // Hide loading in Pain Points and Response Pace widgets
   // Reload research data to get updated summary
   loadResearchData();
 }

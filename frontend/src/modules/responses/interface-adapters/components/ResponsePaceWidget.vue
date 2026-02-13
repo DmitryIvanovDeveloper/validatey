@@ -121,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch, withDefaults } from 'vue';
 import { Clock, AlertCircle, TrendingUp, Target } from 'lucide-vue-next';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { ResponsePresenter } from '../presenters/response.presenter';
@@ -131,9 +131,13 @@ import { TYPES } from '../../infrastructure/bootstrap/types';
 interface Props {
   projectId: string;
   targetPace?: number; // Target responses per day
+  externalLoading?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  targetPace: 5,
+  externalLoading: false,
+});
 
 const responsePresenter = container.get<ResponsePresenter>(TYPES.ResponsePresenter);
 const paceData = ref<ResponsePaceData>({
@@ -143,8 +147,11 @@ const paceData = ref<ResponsePaceData>({
   thisWeekTotal: 0,
   insights: []
 });
-const loading = ref(true);
+const internalLoading = ref(true);
 const error = ref<string | null>(null);
+
+// Combined loading state that considers both internal and external loading
+const loading = computed(() => internalLoading.value || props.externalLoading);
 
 // Reactive computed properties for template
 const currentPace = computed(() => paceData.value.currentPace);
@@ -155,7 +162,7 @@ const insights = computed(() => paceData.value.insights);
 
 const loadResponsePace = async () => {
   try {
-    loading.value = true;
+    internalLoading.value = true;
     error.value = null;
 
     const result = await responsePresenter.getResponsePace(props.projectId, props.targetPace || 5);
@@ -168,7 +175,7 @@ const loadResponsePace = async () => {
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load response pace data';
   } finally {
-    loading.value = false;
+    internalLoading.value = false;
   }
 };
 

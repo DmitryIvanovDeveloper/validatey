@@ -18,19 +18,19 @@
         </div>
       </div>
 
-      <!-- Content -->
-      <div v-if="summary?.trim()" class="summary-content">
-        <p class="summary-text">{{ summary }}</p>
-      </div>
-
-      <!-- Loading state (when no data available) -->
-      <div v-else class="loading-state">
+      <!-- Loading state (when loading or no data available) -->
+      <div v-if="loading || !summary?.trim()" class="loading-state">
         <div class="loading-dots">
           <div class="dot"></div>
           <div class="dot"></div>
           <div class="dot"></div>
         </div>
-        <p class="loading-text">Analyzing research data...</p>
+        <p class="loading-text">{{ loading ? 'Analyzing research data...' : 'No research insights available yet' }}</p>
+      </div>
+
+      <!-- Content -->
+      <div v-else-if="summary?.trim()" class="summary-content">
+        <p class="summary-text">{{ summary }}</p>
       </div>
     </div>
   </div>
