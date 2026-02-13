@@ -141,7 +141,7 @@ onMounted(() => {
 }
 
 .section-title {
-  font-size: var(--text-3xl);
+  font-size: var(--text-xl);
   font-weight: var(--font-weight-semibold);
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-tight);
