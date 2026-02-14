@@ -6,6 +6,7 @@ import { Project, ProjectStatus } from '../../domain/entities/project.entity';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
+import { userContextService } from '../../../../shared/services/user-context.service';
 
 @injectable()
 export class ProjectListPresenter {
@@ -22,7 +23,15 @@ export class ProjectListPresenter {
     viewModel.loading.value = true;
     viewModel.error.value = null;
 
-    const result = await this._listProjectsUseCase.execute({});
+    const userId = userContextService.getUserId();
+    if (!userId) {
+      viewModel.error.value = 'User not authenticated';
+      viewModel.loading.value = false;
+      this._logger.error('Failed to load projects: no user ID');
+      return;
+    }
+
+    const result = await this._listProjectsUseCase.execute({ userId });
 
     if (result.isSuccess) {
       // Map response to Project entities
@@ -40,12 +49,12 @@ export class ProjectListPresenter {
       );
       viewModel.projects.value = projects;
       viewModel.loading.value = false;
-      this._logger.info('Projects loaded', { count: result.data.projects.length });
+      this._logger.info('Projects loaded', { userId, count: result.data.projects.length });
     } else {
       const message = result.error instanceof Error ? result.error.message : String(result.error);
       viewModel.error.value = message || 'Failed to load projects';
       viewModel.loading.value = false;
-      this._logger.error('Failed to load projects', { error: result.error });
+      this._logger.error('Failed to load projects', { userId, error: result.error });
     }
   }
 
