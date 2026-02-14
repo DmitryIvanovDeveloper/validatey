@@ -142,16 +142,39 @@ export class GetOverviewUseCase {
     return 'weak_support';
   }
 
-  private async getSignificanceTarget(templateSlug: string | null): Promise<number> {
-    if (!templateSlug) {
+  private async getSignificanceTarget(templateSlugOrJson: string | null): Promise<number> {
+    if (!templateSlugOrJson) {
       return MIN_SIGNIFICANCE_TARGET;
     }
 
     try {
-      const template = await this._scenarioTemplateRepository.getBySlug(templateSlug);
-      return template?.significanceTarget ?? MIN_SIGNIFICANCE_TARGET;
+      // Try to parse as JSON array first
+      let templateSlugs: string[] = [];
+      try {
+        const parsed = JSON.parse(templateSlugOrJson);
+        if (Array.isArray(parsed)) {
+          templateSlugs = parsed;
+        } else {
+          templateSlugs = [templateSlugOrJson];
+        }
+      } catch {
+        // If not JSON, treat as single slug
+        templateSlugs = [templateSlugOrJson];
+      }
+
+      // Get significance targets for all selected templates
+      const significanceTargets: number[] = [];
+      for (const slug of templateSlugs) {
+        const template = await this._scenarioTemplateRepository.getBySlug(slug);
+        if (template?.significanceTarget) {
+          significanceTargets.push(template.significanceTarget);
+        }
+      }
+
+      // Return the maximum significance target, or minimum if none found
+      return significanceTargets.length > 0 ? Math.max(...significanceTargets) : MIN_SIGNIFICANCE_TARGET;
     } catch (error) {
-      this._logger.warn('Failed to get significance target from template', { templateSlug, error });
+      this._logger.warn('Failed to get significance target from template', { templateSlugOrJson, error });
       return MIN_SIGNIFICANCE_TARGET;
     }
   }
