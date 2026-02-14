@@ -207,7 +207,12 @@ function refetchProjects() {
 }
 
 onMounted(() => {
-  // Only load projects when session is ready and userId is set
+  // Load projects immediately if we already have session and userId
+  if (userContextService.isSessionReady() && userContextService.getCurrentUserId()) {
+    refetchProjects();
+  }
+
+  // Also listen for session/userId changes
   window.addEventListener('validatey-session-ready', refetchProjects);
   window.addEventListener('validatey-user-id-synced', refetchProjects);
 });
