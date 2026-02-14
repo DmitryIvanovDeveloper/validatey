@@ -217,20 +217,34 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
 
   async findAll(): Promise<ResultEx<Project[], Error>> {
     try {
+      console.log('[Repository] findAll start');
       const supabase = getSupabaseClient();
+      console.log('[Repository] Supabase client obtained for findAll');
+
       const { data, error } = await supabase
         .from('projects')
         .select('*')
         .order('created_at', { ascending: false });
 
+      console.log('[Repository] findAll query executed', { hasError: !!error, dataCount: data?.length || 0 });
+
       if (error) {
+        console.error('[Repository] findAll Supabase error', { error: error.message, code: error.code });
         this._logger.error('supabase-project-repository.find-all-error', { error: error.message });
         return ResultEx.failure(new Error(error.message));
       }
       if (!data || !Array.isArray(data)) {
+        console.log('[Repository] findAll: empty result');
         return ResultEx.success([]);
       }
-      const projects = data.map((item) => this.mapToDomain(item));
+
+      console.log('[Repository] findAll: mapping data', { count: data.length });
+      const projects = data.map((item, index) => {
+        console.log(`[Repository] findAll mapping item ${index}`, { id: item?.id, name: item?.name, userId: item?.user_id });
+        return this.mapToDomain(item);
+      });
+
+      console.log('[Repository] findAll: success', { count: projects.length });
       return ResultEx.success(projects);
     } catch (error) {
       this._logger.error('supabase-project-repository.find-all-exception', { error });
@@ -542,29 +556,6 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     }
   }
 
-  async reassignUserId(fromUserId: string, toUserId: string): Promise<ResultEx<number, Error>> {
-    try {
-      const supabase = getSupabaseClient();
-      const nowIso = new Date().toISOString();
-
-      const { data, error } = await supabase
-        .from('projects')
-        .update({ user_id: toUserId, updated_at: nowIso })
-        .eq('user_id', fromUserId)
-        .select('id');
-
-      if (error) {
-        this._logger.error('supabase-project-repository.reassign-user-id-error', { fromUserId, toUserId, error: error.message });
-        return ResultEx.failure(new Error(error.message));
-      }
-      const count = Array.isArray(data) ? data.length : 0;
-      this._logger.info('supabase-project-repository.reassign-user-id-success', { fromUserId, toUserId, count });
-      return ResultEx.success(count);
-    } catch (error) {
-      this._logger.error('supabase-project-repository.reassign-user-id-exception', { fromUserId, toUserId, error });
-      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
-    }
-  }
 
   private mapToDomain(data: Record<string, unknown>): Project {
     if (!data) {

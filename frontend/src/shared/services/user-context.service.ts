@@ -75,8 +75,16 @@ class UserContextService {
     let id = this.getUserId();
     if (!id) {
       id = this.generateTemporaryUserId();
+      this.setUserId(id);
     }
     return id;
+  }
+
+  /**
+   * Получить текущий user ID без генерации нового
+   */
+  getCurrentUserId(): string | null {
+    return this.getUserId();
   }
 
   /** Session has been loaded (auth state known). Used to avoid loading projects with stale userId. */

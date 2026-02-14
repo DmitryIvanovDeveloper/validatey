@@ -98,8 +98,4 @@ export class AuthPresenter {
     viewModel.role.value = null;
   }
 
-  /** Call after login to reassign projects from anonymous userId to current user. */
-  async linkPreviousUser(previousUserId: string): Promise<{ linked: number }> {
-    return this._authService.linkPreviousUser(previousUserId);
-  }
 }

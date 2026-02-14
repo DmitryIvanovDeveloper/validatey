@@ -6,9 +6,7 @@ import { userContextService } from './shared/services/user-context.service';
 
 import './styles/main.css'; // Import global styles
 
-// Инициализируем user ID при загрузке приложения
-// Создаём временный ID для анонимных пользователей или загружаем сохранённый
-userContextService.getOrCreateUserId();
+// User ID will be initialized when session is loaded in AppLayout
 
 const app = createApp(App);
 

@@ -59,38 +59,23 @@ const userInitial = computed(() => {
 });
 let unsubscribeAuth: (() => void) | null = null;
 
-/** True after loadSession() has completed. Prevents clearing userId on initial run (user is null before session loads). */
-const sessionLoaded = ref(false);
-
 const showNavbar = computed(() => {
   return route.meta.hideNavbar !== true;
 });
 
+/** Handle userId sync events */
 watch(
   () => authViewModel.user.value,
-  async (user) => {
+  (user) => {
     if (user) {
-      const previousId = userContextService.getUserId();
-      if (previousId && previousId !== user.id) {
-        try {
-          await authPresenter.linkPreviousUser(previousId);
-        } catch (_) {
-          // Non-blocking: projects stay under old id; user can retry or continue
-        }
-      }
-      userContextService.setUserId(user.id);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('validatey-user-id-synced'));
       }
     } else {
-      // Only clear when we know session was loaded and user is null (e.g. sign out).
-      // Do NOT clear on first run: user is null before loadSession, and clearing would wipe stored Google id, so list projects would use a new anonymous id and show empty.
-      if (sessionLoaded.value) {
-        userContextService.clearUserId();
-      }
+      // Clear userId on sign out
+      userContextService.clearUserId();
     }
-  },
-  { immediate: true }
+  }
 );
 
 // Session refresh interval
@@ -113,7 +98,6 @@ const handleUserActivity = () => {
 
 onMounted(async () => {
   await authPresenter.loadSession(authViewModel);
-  sessionLoaded.value = true;
   userContextService.setSessionReady(true);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('validatey-session-ready'));
@@ -126,7 +110,13 @@ onMounted(async () => {
     if (authViewModel.user.value) {
       console.log('🔄 Refreshing session...');
       try {
-        await authPresenter.loadSession(authViewModel);
+        // Add timeout to prevent hanging refresh operations
+        const refreshPromise = authPresenter.loadSession(authViewModel);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Session refresh timeout')), 10000)
+        );
+
+        await Promise.race([refreshPromise, timeoutPromise]);
         console.log('✅ Session refreshed successfully');
       } catch (error) {
         console.warn('❌ Failed to refresh session:', error);

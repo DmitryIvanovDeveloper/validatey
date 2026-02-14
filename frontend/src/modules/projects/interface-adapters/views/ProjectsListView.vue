@@ -19,7 +19,7 @@
     <div v-else-if="viewModel.error.value" class="error-state">
       <ErrorDisplay :error="viewModel.error.value" />
     </div>
-    <div v-else-if="viewModel.projects.value.length === 0" class="empty-state">
+    <div v-else-if="!viewModel.loading.value && viewModel.projects.value.length === 0" class="empty-state">
       <!-- Guided onboarding for first-time users -->
       <div v-if="!onboardingCompleted" class="onboarding-block">
         <h2 class="onboarding-title">Let's validate your first hypothesis</h2>
@@ -207,9 +207,7 @@ function refetchProjects() {
 }
 
 onMounted(() => {
-  if (userContextService.isSessionReady()) {
-    refetchProjects();
-  }
+  // Only load projects when session is ready and userId is set
   window.addEventListener('validatey-session-ready', refetchProjects);
   window.addEventListener('validatey-user-id-synced', refetchProjects);
 });

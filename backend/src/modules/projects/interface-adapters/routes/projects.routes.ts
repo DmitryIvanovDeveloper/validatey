@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { ProjectController } from '../controllers/project.controller';
+import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 
 const router = Router();
 const controller = container.get<ProjectController>(TYPES.ProjectController);
@@ -62,7 +63,20 @@ router.get('/', async (req: Request, res: Response) => {
     const userId = typeof rawUserId === 'string' ? rawUserId.trim() : '';
     const listAll = process.env.NODE_ENV === 'development' && req.query.list === 'all';
 
+    console.log('[Projects Route] GET / - Diagnostics:', {
+      rawUserId,
+      userId,
+      listAll,
+      nodeEnv: process.env.NODE_ENV,
+      queryList: req.query.list,
+      headers: {
+        'x-user-id': req.headers['x-user-id'],
+        'user-agent': req.headers['user-agent']?.substring(0, 50)
+      }
+    });
+
     if (!listAll && !userId) {
+      console.log('[Projects Route] Returning 400: userId required');
       return res.status(400).json({
         error: 'userId is required',
         hint: 'Provide x-user-id header or userId in request body'
@@ -89,6 +103,13 @@ router.get('/', async (req: Request, res: Response) => {
       const createdAt = p.createdAt != null && typeof p.createdAt.toISOString === 'function' ? p.createdAt.toISOString() : new Date().toISOString();
       const updatedAt = p.updatedAt != null && typeof p.updatedAt.toISOString === 'function' ? p.updatedAt.toISOString() : new Date().toISOString();
       return { id: p.id, name: p.name, status: p.status, createdAt, updatedAt };
+    });
+
+    console.log('[Projects Route] Returning projects:', {
+      count: projects.length,
+      listAll,
+      userId: listAll ? 'N/A (listAll=true)' : userId,
+      projects: projects.map(p => ({ id: p.id, name: p.name, status: p.status }))
     });
 
     return res.status(200).json(projects);
@@ -254,6 +275,68 @@ router.delete('/:id', async (req: Request, res: Response) => {
     return res.status(204).send();
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Diagnostic route for debugging
+router.get('/diagnostic', async (req: Request, res: Response) => {
+  try {
+    console.log('[Diagnostic] Starting database diagnostic...');
+
+    const supabase = getSupabaseClient();
+    console.log('[Diagnostic] Supabase client created');
+
+    // Test basic connection
+    const { data: connectionTest, error: connectionError } = await supabase
+      .from('projects')
+      .select('count', { count: 'exact', head: true });
+
+    if (connectionError) {
+      console.error('[Diagnostic] Connection test failed:', connectionError);
+      return res.status(500).json({
+        status: 'error',
+        message: 'Database connection failed',
+        error: connectionError.message
+      });
+    }
+
+    console.log('[Diagnostic] Connection successful, total projects:', connectionTest);
+
+    // Get all projects (for debugging)
+    const { data: allProjects, error: allError } = await supabase
+      .from('projects')
+      .select('id, name, user_id, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (allError) {
+      console.error('[Diagnostic] Failed to fetch projects:', allError);
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to fetch projects',
+        error: allError.message
+      });
+    }
+
+    console.log('[Diagnostic] Sample projects:', allProjects);
+
+    return res.json({
+      status: 'success',
+      totalProjects: connectionTest,
+      sampleProjects: allProjects,
+      userIdFromHeader: req.headers['x-user-id'],
+      environment: {
+        nodeEnv: process.env.NODE_ENV,
+        supabaseUrl: process.env.SUPABASE_URL?.replace(/https?:\/\/[^@]+@/, 'https://[REDACTED]@')
+      }
+    });
+  } catch (error) {
+    console.error('[Diagnostic] Exception:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Diagnostic failed',
+      error: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 

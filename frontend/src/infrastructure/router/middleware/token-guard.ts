@@ -31,7 +31,7 @@ export async function tokenGuard(
     const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
     console.log('🔐 Checking session for route:', to.path);
 
-    // Add timeout to prevent hanging
+    // Get session with timeout to prevent hanging
     const sessionPromise = authService.getSession();
     const timeoutPromise = new Promise<null>((_, reject) =>
       setTimeout(() => reject(new Error('Auth timeout')), 5000)
@@ -39,22 +39,6 @@ export async function tokenGuard(
 
     session = await Promise.race([sessionPromise, timeoutPromise]).catch(() => null);
     console.log('🔐 Session check result:', session ? 'authenticated' : 'not authenticated');
-
-    // If no session, try to refresh it once before giving up
-    if (!session) {
-      console.log('🔄 Attempting to refresh session in tokenGuard...');
-      try {
-        const refreshedSession = await authService.getSession();
-        if (refreshedSession) {
-          console.log('✅ Session refreshed successfully in tokenGuard');
-          session = refreshedSession;
-        } else {
-          console.log('❌ Session refresh failed in tokenGuard');
-        }
-      } catch (refreshError) {
-        console.warn('❌ Session refresh error in tokenGuard:', refreshError);
-      }
-    }
   } catch (error) {
     console.warn('Auth service error in tokenGuard:', error);
     // Continue without session if auth fails - session is already null

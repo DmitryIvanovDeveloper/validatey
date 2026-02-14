@@ -14,7 +14,6 @@ export interface ProjectRepositoryPort {
   update(project: Project): Promise<ResultEx<Project, ProjectNotFoundError | InvalidProjectDataError>>;
   delete(id: string): Promise<ResultEx<void, ProjectNotFoundError>>;
   /** Reassign all projects from one user id to another (e.g. after Google login). Returns count updated. */
-  reassignUserId(fromUserId: string, toUserId: string): Promise<ResultEx<number, Error>>;
 }
 
 

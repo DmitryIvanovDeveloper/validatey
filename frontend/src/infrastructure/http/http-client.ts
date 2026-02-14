@@ -33,11 +33,12 @@ export class HttpClient implements HttpClientPort {
    * Получить заголовки с x-user-id
    */
   private getHeaders(customHeaders?: Record<string, string>): Record<string, string> {
-    const userId = userContextService.getOrCreateUserId();
-    return {
-      'x-user-id': userId,
-      ...customHeaders,
-    };
+    const userId = userContextService.getCurrentUserId();
+    const headers: Record<string, string> = { ...customHeaders };
+    if (userId) {
+      headers['x-user-id'] = userId;
+    }
+    return headers;
   }
 
   private async requestWithAuthRetry<T = any>(
