@@ -2,6 +2,7 @@ import { injectable, inject } from 'inversify';
 import type { CreateProjectUseCase } from '../../application/use-cases/create-project.use-case';
 import type { GetProjectUseCase } from '../../application/use-cases/get-project.use-case';
 import type { UpdateProjectUseCase } from '../../application/use-cases/update-project.use-case';
+import type { GetMarketContextSuggestionUseCase } from '../../application/use-cases/get-market-context-suggestion.use-case';
 import { ProjectViewModel } from '../view-models/project.view-model';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
@@ -9,6 +10,7 @@ import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger
 import { Segment } from '../../domain/value-objects/segment.vo';
 import { Hypothesis } from '../../domain/value-objects/hypothesis.vo';
 import { Project, ProjectStatus, MarketContext } from '../../domain/entities/project.entity';
+import type { GetMarketContextSuggestionRequest } from '../../application/use-cases/input-output/get-market-context-suggestion.io';
 
 @injectable()
 export class ProjectPresenter {
@@ -19,6 +21,8 @@ export class ProjectPresenter {
     private readonly _getProjectUseCase: GetProjectUseCase,
     @inject(TYPES.UpdateProjectUseCase)
     private readonly _updateProjectUseCase: UpdateProjectUseCase,
+    @inject(TYPES.GetMarketContextSuggestionUseCase)
+    private readonly _getMarketContextSuggestionUseCase: GetMarketContextSuggestionUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort
   ) {}
@@ -355,6 +359,33 @@ export class ProjectPresenter {
     } else {
       viewModel.error.value = 'Failed to update project';
       viewModel.loading.value = false;
+    }
+  }
+
+  async getMarketContextSuggestions(
+    segmentDescription: string,
+    segmentDemographics: string,
+    productDescription?: string
+  ): Promise<{ marketPicture?: string; marketFit?: string; differentiation?: string } | null> {
+    try {
+      const request: GetMarketContextSuggestionRequest = {
+        segmentDescription,
+        segmentDemographics,
+        productDescription,
+      };
+
+      const result = await this._getMarketContextSuggestionUseCase.execute(request);
+
+      if (result.isSuccess) {
+        this._logger.info('Market context suggestions retrieved successfully');
+        return result.data;
+      } else {
+        this._logger.error('Failed to get market context suggestions', { error: result.error });
+        throw result.error;
+      }
+    } catch (error) {
+      this._logger.error('Unexpected error getting market context suggestions', { error });
+      throw error instanceof Error ? error : new Error('Failed to get market context suggestions');
     }
   }
 }

@@ -1,20 +1,24 @@
 import { Container } from 'inversify';
 import { TYPES } from './types';
 import { ProjectRepositoryPort } from '../../application/ports/project-repository.port';
+import { MarketContextRepositoryPort } from '../../application/ports/market-context-repository.port';
 import { ProjectRepository } from '../repositories/project.repository';
+import { MarketContextRepository } from '../repositories/market-context.repository';
 import { CreateProjectUseCase } from '../../application/use-cases/create-project.use-case';
 import { GetProjectUseCase } from '../../application/use-cases/get-project.use-case';
 import { ListProjectsUseCase } from '../../application/use-cases/list-projects.use-case';
 import { UpdateProjectUseCase } from '../../application/use-cases/update-project.use-case';
 import { DeleteProjectUseCase } from '../../application/use-cases/delete-project.use-case';
+import { GetMarketContextSuggestionUseCase } from '../../application/use-cases/get-market-context-suggestion.use-case';
 import { ProjectPresenter } from '../../interface-adapters/presenters/project.presenter';
 import { ProjectListPresenter } from '../../interface-adapters/presenters/project-list.presenter';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 
 export function bindProjects(container: Container): void {
-  // Repository
+  // Repositories
   container.bind<ProjectRepositoryPort>(TYPES.ProjectRepository).to(ProjectRepository);
+  container.bind<MarketContextRepositoryPort>(TYPES.MarketContextRepository).to(MarketContextRepository);
 
   // Use Cases
   container.bind<CreateProjectUseCase>(TYPES.CreateProjectUseCase).to(CreateProjectUseCase);
@@ -22,6 +26,7 @@ export function bindProjects(container: Container): void {
   container.bind<ListProjectsUseCase>(TYPES.ListProjectsUseCase).to(ListProjectsUseCase);
   container.bind<UpdateProjectUseCase>(TYPES.UpdateProjectUseCase).to(UpdateProjectUseCase);
   container.bind<DeleteProjectUseCase>(TYPES.DeleteProjectUseCase).to(DeleteProjectUseCase);
+  container.bind<GetMarketContextSuggestionUseCase>(TYPES.GetMarketContextSuggestionUseCase).to(GetMarketContextSuggestionUseCase);
 
   // Presenters
   container.bind<ProjectPresenter>(TYPES.ProjectPresenter).to(ProjectPresenter);

@@ -326,13 +326,11 @@ import Toast from '../../../../shared/components/Toast.vue';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { ProjectPresenter } from '../presenters/project.presenter';
 import { ScenarioPresenter } from '../../../scenarios/interface-adapters/presenters/scenario.presenter';
 import { ScenarioViewModel } from '../../../scenarios/interface-adapters/view-models/scenario.view-model';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
 import type { Project } from '../../domain/entities/project.entity';
-import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 
 const route = useRoute();
 const router = useRouter();
@@ -429,21 +427,17 @@ const fetchMarketContextSuggestion = async () => {
   marketContextSuggestLoading.value = true;
   marketContextSuggestError.value = null;
   try {
-    // Use HttpClient instead of direct fetch to include x-user-id header
-    const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
-    const response = await httpClient.post<{
-      marketPicture?: string;
-      marketFit?: string;
-      differentiation?: string;
-    }>(API_CONFIG.ENDPOINTS.AI_MARKET_CONTEXT_SUGGEST, {
-      segmentDescription: formData.value.segmentDescription || '',
-      segmentDemographics: formData.value.segmentDemographics || '',
-      productDescription: formData.value.name?.trim() || formData.value.hypothesisDescription?.trim() || undefined,
-    });
+    const suggestions = await projectPresenter.getMarketContextSuggestions(
+      formData.value.segmentDescription || '',
+      formData.value.segmentDemographics || '',
+      formData.value.name?.trim() || formData.value.hypothesisDescription?.trim()
+    );
 
-    if (response.marketPicture != null) formData.value.marketPicture = response.marketPicture;
-    if (response.marketFit != null) formData.value.marketFit = response.marketFit;
-    if (response.differentiation != null) formData.value.differentiation = response.differentiation;
+    if (suggestions) {
+      if (suggestions.marketPicture != null) formData.value.marketPicture = suggestions.marketPicture;
+      if (suggestions.marketFit != null) formData.value.marketFit = suggestions.marketFit;
+      if (suggestions.differentiation != null) formData.value.differentiation = suggestions.differentiation;
+    }
   } catch (e) {
     marketContextSuggestError.value = e instanceof Error ? e.message : 'Network error';
   } finally {
