@@ -67,44 +67,44 @@
           </template>
           <div class="space-y-3">
             <div class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'bg-green-600' : 'bg-gray-200']">
-                <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25" class="w-4 h-4 text-white" />
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'bg-green-600' : 'bg-gray-200']">
+                <CheckCircle v-if="(overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25" class="w-4 h-4 text-white" />
               </div>
               <div>
-                <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'text-gray-900' : 'text-gray-600']">
+                <div :class="['font-medium', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'text-gray-900' : 'text-gray-600']">
                   Collect 25% responses
                 </div>
                 <div class="text-sm text-gray-500">Early signals about hypothesis validity</div>
               </div>
             </div>
             <div class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'bg-green-600' : 'bg-gray-200']">
-                <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5" class="w-4 h-4 text-white" />
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'bg-green-600' : 'bg-gray-200']">
+                <CheckCircle v-if="(overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5" class="w-4 h-4 text-white" />
               </div>
               <div>
-                <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'text-gray-900' : 'text-gray-600']">
+                <div :class="['font-medium', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'text-gray-900' : 'text-gray-600']">
                   Reach 50% target responses
                 </div>
                 <div class="text-sm text-gray-500">First insights and adjustments</div>
               </div>
             </div>
             <div class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'bg-green-600' : 'bg-gray-200']">
-                <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75" class="w-4 h-4 text-white" />
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'bg-green-600' : 'bg-gray-200']">
+                <CheckCircle v-if="(overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75" class="w-4 h-4 text-white" />
               </div>
               <div>
-                <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'text-gray-900' : 'text-gray-600']">
+                <div :class="['font-medium', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'text-gray-900' : 'text-gray-600']">
                   75% - preparation for decision
                 </div>
                 <div class="text-sm text-gray-500">Data analysis and recommendation formation</div>
               </div>
             </div>
             <div class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'bg-green-600' : 'bg-gray-200']">
-                <CheckCircle v-if="(overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0)" class="w-4 h-4 text-white" />
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'bg-green-600' : 'bg-gray-200']">
+                <CheckCircle v-if="(overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0)" class="w-4 h-4 text-white" />
               </div>
               <div>
-                <div :class="['font-medium', (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'text-gray-900' : 'text-gray-600']">
+                <div :class="['font-medium', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'text-gray-900' : 'text-gray-600']">
                   GO/NO-GO decision
                 </div>
                 <div class="text-sm text-gray-500">Final verdict based on all data</div>

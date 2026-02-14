@@ -186,13 +186,6 @@
                 </button>
               </div>
 
-              <!-- Show validation types when not in AI mode -->
-              <div v-if="scenarioSource !== 'ai'" class="validation-types-grid">
-                <p v-if="selectedTemplateSlugs.length === 0" class="validation-hint">
-                  Select a validation type above to enable AI generation
-                </p>
-              </div>
-
               <!-- Scenario viewer - show generated content in template mode -->
               <div v-if="scenarioSource === 'template' && scenarioContent" class="scenario-editor">
                 <ScenarioViewer :content="scenarioContent" :validation-type="selectedTemplateSlugs" @update:content="scenarioContent = $event" />
@@ -549,17 +542,10 @@ const handleStepChange = async (step: number) => {
   if (step === 1) {
     await ensureProjectCreated();
 
-    // Загружаем шаблоны ТОЛЬКО если нет существующего сценария (режим редактирования)
-    if (!scenarioContent.value.trim()) {
-      if (scenarioTemplates.value.length === 0) {
-        const { templates, error } = await scenarioPresenter.getTemplates();
-        if (!error) scenarioTemplates.value = templates;
-        // For multiple selection, don't auto-select by default
-        // Users can select multiple types manually
-      } else {
-        // For multiple selection, don't auto-select by default
-        // Users can select multiple types manually
-      }
+    // Всегда загружаем шаблоны, чтобы пользователь мог выбрать типы валидации
+    if (scenarioTemplates.value.length === 0) {
+      const { templates, error } = await scenarioPresenter.getTemplates();
+      if (!error) scenarioTemplates.value = templates;
     }
 
     if (scenarioSource.value === 'ai' && !scenarioContent.value) {

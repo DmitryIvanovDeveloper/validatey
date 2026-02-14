@@ -64,7 +64,7 @@ export class GetOverviewUseCase {
     const smartActions = this.buildSmartActions(d, request.projectId);
     const researchContext = this.buildResearchContext(d);
     const learningJourney = this.buildLearningJourney(d, request.projectId);
-    const decisionPathway = this.buildDecisionPathway(d);
+    const decisionPathway = await this.buildDecisionPathway(d);
 
     return ResultEx.success({
       executiveSummary,
@@ -320,18 +320,22 @@ export class GetOverviewUseCase {
     return { rounds, extendSuggestions };
   }
 
-  private buildDecisionPathway(d: OverviewRawData): DecisionPathway {
+  private async buildDecisionPathway(d: OverviewRawData): Promise<DecisionPathway> {
     const sent = d.invitations.filter(
       (i) => i.status === 'sent' || i.status === 'responded' || i.status === 'completed'
     ).length;
     const responded = d.responses.length; // Count actual responses instead of invitation statuses
+
+    // Get significance target from selected template or use default
+    const significanceTarget = await this.getSignificanceTarget(d.project.scenarioTemplateSlug);
+
     const steps = [
       {
         id: '1',
-        label: `Collect ${DEFAULT_SIGNIFICANCE_TARGET} responses`,
-        progress: `${responded}/${DEFAULT_SIGNIFICANCE_TARGET}`,
-        status: (responded >= DEFAULT_SIGNIFICANCE_TARGET ? 'done' : responded > 0 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
-        actionHref: responded < DEFAULT_SIGNIFICANCE_TARGET ? `/projects/${d.project.id}/invitations` : null,
+        label: `Collect ${significanceTarget} responses`,
+        progress: `${responded}/${significanceTarget}`,
+        status: (responded >= significanceTarget ? 'done' : responded > 0 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
+        actionHref: responded < significanceTarget ? `/projects/${d.project.id}/invitations` : null,
       },
       {
         id: '2',
@@ -364,10 +368,10 @@ export class GetOverviewUseCase {
         met: (wtpMedian ?? 0) > 0,
       },
       {
-        label: `N ≥ ${DEFAULT_SIGNIFICANCE_TARGET}`,
+        label: `N ≥ ${significanceTarget}`,
         current: `${responded}`,
-        target: String(DEFAULT_SIGNIFICANCE_TARGET),
-        met: responded >= DEFAULT_SIGNIFICANCE_TARGET,
+        target: String(significanceTarget),
+        met: responded >= significanceTarget,
       },
     ];
     return {

@@ -91,7 +91,7 @@ export class CerebrasScenarioService implements LLMServicePort {
 
       const metadata: ScenarioMetadata = {
         tone: request.metadata?.tone || 'professional',
-        length: request.metadata?.length ?? 10,
+        length: request.metadata?.length || null, // AI determines optimal length
         branches: [],
       };
 
@@ -147,7 +147,8 @@ Write a natural, conversational interview script. Include:
 - Interviewer instructions in [brackets]
 - Natural dialogue flow
 - Follow-up questions based on responses
-- 8-15 questions total
+- Optimal number of questions to thoroughly validate assumptions without exhausting the respondent
+- Focus on quality over quantity - ask as many questions as needed but keep the interview engaging
 
 Remember: People lie, exaggerate, or don't know what they want. Your job is to find the truth through careful questioning.`;
   }
@@ -218,13 +219,13 @@ Remember: People lie, exaggerate, or don't know what they want. Your job is to f
     }
 
     const tone = request.metadata?.tone || 'professional';
-    const length = request.metadata?.length ?? 10;
     parts.push(
       '',
       `🎭 INTERVIEW STYLE: ${tone}`,
-      `📊 TARGET LENGTH: ${length} questions`,
       '',
-      'Remember the "Ask Your Mother" principle: Use simple language. Focus on problems, not solutions. Validate assumptions through past behavior, not future intentions.'
+      'Remember the "Ask Your Mother" principle: Use simple language. Focus on problems, not solutions. Validate assumptions through past behavior, not future intentions.',
+      '',
+      '📊 QUESTION COUNT: Determine the optimal number of questions to thoroughly validate all assumptions while keeping the interview engaging and not exhausting for the respondent. Quality over quantity - ask as many as needed but maintain flow and interest.'
     );
 
     return parts.filter(Boolean).join('\n\n');
