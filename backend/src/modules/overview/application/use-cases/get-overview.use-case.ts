@@ -22,7 +22,7 @@ import type {
 } from './input-output/get-overview.io';
 import type { OverviewRawData } from '../../application/ports/overview-data-provider.port';
 
-const DEFAULT_SIGNIFICANCE_TARGET = 50; // Fallback if template not found
+const MIN_SIGNIFICANCE_TARGET = 8; // Minimum target when no template selected
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 @injectable()
@@ -66,6 +66,7 @@ export class GetOverviewUseCase {
     const learningJourney = this.buildLearningJourney(d, request.projectId);
     const decisionPathway = await this.buildDecisionPathway(d);
 
+
     return ResultEx.success({
       executiveSummary,
       pulse,
@@ -81,12 +82,13 @@ export class GetOverviewUseCase {
       (i) => i.status === 'sent' || i.status === 'responded' || i.status === 'completed'
     ).length;
     const responded = d.responses.length; // Count actual responses instead of invitation statuses
+
     const responseRatePct = sent > 0 ? Math.round((responded / sent) * 100) : 0;
     const pace = this.computePace(d.responses);
-    const validationStatus = this.inferValidationStatus(responded, responseRatePct, d.earlySignals.length);
 
     // Get significance target from selected template or use default
     const significanceTarget = await this.getSignificanceTarget(d.project.scenarioTemplateSlug);
+    const validationStatus = this.inferValidationStatus(responded, responseRatePct, d.earlySignals.length, significanceTarget);
     const neededForSignificance =
       responded < significanceTarget ? Math.max(0, significanceTarget - responded) : null;
     const keyInsight =
@@ -99,7 +101,7 @@ export class GetOverviewUseCase {
       const end = d.project.deadline.getTime();
       daysRemaining = Math.max(0, Math.ceil((end - now) / MS_PER_DAY));
     }
-    const aiVerdict = this.buildAiVerdict(responded, responseRatePct, neededForSignificance, daysRemaining, pace);
+    const aiVerdict = this.buildAiVerdict(responded, responseRatePct, neededForSignificance, daysRemaining, pace, significanceTarget);
 
     return {
       projectName: d.project.name,
@@ -131,25 +133,26 @@ export class GetOverviewUseCase {
   private inferValidationStatus(
     responded: number,
     responseRatePct: number,
-    signalsCount: number
+    signalsCount: number,
+    significanceTarget: number
   ): ValidationStatus {
     if (responded === 0) return 'no_data';
-    if (responded >= DEFAULT_SIGNIFICANCE_TARGET && responseRatePct >= 40 && signalsCount > 0) return 'validated';
+    if (responded >= significanceTarget && responseRatePct >= 40 && signalsCount > 0) return 'validated';
     if (responded >= 10 && signalsCount > 0) return 'unclear_signal';
     return 'weak_support';
   }
 
   private async getSignificanceTarget(templateSlug: string | null): Promise<number> {
     if (!templateSlug) {
-      return DEFAULT_SIGNIFICANCE_TARGET;
+      return MIN_SIGNIFICANCE_TARGET;
     }
 
     try {
       const template = await this._scenarioTemplateRepository.getBySlug(templateSlug);
-      return template?.significanceTarget ?? DEFAULT_SIGNIFICANCE_TARGET;
+      return template?.significanceTarget ?? MIN_SIGNIFICANCE_TARGET;
     } catch (error) {
       this._logger.warn('Failed to get significance target from template', { templateSlug, error });
-      return DEFAULT_SIGNIFICANCE_TARGET;
+      return MIN_SIGNIFICANCE_TARGET;
     }
   }
 
@@ -158,7 +161,8 @@ export class GetOverviewUseCase {
     responseRatePct: number,
     needed: number | null,
     daysRemaining: number | null,
-    pace: number
+    pace: number,
+    significanceTarget: number
   ): string {
     const parts: string[] = [];
     if (responded === 0) {
@@ -176,7 +180,7 @@ export class GetOverviewUseCase {
         parts.push(`At current pace, extend deadline or accelerate collection.`);
       }
     }
-    if (parts.length === 0 && responded >= DEFAULT_SIGNIFICANCE_TARGET) {
+    if (parts.length === 0 && responded >= significanceTarget) {
       return 'Hypothesis looks promising with enough data. Review Report for full insights.';
     }
     return parts.length > 0 ? parts.join(' ') : 'Keep collecting responses and check Early Signals on the Report.';
@@ -332,24 +336,31 @@ export class GetOverviewUseCase {
     const steps = [
       {
         id: '1',
-        label: `Collect ${significanceTarget} responses`,
-        progress: `${responded}/${significanceTarget}`,
-        status: (responded >= significanceTarget ? 'done' : responded > 0 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
-        actionHref: responded < significanceTarget ? `/projects/${d.project.id}/invitations` : null,
+        label: `Collect ${Math.round(significanceTarget * 0.25)} responses (25%)`,
+        progress: `${responded}/${Math.round(significanceTarget * 0.25)}`,
+        status: (responded >= significanceTarget * 0.25 ? 'done' : responded > 0 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
+        actionHref: responded < significanceTarget * 0.25 ? `/projects/${d.project.id}/invitations` : null,
       },
       {
         id: '2',
-        label: 'Review Early Signals',
-        progress: d.earlySignals.length > 0 ? `${d.earlySignals.length} signals` : 'None yet',
-        status: (d.earlySignals.length > 0 ? 'done' : responded > 0 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
-        actionHref: `/projects/${d.project.id}/report`,
+        label: `Reach ${Math.round(significanceTarget * 0.5)} responses (50%)`,
+        progress: `${responded}/${Math.round(significanceTarget * 0.5)}`,
+        status: (responded >= significanceTarget * 0.5 ? 'done' : responded >= significanceTarget * 0.25 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
+        actionHref: responded < significanceTarget * 0.5 ? `/projects/${d.project.id}/invitations` : null,
       },
       {
         id: '3',
-        label: 'GO/NO-GO decision',
-        progress: '—',
-        status: 'pending' as DecisionPathway['steps'][0]['status'],
-        actionHref: null,
+        label: `Collect ${Math.round(significanceTarget * 0.75)} responses (75%)`,
+        progress: `${responded}/${Math.round(significanceTarget * 0.75)}`,
+        status: (responded >= significanceTarget * 0.75 ? 'done' : responded >= significanceTarget * 0.5 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
+        actionHref: responded < significanceTarget * 0.75 ? `/projects/${d.project.id}/invitations` : null,
+      },
+      {
+        id: '4',
+        label: `GO/NO-GO decision (${significanceTarget} responses)`,
+        progress: d.earlySignals.length > 0 ? `${d.earlySignals.length} signals` : '—',
+        status: (d.earlySignals.length > 0 && responded >= significanceTarget * 0.75 ? 'done' : responded >= significanceTarget * 0.75 ? 'in_progress' : 'pending') as DecisionPathway['steps'][0]['status'],
+        actionHref: d.earlySignals.length === 0 ? `/projects/${d.project.id}/report` : null,
       },
     ];
     const wtpMedian =

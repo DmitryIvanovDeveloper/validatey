@@ -91,7 +91,7 @@ export class CerebrasScenarioService implements LLMServicePort {
 
       const metadata: ScenarioMetadata = {
         tone: request.metadata?.tone || 'professional',
-        length: request.metadata?.length || null, // AI determines optimal length
+        length: request.metadata?.length || 0, // 0 means AI determines optimal length
         branches: [],
       };
 

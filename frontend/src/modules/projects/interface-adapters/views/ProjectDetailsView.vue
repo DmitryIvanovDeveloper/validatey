@@ -66,48 +66,22 @@
             <h3 class="section-title">Decision Pathway</h3>
           </template>
           <div class="space-y-3">
-            <div class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'bg-green-600' : 'bg-gray-200']">
-                <CheckCircle v-if="(overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25" class="w-4 h-4 text-white" />
+            <div v-for="step in overviewData?.decisionPathway?.steps" :key="step.id" class="flex items-start gap-3">
+              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border-2', step.status === 'done' ? 'bg-green-600 border-green-600' : step.status === 'in_progress' ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300']">
+                <CheckCircle v-if="step.status === 'done'" class="w-4 h-4 text-white" />
+                <div v-else-if="step.status === 'in_progress'" class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <div v-else class="w-3 h-3 bg-gray-600 rounded-full"></div>
               </div>
               <div>
-                <div :class="['font-medium', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.25 ? 'text-gray-900' : 'text-gray-600']">
-                  Collect 25% responses
+                <div :class="['font-medium', step.status === 'done' ? 'text-gray-900' : 'text-gray-600']">
+                  {{ step.label }}
                 </div>
-                <div class="text-sm text-gray-500">Early signals about hypothesis validity</div>
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'bg-green-600' : 'bg-gray-200']">
-                <CheckCircle v-if="(overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5" class="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <div :class="['font-medium', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.5 ? 'text-gray-900' : 'text-gray-600']">
-                  Reach 50% target responses
+                <div class="text-sm text-gray-500 flex items-center gap-2">
+                  <span>{{ step.progress }}</span>
+                  <router-link v-if="step.actionHref" :to="step.actionHref" class="text-blue-600 hover:text-blue-800 text-xs">
+                    {{ step.status === 'pending' ? 'Start' : step.status === 'in_progress' ? 'Continue' : 'View' }}
+                  </router-link>
                 </div>
-                <div class="text-sm text-gray-500">First insights and adjustments</div>
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'bg-green-600' : 'bg-gray-200']">
-                <CheckCircle v-if="(overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75" class="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <div :class="['font-medium', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) * 0.75 ? 'text-gray-900' : 'text-gray-600']">
-                  75% - preparation for decision
-                </div>
-                <div class="text-sm text-gray-500">Data analysis and recommendation formation</div>
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'bg-green-600' : 'bg-gray-200']">
-                <CheckCircle v-if="(overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0)" class="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <div :class="['font-medium', (overviewData?.executiveSummary?.sent ?? 0) > 0 && (overviewData?.executiveSummary?.responded ?? 0) >= (overviewData?.executiveSummary?.sent ?? 0) ? 'text-gray-900' : 'text-gray-600']">
-                  GO/NO-GO decision
-                </div>
-                <div class="text-sm text-gray-500">Final verdict based on all data</div>
               </div>
             </div>
           </div>
@@ -193,6 +167,7 @@ const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
 const overviewInvitations = ref<Array<{ id: string; email: string; status: string }>>([]);
 
+
 // Refs for widget components
 const painPointsRef = ref();
 const responsePaceRef = ref();
@@ -277,7 +252,8 @@ async function loadOverview() {
     const url = API_CONFIG.ENDPOINTS.OVERVIEW(projectId);
     const data = await httpClient.get<OverviewPayload>(url);
     overviewData.value = data ?? null;
-  } catch {
+  } catch (error) {
+    console.error('Failed to load overview:', error);
     overviewData.value = null;
   }
 }
