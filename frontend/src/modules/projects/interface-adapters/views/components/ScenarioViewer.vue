@@ -286,10 +286,10 @@ const props = withDefaults(
     content: string;
     /** When 'json', show editable textarea first (e.g. for "Edit manually" in wizard) */
     defaultViewMode?: 'visual' | 'json';
-    /** Selected validation type for dynamic title */
-    validationType?: string;
+    /** Selected validation types for dynamic title */
+    validationType?: string[];
   }>(),
-  { defaultViewMode: 'visual', validationType: '' }
+  { defaultViewMode: 'visual', validationType: () => [] }
 );
 
 const emit = defineEmits<{
@@ -301,31 +301,37 @@ const jsonError = ref<string | null>(null);
 const editingQuestionId = ref<string | null>(null);
 
 const dynamicTitle = computed(() => {
-  if (!props.validationType) return 'Survey Scenario';
+  if (!props.validationType || props.validationType.length === 0) return 'Survey Scenario';
 
-  const titles = {
-    'problem-validation': 'Problem Validation Interview',
-    'solution-validation': 'Solution Validation Interview',
-    'pricing-validation': 'Pricing Validation Survey',
-    'survey': 'Online Survey',
-    'statistical-analysis': 'Statistical Analysis Survey'
-  };
+  if (props.validationType.length === 1) {
+    const titles = {
+      'problem-validation': 'Problem Validation Interview',
+      'solution-validation': 'Solution Validation Interview',
+      'pricing-validation': 'Pricing Validation Survey',
+      'survey': 'Online Survey',
+      'statistical-analysis': 'Statistical Analysis Survey'
+    };
+    return titles[props.validationType[0] as keyof typeof titles] || 'Survey Scenario';
+  }
 
-  return titles[props.validationType as keyof typeof titles] || 'Survey Scenario';
+  return 'Multi-Type Validation Scenario';
 });
 
 const dynamicDescription = computed(() => {
-  if (!props.validationType) return 'Review and edit the generated survey scenario';
+  if (!props.validationType || props.validationType.length === 0) return 'Review and edit the generated survey scenario';
 
-  const descriptions = {
-    'problem-validation': 'Deep interview questions to understand user problems and willingness to pay',
-    'solution-validation': 'Interview questions to validate solutions and test prototypes',
-    'pricing-validation': 'Survey questions to test price sensitivity and willingness to pay',
-    'survey': 'Online survey questions optimized for statistical significance',
-    'statistical-analysis': 'Survey questions designed for statistical analysis and A/B testing'
-  };
+  if (props.validationType.length === 1) {
+    const descriptions = {
+      'problem-validation': 'Deep interview questions to understand user problems and willingness to pay',
+      'solution-validation': 'Interview questions to validate solutions and test prototypes',
+      'pricing-validation': 'Survey questions to test price sensitivity and willingness to pay',
+      'survey': 'Online survey questions optimized for statistical significance',
+      'statistical-analysis': 'Survey questions designed for statistical analysis and A/B testing'
+    };
+    return descriptions[props.validationType[0] as keyof typeof descriptions] || 'Review and edit the generated survey scenario';
+  }
 
-  return descriptions[props.validationType as keyof typeof descriptions] || 'Review and edit the generated survey scenario';
+  return 'Multi-method validation scenario combining different approaches';
 });
 
 function getJsonError(): string | null {

@@ -140,9 +140,17 @@
                   v-for="template in scenarioTemplates"
                   :key="template.slug"
                   class="validation-type-card"
-                  :class="{ selected: selectedTemplateSlug === template.slug }"
+                  :class="{ selected: selectedTemplateSlugs.includes(template.slug) }"
                   @click="selectValidationType(template.slug)"
                 >
+                  <div class="validation-type-checkbox">
+                    <input
+                      type="checkbox"
+                      :checked="selectedTemplateSlugs.includes(template.slug)"
+                      @change="selectValidationType(template.slug)"
+                      @click.stop
+                    />
+                  </div>
                   <div class="validation-type-header">
                     <h3 class="validation-type-title">{{ template.name }}</h3>
                     <div class="validation-type-target">{{ template.significanceTarget }} respondents needed</div>
@@ -167,7 +175,7 @@
                 </div>
               </div>
               <div class="scenario-options">
-                <button v-if="selectedTemplateSlug && scenarioSource !== 'ai'" type="button" class="btn btn-ai-generate" @click="switchToAI">
+                <button v-if="selectedTemplateSlugs.length > 0 && scenarioSource !== 'ai'" type="button" class="btn btn-ai-generate" @click="switchToAI">
                   <svg class="btn-ai-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                     <path d="M12 7v4"/>
@@ -180,14 +188,14 @@
 
               <!-- Show validation types when not in AI mode -->
               <div v-if="scenarioSource !== 'ai'" class="validation-types-grid">
-                <p v-if="!selectedTemplateSlug" class="validation-hint">
+                <p v-if="selectedTemplateSlugs.length === 0" class="validation-hint">
                   Select a validation type above to enable AI generation
                 </p>
               </div>
 
               <!-- Scenario viewer - show generated content in template mode -->
               <div v-if="scenarioSource === 'template' && scenarioContent" class="scenario-editor">
-                <ScenarioViewer :content="scenarioContent" :validation-type="selectedTemplateSlug" @update:content="scenarioContent = $event" />
+                <ScenarioViewer :content="scenarioContent" :validation-type="selectedTemplateSlugs" @update:content="scenarioContent = $event" />
               </div>
 
 
@@ -199,7 +207,7 @@
                   </div>
                   <div class="generation-content">
                     <h3>Generating AI Scenario</h3>
-                    <p>Creating customized questions for your {{ getValidationTypeName(selectedTemplateSlug) }}...</p>
+                    <p>Creating customized questions for your {{ getValidationTypeName(selectedTemplateSlugs) }}...</p>
                     <div class="generation-progress">
                       <div class="progress-bar">
                         <div class="progress-fill" :style="{ width: generationProgress + '%' }"></div>
@@ -318,11 +326,13 @@ import Toast from '../../../../shared/components/Toast.vue';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { ProjectPresenter } from '../presenters/project.presenter';
 import { ScenarioPresenter } from '../../../scenarios/interface-adapters/presenters/scenario.presenter';
 import { ScenarioViewModel } from '../../../scenarios/interface-adapters/view-models/scenario.view-model';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
 import type { Project } from '../../domain/entities/project.entity';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 
 const route = useRoute();
 const router = useRouter();
@@ -378,7 +388,7 @@ const currentProjectId = ref<string | null>(null);
 const scenarioViewModel = new ScenarioViewModel();
 const showContextSection = ref(false);
 const scenarioSource = ref<'template' | 'ai'>('template');
-const selectedTemplateSlug = ref('');
+const selectedTemplateSlugs = ref<string[]>([]);
 const scenarioTemplates = ref<Array<{ slug: string; name: string; significanceTarget: number; content?: string }>>([]);
 const audienceChoice = ref<'email' | 'panel' | 'share'>('share');
 
@@ -418,25 +428,22 @@ const removeAssumption = (index: number) => {
 const fetchMarketContextSuggestion = async () => {
   marketContextSuggestLoading.value = true;
   marketContextSuggestError.value = null;
-  const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AI_MARKET_CONTEXT_SUGGEST}`;
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        segmentDescription: formData.value.segmentDescription || '',
-        segmentDemographics: formData.value.segmentDemographics || '',
-        productDescription: formData.value.name?.trim() || formData.value.hypothesisDescription?.trim() || undefined,
-      }),
+    // Use HttpClient instead of direct fetch to include x-user-id header
+    const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
+    const response = await httpClient.post<{
+      marketPicture?: string;
+      marketFit?: string;
+      differentiation?: string;
+    }>(API_CONFIG.ENDPOINTS.AI_MARKET_CONTEXT_SUGGEST, {
+      segmentDescription: formData.value.segmentDescription || '',
+      segmentDemographics: formData.value.segmentDemographics || '',
+      productDescription: formData.value.name?.trim() || formData.value.hypothesisDescription?.trim() || undefined,
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      marketContextSuggestError.value = data?.error || data?.message || `Request failed (${res.status})`;
-      return;
-    }
-    if (data.marketPicture != null) formData.value.marketPicture = data.marketPicture;
-    if (data.marketFit != null) formData.value.marketFit = data.marketFit;
-    if (data.differentiation != null) formData.value.differentiation = data.differentiation;
+
+    if (response.marketPicture != null) formData.value.marketPicture = response.marketPicture;
+    if (response.marketFit != null) formData.value.marketFit = response.marketFit;
+    if (response.differentiation != null) formData.value.differentiation = response.differentiation;
   } catch (e) {
     marketContextSuggestError.value = e instanceof Error ? e.message : 'Network error';
   } finally {
@@ -483,7 +490,11 @@ const validateStep = (step: number): string | null => {
       return 'Hypothesis description is required';
     }
   } else if (step === 1) {
-    // Step 2: How?
+    // Step 2: What type of validation do you need?
+    if (selectedTemplateSlugs.value.length === 0) {
+      return 'Please select at least one validation type';
+    }
+    // Step 2: How? (scenario content)
     if (!scenarioContent.value?.trim()) {
       fieldErrors.value.scenarioContent = true;
       return 'Scenario content is required';
@@ -549,13 +560,11 @@ const handleStepChange = async (step: number) => {
       if (scenarioTemplates.value.length === 0) {
         const { templates, error } = await scenarioPresenter.getTemplates();
         if (!error) scenarioTemplates.value = templates;
-        if (scenarioTemplates.value.length > 0 && !selectedTemplateSlug.value) {
-          selectedTemplateSlug.value = scenarioTemplates.value[0].slug;
-          await loadSelectedTemplate();
-        }
-      } else if (scenarioTemplates.value.length > 0 && !selectedTemplateSlug.value) {
-        selectedTemplateSlug.value = scenarioTemplates.value[0].slug;
-        await loadSelectedTemplate();
+        // For multiple selection, don't auto-select by default
+        // Users can select multiple types manually
+      } else {
+        // For multiple selection, don't auto-select by default
+        // Users can select multiple types manually
       }
     }
 
@@ -576,43 +585,46 @@ async function ensureProjectCreated(): Promise<void> {
     formData.value.hypothesisDescription,
     formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
     marketContext ?? undefined,
-    selectedTemplateSlug.value || undefined
+    selectedTemplateSlugs.value[0] || undefined
   );
   if (createResult.projectId) currentProjectId.value = createResult.projectId;
 }
 
 function selectValidationType(slug: string) {
-  // Save current questions before switching
-  if (selectedTemplateSlug.value && scenarioContent.value.trim()) {
-    questionsByType.value[selectedTemplateSlug.value] = scenarioContent.value;
+  const index = selectedTemplateSlugs.value.indexOf(slug);
+  if (index > -1) {
+    // If already selected, remove it
+    selectedTemplateSlugs.value.splice(index, 1);
+  } else {
+    // If not selected, add it
+    selectedTemplateSlugs.value.push(slug);
   }
 
-  // Switch to new type
-  selectedTemplateSlug.value = slug;
   scenarioSource.value = 'template';
 
-  // Restore saved questions if available
-  if (questionsByType.value[slug]) {
-    scenarioContent.value = questionsByType.value[slug];
-    console.log('Restored saved questions for type:', slug);
+  // Try to restore saved questions for the current combination of types
+  const typesKey = JSON.stringify(selectedTemplateSlugs.value.sort());
+  if (questionsByType.value[typesKey]) {
+    scenarioContent.value = questionsByType.value[typesKey];
+    console.log('Restored saved questions for types:', selectedTemplateSlugs.value);
   } else {
-    // Clear content for new type
+    // Clear content when selection changes
     scenarioContent.value = '';
   }
 
   const template = scenarioTemplates.value.find(t => t.slug === slug);
   if (template) {
-    console.log('Selected validation type:', template);
+    console.log('Toggled validation type:', template, 'Selected types:', selectedTemplateSlugs.value);
   }
 }
 
 async function loadSelectedTemplate(): Promise<void> {
-  const slug = selectedTemplateSlug.value;
-  if (!slug) return;
-  const t = scenarioTemplates.value.find(x => x.slug === slug);
-  if (t) {
-    // Template selected, content will be generated by AI
-    console.log('Validation type selected:', t);
+  const slugs = selectedTemplateSlugs.value;
+  if (slugs.length === 0) return;
+  const selectedTemplates = scenarioTemplates.value.filter(x => slugs.includes(x.slug));
+  if (selectedTemplates.length > 0) {
+    // Templates selected, content will be generated by AI
+    console.log('Validation types selected:', selectedTemplates);
   }
 }
 
@@ -621,26 +633,29 @@ function handleScenarioSourceChange(event: Event) {
   if (target.checked) {
   } else {
     // If unchecking manual, go back to template if selected, otherwise to AI
-    scenarioSource.value = selectedTemplateSlug.value ? 'template' : 'ai';
+    scenarioSource.value = selectedTemplateSlugs.value.length > 0 ? 'template' : 'ai';
   }
 }
 
-const getValidationTypeName = (slug: string | undefined): string => {
-  if (!slug) return 'validation';
-  const names = {
-    'problem-validation': 'Problem Validation',
-    'solution-validation': 'Solution Validation',
-    'pricing-validation': 'Pricing Validation',
-    'survey': 'Survey',
-    'statistical-analysis': 'Statistical Analysis'
-  };
-  return names[slug as keyof typeof names] || 'validation';
+const getValidationTypeName = (slugs: string[]): string => {
+  if (slugs.length === 0) return 'validation';
+  if (slugs.length === 1) {
+    const names = {
+      'problem-validation': 'Problem Validation',
+      'solution-validation': 'Solution Validation',
+      'pricing-validation': 'Pricing Validation',
+      'survey': 'Survey',
+      'statistical-analysis': 'Statistical Analysis'
+    };
+    return names[slugs[0] as keyof typeof names] || 'validation';
+  }
+  return `${slugs.length} validation types`;
 };
 
 async function switchToAI() {
   // Select first template if none selected
-  if (!selectedTemplateSlug.value && scenarioTemplates.value.length > 0) {
-    selectedTemplateSlug.value = scenarioTemplates.value[0].slug;
+  if (selectedTemplateSlugs.value.length === 0 && scenarioTemplates.value.length > 0) {
+    selectedTemplateSlugs.value = [scenarioTemplates.value[0].slug];
   }
 
   // Switch to AI mode and start generation immediately
@@ -674,7 +689,7 @@ const generateScenario = async () => {
         formData.value.hypothesisDescription,
         formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
         marketContext,
-        selectedTemplateSlug.value || undefined
+        selectedTemplateSlugs.value[0] || undefined
       );
 
       if (!createResult.projectId) {
@@ -739,7 +754,7 @@ const generateScenario = async () => {
       segment,
       hypothesis,
       marketContext,
-      selectedTemplateSlug.value || undefined
+      selectedTemplateSlugs.value[0] || undefined
     );
 
     console.log('✅ Scenario generation completed:', {
@@ -752,22 +767,17 @@ const generateScenario = async () => {
       scenarioContent.value = scenarioViewModel.scenario.value.content ?? '';
       generationProgress.value = 100;
 
-      // Save generated questions for current validation type
-      if (selectedTemplateSlug.value && scenarioContent.value.trim()) {
-        questionsByType.value[selectedTemplateSlug.value] = scenarioContent.value;
-        console.log('Saved generated questions for type:', selectedTemplateSlug.value);
+      // Save generated questions for selected validation types
+      if (selectedTemplateSlugs.value.length > 0 && scenarioContent.value.trim()) {
+        const typesKey = JSON.stringify(selectedTemplateSlugs.value.sort());
+        questionsByType.value[typesKey] = scenarioContent.value;
+        console.log('Saved generated questions for types:', selectedTemplateSlugs.value);
       }
 
       // Auto-close success overlay after 2 seconds
       setTimeout(() => {
         scenarioSource.value = 'template';
       }, 2000);
-
-      // Save generated questions for current validation type
-      if (selectedTemplateSlug.value && scenarioContent.value.trim()) {
-        questionsByType.value[selectedTemplateSlug.value] = scenarioContent.value;
-        console.log('Saved generated questions for type:', selectedTemplateSlug.value);
-      }
     } else if (scenarioViewModel.error.value) {
       scenarioError.value = sanitizeScenarioError(scenarioViewModel.error.value);
     }
@@ -845,7 +855,7 @@ async function doComplete() {
     formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0) || undefined,
     undefined,
     marketContext ?? undefined,
-    selectedTemplateSlug.value || undefined
+    selectedTemplateSlugs.value[0] || undefined
   );
 
   let content = (scenarioContent.value ?? '').trim();
@@ -876,9 +886,10 @@ async function doComplete() {
   } else if (currentProjectId.value && choice === 'panel') {
     router.push(`/projects/${currentProjectId.value}/panel`);
   // Save current questions before completing
-  if (selectedTemplateSlug.value && scenarioContent.value.trim()) {
-    questionsByType.value[selectedTemplateSlug.value] = scenarioContent.value;
-    console.log('Saved final questions for type:', selectedTemplateSlug.value);
+  if (selectedTemplateSlugs.value.length > 0 && scenarioContent.value.trim()) {
+    const typesKey = JSON.stringify(selectedTemplateSlugs.value.sort());
+    questionsByType.value[typesKey] = scenarioContent.value;
+    console.log('Saved final questions for types:', selectedTemplateSlugs.value);
   }
 
   } else {
@@ -892,7 +903,7 @@ const handleComplete = async () => {
 
   completingProject.value = true;
 
-  const slug = selectedTemplateSlug.value?.trim();
+  const slug = selectedTemplateSlugs.value[0]?.trim();
   const content = (scenarioContent.value ?? '').trim();
   if (slug && content) {
     try {
@@ -1670,21 +1681,17 @@ onMounted(async () => {
   box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
 }
 
-.validation-type-card.selected::after {
-  content: '✓';
+.validation-type-checkbox {
   position: absolute;
   top: 1rem;
   right: 1rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  background: var(--color-accent);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.875rem;
-  font-weight: bold;
+}
+
+.validation-type-checkbox input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--color-accent);
+  cursor: pointer;
 }
 
 .validation-type-header {
