@@ -71,6 +71,36 @@
         </button>
       </div>
 
+      <!-- Email Collection (for public surveys that require email) -->
+      <div
+        v-else-if="!viewModel.loading.value && !viewModel.error.value && viewModel.emailRequired.value && !emailProvided"
+        class="email-collection"
+      >
+        <h2 class="email-title">Contact Information</h2>
+        <p class="email-description">Please provide your email address to continue with the survey.</p>
+        <div class="email-input-group">
+          <label for="respondent-email" class="email-label">Email address *</label>
+          <input
+            id="respondent-email"
+            v-model="respondentEmail"
+            type="email"
+            class="email-input"
+            placeholder="your.email@example.com"
+            required
+            @keyup.enter="onEmailContinue"
+          />
+          <div v-if="emailError" class="email-error">{{ emailError }}</div>
+        </div>
+        <button
+          type="button"
+          class="btn btn-primary btn-large"
+          :disabled="!respondentEmail.trim() || emailSubmitting"
+          @click="onEmailContinue"
+        >
+          {{ emailSubmitting ? 'Saving…' : 'Continue' }}
+        </button>
+      </div>
+
       <!-- Survey Content -->
       <div v-else-if="viewModel.survey.value && currentQuestion && !isCompleted" class="survey-content">
         <div class="question-card">
@@ -211,12 +241,22 @@ const consentChecked = ref(false);
 const consentSubmitting = ref(false);
 const consentError = ref<string | null>(null);
 
+// Email collection
+const respondentEmail = computed({
+  get: () => viewModel.respondentEmail.value,
+  set: (value) => { viewModel.respondentEmail.value = value; }
+});
+const emailProvided = ref(false);
+const emailSubmitting = ref(false);
+const emailError = ref<string | null>(null);
+
 const currentQuestion = computed(() => {
   const survey = viewModel.survey.value;
   if (!survey) return null;
   const index = viewModel.currentQuestionIndex.value;
   return survey.questions[index] || null;
 });
+
 
 const progressPercent = computed(() => {
   const survey = viewModel.survey.value;
@@ -326,6 +366,33 @@ const onConsentContinue = async () => {
     consentError.value = e instanceof Error ? e.message : 'Unknown error';
   } finally {
     consentSubmitting.value = false;
+  }
+};
+
+const onEmailContinue = async () => {
+  if (!respondentEmail.value.trim()) {
+    emailError.value = 'Email address is required';
+    return;
+  }
+
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(respondentEmail.value.trim())) {
+    emailError.value = 'Please enter a valid email address';
+    return;
+  }
+
+  emailSubmitting.value = true;
+  emailError.value = null;
+
+  try {
+    // For now, just mark email as provided
+    // Later we can send it to backend when submitting responses
+    emailProvided.value = true;
+  } catch (e) {
+    emailError.value = e instanceof Error ? e.message : 'Unknown error';
+  } finally {
+    emailSubmitting.value = false;
   }
 };
 
@@ -675,5 +742,63 @@ onMounted(() => {
   .question-title {
     font-size: 1.25rem;
   }
+}
+
+/* Email Collection Styles */
+.email-collection {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.email-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+}
+
+.email-description {
+  color: #718096;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.email-input-group {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.email-label {
+  display: block;
+  font-weight: 500;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.email-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.email-input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.email-error {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
 }
 </style>

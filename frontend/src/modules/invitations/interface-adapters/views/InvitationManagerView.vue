@@ -89,10 +89,12 @@
             <input v-model="requirePublicEmail" type="checkbox" :disabled="publicSaving" class="checkbox-input" />
             <span>Require email for public respondents</span>
           </label>
+          <!-- Captcha disabled for now
           <label class="checkbox-row">
             <input v-model="captchaEnabled" type="checkbox" :disabled="publicSaving" class="checkbox-input" />
             <span>Enable CAPTCHA</span>
           </label>
+          -->
           <div class="form-actions">
             <button
               type="button"

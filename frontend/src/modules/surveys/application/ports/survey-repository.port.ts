@@ -4,6 +4,7 @@ import { SurveyNotFoundError, SurveyExpiredError } from '../../domain/errors/sur
 
 export type SurveyWithConsent = {
   survey: Survey;
+  emailRequired: boolean;
   consentRequired: boolean;
   consentText: string;
   dataUsageText: string;

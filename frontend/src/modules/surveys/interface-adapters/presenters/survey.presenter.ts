@@ -57,6 +57,7 @@ export class SurveyPresenter {
         viewModel.termsOfServiceUrl.value = data.termsOfServiceUrl ?? null;
         viewModel.alreadyConsented.value = data.alreadyConsented ?? false;
         viewModel.consentGiven.value = data.alreadyConsented ?? false;
+        viewModel.emailRequired.value = data.emailRequired;
         this._logger.info('Survey loaded', { token });
       } else {
         const err = result.error;

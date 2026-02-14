@@ -24,6 +24,7 @@ export type GetSurveyByTokenUseCaseResponse = {
     }>;
     status: string;
   };
+  emailRequired: boolean;
   consentRequired?: boolean;
   consentText?: string;
   dataUsageText?: string;
@@ -63,6 +64,7 @@ export class GetSurveyByTokenUseCase {
         })),
         status: survey.status
       },
+      emailRequired: data.emailRequired,
       consentRequired: data.consentRequired,
       consentText: data.consentText,
       dataUsageText: data.dataUsageText,

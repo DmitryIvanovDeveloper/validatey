@@ -7,6 +7,8 @@ import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/b
 import { GetInvitationByTokenUseCase } from '../../../invitations/application/use-cases/get-invitation-by-token.use-case';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
 import { ScenarioRepositoryPort } from '../../../scenarios/application/ports/scenario-repository.port';
+import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
+import { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import { ScenarioParserService } from '../../domain/services/scenario-parser.service';
 import { SurveyNotFoundError } from '../../domain/errors/survey.error';
 
@@ -18,7 +20,9 @@ export class GetSurveyByTokenUseCase {
     @inject(INVITATION_TYPES.GetInvitationByTokenUseCase)
     private readonly _getInvitationByTokenUseCase: GetInvitationByTokenUseCase,
     @inject(SCENARIO_TYPES.ScenarioRepository)
-    private readonly _scenarioRepository: ScenarioRepositoryPort
+    private readonly _scenarioRepository: ScenarioRepositoryPort,
+    @inject(PROJECT_TYPES.ProjectRepository)
+    private readonly _projectRepository: ProjectRepositoryPort
   ) {}
 
   async execute(
@@ -38,6 +42,21 @@ export class GetSurveyByTokenUseCase {
     }
 
     const invitation = invitationResult.data.invitation;
+
+    // Get project settings to check email requirement
+    const projectResult = await this._projectRepository.findById(invitation.projectId);
+    if (!projectResult.isSuccess) {
+      this._logger.warn('get-survey-by-token.project-not-found', {
+        token: request.token,
+        projectId: invitation.projectId,
+        error: projectResult.error?.message || 'Unknown error'
+      });
+      return ResultEx.failure(new SurveyNotFoundError(`Project not found for invitation: ${request.token}`));
+    }
+    const project = projectResult.data;
+
+    // Check if email is required (for public surveys without email)
+    const emailRequired = project.requirePublicEmail && invitation.email === null;
 
     // Get latest scenario for the project
     const scenariosResult = await this._scenarioRepository.findByProjectId(invitation.projectId);
@@ -100,6 +119,7 @@ export class GetSurveyByTokenUseCase {
         startedAt: null,
         completedAt: null,
       },
+      emailRequired,
     });
   }
 }

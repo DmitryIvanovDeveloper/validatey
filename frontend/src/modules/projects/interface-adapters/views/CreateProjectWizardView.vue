@@ -565,7 +565,7 @@ async function ensureProjectCreated(): Promise<void> {
     formData.value.hypothesisDescription,
     formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
     marketContext ?? undefined,
-    selectedTemplateSlugs.value.length > 0 ? selectedTemplateSlugs.value : undefined
+    selectedTemplateSlugs.value.length > 0 ? JSON.stringify(selectedTemplateSlugs.value) : undefined
   );
   if (createResult.projectId) currentProjectId.value = createResult.projectId;
 }

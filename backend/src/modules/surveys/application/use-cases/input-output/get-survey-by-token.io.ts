@@ -33,6 +33,7 @@ export type GetSurveyByTokenUseCaseResponse = {
     startedAt: Date | null;
     completedAt: Date | null;
   };
+  emailRequired: boolean;
 };
 
 

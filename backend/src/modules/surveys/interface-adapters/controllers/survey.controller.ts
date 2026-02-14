@@ -31,7 +31,7 @@ export class SurveyController {
 					alreadyConsented: false,
 			  };
 
-		return ResultEx.success({
+		const finalResponse = {
 			...result.data,
 			consentRequired: consent.consentRequired,
 			consentText: consent.consentText,
@@ -39,6 +39,8 @@ export class SurveyController {
 			privacyPolicyUrl: consent.privacyPolicyUrl ?? null,
 			termsOfServiceUrl: consent.termsOfServiceUrl ?? null,
 			alreadyConsented: consent.alreadyConsented,
-		});
+		};
+
+		return ResultEx.success(finalResponse);
 	}
 }

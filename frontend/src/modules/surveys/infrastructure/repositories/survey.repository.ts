@@ -81,6 +81,7 @@ export class SurveyRepository implements SurveyRepositoryPort {
 
       const withConsent: SurveyWithConsent = {
         survey,
+        emailRequired: (response as any).emailRequired ?? false,
         consentRequired: (response as any).consentRequired ?? false,
         consentText: (response as any).consentText ?? '',
         dataUsageText: (response as any).dataUsageText ?? '',
