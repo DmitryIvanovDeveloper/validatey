@@ -69,7 +69,7 @@
                   v-else
                   class="source-icon unknown-icon"
                 >
-                  <svg viewBox="0 0 24 24" class="w-4 h-4">
+                  <svg viewBox="0 0 24 24" class="w-3 h-3">
                     <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
                     <path d="M12 8v4M12 16h.01"/>
                   </svg>
@@ -227,8 +227,8 @@ defineExpose({
 }
 
 .source-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .reddit-icon {
