@@ -1816,14 +1816,21 @@ onMounted(async () => {
 /* Slide animation for sidebar */
 .slide-panel-enter-active,
 .slide-panel-leave-active {
-  transition: transform 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
-.slide-panel-enter-from {
-  transform: translateX(100%);
-}
-
+.slide-panel-enter-from,
 .slide-panel-leave-to {
+  opacity: 0;
+}
+
+.slide-panel-enter-active .detail-panel,
+.slide-panel-leave-active .detail-panel {
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.slide-panel-enter-from .detail-panel,
+.slide-panel-leave-to .detail-panel {
   transform: translateX(100%);
 }
 
