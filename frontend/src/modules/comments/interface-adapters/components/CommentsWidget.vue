@@ -1,8 +1,8 @@
 <template>
   <div class="comments-widget">
     <div class="section-card signals-card">
-      <div>
-        <span class="section-icon section-icon-comments" aria-hidden="true">
+      <div class="section-card-header">
+        <span class="section-icon section-icon-signals" aria-hidden="true">
           <svg viewBox="0 0 24 24" class="w-5 h-5">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             <circle cx="9" cy="10" r="1"/>
@@ -65,7 +65,18 @@
                   alt="Hacker News"
                   class="source-icon hn-icon"
                 />
-                <span class="source-name">{{ stat.source === 'reddit' ? 'Reddit' : 'Hacker News' }}</span>
+                <div
+                  v-else
+                  class="source-icon unknown-icon"
+                >
+                  <svg viewBox="0 0 24 24" class="w-4 h-4">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 8v4M12 16h.01"/>
+                  </svg>
+                </div>
+                <span class="source-name">
+                  {{ stat.source === 'reddit' ? 'Reddit' : stat.source === 'hackernews' ? 'Hacker News' : 'Unknown' }}
+                </span>
               </div>
               <span class="source-count">{{ stat.count }}</span>
             </div>
@@ -168,7 +179,7 @@ defineExpose({
 }
 
 .comments-content {
-  padding: 1.5rem;
+  /* Content padding removed - now handled by section-card */
 }
 
 .comments-metrics {
@@ -210,6 +221,15 @@ defineExpose({
 
 .source-stat.hackernews {
   border-color: rgba(255, 102, 0, 0.2);
+}
+
+.source-stat.unknown {
+  border-color: rgba(108, 117, 125, 0.2);
+}
+
+.unknown-icon {
+  background: var(--color-text-muted);
+  color: white;
 }
 
 .source-info {
@@ -349,19 +369,18 @@ defineExpose({
 
 /* Section card styles */
 .section-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  backdrop-filter: blur(12px);
-  overflow: hidden;
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  padding: 1.5rem;
 }
 
 .section-card-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0;
 }
 
 .section-icon {
@@ -370,24 +389,29 @@ defineExpose({
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 10px;
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
+.section-icon-signals {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
-.section-icon-comments {
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
-}
-
 .section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
   color: var(--color-text);
-  margin: 0 0 0.25rem 0;
+  margin: 0;
 }
 
 .section-subtitle {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
-  margin: 0;
+  margin: 0.25rem 0 0 0;
 }
 </style>
