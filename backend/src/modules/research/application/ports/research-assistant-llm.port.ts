@@ -3,6 +3,12 @@ import ResultEx from '../../../../infrastructure/result/result';
 export interface ResearchAssistantContext {
   projectName: string;
   hypothesisSummary: string;
+  comments?: Array<{
+    content: string;
+    author?: string;
+    contextTitle?: string;
+    sourceType: string;
+  }>;
 }
 
 export interface AssistantReply {

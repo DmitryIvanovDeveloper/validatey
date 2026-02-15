@@ -10,7 +10,16 @@ import type {
 
 const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 
-const SYSTEM_PROMPT = `You are an AI research assistant for product validation. The user is a PM doing research. Reply briefly. If they ask for market analysis or methods, suggest 1-3 concrete methods (e.g. "conjoint analysis", "survey", "A/B test") and optionally ask 1-2 clarifying questions (geography, segment, budget). Respond with ONLY a valid JSON object (no markdown): {"reply":"your reply text","suggestedMethods":["method1",...],"clarificationQuestions":["q1",...]}. Omit suggestedMethods or clarificationQuestions if not relevant. Use English.`;
+const SYSTEM_PROMPT = `You are an AI research assistant for product validation. The user is a PM doing research. You have access to recent comments from external sources (like HackerNews, Reddit) that may contain relevant insights, user feedback, or similar experiences.
+
+When responding:
+- Consider the provided comments as real user feedback and incorporate relevant insights from them
+- Reference specific comments when they support your recommendations or provide context
+- Reply briefly and practically
+- If they ask for market analysis or methods, suggest 1-3 concrete methods (e.g. "conjoint analysis", "survey", "A/B test")
+- Optionally ask 1-2 clarifying questions (geography, segment, budget)
+
+Respond with ONLY a valid JSON object (no markdown): {"reply":"your reply text","suggestedMethods":["method1",...],"clarificationQuestions":["q1",...]}. Omit suggestedMethods or clarificationQuestions if not relevant. Use English.`;
 
 @injectable()
 export class ResearchAssistantLlmAdapter implements ResearchAssistantLlmPort {
@@ -20,7 +29,21 @@ export class ResearchAssistantLlmAdapter implements ResearchAssistantLlmPort {
   ) {}
 
   async reply(userMessage: string, context: ResearchAssistantContext): Promise<ResultEx<AssistantReply, Error>> {
-    const userContent = `Project: ${context.projectName}\nHypothesis: ${context.hypothesisSummary}\n\nUser: ${userMessage}`;
+    let userContent = `Project: ${context.projectName}\nHypothesis: ${context.hypothesisSummary}\n\n`;
+
+    // Add comments if available
+    if (context.comments && context.comments.length > 0) {
+      userContent += `Recent Comments (${context.comments.length}):\n`;
+      context.comments.forEach((comment, index) => {
+        userContent += `${index + 1}. "${comment.content}"`;
+        if (comment.author) userContent += ` - ${comment.author}`;
+        if (comment.contextTitle) userContent += ` (from: ${comment.contextTitle})`;
+        userContent += '\n';
+      });
+      userContent += '\n';
+    }
+
+    userContent += `User: ${userMessage}`;
     const fullPrompt = `${SYSTEM_PROMPT}\n\n---\n${userContent}`;
 
     try {
