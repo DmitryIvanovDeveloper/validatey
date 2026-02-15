@@ -409,6 +409,18 @@
           {{ viewModel.error }}
         </div>
   </div>
+
+  <!-- Confirm Dialog -->
+  <ConfirmDialog
+    v-model="showConfirmDialog"
+    :title="confirmDialogConfig.title"
+    :message="confirmDialogConfig.message"
+    :variant="confirmDialogConfig.variant"
+    :confirm-label="confirmDialogConfig.confirmLabel"
+    :cancel-label="confirmDialogConfig.cancelLabel"
+    @confirm="handleConfirm"
+    @cancel="handleCancel"
+  />
 </template>
 
 <script setup lang="ts">
@@ -418,6 +430,7 @@ import { CommentsPresenter } from '../presenters/comments.presenter';
 import { COMMENT_TYPES } from '../../types';
 import Card from '../../../../shared/components/Card.vue';
 import Button from '../../../../shared/components/atoms/Button.vue';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog.vue';
 
 interface Props {
   projectId: string;
@@ -457,6 +470,47 @@ const getSourceStats = computed(() => {
     count
   })).sort((a, b) => b.count - a.count);
 });
+
+// Confirm dialog state
+const showConfirmDialog = ref(false);
+const confirmDialogConfig = ref({
+  title: 'Confirm Deletion',
+  message: '',
+  variant: 'danger' as 'default' | 'danger',
+  confirmLabel: 'Delete',
+  cancelLabel: 'Cancel'
+});
+
+// Pending action to execute after confirmation
+let pendingAction: (() => Promise<void>) | null = null;
+
+// Show confirmation dialog
+const showConfirmation = (title: string, message: string, action: () => Promise<void>, variant: 'default' | 'danger' = 'danger') => {
+  confirmDialogConfig.value = {
+    title,
+    message,
+    variant,
+    confirmLabel: variant === 'danger' ? 'Delete' : 'Confirm',
+    cancelLabel: 'Cancel'
+  };
+  pendingAction = action;
+  showConfirmDialog.value = true;
+};
+
+// Handle confirmation
+const handleConfirm = async () => {
+  if (pendingAction) {
+    await pendingAction();
+    pendingAction = null;
+  }
+  showConfirmDialog.value = false;
+};
+
+// Handle cancel
+const handleCancel = () => {
+  pendingAction = null;
+  showConfirmDialog.value = false;
+};
 
 const commentsCountText = computed(() => {
   const count = viewModel.comments.length;
@@ -541,10 +595,10 @@ const addUrl = () => {
 const removeUrl = async (index: number) => {
   const url = viewModel.redditUrls[index];
   if (url) {
-    const confirmMessage = `Are you sure you want to remove this URL?\n\n${url}\n\n⚠️ Warning: All comments collected from this source will also be permanently deleted.`;
-    if (confirm(confirmMessage)) {
+    const message = `Are you sure you want to remove this URL?\n\n${url}\n\n⚠️ Warning: All comments collected from this source will also be permanently deleted.`;
+    showConfirmation('Delete Reddit Source', message, async () => {
       await presenter.deleteSourceByUrl(props.projectId, url);
-    }
+    });
   }
 };
 
@@ -561,14 +615,14 @@ const duplicateUrl = (index: number) => {
 
 const clearAllUrls = async () => {
   const urlCount = viewModel.redditUrls.length;
-  const confirmMessage = `⚠️ WARNING: Permanent Deletion\n\nYou are about to remove ALL ${urlCount} Reddit URL${urlCount !== 1 ? 's' : ''}.\n\nThis action will also PERMANENTLY DELETE all comments collected from these sources.\n\nThis cannot be undone!\n\nAre you sure you want to proceed?`;
+  const message = `⚠️ WARNING: Permanent Deletion\n\nYou are about to remove ALL ${urlCount} Reddit URL${urlCount !== 1 ? 's' : ''}.\n\nThis action will also PERMANENTLY DELETE all comments collected from these sources.\n\nThis cannot be undone!\n\nAre you sure you want to proceed?`;
 
-  if (confirm(confirmMessage)) {
+  showConfirmation('Delete All Reddit Sources', message, async () => {
     // Delete each source from database
     for (const url of viewModel.redditUrls.slice()) { // slice() to avoid modifying while iterating
       await presenter.deleteSourceByUrl(props.projectId, url);
     }
-  }
+  });
 };
 
 const pasteFromClipboard = async () => {
@@ -666,10 +720,10 @@ const addHnUrl = () => {
 const removeHnUrl = async (index: number) => {
   const url = viewModel.hnUrls[index];
   if (url) {
-    const confirmMessage = `Are you sure you want to remove this URL?\n\n${url}\n\n⚠️ Warning: All comments collected from this source will also be permanently deleted.`;
-    if (confirm(confirmMessage)) {
+    const message = `Are you sure you want to remove this URL?\n\n${url}\n\n⚠️ Warning: All comments collected from this source will also be permanently deleted.`;
+    showConfirmation('Delete Hacker News Source', message, async () => {
       await presenter.deleteSourceByUrl(props.projectId, url);
-    }
+    });
   }
 };
 
@@ -686,14 +740,14 @@ const duplicateHnUrl = (index: number) => {
 
 const clearAllHnUrls = async () => {
   const urlCount = viewModel.hnUrls.length;
-  const confirmMessage = `⚠️ WARNING: Permanent Deletion\n\nYou are about to remove ALL ${urlCount} Hacker News URL${urlCount !== 1 ? 's' : ''}.\n\nThis action will also PERMANENTLY DELETE all comments collected from these sources.\n\nThis cannot be undone!\n\nAre you sure you want to proceed?`;
+  const message = `⚠️ WARNING: Permanent Deletion\n\nYou are about to remove ALL ${urlCount} Hacker News URL${urlCount !== 1 ? 's' : ''}.\n\nThis action will also PERMANENTLY DELETE all comments collected from these sources.\n\nThis cannot be undone!\n\nAre you sure you want to proceed?`;
 
-  if (confirm(confirmMessage)) {
+  showConfirmation('Delete All Hacker News Sources', message, async () => {
     // Delete each source from database
     for (const url of viewModel.hnUrls.slice()) { // slice() to avoid modifying while iterating
       await presenter.deleteSourceByUrl(props.projectId, url);
     }
-  }
+  });
 };
 
 const pasteHnFromClipboard = async () => {
