@@ -88,30 +88,6 @@
             </div>
           </div>
 
-          <!-- Quick Actions -->
-          <div class="url-quick-actions" v-if="viewModel.redditUrls.length > 0">
-            <button
-              @click="clearAllUrls"
-              class="quick-action-btn quick-action-clear"
-              type="button"
-            >
-              <svg viewBox="0 0 24 24" class="quick-icon">
-                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-              Clear All
-            </button>
-            <button
-              @click="pasteFromClipboard"
-              class="quick-action-btn quick-action-paste"
-              type="button"
-            >
-              <svg viewBox="0 0 24 24" class="quick-icon">
-                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-              </svg>
-              Paste URLs
-            </button>
-          </div>
 
           <!-- Add URL input -->
           <div class="add-url-section">
@@ -229,30 +205,6 @@
             </div>
           </div>
 
-          <!-- Quick Actions -->
-          <div class="url-quick-actions" v-if="viewModel.hnUrls.length > 0">
-            <button
-              @click="clearAllHnUrls"
-              class="quick-action-btn quick-action-clear"
-              type="button"
-            >
-              <svg viewBox="0 0 24 24" class="quick-icon">
-                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-              Clear All
-            </button>
-            <button
-              @click="pasteHnFromClipboard"
-              class="quick-action-btn quick-action-paste"
-              type="button"
-            >
-              <svg viewBox="0 0 24 24" class="quick-icon">
-                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-              </svg>
-              Paste URLs
-            </button>
-          </div>
 
           <!-- Add HN URL input -->
           <div class="add-url-section">
@@ -636,55 +588,6 @@ const duplicateUrl = (index: number) => {
   }
 };
 
-const clearAllUrls = async () => {
-  const urlCount = viewModel.redditUrls.length;
-  const message = `
-    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-      <AlertTriangle class="danger-icon" size="20" />
-      <strong>Delete All Reddit Sources</strong>
-    </div>
-
-    <p style="margin-bottom: 1rem;">You are about to remove <strong>${urlCount} Reddit source${urlCount !== 1 ? 's' : ''}</strong>. This action cannot be undone.</p>
-
-    <div style="background: rgba(255, 69, 0, 0.05); border: 1px solid rgba(255, 69, 0, 0.2); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
-      <div style="font-weight: 600; color: #dc2626; margin-bottom: 0.5rem;">Sources to be removed:</div>
-      <ul style="margin: 0; padding-left: 1.5rem; color: #374151;">
-        ${viewModel.redditUrls.map(url => `<li style="margin-bottom: 0.25rem;"><ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />${url}</li>`).join('')}
-      </ul>
-    </div>
-
-    <div class="warning-box danger">
-      <Trash2 size="20" style="color: #ef4444; flex-shrink: 0;" />
-      <div>
-        <div class="warning-title">⚠️ Critical Warning</div>
-        <div class="warning-text">
-          All comments from these sources will be permanently deleted.
-        </div>
-      </div>
-    </div>
-  `;
-
-  showConfirmation('Delete All Reddit Sources', message, async () => {
-    // Delete each source from database
-    for (const url of viewModel.redditUrls.slice()) { // slice() to avoid modifying while iterating
-      await presenter.deleteSourceByUrl(props.projectId, url);
-    }
-  });
-};
-
-const pasteFromClipboard = async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    const urls = parseBulkUrls(text);
-    urls.forEach(url => {
-      if (url.trim()) {
-        presenter.addRedditUrl(url.trim(), props.projectId);
-      }
-    });
-  } catch (error) {
-    console.warn('Failed to read clipboard:', error);
-  }
-};
 
 const handlePaste = (event: ClipboardEvent, index: number) => {
   const pastedText = event.clipboardData?.getData('text') || '';
@@ -807,55 +710,6 @@ const duplicateHnUrl = (index: number) => {
   }
 };
 
-const clearAllHnUrls = async () => {
-  const urlCount = viewModel.hnUrls.length;
-  const message = `
-    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
-      <AlertTriangle class="danger-icon" size="20" />
-      <strong>Delete All Hacker News Sources</strong>
-    </div>
-
-    <p style="margin-bottom: 1rem;">You are about to remove <strong>${urlCount} Hacker News source${urlCount !== 1 ? 's' : ''}</strong>. This action cannot be undone.</p>
-
-    <div style="background: rgba(255, 102, 0, 0.05); border: 1px solid rgba(255, 102, 0, 0.2); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
-      <div style="font-weight: 600; color: #dc2626; margin-bottom: 0.5rem;">Sources to be removed:</div>
-      <ul style="margin: 0; padding-left: 1.5rem; color: #374151;">
-        ${viewModel.hnUrls.map(url => `<li style="margin-bottom: 0.25rem;"><ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />${url}</li>`).join('')}
-      </ul>
-    </div>
-
-    <div class="warning-box danger">
-      <Trash2 size="20" style="color: #ef4444; flex-shrink: 0;" />
-      <div>
-        <div class="warning-title">⚠️ Critical Warning</div>
-        <div class="warning-text">
-          This will permanently delete ALL comments collected from these Hacker News sources. This action cannot be undone.
-        </div>
-      </div>
-    </div>
-  `;
-
-  showConfirmation('Delete All Hacker News Sources', message, async () => {
-    // Delete each source from database
-    for (const url of viewModel.hnUrls.slice()) { // slice() to avoid modifying while iterating
-      await presenter.deleteSourceByUrl(props.projectId, url);
-    }
-  });
-};
-
-const pasteHnFromClipboard = async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    const urls = parseHnBulkUrls(text);
-    urls.forEach(url => {
-      if (url.trim()) {
-        presenter.addHnUrl(url.trim(), props.projectId);
-      }
-    });
-  } catch (error) {
-    console.warn('Failed to read clipboard:', error);
-  }
-};
 
 const handleHnBulkPaste = (event: ClipboardEvent) => {
   const pastedText = event.clipboardData?.getData('text') || '';
@@ -1532,51 +1386,6 @@ onMounted(async () => {
   stroke-width: 2;
 }
 
-/* Quick Actions */
-.url-quick-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  background: rgba(248, 250, 252, 0.8);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-light);
-}
-
-.quick-action-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.quick-action-btn:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.1);
-}
-
-.quick-action-clear:hover {
-  border-color: var(--color-error);
-  color: var(--color-error);
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
-}
-
-.quick-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  stroke: currentColor;
-  stroke-width: 2;
-}
 
 /* Add URL Section */
 .add-url-section {
