@@ -113,6 +113,9 @@
         <!-- Response Pace -->
         <ResponsePaceWidget ref="responsePaceRef" :project-id="projectId" :target-pace="5" :external-loading="widgetsLoading" />
 
+        <!-- Comments Overview -->
+        <CommentsWidget :project-id="projectId" :external-loading="widgetsLoading" />
+
         <!-- Learning Journey -->
         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
           <h3 class="section-title">Learning Journey</h3>
@@ -153,6 +156,7 @@ import type { InvitationPresenter } from '../../../invitations/interface-adapter
 import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootstrap/types';
 import type { ResearchPresenter } from '../../../research/interface-adapters/presenters/research.presenter';
 import ResponsePaceWidget from '../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
+import { CommentsWidget } from '../../../comments/interface-adapters/components';
 import { ExecutiveSummaryWidget, StartResearchWidget, ShowDetailsWidget } from '../../../research/interface-adapters';
 import TopPainPointsWidget from '../../../research/interface-adapters/views/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../shared/components/SectionCard.vue';
