@@ -1,15 +1,11 @@
 <template>
   <div class="comments-tab-view">
-        <!-- Reddit Card -->
+    <!-- Reddit Card -->
         <Card class="source-card reddit-card">
           <template #header>
             <div class="section-card-header">
               <span class="section-icon section-icon-reddit" aria-hidden="true">
-                <svg viewBox="0 0 24 24" class="source-icon reddit-icon">
-                  <circle cx="12" cy="12" r="10" fill="#FF4500"/>
-                  <circle cx="12" cy="12" r="6" fill="white"/>
-                  <circle cx="12" cy="12" r="2" fill="#FF4500"/>
-                </svg>
+                <img :src="redditLogo" alt="Reddit" class="source-icon reddit-icon" />
               </span>
               <div>
                 <h4 class="section-title">Reddit</h4>
@@ -21,14 +17,7 @@
           <!-- Reddit Input -->
           <div class="input-section">
           <div class="url-input-header">
-            <div class="input-label-group">
-              <svg viewBox="0 0 24 24" class="input-icon">
-                <circle cx="12" cy="12" r="10" fill="#FF4500"/>
-                <circle cx="12" cy="12" r="6" fill="white"/>
-                <circle cx="12" cy="12" r="2" fill="#FF4500"/>
-              </svg>
-              <label class="input-label">Reddit Sources</label>
-            </div>
+            <label class="input-label">Reddit Sources</label>
             <div class="url-stats" v-if="viewModel.redditUrls.length > 0">
               <span class="url-count">{{ viewModel.redditUrls.length }}</span>
               <span class="url-count-label">URL{{ viewModel.redditUrls.length !== 1 ? 's' : '' }}</span>
@@ -171,12 +160,7 @@
           <!-- Hacker News Input -->
           <div class="input-section">
           <div class="url-input-header">
-            <div class="input-label-group">
-              <svg viewBox="0 0 24 24" class="input-icon">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-              <label class="input-label">Hacker News Sources</label>
-            </div>
+            <label class="input-label">Hacker News Sources</label>
             <div class="url-stats" v-if="viewModel.hnUrls.length > 0">
               <span class="url-count">{{ viewModel.hnUrls.length }}</span>
               <span class="url-count-label">URL{{ viewModel.hnUrls.length !== 1 ? 's' : '' }}</span>
@@ -300,6 +284,8 @@
         </div>
         </Card>
 
+    <!-- Actions Section -->
+    <div class="actions-container">
         <!-- Fetch Button -->
         <div class="action-section">
           <Button
@@ -363,8 +349,9 @@
             </button>
           </div>
         </div>
+    </div>
 
-        <!-- Comments Sidebar -->
+    <!-- Comments Sidebar -->
         <Teleport to="body">
           <Transition name="slide-panel">
             <div v-if="showCommentsSidebar" class="detail-overlay" @click.self="closeCommentsSidebar">
@@ -431,7 +418,6 @@
           </svg>
           {{ viewModel.error }}
         </div>
-      </div>
   </div>
 </template>
 
@@ -442,6 +428,7 @@ import { CommentsPresenter } from '../presenters/comments.presenter';
 import { COMMENT_TYPES } from '../../types';
 import Card from '../../../../shared/components/Card.vue';
 import Button from '../../../../shared/components/atoms/Button.vue';
+import redditLogo from '../../../assets/icons/reddit-logo.svg';
 
 interface Props {
   projectId: string;
@@ -811,6 +798,14 @@ onMounted(async () => {
   margin-bottom: 1.5rem;
 }
 
+/* Actions Container */
+.actions-container {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .reddit-card .section-icon-reddit {
   background: linear-gradient(135deg, #FF4500, #FF6B35);
 }
@@ -955,12 +950,10 @@ onMounted(async () => {
   height: 1rem;
 }
 
-.reddit-icon circle {
-  fill: #FF4500;
-}
-
-.reddit-icon circle:last-child {
-  fill: white;
+.reddit-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* Input sections */
@@ -1194,17 +1187,6 @@ onMounted(async () => {
   margin-bottom: 1rem;
 }
 
-.input-label-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.input-icon {
-  width: 2rem;
-  height: 2rem;
-  flex-shrink: 0;
-}
 
 .input-label {
   font-size: 1rem;
