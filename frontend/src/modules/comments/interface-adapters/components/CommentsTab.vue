@@ -14,51 +14,32 @@
           </span>
           <div>
             <h3 class="section-title">Collect Comments</h3>
-            <p class="section-subtitle">Choose a source and start collecting comments</p>
+            <p class="section-subtitle">Add URLs from Reddit and Hacker News to collect comments</p>
           </div>
         </div>
       </template>
 
       <div class="comments-content">
-        <!-- Source Selector -->
-        <div class="source-selector">
-          <label class="source-selector-label">Select Source:</label>
-          <div class="source-options">
-            <label class="source-option">
-              <input
-                type="radio"
-                value="reddit"
-                v-model="viewModel.selectedSource"
-                @change="handleSourceChange"
-              />
-              <span class="source-option-text">
+        <!-- Reddit Card -->
+        <Card class="source-card reddit-card">
+          <template #header>
+            <div class="section-card-header">
+              <span class="section-icon section-icon-reddit" aria-hidden="true">
                 <svg viewBox="0 0 24 24" class="source-icon reddit-icon">
                   <circle cx="12" cy="12" r="10" fill="#FF4500"/>
                   <circle cx="12" cy="12" r="6" fill="white"/>
                   <circle cx="12" cy="12" r="2" fill="#FF4500"/>
                 </svg>
-                Reddit
               </span>
-            </label>
-            <label class="source-option">
-              <input
-                type="radio"
-                value="hackernews"
-                v-model="viewModel.selectedSource"
-                @change="handleSourceChange"
-              />
-              <span class="source-option-text">
-                <svg viewBox="0 0 24 24" class="source-icon hn-icon">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
-                Hacker News
-              </span>
-            </label>
-          </div>
-        </div>
+              <div>
+                <h4 class="section-title">Reddit</h4>
+                <p class="section-subtitle">Collect comments from Reddit posts</p>
+              </div>
+            </div>
+          </template>
 
-        <!-- Reddit Input -->
-        <div v-if="viewModel.selectedSource === 'reddit'" class="input-section" :key="'reddit-' + viewModel.selectedSource">
+          <!-- Reddit Input -->
+          <div class="input-section">
           <div class="url-input-header">
             <div class="input-label-group">
               <svg viewBox="0 0 24 24" class="input-icon">
@@ -188,10 +169,26 @@
             </div>
 
           </div>
-        </div>
+        </Card>
 
-        <!-- Hacker News Input -->
-        <div v-if="viewModel.selectedSource === 'hackernews'" class="input-section" :key="'hn-' + viewModel.selectedSource">
+        <!-- Hacker News Card -->
+        <Card class="source-card hn-card">
+          <template #header>
+            <div class="section-card-header">
+              <span class="section-icon section-icon-hn" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="source-icon hn-icon">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+              </span>
+              <div>
+                <h4 class="section-title">Hacker News</h4>
+                <p class="section-subtitle">Collect comments from Hacker News posts</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- Hacker News Input -->
+          <div class="input-section">
           <div class="url-input-header">
             <div class="input-label-group">
               <svg viewBox="0 0 24 24" class="input-icon">
@@ -319,7 +316,7 @@
             </div>
 
           </div>
-        </div>
+        </Card>
 
         <!-- Fetch Button -->
         <div class="action-section">
@@ -486,13 +483,10 @@ Object.defineProperty(presenter, 'viewModel', {
 
 // Computed properties
 const isFetchDisabled = computed(() => {
-  if (viewModel.selectedSource === 'reddit') {
-    return viewModel.redditUrls.length === 0 || viewModel.redditUrls.some(url => !url.trim());
-  }
-  if (viewModel.selectedSource === 'hackernews') {
-    return viewModel.hnUrls.length === 0 || viewModel.hnUrls.some(url => !url.trim());
-  }
-  return false;
+  // Check if there are any valid URLs in either source
+  const hasRedditUrls = viewModel.redditUrls.length > 0 && viewModel.redditUrls.every(url => url.trim());
+  const hasHnUrls = viewModel.hnUrls.length > 0 && viewModel.hnUrls.every(url => url.trim());
+  return !hasRedditUrls && !hasHnUrls;
 });
 
 const getSourceStats = computed(() => {
@@ -515,13 +509,6 @@ const commentsCountText = computed(() => {
 
 
 // Methods
-const handleSourceChange = () => {
-  // Clear any previous errors when switching sources
-  viewModel.error = null;
-  // Notify presenter about source change
-  presenter.setSelectedSource(viewModel.selectedSource);
-};
-
 const handleFeedTypeChange = () => {
   // Clear error when user changes feed type
   if (viewModel.error) {
@@ -839,6 +826,39 @@ onMounted(async () => {
   background: #6366f1;
 }
 
+/* Source Cards */
+.source-card {
+  margin-bottom: 1.5rem;
+}
+
+.reddit-card .section-icon-reddit {
+  background: linear-gradient(135deg, #FF4500, #FF6B35);
+}
+
+.hn-card .section-icon-hn {
+  background: linear-gradient(135deg, #ff6600, #ff8533);
+}
+
+.reddit-card .section-icon-reddit,
+.hn-card .section-icon-hn {
+  color: white;
+}
+
+.reddit-card h4,
+.hn-card h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.reddit-card .section-subtitle,
+.hn-card .section-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
 .section-title {
   font-size: 1.125rem;
   font-weight: 600;
@@ -948,50 +968,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-/* Source selector */
-.source-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.source-selector-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.source-options {
-  display: flex;
-  gap: 1rem;
-}
-
-.source-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--radius-sm);
-  transition: background-color 0.2s;
-}
-
-.source-option:hover {
-  background: var(--color-bg-hover);
-}
-
-.source-option input[type="radio"] {
-  margin: 0;
-}
-
-.source-option-text {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--color-text);
 }
 
 .source-icon {
@@ -1835,11 +1811,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
-  .source-options {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
   .count-number {
     font-size: 1.5rem;
   }
