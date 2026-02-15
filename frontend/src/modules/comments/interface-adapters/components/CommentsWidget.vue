@@ -69,7 +69,7 @@
                   v-else
                   class="source-icon unknown-icon"
                 >
-                  <svg viewBox="0 0 24 24" class="w-4 h-4">
+                  <svg viewBox="0 0 24 24" class="w-5 h-5">
                     <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
                     <path d="M12 8v4M12 16h.01"/>
                   </svg>
@@ -227,10 +227,10 @@ defineExpose({
 }
 
 .source-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  max-width: 0.875rem;
-  max-height: 0.875rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  max-width: 1.125rem;
+  max-height: 1.125rem;
   object-fit: contain;
   flex-shrink: 0;
 }
