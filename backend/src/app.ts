@@ -82,6 +82,7 @@ import adminRoutes from './modules/admin/interface-adapters/routes/admin.routes'
 import feedbackRoutes from './modules/feedback/interface-adapters/routes/feedback.routes';
 import deletionRequestsRoutes from './modules/deletion-requests/interface-adapters/routes/deletion-requests.routes';
 import hubspotRoutes from './modules/integrations/interface-adapters/routes/hubspot.routes';
+import commentsRoutes from './modules/comments/interface-adapters/routes/comments.routes';
 
 app.use('/api/projects', projectsRoutes);
 app.use('/api/projects', projectsNestedRoutes); // Nested routes: /projects/:projectId/scenarios, /invitations, /report
@@ -102,6 +103,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/deletion-requests', deletionRequestsRoutes);
 app.use('/api/integrations/hubspot', hubspotRoutes);
+app.use('/api/comments', commentsRoutes); // Flat routes: /comments/:id
 app.use('/survey', surveyRoutes);
 
 app.get('/api', (req: Request, res: Response) => {

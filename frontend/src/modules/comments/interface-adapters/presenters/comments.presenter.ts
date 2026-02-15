@@ -20,6 +20,14 @@ export interface CommentsViewModel {
   hnUrls: string[];
 }
 
+export interface CommentsOverviewData {
+  sourceStats: Array<{
+    source: string;
+    count: number;
+  }>;
+  totalComments: number;
+}
+
 @injectable()
 export class CommentsPresenter {
   public viewModel: CommentsViewModel = {
@@ -290,6 +298,59 @@ export class CommentsPresenter {
       }
     } catch (error) {
       this._logger.warn('Failed to load URLs from localStorage', { error });
+    }
+  }
+
+  async getCommentsOverview(projectId: string): Promise<{
+    data: CommentsOverviewData;
+    error?: string;
+  }> {
+    try {
+      const result = await this._getCommentsUseCase.execute({
+        projectId,
+        limit: 1000 // Get enough comments for overview
+      });
+
+      if (!result.isSuccess) {
+        return { error: result.error.message };
+      }
+
+      const comments = result.data.comments;
+
+      // Debug logging
+      console.log('[CommentsPresenter] Received comments:', comments.map(c => ({
+        id: c.id,
+        sourceType: c.sourceType,
+        url: c.url,
+        contextUrl: c.contextUrl
+      })));
+
+      // Aggregate comments by source type
+      const sourceStats = comments.reduce((acc, comment) => {
+        const source = comment.sourceType;
+        if (source) { // Include all valid source types, including 'unknown'
+          acc[source] = (acc[source] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Convert to array format expected by widget
+      const sourceStatsArray = Object.entries(sourceStats).map(([source, count]) => ({
+        source: source as string,
+        count
+      })).sort((a, b) => b.count - a.count); // Sort by count descending
+
+      return {
+        data: {
+          sourceStats: sourceStatsArray,
+          totalComments: comments.length
+        }
+      };
+    } catch (error) {
+      this._logger.error('Exception getting comments overview', { projectId, error });
+      return {
+        error: error instanceof Error ? error.message : 'Failed to load comments overview'
+      };
     }
   }
 }

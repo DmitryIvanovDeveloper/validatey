@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
-import { GetCommentsUseCase } from '../../application/use-cases/get-comments.usecase';
+import { CommentsPresenter, CommentsOverviewData } from '../presenters/comments.presenter';
 import { COMMENT_TYPES } from '../../types';
 
 interface Props {
@@ -117,25 +117,16 @@ const props = defineProps<Props>();
 // Reactive data
 const loading = ref(false);
 const error = ref<string | null>(null);
-const comments = ref<any[]>([]);
+const overviewData = ref<CommentsOverviewData>({
+  sourceStats: [],
+  totalComments: 0
+});
 
-// Get use case from DI container
-const getCommentsUseCase = container.get<GetCommentsUseCase>(COMMENT_TYPES.GetCommentsUseCase);
+// Get presenter from DI container
+const commentsPresenter = container.get<CommentsPresenter>(COMMENT_TYPES.CommentsPresenter);
 
 // Computed properties
-
-const sourceStats = computed(() => {
-  const stats = comments.value.reduce((acc, comment) => {
-    const source = comment.sourceType || 'unknown';
-    acc[source] = (acc[source] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  return Object.entries(stats).map(([source, count]) => ({
-    source,
-    count
-  })).sort((a, b) => b.count - a.count);
-});
+const sourceStats = computed(() => overviewData.value.sourceStats);
 
 // Methods
 const loadComments = async () => {
@@ -145,18 +136,15 @@ const loadComments = async () => {
     loading.value = true;
     error.value = null;
 
-    const result = await getCommentsUseCase.execute({
-      projectId: props.projectId,
-      limit: 1000 // Get a reasonable number for overview
-    });
+    const result = await commentsPresenter.getCommentsOverview(props.projectId);
 
-    if (result.isSuccess) {
-      comments.value = result.data.comments;
+    if (result.error) {
+      error.value = result.error;
     } else {
-      error.value = result.error.message;
+      overviewData.value = result.data;
     }
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load comments';
+    error.value = err instanceof Error ? err.message : 'Failed to load comments overview';
   } finally {
     loading.value = false;
   }

@@ -27,6 +27,7 @@ import { bindAdmin } from '../../modules/admin/infrastructure/bootstrap/bind.adm
 import { bindFeedback } from '../../modules/feedback/infrastructure/bootstrap/bind.feedback';
 import { bindRounds } from '../../modules/rounds/infrastructure/bootstrap/bind.rounds';
 import { bindOverview } from '../../modules/overview/infrastructure/bootstrap/bind.overview';
+import { bindComments } from '../../modules/comments/infrastructure/bootstrap/bind.comments';
 
 const container = new Container();
 
@@ -56,6 +57,7 @@ bindAdmin(container);
 bindFeedback(container);
 bindRounds(container);
 bindOverview(container);
+bindComments(container);
 
 export { container, TYPES };
 

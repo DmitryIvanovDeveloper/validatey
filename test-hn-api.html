@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test HN API</title>
+</head>
+<body>
+    <h1>Test Hacker News API</h1>
+
+    <button onclick="testHnUrl()">Test HN URL</button>
+    <button onclick="testHnFeed()">Test HN Feed</button>
+
+    <pre id="result"></pre>
+
+    <script>
+        async function testHnUrl() {
+            try {
+                const response = await fetch('http://localhost:8080/api/projects/test-project/comments/fetch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sourceType: 'hackernews',
+                        hnUrls: ['https://news.ycombinator.com/item?id=46966201']
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testHnFeed() {
+            try {
+                const response = await fetch('http://localhost:8080/api/projects/test-project/comments/fetch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sourceType: 'hackernews',
+                        hnFeedType: 'top'
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

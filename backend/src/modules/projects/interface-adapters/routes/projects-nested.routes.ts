@@ -10,6 +10,7 @@ import deletionRequestsNestedRoutes from '../../../deletion-requests/interface-a
 import consentsNestedRoutes from '../../../consents/interface-adapters/routes/consents-nested.routes';
 import roundsNestedRoutes from '../../../rounds/interface-adapters/routes/rounds-nested.routes';
 import overviewNestedRoutes from '../../../overview/interface-adapters/routes/overview-nested.routes';
+import commentsNestedRoutes from '../../../comments/interface-adapters/routes/comments-nested.routes';
 
 const router = Router({ mergeParams: true });
 
@@ -45,6 +46,9 @@ router.use('/:projectId/rounds', roundsNestedRoutes);
 
 // Nested routes: /projects/:projectId/overview (command center)
 router.use('/:projectId/overview', overviewNestedRoutes);
+
+// Nested routes: /projects/:projectId/comments
+router.use('/:projectId/comments', commentsNestedRoutes);
 
 export default router;
 
