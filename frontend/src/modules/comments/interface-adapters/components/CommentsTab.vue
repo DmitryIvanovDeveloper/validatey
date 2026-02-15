@@ -431,6 +431,7 @@ import { COMMENT_TYPES } from '../../types';
 import Card from '../../../../shared/components/Card.vue';
 import Button from '../../../../shared/components/atoms/Button.vue';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog.vue';
+import { AlertTriangle, Trash2, ExternalLink } from 'lucide-vue-next';
 
 interface Props {
   projectId: string;
@@ -595,7 +596,29 @@ const addUrl = () => {
 const removeUrl = async (index: number) => {
   const url = viewModel.redditUrls[index];
   if (url) {
-    const message = `Are you sure you want to remove this URL?\n\n${url}\n\n⚠️ Warning: All comments collected from this source will also be permanently deleted.`;
+    const message = `
+      <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+        <AlertTriangle class="warning-icon" size="20" />
+        <strong>Delete Reddit Source</strong>
+      </div>
+
+      <p style="margin-bottom: 1rem;">Are you sure you want to remove this Reddit source? This action cannot be undone.</p>
+
+      <div class="url-text" style="background: rgba(255, 69, 0, 0.1); border-left: 3px solid #ff4500; padding-left: 0.75rem;">
+        <ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />
+        ${url}
+      </div>
+
+      <div class="warning-box danger" style="background: #fef2f2; border-color: #ef4444;">
+        <Trash2 size="20" style="color: #ef4444; flex-shrink: 0;" />
+        <div>
+          <div class="warning-title" style="color: #dc2626;">⚠️ Data Loss Warning</div>
+          <div class="warning-text" style="color: #dc2626;">
+            All comments from this source will be permanently deleted.
+          </div>
+        </div>
+      </div>
+    `;
     showConfirmation('Delete Reddit Source', message, async () => {
       await presenter.deleteSourceByUrl(props.projectId, url);
     });
@@ -615,7 +638,31 @@ const duplicateUrl = (index: number) => {
 
 const clearAllUrls = async () => {
   const urlCount = viewModel.redditUrls.length;
-  const message = `⚠️ WARNING: Permanent Deletion\n\nYou are about to remove ALL ${urlCount} Reddit URL${urlCount !== 1 ? 's' : ''}.\n\nThis action will also PERMANENTLY DELETE all comments collected from these sources.\n\nThis cannot be undone!\n\nAre you sure you want to proceed?`;
+  const message = `
+    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+      <AlertTriangle class="danger-icon" size="20" />
+      <strong>Delete All Reddit Sources</strong>
+    </div>
+
+    <p style="margin-bottom: 1rem;">You are about to remove <strong>${urlCount} Reddit source${urlCount !== 1 ? 's' : ''}</strong>. This action cannot be undone.</p>
+
+    <div style="background: rgba(255, 69, 0, 0.05); border: 1px solid rgba(255, 69, 0, 0.2); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+      <div style="font-weight: 600; color: #dc2626; margin-bottom: 0.5rem;">Sources to be removed:</div>
+      <ul style="margin: 0; padding-left: 1.5rem; color: #374151;">
+        ${viewModel.redditUrls.map(url => `<li style="margin-bottom: 0.25rem;"><ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />${url}</li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="warning-box danger">
+      <Trash2 size="20" style="color: #ef4444; flex-shrink: 0;" />
+      <div>
+        <div class="warning-title">⚠️ Critical Warning</div>
+        <div class="warning-text">
+          All comments from these sources will be permanently deleted.
+        </div>
+      </div>
+    </div>
+  `;
 
   showConfirmation('Delete All Reddit Sources', message, async () => {
     // Delete each source from database
@@ -720,7 +767,29 @@ const addHnUrl = () => {
 const removeHnUrl = async (index: number) => {
   const url = viewModel.hnUrls[index];
   if (url) {
-    const message = `Are you sure you want to remove this URL?\n\n${url}\n\n⚠️ Warning: All comments collected from this source will also be permanently deleted.`;
+    const message = `
+      <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+        <AlertTriangle class="warning-icon" size="20" />
+        <strong>Delete Hacker News Source</strong>
+      </div>
+
+      <p style="margin-bottom: 1rem;">Are you sure you want to remove this Hacker News source? This action cannot be undone.</p>
+
+      <div class="url-text" style="background: rgba(255, 102, 0, 0.1); border-left: 3px solid #ff6600; padding-left: 0.75rem;">
+        <ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />
+        ${url}
+      </div>
+
+      <div class="warning-box danger" style="background: #fef2f2; border-color: #ef4444;">
+        <Trash2 size="20" style="color: #ef4444; flex-shrink: 0;" />
+        <div>
+          <div class="warning-title" style="color: #dc2626;">⚠️ Data Loss Warning</div>
+          <div class="warning-text" style="color: #dc2626;">
+            All comments collected from this Hacker News source will be permanently deleted and cannot be recovered.
+          </div>
+        </div>
+      </div>
+    `;
     showConfirmation('Delete Hacker News Source', message, async () => {
       await presenter.deleteSourceByUrl(props.projectId, url);
     });
@@ -740,7 +809,31 @@ const duplicateHnUrl = (index: number) => {
 
 const clearAllHnUrls = async () => {
   const urlCount = viewModel.hnUrls.length;
-  const message = `⚠️ WARNING: Permanent Deletion\n\nYou are about to remove ALL ${urlCount} Hacker News URL${urlCount !== 1 ? 's' : ''}.\n\nThis action will also PERMANENTLY DELETE all comments collected from these sources.\n\nThis cannot be undone!\n\nAre you sure you want to proceed?`;
+  const message = `
+    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+      <AlertTriangle class="danger-icon" size="20" />
+      <strong>Delete All Hacker News Sources</strong>
+    </div>
+
+    <p style="margin-bottom: 1rem;">You are about to remove <strong>${urlCount} Hacker News source${urlCount !== 1 ? 's' : ''}</strong>. This action cannot be undone.</p>
+
+    <div style="background: rgba(255, 102, 0, 0.05); border: 1px solid rgba(255, 102, 0, 0.2); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem;">
+      <div style="font-weight: 600; color: #dc2626; margin-bottom: 0.5rem;">Sources to be removed:</div>
+      <ul style="margin: 0; padding-left: 1.5rem; color: #374151;">
+        ${viewModel.hnUrls.map(url => `<li style="margin-bottom: 0.25rem;"><ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />${url}</li>`).join('')}
+      </ul>
+    </div>
+
+    <div class="warning-box danger">
+      <Trash2 size="20" style="color: #ef4444; flex-shrink: 0;" />
+      <div>
+        <div class="warning-title">⚠️ Critical Warning</div>
+        <div class="warning-text">
+          This will permanently delete ALL comments collected from these Hacker News sources. This action cannot be undone.
+        </div>
+      </div>
+    </div>
+  `;
 
   showConfirmation('Delete All Hacker News Sources', message, async () => {
     // Delete each source from database
