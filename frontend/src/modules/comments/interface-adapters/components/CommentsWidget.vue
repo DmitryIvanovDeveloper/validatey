@@ -1,7 +1,7 @@
 <template>
   <div class="comments-widget">
     <div class="section-card signals-card">
-      <div class="section-card-header">
+      <div>
         <span class="section-icon section-icon-comments" aria-hidden="true">
           <svg viewBox="0 0 24 24" class="w-5 h-5">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -41,26 +41,6 @@
 
       <!-- Content -->
       <div v-else class="comments-content">
-        <!-- Main metrics -->
-        <div class="comments-metrics">
-          <div class="metric-card metric-primary">
-            <div class="metric-header">
-              <span class="metric-icon">
-                <svg viewBox="0 0 24 24" class="w-5 h-5">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  <circle cx="9" cy="10" r="1"/>
-                  <circle cx="12" cy="10" r="1"/>
-                  <circle cx="15" cy="10" r="1"/>
-                </svg>
-              </span>
-              <h4 class="metric-title">Total Comments</h4>
-            </div>
-            <div class="metric-content">
-              <p class="metric-value">{{ totalComments }}</p>
-              <p class="metric-note">from {{ totalSources }} sources</p>
-            </div>
-          </div>
-        </div>
 
         <!-- Source breakdown -->
         <div v-if="sourceStats.length > 0" class="source-breakdown">
@@ -73,9 +53,18 @@
               :class="stat.source.toLowerCase()"
             >
               <div class="source-info">
-                <span class="source-icon">
-                  {{ stat.source === 'reddit' ? 'R' : 'Y' }}
-                </span>
+                <img
+                  v-if="stat.source === 'reddit'"
+                  src="@/assets/icons/reddit-logo-2436.svg"
+                  alt="Reddit"
+                  class="source-icon reddit-icon"
+                />
+                <img
+                  v-else-if="stat.source === 'hackernews'"
+                  src="@/assets/icons/hacker-news.svg"
+                  alt="Hacker News"
+                  class="source-icon hn-icon"
+                />
                 <span class="source-name">{{ stat.source === 'reddit' ? 'Reddit' : 'Hacker News' }}</span>
               </div>
               <span class="source-count">{{ stat.count }}</span>
@@ -123,12 +112,6 @@ const comments = ref<any[]>([]);
 const getCommentsUseCase = container.get<GetCommentsUseCase>(COMMENT_TYPES.GetCommentsUseCase);
 
 // Computed properties
-const totalComments = computed(() => comments.value.length);
-
-const totalSources = computed(() => {
-  const sources = new Set(comments.value.map(comment => comment.url));
-  return sources.size;
-});
 
 const sourceStats = computed(() => {
   const stats = comments.value.reduce((acc, comment) => {
@@ -192,64 +175,6 @@ defineExpose({
   margin-bottom: 1.5rem;
 }
 
-.metric-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  padding: 1.25rem;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.metric-primary {
-  border-color: rgba(13, 148, 136, 0.3);
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.1);
-}
-
-.metric-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.metric-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
-  border-radius: 8px;
-  color: white;
-}
-
-.metric-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.metric-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.metric-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-accent);
-  margin: 0;
-  line-height: 1;
-}
-
-.metric-note {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin: 0;
-}
 
 .source-breakdown {
   border-top: 1px solid rgba(0, 0, 0, 0.05);
@@ -294,24 +219,18 @@ defineExpose({
 }
 
 .source-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: white;
+  width: 1rem;
+  height: 1rem;
 }
 
-.source-stat.reddit .source-icon {
-  background: linear-gradient(135deg, #FF4500, #FF6B35);
+.reddit-icon {
+  width: 100%;
+  height: 100%;
 }
 
-.source-stat.hackernews .source-icon {
-  background: linear-gradient(135deg, #ff6600, #ff8533);
+.hn-icon {
+  width: 100%;
+  height: 100%;
 }
 
 .source-name {
