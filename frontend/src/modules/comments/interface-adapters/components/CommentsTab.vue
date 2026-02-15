@@ -20,6 +20,42 @@
       </template>
 
       <div class="comments-content">
+        <!-- Comments Table Header -->
+        <div v-if="viewModel.comments.length > 0" class="comments-table-header">
+          <div class="comments-stats">
+            <div class="comments-count">
+              <span class="count-number">{{ viewModel.comments.length }}</span>
+              <span class="count-label">comments</span>
+            </div>
+            <div class="comments-sources" v-if="getSourceStats.length > 0">
+              <span class="sources-label">from</span>
+              <div class="source-tags">
+                <span
+                  v-for="stat in getSourceStats"
+                  :key="stat.source"
+                  class="source-tag"
+                  :class="stat.source.toLowerCase()"
+                >
+                  {{ stat.count }} {{ stat.source === 'reddit' ? 'Reddit' : 'HN' }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="comments-actions">
+            <button
+              @click="exportComments"
+              class="btn btn-secondary btn-sm"
+            >
+              <svg viewBox="0 0 24 24" class="btn-icon">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7,10 12,15 17,10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Export
+            </button>
+          </div>
+        </div>
+
         <!-- Source Selector -->
         <div class="source-selector">
           <label class="source-selector-label">Select Source:</label>
@@ -321,6 +357,84 @@
           </div>
         </div>
 
+        <!-- Comments Table -->
+        <div v-if="viewModel.comments.length > 0" class="comments-table-section">
+          <div class="table-wrap">
+            <table class="comments-table" aria-label="Collected comments">
+              <thead>
+                <tr>
+                  <th class="col-author">Author</th>
+                  <th class="col-content">Content</th>
+                  <th class="col-date">Date</th>
+                  <th class="col-source">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(comment, index) in paginatedComments"
+                  :key="comment.id"
+                  :class="{ 'row-selected': detailCommentId === comment.id }"
+                  @click="openDetail(comment.id)"
+                >
+                  <td class="col-author">
+                    <div class="author-info">
+                      <span class="source-badge" :class="comment.sourceType">
+                        {{ comment.sourceType === 'reddit' ? 'R' : 'HN' }}
+                      </span>
+                      {{ comment.author || 'Anonymous' }}
+                    </div>
+                  </td>
+                  <td class="col-content">
+                    <span class="cell-text">{{ truncateText(comment.content, 100) }}</span>
+                    <span v-if="comment.content.length > 100" class="read-more">...</span>
+                  </td>
+                  <td class="col-date">{{ formatDate(comment.createdAt) }}</td>
+                  <td class="col-source">
+                    <span class="source-label" :class="comment.sourceType">
+                      {{ comment.sourceType === 'reddit' ? 'Reddit' : 'HN' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="pagination-bar">
+            <span class="pagination-info">
+              {{ filteredComments.length }} comment(s)
+              <template v-if="totalPages > 1">
+                · Page {{ currentPage }} of {{ totalPages }}
+              </template>
+            </span>
+            <div class="pagination-controls">
+              <button type="button" class="btn btn-ghost btn-sm" :disabled="currentPage <= 1" @click="currentPage = Math.max(1, currentPage - 1)">
+                Previous
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" :disabled="currentPage >= totalPages" @click="currentPage = Math.min(totalPages, currentPage + 1)">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="!viewModel.isFetching && viewModel.comments.length === 0" class="empty-state">
+          <div class="empty-icon-wrapper">
+            <svg viewBox="0 0 24 24" class="empty-icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              <circle cx="9" cy="10" r="1"/>
+              <circle cx="12" cy="10" r="1"/>
+              <circle cx="15" cy="10" r="1"/>
+            </svg>
+            <div class="empty-icon-glow"></div>
+          </div>
+          <div class="empty-content">
+            <p class="empty-title">No comments collected yet</p>
+            <p class="empty-desc">Start by selecting a source above and clicking "Fetch Comments" to begin collecting insights from Reddit and Hacker News.</p>
+          </div>
+        </div>
+
         <!-- Fetch Button -->
         <div class="action-section">
           <Button
@@ -350,129 +464,70 @@
       </div>
     </Card>
 
-    <!-- Comments List Section -->
-    <Card>
-      <template #header>
-        <div class="section-card-header">
-          <span class="section-icon section-icon-list" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="8" y1="6" x2="21" y2="6"/>
-              <line x1="8" y1="12" x2="21" y2="12"/>
-              <line x1="8" y1="18" x2="21" y2="18"/>
-              <line x1="3" y1="6" x2="3.01" y2="6"/>
-              <line x1="3" y1="12" x2="3.01" y2="12"/>
-              <line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-          </span>
-          <div class="comments-header-content">
-            <div class="comments-header-main">
-              <h3 class="section-title">Collected Comments</h3>
-              <div class="comments-stats">
-                <div class="comments-count">
-                  <span class="count-number">{{ viewModel.comments.length }}</span>
-                  <span class="count-label">comments</span>
+    <!-- Detail panel -->
+    <Teleport to="body">
+      <Transition name="slide-panel">
+        <div v-if="detailCommentId" class="detail-overlay" @click.self="closeDetail">
+          <div class="detail-panel">
+            <div class="detail-header">
+              <h3>Comment details</h3>
+              <button type="button" class="btn-close" aria-label="Close" @click="closeDetail">×</button>
+            </div>
+            <div v-if="detailComment" class="detail-body">
+              <section class="detail-section">
+                <h4>Content</h4>
+                <div class="detail-content">
+                  {{ detailComment.content }}
                 </div>
-                <div class="comments-sources" v-if="getSourceStats.length > 0">
-                  <span class="sources-label">from</span>
-                  <div class="source-tags">
-                    <span
-                      v-for="stat in getSourceStats"
-                      :key="stat.source"
-                      class="source-tag"
-                      :class="stat.source.toLowerCase()"
-                    >
-                      {{ stat.count }} {{ stat.source === 'reddit' ? 'Reddit' : 'HN' }}
-                    </span>
+              </section>
+
+              <section class="detail-section">
+                <h4>Source Information</h4>
+                <div class="detail-meta">
+                  <div class="meta-item">
+                    <span class="meta-label">Author:</span>
+                    <span class="meta-value">{{ detailComment.author || 'Anonymous' }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Source:</span>
+                    <span class="meta-value">{{ detailComment.sourceType === 'reddit' ? 'Reddit' : 'Hacker News' }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Posted:</span>
+                    <span class="meta-value">{{ formatDate(detailComment.createdAt) }}</span>
+                  </div>
+                  <div v-if="detailComment.contextTitle" class="meta-item">
+                    <span class="meta-label">From:</span>
+                    <span class="meta-value">{{ detailComment.contextTitle }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">Comment ID:</span>
+                    <span class="meta-value">{{ detailComment.id }}</span>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div class="comments-actions">
-              <button
-                v-if="viewModel.comments.length > 0"
-                @click="exportComments"
-                class="btn btn-secondary btn-sm"
-              >
-                <svg viewBox="0 0 24 24" class="btn-icon">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7,10 12,15 17,10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Export
-              </button>
+              </section>
+
+              <section class="detail-section">
+                <h4>Actions</h4>
+                <a
+                  :href="detailComment.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="view-source-link"
+                >
+                  View on {{ detailComment.sourceType === 'reddit' ? 'Reddit' : 'Hacker News' }}
+                  <svg viewBox="0 0 24 24" class="external-link-icon">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15,3 21,3 21,9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
+              </section>
             </div>
           </div>
         </div>
-      </template>
-
-      <div class="comments-list-content">
-        <div v-if="viewModel.isLoading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading comments...</p>
-        </div>
-
-        <div v-else-if="viewModel.comments.length === 0" class="empty-state">
-          <div class="empty-icon-wrapper">
-            <svg viewBox="0 0 24 24" class="empty-icon" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              <circle cx="9" cy="10" r="1"/>
-              <circle cx="12" cy="10" r="1"/>
-              <circle cx="15" cy="10" r="1"/>
-            </svg>
-            <div class="empty-icon-glow"></div>
-          </div>
-          <div class="empty-content">
-            <p class="empty-title">No comments collected yet</p>
-            <p class="empty-desc">Start by selecting a source above and clicking "Fetch Comments" to begin collecting insights from Reddit and Hacker News.</p>
-          </div>
-        </div>
-
-        <transition-group name="comment-list" tag="div" class="comments-list">
-          <div
-            v-for="comment in viewModel.comments"
-            :key="comment.id"
-            class="comment-item"
-          >
-            <div class="comment-header">
-              <div class="comment-author">
-                <span class="source-badge" :class="comment.sourceType">
-                  {{ comment.sourceType === 'reddit' ? 'R' : 'HN' }}
-                </span>
-                {{ comment.author || 'Anonymous' }}
-              </div>
-              <div class="comment-date">
-                {{ formatDate(comment.createdAt) }}
-              </div>
-            </div>
-
-            <div class="comment-content">
-              {{ truncateText(comment.content, 200) }}
-              <span v-if="comment.content.length > 200" class="read-more">...</span>
-            </div>
-
-            <div class="comment-actions">
-              <a
-                :href="comment.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="view-source-link"
-              >
-                View on {{ comment.sourceType === 'reddit' ? 'Reddit' : 'Hacker News' }}
-                <svg viewBox="0 0 24 24" class="external-link-icon">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                  <polyline points="15,3 21,3 21,9"/>
-                  <line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
-              </a>
-            </div>
-
-            <div v-if="comment.contextTitle" class="comment-context">
-              From: {{ comment.contextTitle }}
-            </div>
-          </div>
-        </transition-group>
-      </div>
-    </Card>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -531,6 +586,24 @@ const commentsCountText = computed(() => {
   return `${count} comment${count !== 1 ? 's' : ''} collected`;
 });
 
+const filteredComments = computed(() => {
+  return viewModel.comments;
+});
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredComments.value.length / pageSize)));
+
+const paginatedComments = computed(() => {
+  const start = (currentPage.value - 1) * pageSize;
+  return filteredComments.value.slice(start, start + pageSize);
+});
+
+const detailComment = computed(() =>
+  detailCommentId.value ? viewModel.comments.find((c) => c.id === detailCommentId.value) ?? null : null
+);
+
+// Watchers
+watch(totalPages, (n) => { if (currentPage.value > n) currentPage.value = Math.max(1, n); });
+
 // Methods
 const handleSourceChange = () => {
   // Clear any previous errors when switching sources
@@ -584,11 +657,22 @@ const truncateText = (text: string, maxLength: number) => {
   return text.substring(0, maxLength);
 };
 
+const openDetail = (id: string) => {
+  detailCommentId.value = id;
+};
+
+const closeDetail = () => {
+  detailCommentId.value = null;
+};
+
 // Reactive data
 const newUrl = ref('');
 const newUrlInput = ref<HTMLInputElement>();
 const newHnUrl = ref('');
 const newHnUrlInput = ref<HTMLInputElement>();
+const detailCommentId = ref<string | null>(null);
+const currentPage = ref(1);
+const pageSize = 20;
 
 // Methods
 const addUrl = () => {
@@ -1754,6 +1838,455 @@ onMounted(async () => {
 }
 
 
+/* Comments Table Header */
+.comments-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--resp-shadow);
+}
+
+.comments-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comments-count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.count-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  line-height: 1;
+}
+
+.count-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.comments-sources {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sources-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.source-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.source-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.source-tag.reddit {
+  background: var(--color-accent-bg);
+  color: var(--color-accent-dark);
+  border: 1px solid var(--color-accent-light);
+}
+
+.source-tag.hackernews {
+  background: linear-gradient(135deg, #ff6600, #ff8533);
+  color: white;
+}
+
+.comments-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+/* Comments Table */
+.comments-table-section {
+  margin-top: 1.5rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--resp-radius);
+  box-shadow: var(--resp-shadow);
+  margin-bottom: 1rem;
+}
+
+.comments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.comments-table th,
+.comments-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.comments-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.comments-table th {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle, #f8fafc);
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+}
+
+.comments-table tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.12s ease;
+  cursor: pointer;
+}
+
+.comments-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.comments-table tbody tr:hover {
+  background: var(--color-bg-subtle, #f8fafc);
+}
+
+.comments-table td {
+  max-width: 300px;
+}
+
+.col-author {
+  width: 200px;
+  font-variant-numeric: tabular-nums;
+}
+
+.col-content {
+  min-width: 300px;
+}
+
+.col-date {
+  width: 140px;
+  white-space: nowrap;
+}
+
+.col-source {
+  width: 100px;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.source-badge.reddit {
+  background: linear-gradient(135deg, #FF4500, #FF6B35);
+}
+
+.source-badge.hackernews {
+  background: linear-gradient(135deg, #ff6600, #ff8533);
+}
+
+.source-badge::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+}
+
+.cell-text {
+  display: block;
+  max-height: 3.2em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.read-more {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.source-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.source-label.reddit {
+  background: var(--color-accent-bg);
+  color: var(--color-accent-dark);
+  border: 1px solid var(--color-accent-light);
+}
+
+.source-label.hackernews {
+  background: linear-gradient(135deg, #ff6600, #ff8533);
+  color: white;
+}
+
+tr.row-selected {
+  background: rgba(13, 148, 136, 0.06);
+}
+
+tr.row-selected:hover {
+  background: rgba(13, 148, 136, 0.1);
+}
+
+/* Pagination */
+.pagination-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.pagination-info {
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pagination-controls .btn {
+  min-width: 5rem;
+}
+
+/* Detail Panel */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  animation: overlay-in 0.2s ease;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.detail-panel {
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-bg);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--resp-radius) 0 0 var(--resp-radius);
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg);
+  flex-shrink: 0;
+}
+
+.detail-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.btn-close {
+  background: var(--color-bg-subtle, #f1f5f9);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-close:hover {
+  background: var(--color-border-light);
+  color: var(--color-text);
+}
+
+.detail-body {
+  padding: 1.25rem 1.5rem;
+  flex: 1;
+}
+
+.detail-section {
+  margin-bottom: 1.5rem;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section h4 {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin: 0 0 0.75rem 0;
+}
+
+.detail-content {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-subtle, #f8fafc);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.detail-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.meta-label {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.meta-value {
+  font-size: 0.8125rem;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.view-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-accent);
+  text-decoration: none;
+  background: var(--color-accent-bg);
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-accent-light);
+  transition: all 0.2s ease;
+}
+
+.view-source-link:hover {
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.15);
+}
+
+.external-link-icon {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.slide-panel-enter-active,
+.slide-panel-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.slide-panel-enter-from,
+.slide-panel-leave-to {
+  opacity: 0;
+}
+
+.slide-panel-enter-active .detail-panel,
+.slide-panel-leave-active .detail-panel {
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.slide-panel-enter-from .detail-panel,
+.slide-panel-leave-to .detail-panel {
+  transform: translateX(100%);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .comments-header-content {
@@ -1778,6 +2311,21 @@ onMounted(async () => {
   .source-tags {
     justify-content: center;
   }
+
+  .comments-table-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .table-wrap {
+    border-radius: 0;
+  }
+
+  .detail-panel {
+    max-width: 100%;
+    border-radius: 0;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1786,22 +2334,25 @@ onMounted(async () => {
     gap: 0.5rem;
   }
 
-  .comment-item {
-    padding: 1rem;
-  }
-
-  .comment-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .comment-author {
-    gap: 0.5rem;
-  }
-
   .count-number {
     font-size: 1.5rem;
+  }
+
+  .comments-table th,
+  .comments-table td {
+    padding: 0.5rem;
+  }
+
+  .col-author {
+    width: 150px;
+  }
+
+  .col-content {
+    min-width: 200px;
+  }
+
+  .col-date {
+    width: 120px;
   }
 
   .empty-state {
@@ -1810,6 +2361,14 @@ onMounted(async () => {
 
   .empty-title {
     font-size: 1.125rem;
+  }
+
+  .detail-header {
+    padding: 1rem;
+  }
+
+  .detail-body {
+    padding: 1rem;
   }
 }
 </style>
