@@ -169,6 +169,7 @@
             </div>
 
           </div>
+        </div>
         </Card>
 
         <!-- Hacker News Card -->
@@ -316,6 +317,7 @@
             </div>
 
           </div>
+        </div>
         </Card>
 
         <!-- Fetch Button -->
