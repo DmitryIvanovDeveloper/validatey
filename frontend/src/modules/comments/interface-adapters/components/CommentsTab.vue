@@ -1,25 +1,5 @@
 <template>
   <div class="comments-tab-view">
-    <!-- Fetch Comments Section -->
-    <Card>
-      <template #header>
-        <div class="section-card-header">
-          <span class="section-icon section-icon-comments" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              <circle cx="9" cy="10" r="1"/>
-              <circle cx="12" cy="10" r="1"/>
-              <circle cx="15" cy="10" r="1"/>
-            </svg>
-          </span>
-          <div>
-            <h3 class="section-title">Collect Comments</h3>
-            <p class="section-subtitle">Add URLs from Reddit and Hacker News to collect comments</p>
-          </div>
-        </div>
-      </template>
-
-      <div class="comments-content">
         <!-- Reddit Card -->
         <Card class="source-card reddit-card">
           <template #header>
@@ -452,8 +432,6 @@
           {{ viewModel.error }}
         </div>
       </div>
-    </Card>
-
   </div>
 </template>
 
