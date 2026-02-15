@@ -66,6 +66,11 @@ export const routes: RouteRecordRaw[] = [
         name: 'project-responses',
         component: () => import('@/modules/responses/interface-adapters/views/ResponsesTableView.vue'),
       },
+      {
+        path: 'comments',
+        name: 'project-comments',
+        component: () => import('@/modules/comments/interface-adapters/views/CommentsView.vue'),
+      },
     ],
   },
   {

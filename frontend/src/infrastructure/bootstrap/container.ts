@@ -17,6 +17,7 @@ import { bindAuth } from '../../modules/auth/infrastructure/bootstrap/bind.auth'
 import { bindScraper } from '../../modules/scraper/infrastructure/bootstrap/bind.scraper';
 import { bindResearch } from '../../modules/research/infrastructure/bootstrap/bind.research';
 import { bindResponses } from '../../modules/responses/infrastructure/bootstrap/bind.responses';
+import { bindComments } from '../../modules/comments/infrastructure/bootstrap/bind.comments';
 const container = new Container();
 
 // Infrastructure bindings
@@ -34,5 +35,6 @@ bindAuth(container);
 bindScraper(container);
 bindResearch(container);
 bindResponses(container);
+bindComments(container);
 
 export { container, TYPES };

@@ -41,6 +41,14 @@
           Responses
         </router-link>
         <router-link
+          :to="`/projects/${projectId}/comments`"
+          class="tab-link"
+          :class="{ active: isTabActive('comments') }"
+          role="tab"
+        >
+          Comments
+        </router-link>
+        <router-link
           v-if="false"
           :to="`/projects/${projectId}/report`"
           class="tab-link"
@@ -77,6 +85,7 @@ function isTabActive(tab: string): boolean {
   if (tab === 'overview') return name === 'project-details' || name === 'project-overview';
   if (tab === 'invitations') return name === 'project-invitations';
   if (tab === 'responses') return name === 'project-responses';
+  if (tab === 'comments') return name === 'project-comments';
   return false;
 }
 

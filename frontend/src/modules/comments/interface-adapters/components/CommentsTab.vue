@@ -4,13 +4,8 @@
         <Card class="source-card reddit-card">
           <template #header>
             <div class="section-card-header">
-              <span class="section-icon section-icon-reddit" aria-hidden="true">
-                <svg viewBox="0 0 24 24" class="source-icon reddit-icon" xmlns="http://www.w3.org/2000/svg">
-                  <g transform="translate(2.5 2.5) scale(0.06)">
-                    <circle cx="45" cy="45" r="45" fill="#FF4500"/>
-                    <path d="M 75.011 45 c -0.134 -3.624 -3.177 -6.454 -6.812 -6.331 c -1.611 0.056 -3.143 0.716 -4.306 1.823 c -5.123 -3.49 -11.141 -5.403 -17.327 -5.537 l 2.919 -14.038 l 9.631 2.025 c 0.268 2.472 2.483 4.262 4.955 3.993 c 2.472 -0.268 4.262 -2.483 3.993 -4.955 s -2.483 -4.262 -4.955 -3.993 c -1.421 0.145 -2.696 0.973 -3.4 2.204 L 48.68 17.987 c -0.749 -0.168 -1.499 0.302 -1.667 1.063 c 0 0.011 0 0.011 0 0.022 l -3.322 15.615 c -6.264 0.101 -12.36 2.025 -17.55 5.537 c -2.64 -2.483 -6.801 -2.36 -9.284 0.291 c -2.483 2.64 -2.36 6.801 0.291 9.284 c 0.515 0.481 1.107 0.895 1.767 1.186 c -0.045 0.66 -0.045 1.32 0 1.98 c 0 10.078 11.745 18.277 26.23 18.277 c 14.485 0 26.23 -8.188 26.23 -18.277 c 0.045 -0.66 0.045 -1.32 0 -1.98 C 73.635 49.855 75.056 47.528 75.011 45 z M 30.011 49.508 c 0 -2.483 2.025 -4.508 4.508 -4.508 c 2.483 0 4.508 2.025 4.508 4.508 s -2.025 4.508 -4.508 4.508 C 32.025 53.993 30.011 51.991 30.011 49.508 z M 56.152 62.058 v -0.179 c -3.199 2.405 -7.114 3.635 -11.119 3.468 c -4.005 0.168 -7.919 -1.063 -11.119 -3.468 c -0.425 -0.515 -0.347 -1.286 0.168 -1.711 c 0.447 -0.369 1.085 -0.369 1.544 0 c 2.707 1.98 6.007 2.987 9.362 2.83 c 3.356 0.179 6.667 -0.783 9.407 -2.74 c 0.492 -0.481 1.297 -0.47 1.779 0.022 C 56.655 60.772 56.644 61.577 56.152 62.058 z M 55.537 54.34 c -0.078 0 -0.145 0 -0.224 0 l 0.034 -0.168 c -2.483 0 -4.508 -2.025 -4.508 -4.508 s 2.025 -4.508 4.508 -4.508 s 4.508 2.025 4.508 4.508 C 59.955 52.148 58.02 54.239 55.537 54.34 z" fill="white"/>
-                  </g>
-                </svg>
+              <span aria-hidden="true" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <img src="@/assets/icons/reddit-logo-2436.svg" alt="Reddit" class="source-icon reddit-icon" style="width: 100%; height: 100%;" />
               </span>
               <div>
                 <h4 class="section-title">Reddit</h4>
@@ -23,10 +18,6 @@
           <div class="input-section">
           <div class="url-input-header">
             <label class="input-label">Reddit Sources</label>
-            <div class="url-stats" v-if="viewModel.redditUrls.length > 0">
-              <span class="url-count">{{ viewModel.redditUrls.length }}</span>
-              <span class="url-count-label">URL{{ viewModel.redditUrls.length !== 1 ? 's' : '' }}</span>
-            </div>
           </div>
 
           <!-- List of URLs -->
@@ -37,16 +28,6 @@
               class="url-item"
               :class="{ 'url-item-error': !isValidUrl(url) }"
             >
-              <div class="url-drag-handle">
-                <svg viewBox="0 0 24 24" class="drag-icon">
-                  <circle cx="4" cy="8" r="1.5"/>
-                  <circle cx="4" cy="12" r="1.5"/>
-                  <circle cx="4" cy="16" r="1.5"/>
-                  <circle cx="8" cy="8" r="1.5"/>
-                  <circle cx="8" cy="12" r="1.5"/>
-                  <circle cx="8" cy="16" r="1.5"/>
-                </svg>
-              </div>
 
               <div class="url-input-wrapper">
                 <input
@@ -66,6 +47,20 @@
               </div>
 
               <div class="url-actions">
+                <button
+                  @click="openCommentsSidebarForUrl(url)"
+                  class="url-action-btn url-comments-btn"
+                  type="button"
+                  :aria-label="`View comments for ${url}`"
+                  :title="`View comments for ${url}`"
+                >
+                  <svg viewBox="0 0 24 24" class="action-icon">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    <circle cx="9" cy="10" r="1"/>
+                    <circle cx="12" cy="10" r="1"/>
+                    <circle cx="15" cy="10" r="1"/>
+                  </svg>
+                </button>
                 <button
                   @click="duplicateUrl(index)"
                   class="url-action-btn url-duplicate-btn"
@@ -150,10 +145,8 @@
         <Card class="source-card hn-card">
           <template #header>
             <div class="section-card-header">
-              <span class="section-icon section-icon-hn" aria-hidden="true">
-                <svg viewBox="0 0 24 24" class="source-icon hn-icon">
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                </svg>
+              <span aria-hidden="true" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <img src="@/assets/icons/hacker-news.svg" alt="Hacker News" class="source-icon hn-icon" style="width: 100%; height: 100%;" />
               </span>
               <div>
                 <h4 class="section-title">Hacker News</h4>
@@ -166,10 +159,6 @@
           <div class="input-section">
           <div class="url-input-header">
             <label class="input-label">Hacker News Sources</label>
-            <div class="url-stats" v-if="viewModel.hnUrls.length > 0">
-              <span class="url-count">{{ viewModel.hnUrls.length }}</span>
-              <span class="url-count-label">URL{{ viewModel.hnUrls.length !== 1 ? 's' : '' }}</span>
-            </div>
           </div>
 
           <!-- List of HN URLs -->
@@ -180,16 +169,6 @@
               class="url-item"
               :class="{ 'url-item-error': !isValidHnUrl(url) }"
             >
-              <div class="url-drag-handle">
-                <svg viewBox="0 0 24 24" class="drag-icon">
-                  <circle cx="4" cy="8" r="1.5"/>
-                  <circle cx="4" cy="12" r="1.5"/>
-                  <circle cx="4" cy="16" r="1.5"/>
-                  <circle cx="8" cy="8" r="1.5"/>
-                  <circle cx="8" cy="12" r="1.5"/>
-                  <circle cx="8" cy="16" r="1.5"/>
-                </svg>
-              </div>
 
               <div class="url-input-wrapper">
                 <input
@@ -209,6 +188,20 @@
               </div>
 
               <div class="url-actions">
+                <button
+                  @click="openCommentsSidebarForUrl(url)"
+                  class="url-action-btn url-comments-btn"
+                  type="button"
+                  :aria-label="`View comments for ${url}`"
+                  :title="`View comments for ${url}`"
+                >
+                  <svg viewBox="0 0 24 24" class="action-icon">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    <circle cx="9" cy="10" r="1"/>
+                    <circle cx="12" cy="10" r="1"/>
+                    <circle cx="15" cy="10" r="1"/>
+                  </svg>
+                </button>
                 <button
                   @click="duplicateHnUrl(index)"
                   class="url-action-btn url-duplicate-btn"
@@ -309,51 +302,7 @@
           </Button>
         </div>
 
-        <!-- Show Comments Button -->
-        <div v-if="viewModel.comments.length > 0" class="show-comments-section">
-          <div class="comments-summary">
-            <div class="comments-count-info">
-              <span class="comments-count-number">{{ viewModel.comments.length }}</span>
-              <span class="comments-count-label">comments collected</span>
-            </div>
-            <div v-if="getSourceStats.length > 0" class="comments-sources">
-              <span class="sources-label">from</span>
-              <div class="source-tags">
-                <span
-                  v-for="stat in getSourceStats"
-                  :key="stat.source"
-                  class="source-tag"
-                  :class="stat.source.toLowerCase()"
-                >
-                  {{ stat.count }} {{ stat.source === 'reddit' ? 'Reddit' : 'HN' }}
-                </span>
-              </div>
-            </div>
-          </div>
 
-          <div class="comments-actions">
-            <Button @click="openCommentsSidebar" variant="primary" class="show-comments-btn">
-              <template #icon>
-                <svg viewBox="0 0 24 24" class="comments-icon">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  <circle cx="9" cy="10" r="1"/>
-                  <circle cx="12" cy="10" r="1"/>
-                  <circle cx="15" cy="10" r="1"/>
-                </svg>
-              </template>
-              Show Comments
-            </Button>
-
-            <button @click="exportComments" class="btn btn-secondary btn-sm export-btn">
-              <svg viewBox="0 0 24 24" class="btn-icon">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7,10 12,15 17,10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Export
-            </button>
-          </div>
-        </div>
     </div>
 
     <!-- Comments Sidebar -->
@@ -362,37 +311,73 @@
             <div v-if="showCommentsSidebar" class="detail-overlay" @click.self="closeCommentsSidebar">
               <div class="detail-panel comments-panel">
                 <div class="detail-header">
-                  <h3>All Comments ({{ viewModel.comments.length }})</h3>
-                  <button type="button" class="btn-close" aria-label="Close" @click="closeCommentsSidebar">×</button>
+                  <div class="detail-header-content">
+                    <div class="header-info">
+                      <h3>{{ commentsFilterUrl ? 'Comments for URL' : 'All Comments' }}</h3>
+                      <div class="comment-count-badge">
+                        {{ filteredComments.length }}
+                      </div>
+                    </div>
+                    <div v-if="commentsFilterUrl" class="header-actions">
+                      <button @click="openCommentsSidebar" class="btn-outline btn-sm">
+                        <svg viewBox="0 0 24 24" class="btn-icon">
+                          <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
+                          <line x1="8" y1="5" x2="8" y2="5"/>
+                        </svg>
+                        Show All Comments
+                      </button>
+                    </div>
+                  </div>
+                  <button type="button" class="btn-close" aria-label="Close" @click="closeCommentsSidebar">
+                    <svg viewBox="0 0 24 24" class="close-icon">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
                 </div>
                 <div class="detail-body">
-                  <div class="comments-list-sidebar">
+                  <div v-if="filteredComments.length === 0" class="comments-empty-state">
+                    <div class="empty-comments-icon">💬</div>
+                    <h4>No comments found</h4>
+                    <p>{{ commentsFilterUrl ? 'No comments available for this URL yet.' : 'No comments have been collected yet.' }}</p>
+                  </div>
+                  <div v-else class="comments-list-sidebar">
                     <div
-                      v-for="comment in viewModel.comments"
+                      v-for="(comment, index) in filteredComments"
                       :key="comment.id"
                       class="comment-item-sidebar"
+                      :style="{ animationDelay: `${index * 0.1}s` }"
                     >
+                      <!-- Comment Header with improved layout -->
                       <div class="comment-header-sidebar">
-                        <div class="comment-author-sidebar">
-                          <span class="source-badge" :class="comment.sourceType">
-                            {{ comment.sourceType === 'reddit' ? 'R' : 'HN' }}
-                          </span>
-                          <span class="author-name">{{ comment.author || 'Anonymous' }}</span>
-                        </div>
-                        <div class="comment-date-sidebar">
-                          {{ formatDate(comment.createdAt) }}
+                        <div class="comment-meta">
+                          <div class="comment-author-section">
+                            <span class="source-badge" :class="comment.sourceType">
+                              <span class="source-icon">{{ comment.sourceType === 'reddit' ? 'R' : 'Y' }}</span>
+                            </span>
+                            <span class="author-name">{{ comment.author || 'Anonymous' }}</span>
+                            <span class="comment-separator">•</span>
+                            <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
+                          </div>
                         </div>
                       </div>
 
+                      <!-- Comment Content with better typography -->
                       <div class="comment-content-sidebar">
                         {{ comment.content }}
                       </div>
 
+                      <!-- Context information -->
                       <div v-if="comment.contextTitle" class="comment-context-sidebar">
-                        From: {{ comment.contextTitle }}
+                        <div class="context-icon">📄</div>
+                        <span class="context-text">{{ comment.contextTitle }}</span>
                       </div>
 
+                      <!-- Comment Actions -->
                       <div class="comment-actions-sidebar">
+                        <div class="comment-stats">
+                          <span class="comment-source-type">{{ comment.sourceType === 'reddit' ? 'Reddit' : 'Hacker News' }}</span>
+                        </div>
                         <a
                           :href="comment.url"
                           target="_blank"
@@ -404,7 +389,7 @@
                             <polyline points="15,3 21,3 21,9"/>
                             <line x1="10" y1="14" x2="21" y2="3"/>
                           </svg>
-                          View on {{ comment.sourceType === 'reddit' ? 'Reddit' : 'Hacker News' }}
+                          View Source
                         </a>
                       </div>
                     </div>
@@ -478,6 +463,17 @@ const commentsCountText = computed(() => {
   return `${count} comment${count !== 1 ? 's' : ''} collected`;
 });
 
+const filteredComments = computed(() => {
+  // If filtering by specific URL, show comments loaded for that URL
+  if (commentsFilterUrl.value) {
+    return viewModel.commentsForUrl;
+  }
+
+  // Otherwise show all comments
+  return viewModel.comments;
+});
+
+
 
 // Methods
 const handleFeedTypeChange = () => {
@@ -531,11 +527,12 @@ const newUrlInput = ref<HTMLInputElement>();
 const newHnUrl = ref('');
 const newHnUrlInput = ref<HTMLInputElement>();
 const showCommentsSidebar = ref(false);
+const commentsFilterUrl = ref<string | null>(null);
 
 // Methods
 const addUrl = () => {
   if (newUrl.value.trim()) {
-    presenter.addRedditUrl(newUrl.value.trim());
+    presenter.addRedditUrl(newUrl.value.trim(), props.projectId);
     newUrl.value = '';
     newUrlInput.value?.focus();
   }
@@ -544,23 +541,29 @@ const addUrl = () => {
 const removeUrl = async (index: number) => {
   const url = viewModel.redditUrls[index];
   if (url) {
-    await presenter.deleteSourceByUrl(props.projectId, url);
+    const confirmMessage = `Are you sure you want to remove this URL?\n\n${url}\n\n⚠️ Warning: All comments collected from this source will also be permanently deleted.`;
+    if (confirm(confirmMessage)) {
+      await presenter.deleteSourceByUrl(props.projectId, url);
+    }
   }
 };
 
 const updateUrl = (index: number, url: string) => {
-  presenter.updateRedditUrl(index, url);
+  presenter.updateRedditUrl(index, url, props.projectId);
 };
 
 const duplicateUrl = (index: number) => {
   const url = viewModel.redditUrls[index];
   if (url) {
-    presenter.addRedditUrl(url);
+    presenter.addRedditUrl(url, props.projectId);
   }
 };
 
 const clearAllUrls = async () => {
-  if (confirm(`Remove all ${viewModel.redditUrls.length} URLs and their comments?`)) {
+  const urlCount = viewModel.redditUrls.length;
+  const confirmMessage = `⚠️ WARNING: Permanent Deletion\n\nYou are about to remove ALL ${urlCount} Reddit URL${urlCount !== 1 ? 's' : ''}.\n\nThis action will also PERMANENTLY DELETE all comments collected from these sources.\n\nThis cannot be undone!\n\nAre you sure you want to proceed?`;
+
+  if (confirm(confirmMessage)) {
     // Delete each source from database
     for (const url of viewModel.redditUrls.slice()) { // slice() to avoid modifying while iterating
       await presenter.deleteSourceByUrl(props.projectId, url);
@@ -574,7 +577,7 @@ const pasteFromClipboard = async () => {
     const urls = parseBulkUrls(text);
     urls.forEach(url => {
       if (url.trim()) {
-        presenter.addRedditUrl(url.trim());
+        presenter.addRedditUrl(url.trim(), props.projectId);
       }
     });
   } catch (error) {
@@ -607,7 +610,7 @@ const handleBulkPaste = (event: ClipboardEvent) => {
     const urls = parseBulkUrls(pastedText);
     urls.forEach(url => {
       if (url.trim()) {
-        presenter.addRedditUrl(url.trim());
+        presenter.addRedditUrl(url.trim(), props.projectId);
       }
     });
     newUrl.value = '';
@@ -654,7 +657,7 @@ const isValidHnUrl = (url: string): boolean => {
 
 const addHnUrl = () => {
   if (newHnUrl.value.trim()) {
-    presenter.addHnUrl(newHnUrl.value.trim());
+    presenter.addHnUrl(newHnUrl.value.trim(), props.projectId);
     newHnUrl.value = '';
     newHnUrlInput.value?.focus();
   }
@@ -663,23 +666,29 @@ const addHnUrl = () => {
 const removeHnUrl = async (index: number) => {
   const url = viewModel.hnUrls[index];
   if (url) {
-    await presenter.deleteSourceByUrl(props.projectId, url);
+    const confirmMessage = `Are you sure you want to remove this URL?\n\n${url}\n\n⚠️ Warning: All comments collected from this source will also be permanently deleted.`;
+    if (confirm(confirmMessage)) {
+      await presenter.deleteSourceByUrl(props.projectId, url);
+    }
   }
 };
 
 const updateHnUrl = (index: number, url: string) => {
-  presenter.updateHnUrl(index, url);
+  presenter.updateHnUrl(index, url, props.projectId);
 };
 
 const duplicateHnUrl = (index: number) => {
   const url = viewModel.hnUrls[index];
   if (url) {
-    presenter.addHnUrl(url);
+    presenter.addHnUrl(url, props.projectId);
   }
 };
 
 const clearAllHnUrls = async () => {
-  if (confirm(`Remove all ${viewModel.hnUrls.length} HN URLs and their comments?`)) {
+  const urlCount = viewModel.hnUrls.length;
+  const confirmMessage = `⚠️ WARNING: Permanent Deletion\n\nYou are about to remove ALL ${urlCount} Hacker News URL${urlCount !== 1 ? 's' : ''}.\n\nThis action will also PERMANENTLY DELETE all comments collected from these sources.\n\nThis cannot be undone!\n\nAre you sure you want to proceed?`;
+
+  if (confirm(confirmMessage)) {
     // Delete each source from database
     for (const url of viewModel.hnUrls.slice()) { // slice() to avoid modifying while iterating
       await presenter.deleteSourceByUrl(props.projectId, url);
@@ -693,7 +702,7 @@ const pasteHnFromClipboard = async () => {
     const urls = parseHnBulkUrls(text);
     urls.forEach(url => {
       if (url.trim()) {
-        presenter.addHnUrl(url.trim());
+        presenter.addHnUrl(url.trim(), props.projectId);
       }
     });
   } catch (error) {
@@ -708,7 +717,7 @@ const handleHnBulkPaste = (event: ClipboardEvent) => {
     const urls = parseHnBulkUrls(pastedText);
     urls.forEach(url => {
       if (url.trim()) {
-        presenter.addHnUrl(url.trim());
+        presenter.addHnUrl(url.trim(), props.projectId);
       }
     });
     newHnUrl.value = '';
@@ -751,16 +760,26 @@ const getPlaceholderForIndex = (index: number): string => {
 };
 
 const openCommentsSidebar = () => {
+  commentsFilterUrl.value = null;
+  showCommentsSidebar.value = true;
+};
+
+const openCommentsSidebarForUrl = async (url: string) => {
+  // Load comments for this specific URL from backend
+  await presenter.loadCommentsByUrl(props.projectId, url);
+  commentsFilterUrl.value = url;
   showCommentsSidebar.value = true;
 };
 
 const closeCommentsSidebar = () => {
   showCommentsSidebar.value = false;
+  commentsFilterUrl.value = null;
+  viewModel.commentsForUrl = []; // Clear URL-specific comments
 };
 
 // Initialize presenter and load data on mount
 onMounted(async () => {
-  presenter.initialize();
+  presenter.initialize(props.projectId);
   await presenter.loadComments(props.projectId);
 });
 </script>
@@ -1144,6 +1163,17 @@ onMounted(async () => {
   100% { opacity: 0.4; transform: scale(1.05); }
 }
 
+@keyframes commentSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Loading state */
 .loading-state {
   display: flex;
@@ -1198,27 +1228,6 @@ onMounted(async () => {
   margin: 0;
 }
 
-.url-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--color-accent-bg);
-  padding: 0.375rem 0.75rem;
-  border-radius: 1rem;
-  border: 1px solid var(--color-accent-light);
-}
-
-.url-count {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--color-accent-dark);
-}
-
-.url-count-label {
-  font-size: 0.875rem;
-  color: var(--color-accent);
-  font-weight: 500;
-}
 
 /* URL List */
 .url-list {
@@ -1263,27 +1272,6 @@ onMounted(async () => {
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
 }
 
-.url-drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  color: var(--color-text-muted);
-  cursor: grab;
-  flex-shrink: 0;
-}
-
-.url-drag-handle:hover {
-  color: var(--color-text);
-}
-
-.drag-icon {
-  width: 1rem;
-  height: 1rem;
-  stroke: currentColor;
-  stroke-width: 1.5;
-}
 
 .url-input-wrapper {
   flex: 1;
@@ -1365,6 +1353,18 @@ onMounted(async () => {
   color: var(--color-accent-dark);
   transform: scale(1.05);
 }
+
+.url-comments-btn {
+  background: var(--color-accent);
+  color: white;
+  border: 1px solid var(--color-accent);
+}
+
+.url-comments-btn:hover {
+  background: var(--color-accent-hover);
+  transform: scale(1.05);
+}
+
 
 .url-remove-btn {
   background: var(--color-error-bg);
@@ -1647,9 +1647,24 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
   border-bottom: 1px solid var(--color-border-light);
-  background: var(--color-bg-subtle);
+  background: linear-gradient(135deg, var(--color-bg-subtle), rgba(255, 255, 255, 0.8));
+  backdrop-filter: blur(8px);
+}
+
+.detail-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .detail-header h3 {
@@ -1657,6 +1672,86 @@ onMounted(async () => {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-text);
+  background: linear-gradient(135deg, var(--color-text), var(--color-text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.comment-count-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+  color: white;
+  border-radius: 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0 0.5rem;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-outline {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.9rem;
+  background: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-outline:hover {
+  background: var(--color-accent);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(13, 148, 136, 0.2);
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--color-text);
+}
+
+.close-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.btn-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  stroke: currentColor;
+  stroke-width: 2;
 }
 
 .btn-close {
@@ -1688,70 +1783,239 @@ onMounted(async () => {
 }
 
 .comment-item-sidebar {
-  padding: 1.25rem;
-  border-radius: var(--radius-md);
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.2s ease;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+  animation: commentSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.comment-item-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-light));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .comment-item-sidebar:hover {
-  background: rgba(248, 250, 252, 0.9);
-  border-color: rgba(13, 148, 136, 0.2);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+  border-color: rgba(13, 148, 136, 0.4);
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.1);
+  transform: translateY(-2px);
+}
+
+.comment-item-sidebar:hover::before {
+  opacity: 1;
 }
 
 .comment-header-sidebar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  margin-bottom: 1.25rem;
 }
 
-.comment-author-sidebar {
+.comment-meta {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text);
-  font-size: 0.95rem;
+}
+
+.comment-author-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.source-badge.reddit {
+  background: linear-gradient(135deg, #FF4500, #FF6B35);
+}
+
+.source-badge.hackernews {
+  background: linear-gradient(135deg, #ff6600, #ff8533);
+}
+
+.source-icon {
+  line-height: 1;
 }
 
 .author-name {
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--color-text);
+  transition: color 0.2s ease;
 }
 
-.comment-date-sidebar {
-  font-size: 0.8rem;
+.comment-item-sidebar:hover .author-name {
+  color: var(--color-accent);
+}
+
+.comment-separator {
   color: var(--color-text-muted);
-  background: var(--color-bg-subtle);
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.comment-time {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
 }
 
 .comment-content-sidebar {
   color: var(--color-text);
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
   font-size: 0.95rem;
   white-space: pre-wrap;
+  font-family: var(--font-sans);
+  position: relative;
+}
+
+.comment-content-sidebar::first-letter {
+  font-size: 1.1em;
+  font-weight: 500;
 }
 
 .comment-context-sidebar {
-  background: var(--color-bg-subtle);
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-sm);
-  border-left: 3px solid var(--color-accent-light);
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.05), rgba(13, 148, 136, 0.02));
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--color-accent);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.comment-context-sidebar:hover {
+  background: linear-gradient(135deg, rgba(13, 148, 136, 0.08), rgba(13, 148, 136, 0.04));
+}
+
+.context-icon {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+.context-text {
+  font-weight: 500;
 }
 
 .comment-actions-sidebar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.comment-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comment-source-type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+
+.view-source-link {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.6rem 0.9rem;
+  background: linear-gradient(135deg, var(--color-bg-secondary), rgba(255, 255, 255, 0.8));
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.view-source-link:hover {
+  background: linear-gradient(135deg, var(--color-accent-light), var(--color-accent));
+  border-color: var(--color-accent);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(13, 148, 136, 0.2);
+}
+
+.external-link-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.comments-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.empty-comments-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.comments-empty-state h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.comments-empty-state p {
+  margin: 0;
+  font-size: 0.9rem;
+  max-width: 300px;
+  line-height: 1.5;
 }
 
 /* Slide animation for sidebar */
@@ -1824,12 +2088,44 @@ onMounted(async () => {
 
   .comment-item-sidebar {
     padding: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .comment-header-sidebar {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+
+  .comment-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .comment-author-section {
+    flex-wrap: wrap;
+  }
+
+  .comment-actions-sidebar {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .comment-stats {
+    justify-content: center;
+  }
+
+  .detail-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .header-info {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 </style>
