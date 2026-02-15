@@ -62,18 +62,6 @@
                   </svg>
                 </button>
                 <button
-                  @click="duplicateUrl(index)"
-                  class="url-action-btn url-duplicate-btn"
-                  type="button"
-                  aria-label="Duplicate URL"
-                  title="Duplicate URL"
-                >
-                  <svg viewBox="0 0 24 24" class="action-icon">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                  </svg>
-                </button>
-                <button
                   @click="removeUrl(index)"
                   class="url-action-btn url-remove-btn"
                   type="button"
@@ -581,12 +569,6 @@ const updateUrl = (index: number, url: string) => {
   presenter.updateRedditUrl(index, url, props.projectId);
 };
 
-const duplicateUrl = (index: number) => {
-  const url = viewModel.redditUrls[index];
-  if (url) {
-    presenter.addRedditUrl(url, props.projectId);
-  }
-};
 
 
 const handlePaste = (event: ClipboardEvent, index: number) => {
@@ -703,12 +685,6 @@ const updateHnUrl = (index: number, url: string) => {
   presenter.updateHnUrl(index, url, props.projectId);
 };
 
-const duplicateHnUrl = (index: number) => {
-  const url = viewModel.hnUrls[index];
-  if (url) {
-    presenter.addHnUrl(url, props.projectId);
-  }
-};
 
 
 const handleHnBulkPaste = (event: ClipboardEvent) => {
@@ -1343,17 +1319,6 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.url-duplicate-btn {
-  background: var(--color-accent-bg);
-  color: var(--color-accent);
-  border: 1px solid var(--color-accent-light);
-}
-
-.url-duplicate-btn:hover {
-  background: var(--color-accent-light);
-  color: var(--color-accent-dark);
-  transform: scale(1.05);
-}
 
 .url-comments-btn {
   background: var(--color-accent);
