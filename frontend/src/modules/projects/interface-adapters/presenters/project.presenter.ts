@@ -34,7 +34,8 @@ export class ProjectPresenter {
     hypothesisDescription?: string,
     hypothesisAssumptions?: string[],
     marketContext?: MarketContext | null,
-    scenarioTemplateSlug?: string
+    scenarioTemplateSlug?: string,
+    workspaceId?: string | null
   ): Promise<{ projectId: string | null; error?: string }> {
     try {
       // Валидация и создание Segment
@@ -78,12 +79,8 @@ export class ProjectPresenter {
       // Создаём проект
       console.log('🔄 Creating project with name:', name);
       const result = await this._createProjectUseCase.execute({
-        userId: this._userId,
         name,
-        segment,
-        hypothesis,
-        marketContext,
-        scenarioTemplateSlug
+        workspaceId: workspaceId ?? undefined,
       });
 
       if (!result.isSuccess) {
@@ -213,7 +210,8 @@ export class ProjectPresenter {
         projectData.publicSlug ?? null,
         projectData.maxPublicResponses ?? null,
         projectData.requirePublicEmail ?? false,
-        projectData.captchaEnabled ?? false
+        projectData.captchaEnabled ?? false,
+        projectData.scenarioTemplateSlug ?? null
       );
       
       viewModel.project.value = project;

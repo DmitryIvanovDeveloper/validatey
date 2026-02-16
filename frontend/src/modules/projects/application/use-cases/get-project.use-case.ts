@@ -42,6 +42,7 @@ export class GetProjectUseCase {
         maxPublicResponses: project.maxPublicResponses ?? null,
         requirePublicEmail: project.requirePublicEmail,
         captchaEnabled: project.captchaEnabled,
+        scenarioTemplateSlug: project.scenarioTemplateSlug ?? null,
       }
     });
   }

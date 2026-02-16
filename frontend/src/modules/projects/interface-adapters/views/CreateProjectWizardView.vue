@@ -566,7 +566,8 @@ async function ensureProjectCreated(): Promise<void> {
     formData.value.hypothesisDescription,
     formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
     marketContext ?? undefined,
-    selectedTemplateSlugs.value.length > 0 ? JSON.stringify(selectedTemplateSlugs.value) : undefined
+    selectedTemplateSlugs.value.length > 0 ? JSON.stringify(selectedTemplateSlugs.value) : undefined,
+    workspaceId.value || undefined
   );
   if (createResult.projectId) currentProjectId.value = createResult.projectId;
 }
@@ -670,7 +671,8 @@ const generateScenario = async () => {
         formData.value.hypothesisDescription,
         formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
         marketContext,
-        selectedTemplateSlugs.value.length > 0 ? JSON.stringify(selectedTemplateSlugs.value) : undefined
+        selectedTemplateSlugs.value.length > 0 ? JSON.stringify(selectedTemplateSlugs.value) : undefined,
+        workspaceId.value || undefined
       );
 
       if (!createResult.projectId) {
@@ -854,18 +856,23 @@ async function doComplete() {
   }
   // В режиме редактирования всегда возвращаемся к странице проекта
   if (isEditing.value) {
-    router.push(`/projects/${projectId}`);
+    router.push(workspaceId.value
+      ? `/workspaces/${workspaceId.value}/projects/${projectId}`
+      : `/projects/${projectId}`);
     return;
   }
 
   const choice = audienceChoice.value;
   const fromOnboarding = route.query.onboarding === '1';
+  const projectPath = workspaceId.value
+    ? `/workspaces/${workspaceId.value}/projects/${currentProjectId.value}`
+    : `/projects/${currentProjectId.value}`;
   if (currentProjectId.value && (choice === 'email' || choice === 'share')) {
     router.push(fromOnboarding
-      ? `/projects/${currentProjectId.value}/invitations?onboarding=1`
-      : `/projects/${currentProjectId.value}/invitations`);
+      ? `${projectPath}/invitations?onboarding=1`
+      : `${projectPath}/invitations`);
   } else if (currentProjectId.value && choice === 'panel') {
-    router.push(`/projects/${currentProjectId.value}/panel`);
+    router.push(`${projectPath}/panel`);
   // Save current questions before completing
   if (selectedTemplateSlugs.value.length > 0 && scenarioContent.value.trim()) {
     const typesKey = JSON.stringify(selectedTemplateSlugs.value.sort());
@@ -969,12 +976,35 @@ async function loadProjectForEditing(projectId: string) {
       isEditing.value = true;
       editingProjectId.value = projectId;
 
+      // Загружаем шаблоны и восстанавливаем выбранные типы валидации
+      if (scenarioTemplates.value.length === 0) {
+        const { templates, error } = await scenarioPresenter.getTemplates();
+        if (!error) scenarioTemplates.value = templates;
+      }
+
+      if (project.scenarioTemplateSlug) {
+        try {
+          const parsed = JSON.parse(project.scenarioTemplateSlug) as unknown;
+          const slugs = Array.isArray(parsed)
+            ? parsed.filter((s): s is string => typeof s === 'string')
+            : [project.scenarioTemplateSlug];
+          if (scenarioTemplates.value.length > 0) {
+            const validSlugs = slugs.filter(s =>
+              scenarioTemplates.value.some(t => t.slug === s)
+            );
+            selectedTemplateSlugs.value = validSlugs.length > 0 ? validSlugs : (slugs.length > 0 ? [slugs[0]] : []);
+          } else {
+            selectedTemplateSlugs.value = slugs;
+          }
+        } catch {
+          selectedTemplateSlugs.value = [project.scenarioTemplateSlug];
+        }
+      }
+
       // Загружаем существующий сценарий проекта
       const scenarioResult = await scenarioPresenter.getLatestByProjectId(projectId);
       if (!('error' in scenarioResult)) {
         scenarioContent.value = scenarioResult.content;
-        // Оставляем дефолтный режим template для консистентности с созданием
-        // scenarioSource.value = 'template'; // уже установлено по умолчанию
       }
     }
   } catch (error) {

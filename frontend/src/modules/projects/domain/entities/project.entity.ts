@@ -27,7 +27,8 @@ export class Project {
     public readonly publicSlug: string | null = null,
     public readonly maxPublicResponses: number | null = null,
     public readonly requirePublicEmail: boolean = false,
-    public readonly captchaEnabled: boolean = false
+    public readonly captchaEnabled: boolean = false,
+    public readonly scenarioTemplateSlug: string | null = null
   ) {
     if (!id || id.trim().length === 0) {
       throw new Error('Project id cannot be empty');
@@ -53,9 +54,10 @@ export class Project {
       this.termsOfServiceUrl,
       this.publicAccessEnabled,
       this.publicSlug,
-      this.maxPublicResponses,
-      this.requirePublicEmail,
-      this.captchaEnabled
+        this.maxPublicResponses,
+        this.requirePublicEmail,
+        this.captchaEnabled,
+        this.scenarioTemplateSlug
     );
   }
 
@@ -97,9 +99,10 @@ export class Project {
       this.termsOfServiceUrl,
       this.publicAccessEnabled,
       this.publicSlug,
-      this.maxPublicResponses,
-      this.requirePublicEmail,
-      this.captchaEnabled
+        this.maxPublicResponses,
+        this.requirePublicEmail,
+        this.captchaEnabled,
+        this.scenarioTemplateSlug
     );
   }
 }

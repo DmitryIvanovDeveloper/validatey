@@ -2,6 +2,7 @@ import { injectable, inject } from 'inversify';
 import type { ProjectRepositoryPort, CreateProjectData, UpdateProjectData } from '../../application/ports/project-repository.port';
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
+import { sessionManager } from '../../../../shared/services/session-manager';
 import Result from '../../../../infrastructure/result/result';
 import { Project, ProjectStatus } from '../../domain/entities/project.entity';
 import { Segment } from '../../domain/value-objects/segment.vo';
@@ -18,6 +19,10 @@ export class ProjectRepository implements ProjectRepositoryPort {
 
   async create(project: CreateProjectData): Promise<Result<Project, InvalidProjectDataError>> {
     try {
+      const userId = sessionManager.currentUserId;
+      if (!userId) {
+        return Result.failure(new InvalidProjectDataError('User not authenticated. Sign in and try again.'));
+      }
       const response = await this._httpClient.post<{
         id: string;
         name: string;
@@ -28,6 +33,8 @@ export class ProjectRepository implements ProjectRepositoryPort {
         createdAt: string;
         updatedAt: string;
       }>(API_CONFIG.ENDPOINTS.PROJECTS, {
+        userId,
+        workspaceId: project.workspaceId ?? undefined,
         name: project.name,
         segment: project.segment ? {
           description: project.segment.description,
@@ -81,6 +88,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
           maxPublicResponses?: number | null;
           requirePublicEmail?: boolean;
           captchaEnabled?: boolean;
+          scenarioTemplateSlug?: string | null;
         };
       }>(API_CONFIG.ENDPOINTS.PROJECT(id));
 
@@ -104,7 +112,8 @@ export class ProjectRepository implements ProjectRepositoryPort {
         projectData.publicSlug ?? null,
         projectData.maxPublicResponses ?? null,
         projectData.requirePublicEmail ?? false,
-        projectData.captchaEnabled ?? false
+        projectData.captchaEnabled ?? false,
+        projectData.scenarioTemplateSlug ?? null
       );
 
       return Result.success(domainProject);
