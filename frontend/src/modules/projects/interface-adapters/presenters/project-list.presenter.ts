@@ -58,7 +58,7 @@ export class ProjectListPresenter {
     }
   }
 
-  async deleteProject(viewModel: ProjectListViewModel, projectId: string): Promise<boolean> {
+  async deleteProject(viewModel: ProjectListViewModel, projectId: string, workspaceId?: string): Promise<boolean> {
     viewModel.deletingId.value = projectId;
     viewModel.error.value = null;
 
@@ -68,7 +68,7 @@ export class ProjectListPresenter {
 
     if (result.isSuccess) {
       this._logger.info('Project deleted', { projectId });
-      await this.loadProjects(viewModel);
+      await this.loadProjects(viewModel, workspaceId);
       return true;
     }
 
