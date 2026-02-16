@@ -2,6 +2,7 @@ import { Segment, Hypothesis, MarketContext } from '../../../domain/entities/pro
 
 export type CreateProjectUseCaseRequest = {
   userId: string;
+  workspaceId?: string;
   name: string;
   segment?: Segment;
   hypothesis?: Hypothesis;

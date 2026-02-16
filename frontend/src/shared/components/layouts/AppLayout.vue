@@ -11,16 +11,16 @@
           </span>
           <span class="brand-text">Validatey</span>
         </router-link>
-        <nav v-if="authViewModel.user.value" class="header-nav" aria-label="Main">
-          <router-link v-if="authViewModel.role.value === 'admin'" to="/admin/users" class="nav-link">Users</router-link>
+        <nav v-if="currentUser" class="header-nav" aria-label="Main">
+          <router-link v-if="currentRole === 'admin'" to="/admin/users" class="nav-link">Users</router-link>
         </nav>
         <div class="header-actions">
-          <template v-if="authViewModel.user.value">
-            <div class="user-badge" :title="authViewModel.user.value.email ?? undefined">
+          <template v-if="currentUser">
+            <div class="user-badge" :title="currentUser.email ?? undefined">
               <span class="user-avatar" aria-hidden="true">{{ userInitial }}</span>
               <span class="user-name">{{ userDisplayName }}</span>
             </div>
-            <button type="button" class="btn btn-ghost btn-sm" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
+            <button type="button" class="btn btn-ghost btn-sm" @click="handleSignOut">Sign out</button>
           </template>
         </div>
       </div>
@@ -32,23 +32,30 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { container } from '../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
 import type { AuthPresenter } from '../../../modules/auth/interface-adapters/presenters/auth.presenter';
-import { AuthViewModel } from '../../../modules/auth/interface-adapters/view-models/auth.view-model';
-import { userContextService } from '../../services/user-context.service';
+import type { AuthSession } from '../../../modules/auth/application/ports/auth-service.port';
+import { sessionManager } from '../../services/session-manager';
 
 const route = useRoute();
 const router = useRouter();
-const authViewModel = new AuthViewModel();
 const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
 
+// Reactive session state using SessionManager
+const session = ref<AuthSession | null>(null);
+
+// Computed properties for template
+const isAuthenticated = computed(() => !!session.value);
+const currentUser = computed(() => session.value?.user || null);
+const currentRole = computed(() => session.value?.role ?? 'user');
+
 const userDisplayName = computed(() => {
-  const u = authViewModel.user.value;
-  if (!u) return '';
-  return u.email ?? u.displayName ?? 'User';
+  const user = currentUser.value;
+  if (!user) return '';
+  return user.email ?? user.displayName ?? 'User';
 });
 
 const userInitial = computed(() => {
@@ -57,28 +64,13 @@ const userInitial = computed(() => {
   const part = name.trim().split(/[\s@]/).find(Boolean) ?? '';
   return part.charAt(0).toUpperCase() || '?';
 });
-let unsubscribeAuth: (() => void) | null = null;
 
 const showNavbar = computed(() => {
   return route.meta.hideNavbar !== true;
 });
 
-/** Handle userId sync events */
-watch(
-  () => authViewModel.user.value,
-  (user) => {
-    if (user) {
-      // Set userId in context service after successful auth
-      userContextService.setUserId(user.id);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('validatey-user-id-synced'));
-      }
-    } else {
-      // Clear userId on sign out
-      userContextService.clearUserId();
-    }
-  }
-);
+// Subscribe to session changes from SessionManager
+let unsubscribeSession: (() => void) | null = null;
 
 // Session refresh interval
 let sessionRefreshInterval: NodeJS.Timeout | null = null;
@@ -87,10 +79,10 @@ let lastActivityTime = Date.now();
 // User activity handler
 const handleUserActivity = () => {
   const now = Date.now();
-  if (now - lastActivityTime > 10 * 60 * 1000 && authViewModel.user.value) { // 10 minutes
+  if (now - lastActivityTime > 10 * 60 * 1000 && sessionManager.isAuthenticated) { // 10 minutes
     console.log('🔄 Refreshing session due to user activity...');
     lastActivityTime = now;
-    authPresenter.loadSession(authViewModel).catch(error => {
+    sessionManager.refreshSession().catch(error => {
       console.warn('❌ Failed to refresh session on activity:', error);
     });
   } else {
@@ -99,32 +91,30 @@ const handleUserActivity = () => {
 };
 
 onMounted(async () => {
-  await authPresenter.loadSession(authViewModel);
+  console.log('🔍 APP LAYOUT: onMounted called');
 
-  // Set userId if session exists
-  if (authViewModel.user.value) {
-    userContextService.setUserId(authViewModel.user.value.id);
-  }
+  // Session manager is already initialized in main.ts
+  console.log('🔍 APP LAYOUT: Session manager should already be initialized');
 
-  userContextService.setSessionReady(true);
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('validatey-session-ready'));
-  }
-  unsubscribeAuth = authPresenter.subscribeToAuthState(authViewModel);
+  // Subscribe to session changes
+  unsubscribeSession = sessionManager.subscribe((newSession) => {
+    session.value = newSession;
+
+    // Dispatch event for other components
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('validatey-user-id-synced'));
+    }
+  });
+
+  console.log('🔍 APP LAYOUT: onMounted completed');
 
   // Refresh session every 5 minutes to prevent expiration
   console.log('🚀 Starting session refresh interval');
   sessionRefreshInterval = setInterval(async () => {
-    if (authViewModel.user.value) {
+    if (sessionManager.isAuthenticated) {
       console.log('🔄 Refreshing session...');
       try {
-        // Add timeout to prevent hanging refresh operations
-        const refreshPromise = authPresenter.loadSession(authViewModel);
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Session refresh timeout')), 10000)
-        );
-
-        await Promise.race([refreshPromise, timeoutPromise]);
+        await sessionManager.refreshSession();
         console.log('✅ Session refreshed successfully');
       } catch (error) {
         console.warn('❌ Failed to refresh session:', error);
@@ -142,7 +132,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  unsubscribeAuth?.();
+  unsubscribeSession?.();
   if (sessionRefreshInterval) {
     clearInterval(sessionRefreshInterval);
     sessionRefreshInterval = null;
@@ -157,8 +147,12 @@ onUnmounted(() => {
 });
 
 async function handleSignOut() {
-  await authPresenter.signOut(authViewModel);
-  userContextService.clearUserId();
+  // Clear session using SessionManager
+  sessionManager.clearSession();
+
+  // Sign out via auth presenter (clears cookies)
+  await authPresenter.signOut();
+
   await router.replace('/login');
 }
 </script>

@@ -11,6 +11,7 @@ export interface MarketContext {
 export interface Project {
   readonly id: string;
   readonly userId: string;
+  readonly workspaceId: string | null;
   readonly name: string;
   readonly status: ProjectStatus;
   readonly segment: Segment | null;
@@ -56,6 +57,7 @@ export class ProjectEntity {
   private constructor(
     public readonly id: string,
     public readonly userId: string,
+    public readonly workspaceId: string | null,
     public readonly name: string,
     public readonly status: ProjectStatus,
     public readonly segment: Segment | null,
@@ -81,6 +83,7 @@ export class ProjectEntity {
   static create(
     userId: string,
     name: string,
+    workspaceId?: string | null,
     segment?: Segment,
     hypothesis?: Hypothesis,
     marketContext?: MarketContext | null,
@@ -100,6 +103,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.generateId(),
       userId,
+      workspaceId ?? null,
       name.trim(),
       'draft',
       segment || null,
@@ -127,6 +131,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       data.id,
       data.userId,
+      data.workspaceId ?? null,
       data.name,
       data.status,
       data.segment,
@@ -154,6 +159,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       status,
       this.segment,
@@ -181,6 +187,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       segment,
@@ -208,6 +215,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -235,6 +243,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -262,6 +271,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -295,6 +305,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       name.trim(),
       this.status,
       this.segment,
@@ -325,6 +336,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -352,6 +364,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -379,6 +392,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -406,6 +420,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -433,6 +448,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -460,6 +476,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -487,6 +504,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -520,6 +538,7 @@ export class ProjectEntity {
     return new ProjectEntity(
       this.id,
       this.userId,
+      this.workspaceId,
       this.name,
       this.status,
       this.segment,
@@ -547,6 +566,7 @@ export class ProjectEntity {
     return {
       id: this.id,
       userId: this.userId,
+      workspaceId: this.workspaceId,
       name: this.name,
       status: this.status,
       segment: this.segment,

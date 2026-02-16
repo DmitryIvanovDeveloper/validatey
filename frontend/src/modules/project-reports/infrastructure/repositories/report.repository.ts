@@ -6,7 +6,7 @@ import Result from '../../../../infrastructure/result/result';
 import { ProjectReport } from '../../domain/entities/project-report.entity';
 import { ReportNotFoundError, ReportGenerationError } from '../../domain/errors/project-report.error';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-import { userContextService } from '../../../../shared/services/user-context.service';
+import { sessionManager } from '../../../../shared/services/session-manager';
 
 @injectable()
 export class ReportRepository implements ReportRepositoryPort {
@@ -39,7 +39,7 @@ export class ReportRepository implements ReportRepositoryPort {
 
   async downloadHtml(projectId: string): Promise<Result<Blob, ReportNotFoundError>> {
     try {
-      const userId = userContextService.getOrCreateUserId();
+      const userId = sessionManager.currentUserId;
       
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.REPORT_HTML(projectId)}`, {
         headers: {
@@ -60,7 +60,7 @@ export class ReportRepository implements ReportRepositoryPort {
 
   async downloadPdf(projectId: string): Promise<Result<Blob, ReportNotFoundError>> {
     try {
-      const userId = userContextService.getOrCreateUserId();
+      const userId = sessionManager.currentUserId;
       
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.REPORT_PDF(projectId)}`, {
         headers: {

@@ -327,6 +327,7 @@ import type { Project } from '../../domain/entities/project.entity';
 
 const route = useRoute();
 const router = useRouter();
+const workspaceId = computed(() => (route.params.workspaceId as string) || '');
 const projectPresenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 
 const ONBOARDING_STORAGE_KEY = 'validatey_onboarding_completed';
@@ -873,7 +874,7 @@ async function doComplete() {
   }
 
   } else {
-    router.push('/projects');
+    router.push(workspaceId.value ? `/workspaces/${workspaceId.value}/projects` : '/workspaces');
   }
 }
 

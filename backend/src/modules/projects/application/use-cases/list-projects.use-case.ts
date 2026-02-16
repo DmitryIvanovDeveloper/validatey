@@ -16,18 +16,32 @@ export class ListProjectsUseCase {
   ) {}
 
   async execute(request: ListProjectsUseCaseRequest): Promise<ResultEx<ListProjectsUseCaseResponse, Error>> {
-    this._logger.info('list-projects.start', { userId: request.userId, listAll: request.listAll });
+    this._logger.info('list-projects.start', {
+      userId: request.userId,
+      listAll: request.listAll,
+      workspaceId: request.workspaceId
+    });
 
-    const findResult = request.listAll
-      ? await this._repository.findAll()
-      : await this._repository.findByUserId(request.userId);
+    let findResult: ResultEx<Project[], Error>;
+
+    if (request.listAll) {
+      findResult = await this._repository.findAll();
+    } else if (request.workspaceId) {
+      findResult = await this._repository.findByWorkspaceId(request.workspaceId);
+    } else {
+      findResult = await this._repository.findByUserId(request.userId);
+    }
 
     if (!findResult.isSuccess) {
       this._logger.error('list-projects.error', { error: findResult.error });
       return ResultEx.failure(findResult.error);
     }
 
-    this._logger.info('list-projects.success', { userId: request.userId, count: findResult.data.length });
+    this._logger.info('list-projects.success', {
+      userId: request.userId,
+      workspaceId: request.workspaceId,
+      count: findResult.data.length
+    });
 
     return ResultEx.success({
       projects: findResult.data,

@@ -286,8 +286,8 @@ const formattedDate = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: none;
   background: transparent;
   border-radius: 6px;
@@ -302,8 +302,8 @@ const formattedDate = computed(() => {
 }
 
 .project-card__menu-trigger svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 .project-card__menu-dropdown {
@@ -311,12 +311,12 @@ const formattedDate = computed(() => {
   top: 100%;
   right: 0;
   z-index: 100;
-  min-width: 160px;
+  min-width: 140px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.1), 0 4px 8px -2px rgba(15, 23, 42, 0.08);
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   margin-top: 4px;
 }
 
@@ -345,8 +345,8 @@ const formattedDate = computed(() => {
 
 .project-card__menu-actions :deep(.project-card-edit svg),
 .project-card__menu-actions :deep(.btn svg) {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 

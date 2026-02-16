@@ -124,7 +124,7 @@ import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { userContextService } from '../../../../shared/services/user-context.service';
+import { sessionManager } from '../../../../shared/services/session-manager';
 
 const router = useRouter();
 const viewModel = new ProjectListViewModel();
@@ -135,7 +135,7 @@ function refetchProjects() {
 }
 
 onMounted(() => {
-  if (userContextService.isSessionReady()) {
+  if (sessionManager.isSessionReady) {
     refetchProjects();
   }
   window.addEventListener('validatey-session-ready', refetchProjects);

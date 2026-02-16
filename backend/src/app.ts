@@ -14,7 +14,7 @@ const app = express();
 
 // CORS: exact origin(s), never * (required when credentials: true from frontend).
 // On Vercel: set FRONTEND_ORIGIN or we allow https://validatey.vercel.app when VERCEL=1.
-const envOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173,http://localhost:5174').split(',').map((s) => s.trim());
+const envOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173,http://localhost:5174,http://localhost:5175').split(',').map((s) => s.trim());
 const vercelFallback = process.env.VERCEL ? ['https://validatey.vercel.app'] : [];
 const allowedOrigins = [...new Set([...envOrigins, ...vercelFallback])];
 app.use(
@@ -83,6 +83,7 @@ import feedbackRoutes from './modules/feedback/interface-adapters/routes/feedbac
 import deletionRequestsRoutes from './modules/deletion-requests/interface-adapters/routes/deletion-requests.routes';
 import hubspotRoutes from './modules/integrations/interface-adapters/routes/hubspot.routes';
 import commentsRoutes from './modules/comments/interface-adapters/routes/comments.routes';
+import workspacesRoutes from './modules/workspaces/interface-adapters/routes/workspaces.routes';
 
 app.use('/api/projects', projectsRoutes);
 app.use('/api/projects', projectsNestedRoutes); // Nested routes: /projects/:projectId/scenarios, /invitations, /report
@@ -103,7 +104,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/deletion-requests', deletionRequestsRoutes);
 app.use('/api/integrations/hubspot', hubspotRoutes);
-app.use('/api/comments', commentsRoutes); // Flat routes: /comments/:id
+app.use('/api/comments', commentsRoutes);
+app.use('/api/workspaces', workspacesRoutes); // Flat routes: /comments/:id
 app.use('/survey', surveyRoutes);
 
 app.get('/api', (req: Request, res: Response) => {

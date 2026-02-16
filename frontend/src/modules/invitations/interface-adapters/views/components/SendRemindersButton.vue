@@ -3,7 +3,7 @@
     <div class="send-reminders-info">
       <span>{{ nonRespondedCount }} people haven't responded yet</span>
       <router-link
-        :to="`/projects/${projectId}/invitations`"
+        :to="invitationsPath"
         class="send-reminders-action"
         @click="handleSendReminders"
       >
@@ -18,11 +18,18 @@ import { computed } from 'vue';
 
 interface Props {
   projectId: string;
+  workspaceId?: string;
   nonRespondedCount: number;
   loading?: boolean;
 }
 
 const props = defineProps<Props>();
+
+const invitationsPath = computed(() =>
+  props.workspaceId
+    ? `/workspaces/${props.workspaceId}/projects/${props.projectId}/invitations`
+    : `/projects/${props.projectId}/invitations`
+);
 
 const handleSendReminders = () => {
   // Logic for sending reminders will be handled in the parent component

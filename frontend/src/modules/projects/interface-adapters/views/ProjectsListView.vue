@@ -6,7 +6,7 @@
       :breadcrumbs="[{ label: 'Projects' }]"
     >
       <template #actions>
-        <router-link to="/projects/new" class="btn btn-primary">+ New Project</router-link>
+        <router-link :to="`/workspaces/${workspaceId}/projects/new`" class="btn btn-primary">+ New Project</router-link>
       </template>
     </PageHeader>
 
@@ -41,7 +41,7 @@
         description="Create your first project to validate a hypothesis and collect feedback."
       >
         <template #action>
-          <router-link to="/projects/new" class="btn btn-primary btn-large">Create project</router-link>
+          <router-link :to="`/workspaces/${workspaceId}/projects/new`" class="btn btn-primary btn-large">Create project</router-link>
         </template>
       </EmptyState>
     </div>
@@ -61,18 +61,18 @@
           </router-link>
         </template>
         <template #actions>
-          <router-link
-            :to="`/projects/${project.id}/edit`"
+          <button
+            type="button"
             class="project-card-edit"
             :aria-label="`Edit ${project.name}`"
-            @click.stop
+            @click.stop="goToProjectEdit(project.id)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
             Edit
-          </router-link>
+          </button>
           <Button
             type="button"
             variant="danger"
@@ -140,8 +140,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import PageHeader from '../../../../shared/components/PageHeader.vue';
 import ProjectCard from './components/ProjectCard.vue';
 import EmptyState from '../../../../shared/components/EmptyState.vue';
@@ -153,15 +153,27 @@ import { ProjectListPresenter } from '../presenters/project-list.presenter';
 import { ProjectListViewModel } from '../view-models/project-list.view-model';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { userContextService } from '../../../../shared/services/user-context.service';
+import { sessionManager } from '../../../../shared/services/session-manager';
 import type { Project } from '../../domain/entities/project.entity';
 
 const ONBOARDING_STORAGE_KEY = 'validatey_onboarding_completed';
 const ONBOARDING_HYPOTHESIS_KEY = 'validatey_onboarding_hypothesis';
 
 const router = useRouter();
+const route = useRoute();
 const viewModel = new ProjectListViewModel();
 const presenter = container.get<ProjectListPresenter>(TYPES.ProjectListPresenter);
+
+// Get workspaceId from route params
+const workspaceId = computed(() => route.params.workspaceId as string);
+
+// Redirect to workspaces if no workspaceId
+watch(workspaceId, (newWorkspaceId) => {
+  if (!newWorkspaceId) {
+    console.log('No workspaceId, redirecting to workspaces');
+    router.replace('/workspaces');
+  }
+}, { immediate: true });
 
 const onboardingCompleted = ref(
   typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_STORAGE_KEY) === 'true'
@@ -174,7 +186,7 @@ function startOnboarding() {
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem(ONBOARDING_HYPOTHESIS_KEY, hypothesis);
   }
-  router.push({ path: '/projects/new', query: { onboarding: '1' } });
+  router.push({ path: `/workspaces/${workspaceId.value}/projects/new`, query: { onboarding: '1' } });
 }
 
 const projectToDelete = ref<Project | null>(null);
@@ -199,16 +211,22 @@ async function confirmDelete() {
 }
 
 const goToProject = (projectId: string) => {
-  router.push(`/projects/${projectId}`);
+  router.push(`/workspaces/${workspaceId.value}/projects/${projectId}`);
+};
+
+const goToProjectEdit = (projectId: string) => {
+  router.push(`/workspaces/${workspaceId.value}/projects/${projectId}/edit`);
 };
 
 function refetchProjects() {
-  presenter.loadProjects(viewModel);
+  if (workspaceId.value) {
+    presenter.loadProjects(viewModel, workspaceId.value);
+  }
 }
 
 onMounted(() => {
   // Load projects immediately if we already have session and userId
-  if (userContextService.isSessionReady() && userContextService.getCurrentUserId()) {
+  if (sessionManager.isSessionReady && sessionManager.currentUserId) {
     refetchProjects();
   }
 
@@ -273,8 +291,8 @@ onUnmounted(() => {
 }
 
 .project-card-edit {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.8125rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-accent);
   background: transparent;
@@ -285,13 +303,13 @@ onUnmounted(() => {
   transition: background 0.15s, color 0.15s;
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.25rem;
   text-align: center;
 }
 
 .project-card-edit svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 
@@ -301,8 +319,8 @@ onUnmounted(() => {
 }
 
 .project-card-delete {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.8125rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-error);
   background: transparent;
@@ -312,12 +330,12 @@ onUnmounted(() => {
   transition: background 0.15s, color 0.15s;
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.25rem;
 }
 
 .project-card-delete svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 

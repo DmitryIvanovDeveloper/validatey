@@ -2,13 +2,13 @@
   <div class="project-dashboard-view">
     <header class="dashboard-header">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <router-link to="/projects" class="breadcrumb-link">Projects</router-link>
+        <router-link :to="workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces'" class="breadcrumb-link">Projects</router-link>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">{{ projectName }}</span>
       </nav>
       <nav class="dashboard-tabs" role="tablist">
         <router-link
-          :to="`/projects/${projectId}`"
+          :to="projectBase"
           class="tab-link"
           :class="{ active: isTabActive('overview') }"
           role="tab"
@@ -17,7 +17,7 @@
         </router-link>
         <router-link
           v-if="false"
-          :to="`/projects/${projectId}/scraper`"
+          :to="`${projectBase}/scraper`"
           class="tab-link"
           :class="{ active: isTabActive('scraper') }"
           role="tab"
@@ -25,7 +25,7 @@
           Scraper
         </router-link>
         <router-link
-          :to="`/projects/${projectId}/invitations`"
+          :to="`${projectBase}/invitations`"
           class="tab-link"
           :class="{ active: isTabActive('invitations') }"
           role="tab"
@@ -33,7 +33,7 @@
           Invitations
         </router-link>
         <router-link
-          :to="`/projects/${projectId}/responses`"
+          :to="`${projectBase}/responses`"
           class="tab-link"
           :class="{ active: isTabActive('responses') }"
           role="tab"
@@ -41,7 +41,7 @@
           Responses
         </router-link>
         <router-link
-          :to="`/projects/${projectId}/comments`"
+          :to="`${projectBase}/comments`"
           class="tab-link"
           :class="{ active: isTabActive('comments') }"
           role="tab"
@@ -50,7 +50,7 @@
         </router-link>
         <router-link
           v-if="false"
-          :to="`/projects/${projectId}/report`"
+          :to="`${projectBase}/report`"
           class="tab-link"
           :class="{ active: isTabActive('report') }"
           role="tab"
@@ -74,7 +74,9 @@ import { ProjectPresenter } from '../presenters/project.presenter';
 import { ProjectViewModel } from '../view-models/project.view-model';
 
 const route = useRoute();
+const workspaceId = computed(() => route.params.workspaceId as string);
 const projectId = computed(() => route.params.projectId as string);
+const projectBase = computed(() => `/workspaces/${workspaceId.value}/projects/${projectId.value}`);
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 

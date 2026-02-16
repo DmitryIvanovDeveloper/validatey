@@ -18,6 +18,8 @@ import {
 @injectable()
 export class StartFetchCommandHandler {
   constructor(
+    @inject(TYPES.Logger)
+    private readonly _logger: any, // TODO: Use proper LoggerPort type
     @inject(COMMENT_TYPES.FetchCommentsUseCase)
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
     @inject(COMMENT_TYPES.FetchJobRepository)
@@ -41,7 +43,7 @@ export class StartFetchCommandHandler {
         const source = sourceResult.data;
         this._runJobForSource(source.id, source.projectId, {
           sourceType: source.sourceType as 'reddit' | 'hackernews',
-          redditUrl: source.redditUrl,
+          redditUrls: source.redditUrl ? [source.redditUrl] : [],
           hnFeedType: source.hnFeedType as any,
           periodDays: command.periodDays,
         });
@@ -56,16 +58,16 @@ export class StartFetchCommandHandler {
             const trimmedUrl = redditUrl.trim();
             if (!trimmedUrl) continue;
 
-            const sourceResult = await this._createOrGetSourceForUrl(command.projectId, 'reddit', trimmedUrl);
+            const sourceResult = await this._createOrGetSourceForUrl(command.projectId!, 'reddit', trimmedUrl);
             if (!sourceResult.isSuccess) {
               this._logger.error('Failed to create source for URL', { url: trimmedUrl, error: sourceResult.error });
               continue; // Continue with other URLs even if one fails
             }
 
             const source = sourceResult.data;
-            this._runJobForSource(source.id, source.projectId, {
+            this._runJobForSource(source.id, source.projectId!, {
               sourceType: 'reddit',
-              redditUrl: trimmedUrl,
+              redditUrls: [trimmedUrl],
               periodDays: command.periodDays,
             });
           }
@@ -123,7 +125,7 @@ export class StartFetchCommandHandler {
         for (const source of sources) {
           this._runJobForSource(source.id, source.projectId, {
             sourceType: source.sourceType as 'reddit' | 'hackernews',
-            redditUrl: source.redditUrl,
+            redditUrls: source.redditUrl ? [source.redditUrl] : [],
             hnFeedType: source.hnFeedType as any,
             periodDays: command.periodDays,
           });
@@ -141,7 +143,7 @@ export class StartFetchCommandHandler {
       for (const source of allSources) {
         this._runJobForSource(source.id, source.projectId, {
           sourceType: source.sourceType as 'reddit' | 'hackernews',
-          redditUrl: source.redditUrl,
+          redditUrls: source.redditUrl ? [source.redditUrl] : [],
           hnFeedType: source.hnFeedType as any,
           periodDays: command.periodDays,
         });
@@ -158,7 +160,7 @@ export class StartFetchCommandHandler {
     projectId: string,
     config: {
       sourceType: 'reddit' | 'hackernews';
-      redditUrl?: string;
+      redditUrls?: string[];
       hnFeedType?: any;
       hnUrl?: string;
       periodDays?: number;
@@ -186,7 +188,7 @@ export class StartFetchCommandHandler {
         sourceId,
         projectId,
         sourceType: config.sourceType,
-        redditUrl: config.redditUrl,
+        redditUrls: config.redditUrls,
         hnFeedType: config.hnFeedType,
         periodDays: config.periodDays || null,
         startedAt,
@@ -200,7 +202,7 @@ export class StartFetchCommandHandler {
         sourceId,
         projectId,
         sourceType: config.sourceType,
-        redditUrl: config.redditUrl,
+        redditUrls: config.redditUrls,
         hnFeedType: config.hnFeedType,
         periodDays: config.periodDays,
       }, (progress) => {
@@ -268,7 +270,7 @@ export class StartFetchCommandHandler {
     });
   }
 
-  private async _createOrGetSourceForUrl(projectId: string, sourceType: 'reddit', redditUrl: string): Promise<ResultEx<{ id: string; projectId: string; sourceType: string; redditUrl?: string; hnFeedType?: string }, Error>> {
+  private async _createOrGetSourceForUrl(projectId: string, sourceType: 'reddit', redditUrl: string): Promise<ResultEx<{ id: string; projectId: string; sourceType: string; redditUrls?: string[]; hnFeedType?: string }, Error>> {
     try {
       const sourceValueObject = CommentSourceValueObject.createReddit(redditUrl);
 
@@ -316,7 +318,7 @@ export class StartFetchCommandHandler {
     }
   }
 
-  private async _createOrGetSourceForFeed(projectId: string, sourceType: 'hackernews', hnFeedType: string): Promise<ResultEx<{ id: string; projectId: string; sourceType: string; redditUrl?: string; hnFeedType?: string }, Error>> {
+  private async _createOrGetSourceForFeed(projectId: string, sourceType: 'hackernews', hnFeedType: string): Promise<ResultEx<{ id: string; projectId: string; sourceType: string; redditUrls?: string[]; hnFeedType?: string }, Error>> {
     try {
       const sourceValueObject = CommentSourceValueObject.createHackerNews(hnFeedType as any);
 
@@ -335,7 +337,7 @@ export class StartFetchCommandHandler {
           id: existingSource.id,
           projectId: existingSource.projectId,
           sourceType: existingSource.sourceType,
-          redditUrl: existingSource.redditUrl,
+          redditUrls: existingSource.redditUrl ? [existingSource.redditUrl] : [],
           hnFeedType: existingSource.hnFeedType,
         });
       }
@@ -416,15 +418,19 @@ export class StartFetchCommandHandler {
     }
   }
 
-  private async _createOrGetSource(command: StartFetchCommand): Promise<ResultEx<{ id: string; projectId: string; sourceType: string; redditUrl?: string; hnFeedType?: string }, Error>> {
+  private async _createOrGetSource(command: StartFetchCommand): Promise<ResultEx<{ id: string; projectId: string; sourceType: string; redditUrls?: string[]; hnFeedType?: string }, Error>> {
     try {
       // For Reddit
       if (command.sourceType === 'reddit') {
-        if (!command.redditUrl) {
-          return ResultEx.failure(new Error('Reddit URL is required'));
+        if (!command.redditUrls || command.redditUrls.length === 0) {
+          return ResultEx.failure(new Error('Reddit URLs are required'));
         }
 
-        const sourceValueObject = CommentSourceValueObject.createReddit(command.redditUrl);
+        if (!command.projectId) {
+          return ResultEx.failure(new Error('Project ID is required'));
+        }
+
+        const sourceValueObject = CommentSourceValueObject.createReddit(command.redditUrls[0]);
 
         // Check if source already exists
         const existingSources = await this._sourceRepository.findByProjectId(command.projectId);
@@ -433,7 +439,7 @@ export class StartFetchCommandHandler {
         }
 
         const existingSource = existingSources.data.find(s =>
-          s.redditUrl === command.redditUrl && s.sourceType === 'reddit'
+          s.redditUrl === command.redditUrls?.[0] && s.sourceType === 'reddit'
         );
 
         if (existingSource) {
@@ -441,16 +447,16 @@ export class StartFetchCommandHandler {
             id: existingSource.id,
             projectId: existingSource.projectId,
             sourceType: existingSource.sourceType,
-            redditUrl: existingSource.redditUrl,
+            redditUrls: existingSource.redditUrl ? [existingSource.redditUrl] : [],
             hnFeedType: existingSource.hnFeedType,
           });
         }
 
         // Create new source
         const createResult = await this._sourceRepository.create({
-          projectId: command.projectId,
+          projectId: command.projectId!,
           sourceType: 'reddit',
-          redditUrl: command.redditUrl,
+          redditUrl: command.redditUrls[0],
           subredditName: sourceValueObject.subredditName,
           postId: sourceValueObject.postId,
         });
@@ -461,9 +467,9 @@ export class StartFetchCommandHandler {
 
         return ResultEx.success({
           id: createResult.data.id,
-          projectId: command.projectId,
+          projectId: command.projectId!,
           sourceType: 'reddit',
-          redditUrl: command.redditUrl,
+          redditUrls: [command.redditUrls[0]],
         });
       }
 
@@ -471,6 +477,10 @@ export class StartFetchCommandHandler {
       if (command.sourceType === 'hackernews') {
         if (!command.hnFeedType) {
           return ResultEx.failure(new Error('Hacker News feed type is required'));
+        }
+
+        if (!command.projectId) {
+          return ResultEx.failure(new Error('Project ID is required'));
         }
 
         const sourceValueObject = CommentSourceValueObject.createHackerNews(command.hnFeedType);
@@ -490,14 +500,14 @@ export class StartFetchCommandHandler {
             id: existingSource.id,
             projectId: existingSource.projectId,
             sourceType: existingSource.sourceType,
-            redditUrl: existingSource.redditUrl,
+            redditUrls: existingSource.redditUrl ? [existingSource.redditUrl] : [],
             hnFeedType: existingSource.hnFeedType,
           });
         }
 
         // Create new source
         const createResult = await this._sourceRepository.create({
-          projectId: command.projectId,
+          projectId: command.projectId!,
           sourceType: 'hackernews',
           hnFeedType: command.hnFeedType,
         });
@@ -508,7 +518,7 @@ export class StartFetchCommandHandler {
 
         return ResultEx.success({
           id: createResult.data.id,
-          projectId: command.projectId,
+          projectId: command.projectId!,
           sourceType: 'hackernews',
           hnFeedType: command.hnFeedType,
         });

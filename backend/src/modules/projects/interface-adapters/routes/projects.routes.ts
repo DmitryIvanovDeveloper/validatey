@@ -61,31 +61,35 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const rawUserId = (req.body?.userId ?? req.headers['x-user-id']) as string | undefined;
     const userId = typeof rawUserId === 'string' ? rawUserId.trim() : '';
+    const workspaceId = typeof req.query.workspaceId === 'string' ? req.query.workspaceId.trim() : undefined;
     const listAll = process.env.NODE_ENV === 'development' && req.query.list === 'all';
 
     console.log('[Projects Route] GET / - Diagnostics:', {
       rawUserId,
       userId,
+      workspaceId,
       listAll,
       nodeEnv: process.env.NODE_ENV,
       queryList: req.query.list,
+      queryWorkspaceId: req.query.workspaceId,
       headers: {
         'x-user-id': req.headers['x-user-id'],
         'user-agent': req.headers['user-agent']?.substring(0, 50)
       }
     });
 
-    if (!listAll && !userId) {
-      console.log('[Projects Route] Returning 400: userId required');
+    if (!listAll && !userId && !workspaceId) {
+      console.log('[Projects Route] Returning 400: userId or workspaceId required');
       return res.status(400).json({
-        error: 'userId is required',
-        hint: 'Provide x-user-id header or userId in request body'
+        error: 'userId or workspaceId is required',
+        hint: 'Provide x-user-id header, userId in request body, or workspaceId query parameter'
       });
     }
 
     const result = await presenter.listProjects({
       userId,
       listAll,
+      workspaceId,
     });
 
     if (!result.isSuccess) {

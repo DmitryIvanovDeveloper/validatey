@@ -31,6 +31,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         .insert({
           id: project.id,
           user_id: project.userId,
+          workspace_id: project.workspaceId ?? null,
           name: project.name,
           status: project.status,
           segment: project.segment,
@@ -155,6 +156,58 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
       return ResultEx.failure(new Error('Failed to generate unique public slug'));
     } catch (error) {
       this._logger.error('supabase-project-repository.generate-unique-public-slug-exception', { error });
+      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async findByWorkspaceId(workspaceId: string): Promise<ResultEx<Project[], Error>> {
+    try {
+      console.log('[Repository] findByWorkspaceId start', { workspaceId });
+      const supabase = getSupabaseClient();
+
+      const { data, error } = await supabase.from('projects').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false });
+
+      console.log('[Repository] Query executed', { hasError: !!error, dataCount: data?.length || 0 });
+
+      if (error) {
+        console.error('[Repository] Supabase error', { error: error.message, code: error.code, details: error });
+        this._logger.error('supabase-project-repository.find-by-workspace-id-error', { workspaceId, error: error.message, code: error.code });
+        return ResultEx.failure(new Error(`Database error: ${error.message} (code: ${error.code})`));
+      }
+
+      if (!data || !Array.isArray(data)) {
+        console.log('[Repository] Empty result');
+        this._logger.info('supabase-project-repository.find-by-workspace-id.empty-result', { workspaceId });
+        return ResultEx.success([]);
+      }
+
+      try {
+        console.log('[Repository] Mapping data', { count: data.length });
+        const projects = data.map((item, index) => {
+          try {
+            console.log(`[Repository] Mapping item ${index}`, { id: item?.id, name: item?.name });
+            return this.mapToDomain(item);
+          } catch (mapError) {
+            console.error(`[Repository] Map error for item ${index}`, { item, error: mapError });
+            this._logger.error('supabase-project-repository.find-by-workspace-id.map-error', {
+              workspaceId,
+              itemId: item?.id,
+              error: mapError instanceof Error ? mapError.message : String(mapError)
+            });
+            throw mapError;
+          }
+        });
+        console.log('[Repository] Mapping successful', { count: projects.length });
+        this._logger.info('supabase-project-repository.find-by-workspace-id.success', { workspaceId, count: projects.length });
+        return ResultEx.success(projects);
+      } catch (mapError) {
+        console.error('[Repository] Mapping failed', { error: mapError });
+        this._logger.error('supabase-project-repository.find-by-workspace-id.mapping-failed', { workspaceId, error: mapError });
+        return ResultEx.failure(mapError instanceof Error ? mapError : new Error('Failed to map data to domain'));
+      }
+    } catch (error) {
+      console.error('[Repository] Exception', { error, stack: error instanceof Error ? error.stack : undefined });
+      this._logger.error('supabase-project-repository.find-by-workspace-id-exception', { workspaceId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
@@ -333,6 +386,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
 
       // Prepare update data with sanitization
       const updateData = {
+        workspace_id: project.workspaceId ?? null,
         name: sanitizeValue(project.name),
         status: sanitizeValue(project.status),
         segment: sanitizeValue(project.segment),
@@ -556,6 +610,27 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     }
   }
 
+  async deleteByWorkspaceId(workspaceId: string): Promise<ResultEx<number, Error>> {
+    try {
+      const supabase = getSupabaseClient();
+
+      const { data, error } = await supabase.from('projects').delete().eq('workspace_id', workspaceId);
+
+      if (error) {
+        this._logger.error('supabase-project-repository.delete-by-workspace-id-error', { workspaceId, error });
+        return ResultEx.failure(new Error(`Failed to delete projects for workspace ${workspaceId}: ${error.message}`));
+      }
+
+      const deletedCount = (data as any)?.length || 0;
+      this._logger.info('supabase-project-repository.delete-by-workspace-id-success', { workspaceId, deletedCount });
+
+      return ResultEx.success(deletedCount);
+    } catch (error) {
+      this._logger.error('supabase-project-repository.delete-by-workspace-id-exception', { workspaceId, error });
+      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
 
   private mapToDomain(data: Record<string, unknown>): Project {
     if (!data) {
@@ -592,6 +667,7 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
       return {
         id: String(data.id),
         userId: String(data.user_id),
+        workspaceId: (data.workspace_id ?? null) as string | null,
         name: String(data.name),
         status: String(data.status) as 'draft' | 'active' | 'completed' | 'archived',
         segment: (data.segment || null) as Project['segment'],

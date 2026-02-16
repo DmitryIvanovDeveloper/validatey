@@ -150,6 +150,43 @@ export class ProjectRepository implements ProjectRepositoryPort {
     }
   }
 
+  async listByWorkspace(workspaceId: string): Promise<Result<Project[], ProjectListError>> {
+    try {
+      const url = `${API_CONFIG.ENDPOINTS.PROJECTS}?workspaceId=${encodeURIComponent(workspaceId)}`;
+      const response = await this._httpClient.get<Array<{
+        id: string;
+        name: string;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+      }>>(url);
+
+      if (!Array.isArray(response)) {
+        return Result.failure(new ProjectListError('Invalid response: expected array of projects'));
+      }
+
+      const projects = response.map(p => {
+        const createdAt = p.createdAt != null ? new Date(p.createdAt) : new Date();
+        const updatedAt = p.updatedAt != null ? new Date(p.updatedAt) : new Date();
+        return new Project(
+          p.id,
+          p.name,
+          null,
+          null,
+          null,
+          p.status as ProjectStatus,
+          createdAt,
+          updatedAt
+        );
+      });
+
+      return Result.success(projects);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load projects for workspace';
+      return Result.failure(new ProjectListError(message));
+    }
+  }
+
   async update(id: string, updates: UpdateProjectData): Promise<Result<Project, ProjectNotFoundError | InvalidProjectDataError>> {
     try {
       console.log('🔄 ProjectRepository.update:', { id, updates });

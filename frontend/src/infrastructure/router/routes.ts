@@ -17,22 +17,44 @@ export const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'home',
     component: () => import('@/shared/components/RootRedirectView.vue'),
-    meta: { requiresAuth: false },
+    meta: { skipAuthGuard: true },
+  },
+  {
+    path: '/workspaces',
+    name: 'workspaces',
+    component: () => import('@/modules/workspaces/interface-adapters/views/WorkspacesListView.vue'),
+  },
+  /* Comments are per-project: use /workspaces/:workspaceId/projects/:projectId/comments */
+  {
+    path: '/comments',
+    redirect: () => ({ name: 'workspaces' }),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/test',
+    name: 'test',
+    component: () => import('@/components/SessionTest.vue'),
   },
   {
     path: '/projects',
     name: 'projects',
     component: () => import('@/modules/projects/interface-adapters/views/ProjectsListView.vue'),
+    meta: { skipAuthGuard: true },
+  },
+  {
+    path: '/workspaces/:workspaceId/projects',
+    name: 'workspace-projects',
+    component: () => import('@/modules/projects/interface-adapters/views/ProjectsListView.vue'),
     meta: { requiresAuth: true },
   },
   {
-    path: '/projects/new',
+    path: '/workspaces/:workspaceId/projects/new',
     name: 'create-project',
     component: () => import('@/modules/projects/interface-adapters/views/CreateProjectWizardView.vue'),
     meta: { requiresAuth: true },
   },
   {
-    path: '/projects/:projectId',
+    path: '/workspaces/:workspaceId/projects/:projectId',
     component: () => import('@/modules/projects/interface-adapters/views/ProjectDashboardView.vue'),
     meta: { requiresAuth: true },
     children: [
@@ -92,7 +114,7 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/projects/:projectId/panel',
+    path: '/workspaces/:workspaceId/projects/:projectId/panel',
     name: 'project-panel',
     component: () => import('@/modules/projects/interface-adapters/views/RespondentPanelStubView.vue'),
     meta: { requiresAuth: true },

@@ -10,9 +10,11 @@ export interface ProjectRepositoryPort {
   /** Generate a unique short slug for public link (e.g. when enabling public access). */
   generateUniquePublicSlug(): Promise<ResultEx<string, Error>>;
   findByUserId(userId: string): Promise<ResultEx<Project[], Error>>;
+  findByWorkspaceId(workspaceId: string): Promise<ResultEx<Project[], Error>>;
   findAll(): Promise<ResultEx<Project[], Error>>;
   update(project: Project): Promise<ResultEx<Project, ProjectNotFoundError | InvalidProjectDataError>>;
   delete(id: string): Promise<ResultEx<void, ProjectNotFoundError>>;
+  deleteByWorkspaceId(workspaceId: string): Promise<ResultEx<number, Error>>;
   /** Reassign all projects from one user id to another (e.g. after Google login). Returns count updated. */
 }
 

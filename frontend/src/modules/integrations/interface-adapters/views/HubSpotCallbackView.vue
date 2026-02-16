@@ -14,7 +14,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
-import { userContextService } from '../../../../shared/services/user-context.service';
+import { sessionManager } from '../../../../shared/services/session-manager';
 
 const route = useRoute();
 const router = useRouter();
@@ -22,12 +22,12 @@ const error = ref<string | null>(null);
 
 onMounted(async () => {
   const code = (route.query.code as string)?.trim();
-  const state = (route.query.state as string)?.trim() || '/projects';
+  const state = (route.query.state as string)?.trim() || '/workspaces';
   if (!code) {
     error.value = 'Missing authorization code from HubSpot.';
     return;
   }
-  const userId = userContextService.getOrCreateUserId();
+  const userId = sessionManager.currentUserId;
   const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HUBSPOT_CALLBACK}`;
   try {
     const res = await fetch(url, {

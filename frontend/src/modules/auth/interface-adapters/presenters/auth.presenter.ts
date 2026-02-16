@@ -8,6 +8,7 @@ import type { AuthServicePort } from '../../application/ports/auth-service.port'
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import type { AuthViewModel } from '../view-models/auth.view-model';
 import type { AuthSignInError } from '../../domain/errors/auth.error';
+import { sessionManager } from '../../../../shared/services/session-manager';
 
 @injectable()
 export class AuthPresenter {
@@ -83,6 +84,13 @@ export class AuthPresenter {
     viewModel.error.value = null;
     const result = await this._signInWithEmailUseCase.execute({ email, password });
     if ('session' in result && result.session?.user) {
+      // Set session in SessionManager (add missing fields)
+      const fullSession = {
+        ...result.session,
+        accessToken: '',
+        expiresAt: 0
+      };
+      sessionManager.setSession(fullSession);
       viewModel.user.value = result.session.user;
       viewModel.role.value = result.session.role ?? 'user';
       return true;
@@ -91,11 +99,17 @@ export class AuthPresenter {
     return false;
   }
 
-  async signOut(viewModel: AuthViewModel): Promise<void> {
-    viewModel.error.value = null;
+  async signOut(viewModel?: AuthViewModel): Promise<void> {
+    if (viewModel) {
+      viewModel.error.value = null;
+    }
     await this._signOutUseCase.execute();
-    viewModel.user.value = null;
-    viewModel.role.value = null;
+    // Clear session in SessionManager
+    sessionManager.clearSession();
+    if (viewModel) {
+      viewModel.user.value = null;
+      viewModel.role.value = null;
+    }
   }
 
 }

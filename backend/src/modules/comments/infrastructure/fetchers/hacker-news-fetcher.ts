@@ -376,13 +376,13 @@ export class HackerNewsFetcher implements CommentFetcherPort {
       const response = await fetch(`${HN_BASE}/item/${itemId}.json`);
       if (!response.ok) {
         console.log(`[HN Fetcher] HTTP error ${response.status} for post ${itemId}`);
-        return ResultEx.failure(new CommentFetchError(`Failed to fetch HN item ${itemId}`, 'NETWORK_ERROR'));
+        return ResultEx.failure(new CommentFetchError(`Failed to fetch HN item ${itemId}`));
       }
 
-      const item: HNItem = await response.json();
+      const item = await response.json() as HNItem;
       if (!item) {
         console.log(`[HN Fetcher] Item ${itemId} not found`);
-        return ResultEx.failure(new CommentFetchError(`HN item ${itemId} not found`, 'NOT_FOUND'));
+        return ResultEx.failure(new CommentFetchError(`HN item ${itemId} not found`));
       }
 
       console.log(`[HN Fetcher] Item ${itemId} has ${item.kids?.length || 0} comments`);
@@ -403,8 +403,7 @@ export class HackerNewsFetcher implements CommentFetcherPort {
     } catch (error) {
       console.log(`[HN Fetcher] Error: ${error}`);
       return ResultEx.failure(new CommentFetchError(
-        `Failed to fetch comments for HN post ${itemId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'UNKNOWN_ERROR'
+        `Failed to fetch comments for HN post ${itemId}: ${error instanceof Error ? error.message : 'Unknown error'}`
       ));
     }
   }
@@ -432,7 +431,7 @@ export class HackerNewsFetcher implements CommentFetcherPort {
           continue;
         }
 
-        const comment: HNItem = await response.json();
+        const comment = await response.json() as HNItem;
         if (!comment || comment.type !== 'comment' || !comment.text) {
           console.log(`[HN Recursive] Comment ${commentId} invalid or deleted`);
           continue;

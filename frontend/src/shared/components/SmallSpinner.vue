@@ -37,6 +37,7 @@ const dashoffset = `${circumference * 0.75}px`; // 75% of circumference for visi
 .small-spinner {
   width: 1rem;
   height: 1rem;
+  transform-origin: center;
   animation: rotate 1s linear infinite;
   flex-shrink: 0;
 }

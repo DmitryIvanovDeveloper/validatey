@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { HttpClientPort } from './ports/http-client.port';
 import { API_CONFIG } from '../config/api.config';
-import { userContextService } from '../../shared/services/user-context.service';
+import { sessionManager } from '../../shared/services/session-manager';
 import { TYPES } from '../bootstrap/types';
 import { TYPES as AUTH_TYPES } from '../../modules/auth/infrastructure/bootstrap/types';
 import type { AuthServicePort } from '../../modules/auth/application/ports/auth-service.port';
@@ -33,7 +33,7 @@ export class HttpClient implements HttpClientPort {
    * Получить заголовки с x-user-id
    */
   private getHeaders(customHeaders?: Record<string, string>): Record<string, string> {
-    const userId = userContextService.getCurrentUserId();
+    const userId = sessionManager.currentUserId;
     const headers: Record<string, string> = { ...customHeaders };
     if (userId) {
       headers['x-user-id'] = userId;

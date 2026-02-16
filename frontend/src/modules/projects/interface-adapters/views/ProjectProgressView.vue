@@ -4,15 +4,15 @@
       title="Project Progress"
       subtitle="Response metrics and early signals"
       :breadcrumbs="[
-        { label: 'Projects', path: '/projects' },
-        { label: 'Project', path: `/projects/${projectId}` },
+        { label: 'Projects', path: workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces' },
+        { label: 'Project', path: projectBase },
         { label: 'Progress' }
       ]"
     >
       <template #actions>
-        <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-secondary">Manage Invitations</router-link>
+        <router-link :to="`${projectBase}/invitations`" class="btn btn-secondary">Manage Invitations</router-link>
         <router-link :to="`/projects/${projectId}/report`" class="btn btn-primary">View Report</router-link>
-        <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">← Back</router-link>
+        <router-link :to="projectBase" class="btn btn-ghost">← Back</router-link>
       </template>
     </PageHeader>
 
@@ -52,18 +52,18 @@
           <ul class="quick-wins-list">
             <li class="quick-win" :class="{ done: quickWins.personalizeDone }">
               <span class="quick-win-check">{{ quickWins.personalizeDone ? '✓' : '○' }}</span>
-              <router-link v-if="!quickWins.personalizeDone" :to="`/projects/${projectId}/invitations`">Personalize invitations (AI can rewrite)</router-link>
+              <router-link v-if="!quickWins.personalizeDone" :to="`${projectBase}/invitations`">Personalize invitations (AI can rewrite)</router-link>
               <span v-else>Personalize invitations (AI can rewrite)</span>
             </li>
             <li class="quick-win" :class="{ done: quickWins.remindersDone }">
               <span class="quick-win-check">{{ quickWins.remindersDone ? '✓' : '○' }}</span>
               <span>Send reminders to {{ nonRespondedCount }} who haven’t responded</span>
-              <router-link v-if="nonRespondedCount > 0" :to="`/projects/${projectId}/invitations`" class="quick-win-action">Send reminders</router-link>
+              <router-link v-if="nonRespondedCount > 0" :to="`${projectBase}/invitations`" class="quick-win-action">Send reminders</router-link>
             </li>
             <li class="quick-win" :class="{ done: quickWins.shareLinkDone }">
               <span class="quick-win-check">{{ quickWins.shareLinkDone ? '✓' : '○' }}</span>
               <span>Share public link (e.g. LinkedIn)</span>
-              <router-link v-if="projectId" :to="`/projects/${projectId}`" class="quick-win-action">Get link</router-link>
+              <router-link v-if="projectId" :to="projectBase" class="quick-win-action">Get link</router-link>
             </li>
             <li class="quick-win" :class="{ done: quickWins.rewardDone }">
               <span class="quick-win-check">{{ quickWins.rewardDone ? '✓' : '○' }}</span>
@@ -83,12 +83,12 @@
           <div class="health-card">
             <span class="health-card-label">Data Quality</span>
             <span class="health-card-value">{{ qualityScore.toFixed(1) }}/10</span>
-            <router-link :to="`/projects/${projectId}/responses`" class="health-card-action">Improve</router-link>
+            <router-link :to="`${projectBase}/responses`" class="health-card-action">Improve</router-link>
           </div>
           <div class="health-card">
             <span class="health-card-label">Segment Balance</span>
             <span class="health-card-value">{{ segmentBalanceLabel }}</span>
-            <router-link :to="`/projects/${projectId}/invitations`" class="health-card-action">View</router-link>
+            <router-link :to="`${projectBase}/invitations`" class="health-card-action">View</router-link>
           </div>
           <div class="health-card">
             <span class="health-card-label">Time Efficiency</span>
@@ -181,7 +181,7 @@
               <h3 id="responses-heading" class="panel-title">Responses</h3>
               <span v-if="responses.length > 0" class="panel-count">{{ responses.length }} total</span>
               <div v-if="responses.length > 0" class="panel-actions">
-                <router-link :to="`/projects/${projectId}/responses`" class="btn btn-secondary btn-sm">View Responses Table</router-link>
+                <router-link :to="`${projectBase}/responses`" class="btn btn-secondary btn-sm">View Responses Table</router-link>
                 <button type="button" class="btn btn-export btn-sm" :disabled="exportLoading" @click="exportResponses('json')">
                   {{ exportLoading ? 'Exporting…' : 'Export JSON' }}
                 </button>
@@ -268,8 +268,8 @@
             </div>
             <p v-else-if="responses.length > 0" class="quality-ok">✅ {{ responses.length }} responses meet quality bar.</p>
             <div class="quality-actions">
-              <router-link :to="`/projects/${projectId}/responses`" class="btn btn-secondary btn-sm">Check low-quality responses</router-link>
-              <router-link :to="`/projects/${projectId}/invitations`" class="btn btn-ghost btn-sm">Request clarifications</router-link>
+              <router-link :to="`${projectBase}/responses`" class="btn btn-secondary btn-sm">Check low-quality responses</router-link>
+              <router-link :to="`${projectBase}/invitations`" class="btn btn-ghost btn-sm">Request clarifications</router-link>
             </div>
           </section>
 
@@ -498,7 +498,9 @@ import { CONSENT_TEMPLATES, CONSENT_TEMPLATE_OPTIONS } from '../constants/consen
 import type { ConsentTemplateId } from '../constants/consent-templates';
 
 const route = useRoute();
+const workspaceId = computed(() => (route.params.workspaceId as string) || '');
 const projectId = route.params.projectId as string;
+const projectBase = computed(() => `/workspaces/${workspaceId.value}/projects/${projectId}`);
 
 const projectRepository = container.get<ProjectRepositoryPort>(PROJECT_TYPES.ProjectRepository);
 const projectPresenter = container.get<ProjectPresenter>(PROJECT_TYPES.ProjectPresenter);

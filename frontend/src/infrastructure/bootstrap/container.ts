@@ -18,6 +18,7 @@ import { bindScraper } from '../../modules/scraper/infrastructure/bootstrap/bind
 import { bindResearch } from '../../modules/research/infrastructure/bootstrap/bind.research';
 import { bindResponses } from '../../modules/responses/infrastructure/bootstrap/bind.responses';
 import { bindComments } from '../../modules/comments/infrastructure/bootstrap/bind.comments';
+import { bindWorkspaces } from '../../modules/workspaces/infrastructure/bootstrap/bind.workspaces';
 const container = new Container();
 
 // Infrastructure bindings
@@ -36,5 +37,6 @@ bindScraper(container);
 bindResearch(container);
 bindResponses(container);
 bindComments(container);
+bindWorkspaces(container);
 
 export { container, TYPES };

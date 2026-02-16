@@ -4,13 +4,13 @@
       title="Invitations"
       subtitle="Send and track survey invitations by email or share a single link."
       :breadcrumbs="[
-        { label: 'Projects', path: '/projects' },
-        { label: 'Project', path: `/projects/${projectId}` },
+        { label: 'Projects', path: workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces' },
+        { label: 'Project', path: projectBase },
         { label: 'Invitations' }
       ]"
     >
       <template #actions>
-        <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">
+        <router-link :to="projectBase" class="btn btn-ghost">
           <span class="btn-icon" aria-hidden="true">←</span> Back
         </router-link>
         <button type="button" class="btn btn-primary btn-cta" @click="showInviteModal = true">
@@ -513,7 +513,7 @@ import { SendRemindersButton, ResponsePaceCard } from './components';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { userContextService } from '../../../../shared/services/user-context.service';
+import { sessionManager } from '../../../../shared/services/session-manager';
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
 import type { InvitationPresenter } from '../presenters/invitation.presenter';
 import type { InvitationListItem } from '../presenters/invitation.presenter';
@@ -521,7 +521,9 @@ import { ProjectPresenter } from '../../../projects/interface-adapters/presenter
 import type { Response } from '../../../projects/domain/entities/response.entity';
 
 const route = useRoute();
+const workspaceId = computed(() => (route.params.workspaceId as string) || '');
 const projectId = route.params.projectId as string;
+const projectBase = computed(() => `/workspaces/${workspaceId.value}/projects/${projectId}`);
 const invitationsTab = ref<'public' | 'personal' | 'consent'>('public');
 
 // Audience collection method (for consent recommendations)
@@ -1027,7 +1029,7 @@ const copyPublicLink = async () => {
 
 const loadHubspotStatus = async () => {
   try {
-    const userId = userContextService.getOrCreateUserId();
+    const userId = sessionManager.currentUserId;
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HUBSPOT_STATUS}`;
     const res = await fetch(url, { headers: { 'x-user-id': userId } });
     const data = await res.json().catch(() => ({}));
@@ -1044,8 +1046,8 @@ const connectHubSpot = async () => {
   hubspotConnectLoading.value = true;
   hubspotImportError.value = '';
   try {
-    const userId = userContextService.getOrCreateUserId();
-    const returnTo = `/projects/${projectId}/invitations`;
+    const userId = sessionManager.currentUserId;
+    const returnTo = `${projectBase.value}/invitations`;
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HUBSPOT_AUTHORIZE(returnTo)}&json=1`;
     const res = await fetch(url, { headers: { 'x-user-id': userId } });
     const data = await res.json().catch(() => ({}));
@@ -1066,7 +1068,7 @@ const importFromHubSpot = async () => {
   hubspotImportLoading.value = true;
   hubspotImportError.value = '';
   try {
-    const userId = userContextService.getOrCreateUserId();
+    const userId = sessionManager.currentUserId;
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.HUBSPOT_CONTACTS(hubspotSegment.value)}`;
     const res = await fetch(url, { headers: { 'x-user-id': userId } });
     const data = await res.json().catch(() => ({}));

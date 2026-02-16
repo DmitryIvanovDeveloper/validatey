@@ -154,6 +154,11 @@ function handleClick(event: Event) {
   flex-shrink: 0;
 }
 
+.button-spinner :deep(.small-spinner),
+.button-spinner .spinner {
+  transform-origin: center;
+}
+
 .button-spinner .spinner {
   width: 1rem;
   height: 1rem;

@@ -33,7 +33,7 @@ function getRedirectTarget(): string {
   } catch {
     /* ignore */
   }
-  return '/projects';
+  return '/workspaces';
 }
 
 onMounted(async () => {

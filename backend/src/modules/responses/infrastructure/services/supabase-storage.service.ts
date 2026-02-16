@@ -13,13 +13,19 @@ export class SupabaseStorageService implements StorageServicePort {
   ) {}
 
   async uploadFile(request: UploadFileRequest): Promise<ResultEx<UploadFileResponse, Error>> {
-    this._logger.info('supabase-storage-service.upload-file.start', { filename: request.filename });
+    const bucket =
+      request.bucket ??
+      (request.folder?.startsWith('workspace-icons/') ? 'workspace-icons' : 'responses');
+    this._logger.info('supabase-storage-service.upload-file.start', {
+      filename: request.filename,
+      bucket,
+    });
 
     try {
       const supabase = getSupabaseClient();
       const path = request.folder ? `${request.folder}/${request.filename}` : request.filename;
 
-      const { data, error } = await supabase.storage.from('responses').upload(path, request.file, {
+      const { data, error } = await supabase.storage.from(bucket).upload(path, request.file, {
         contentType: request.contentType,
         upsert: false,
       });
@@ -32,7 +38,7 @@ export class SupabaseStorageService implements StorageServicePort {
       // Get public URL
       const {
         data: { publicUrl },
-      } = supabase.storage.from('responses').getPublicUrl(path);
+      } = supabase.storage.from(bucket).getPublicUrl(path);
 
       this._logger.info('supabase-storage-service.upload-file.success', { path, url: publicUrl });
 

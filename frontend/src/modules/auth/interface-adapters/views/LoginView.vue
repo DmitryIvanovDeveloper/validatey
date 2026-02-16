@@ -106,7 +106,13 @@ let unsubscribe: (() => void) | null = null;
 onMounted(async () => {
   await authPresenter.loadSession(authViewModel);
   if (authViewModel.user.value) {
-    const redirect = (router.currentRoute.value.query.redirect as string) || '/projects';
+    let redirect = (router.currentRoute.value.query.redirect as string) || '/workspaces';
+
+    // Don't redirect to /projects directly - always go to workspaces first
+    if (redirect === '/projects' || redirect.startsWith('/projects')) {
+      redirect = '/workspaces';
+    }
+
     await router.replace(redirect);
     return;
   }
@@ -126,13 +132,25 @@ async function handleEmailSubmit() {
       isRegister.value = false;
       return;
     }
-    const redirect = (router.currentRoute.value.query.redirect as string) || '/projects';
+    let redirect = (router.currentRoute.value.query.redirect as string) || '/workspaces';
+
+    // Don't redirect to /projects directly - always go to workspaces first
+    if (redirect === '/projects' || redirect.startsWith('/projects')) {
+      redirect = '/workspaces';
+    }
+
     await router.replace(redirect);
   }
 }
 
 async function handleGoogleSignIn() {
-  const redirect = (router.currentRoute.value.query.redirect as string) || '/projects';
+  let redirect = (router.currentRoute.value.query.redirect as string) || '/workspaces';
+
+  // Don't redirect to /projects directly - always go to workspaces first
+  if (redirect === '/projects' || redirect.startsWith('/projects')) {
+    redirect = '/workspaces';
+  }
+
   try {
     sessionStorage.setItem('auth_redirect', redirect);
   } catch {

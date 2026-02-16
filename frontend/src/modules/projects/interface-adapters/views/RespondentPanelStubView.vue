@@ -30,13 +30,13 @@
         </div>
         <button type="submit" class="btn btn-primary">Go to order</button>
       </form>
-      <p class="stub-cta">Or use <router-link :to="`/projects/${projectId}/invitations`">Invitations</router-link> to send your survey link or upload your own email list.</p>
+      <p class="stub-cta">Or use <router-link :to="`${projectBase}/invitations`">Invitations</router-link> to send your survey link or upload your own email list.</p>
     </Card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import PageHeader from '../../../../shared/components/PageHeader.vue';
 import Card from '../../../../shared/components/Card.vue';
@@ -44,7 +44,9 @@ import Card from '../../../../shared/components/Card.vue';
 const RESPONDENT_IO_BASE = 'https://www.respondent.io';
 
 const route = useRoute();
+const workspaceId = computed(() => (route.params.workspaceId as string) || '');
 const projectId = route.params.projectId as string;
+const projectBase = computed(() => `/workspaces/${workspaceId.value}/projects/${projectId}`);
 
 const budget = ref('300');
 const segment = ref('product-managers');

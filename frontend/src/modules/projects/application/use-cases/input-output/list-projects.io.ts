@@ -1,4 +1,6 @@
-export type ListProjectsUseCaseRequest = {};
+export type ListProjectsUseCaseRequest = {
+  workspaceId?: string;
+};
 
 export type ListProjectsUseCaseResponse = {
   projects: Array<{

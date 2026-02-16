@@ -26,6 +26,7 @@ export class CreateProjectUseCase {
       const project = ProjectEntity.create(
         request.userId,
         request.name,
+        request.workspaceId,
         request.segment,
         request.hypothesis,
         request.marketContext,

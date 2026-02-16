@@ -6,7 +6,7 @@
       :breadcrumbs="breadcrumbs"
     >
       <template #actions>
-        <router-link v-if="projectId" :to="`/projects/${projectId}`" class="btn btn-ghost btn-back">
+        <router-link v-if="projectId" :to="projectBase" class="btn btn-ghost btn-back">
           <span class="btn-icon" aria-hidden="true">←</span>
           Back
         </router-link>
@@ -185,14 +185,14 @@
               <p v-if="canvas.userInsights.wtp" class="insight-highlight">WTP signal: {{ canvas.userInsights.wtp }} — strong validation signal</p>
               <p v-if="canvas.userInsights.retentionHint" class="insight-line">{{ canvas.userInsights.retentionHint }}</p>
               <div class="block-actions">
-                <router-link v-if="projectId" :to="`/projects/${projectId}/responses`" class="btn btn-ghost btn-sm">See supporting quotes</router-link>
-                <router-link v-if="projectId" :to="`/projects/${projectId}/responses`" class="btn btn-secondary btn-sm">Analyze responses</router-link>
+                <router-link v-if="projectId" :to="`${projectBase}/responses`" class="btn btn-ghost btn-sm">See supporting quotes</router-link>
+                <router-link v-if="projectId" :to="`${projectBase}/responses`" class="btn btn-secondary btn-sm">Analyze responses</router-link>
               </div>
             </div>
             <div v-else class="block-empty">
               <p>No user insights yet.</p>
               <p class="block-hint">Launch validation and collect responses to see early signals and metrics.</p>
-              <router-link v-if="projectId" :to="`/projects/${projectId}/responses`" class="btn btn-secondary btn-sm">Analyze responses</router-link>
+              <router-link v-if="projectId" :to="`${projectBase}/responses`" class="btn btn-secondary btn-sm">Analyze responses</router-link>
             </div>
           </div>
         </div>
@@ -301,7 +301,9 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 
 const route = useRoute();
+const workspaceId = computed(() => route.params.workspaceId as string);
 const projectId = computed(() => route.params.projectId as string);
+const projectBase = computed(() => `/workspaces/${workspaceId.value}/projects/${projectId.value}`);
 
 const recommendedTemplate = ref<{ name: string; slug: string; description: string } | null>(null);
 const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
@@ -340,7 +342,7 @@ const breadcrumbs = computed(() => {
   if (!projectId.value || !projectName.value) return undefined;
   return [
     { label: 'Projects', path: '/projects' },
-    { label: projectName.value, path: `/projects/${projectId.value}` },
+    { label: projectName.value, path: projectBase },
     { label: 'Research' },
   ];
 });

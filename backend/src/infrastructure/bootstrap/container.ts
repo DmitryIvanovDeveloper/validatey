@@ -28,6 +28,7 @@ import { bindFeedback } from '../../modules/feedback/infrastructure/bootstrap/bi
 import { bindRounds } from '../../modules/rounds/infrastructure/bootstrap/bind.rounds';
 import { bindOverview } from '../../modules/overview/infrastructure/bootstrap/bind.overview';
 import { bindComments } from '../../modules/comments/infrastructure/bootstrap/bind.comments';
+import { bindWorkspaces } from '../../modules/workspaces/infrastructure/bootstrap/bind.workspaces';
 
 const container = new Container();
 
@@ -58,6 +59,7 @@ bindFeedback(container);
 bindRounds(container);
 bindOverview(container);
 bindComments(container);
+bindWorkspaces(container);
 
 export { container, TYPES };
 

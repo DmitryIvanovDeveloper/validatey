@@ -5,6 +5,8 @@ export interface UploadFileRequest {
   filename: string;
   contentType: string;
   folder?: string;
+  /** If not set, derived from folder: workspace-icons/ → "workspace-icons", else "responses" */
+  bucket?: string;
 }
 
 export interface UploadFileResponse {

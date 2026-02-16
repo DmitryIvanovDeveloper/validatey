@@ -2,6 +2,7 @@ import { injectable } from 'inversify';
 import {
   CommentFetcherPort,
   FetchCommentsInput,
+  FetchCommentsInputReddit,
   FetchCommentsResult,
   FetchedCommentRaw,
 } from '../../application/ports/comment-fetcher.port';
@@ -44,20 +45,18 @@ interface RedditListingResponse {
 @injectable()
 export class RedditFetcher implements CommentFetcherPort {
   public async fetch(input: FetchCommentsInput): Promise<ResultEx<FetchCommentsResult, CommentFetchError>> {
-    console.log(`[RedditFetcher] Input:`, {
-      sourceType: input.sourceType,
-      postId: input.postId,
-      subredditNames: input.subredditNames,
-      apiCredentials: input.apiCredentials ? 'present' : 'none'
-    });
+    const redditInput = input as FetchCommentsInputReddit;
 
-    if (input.sourceType !== 'reddit') {
-      return ResultEx.success({ comments: [], errors: [] });
-    }
+    console.log(`[RedditFetcher] Input:`, {
+      sourceType: redditInput.sourceType,
+      postId: redditInput.postId,
+      subredditNames: redditInput.subredditNames,
+      apiCredentials: redditInput.apiCredentials ? 'present' : 'none'
+    });
 
     // For testing purposes, return mock data for subreddit feeds only (not specific posts)
     // Specific Reddit posts should use real API
-    if (!input.postId && process.env.NODE_ENV === 'development' && !process.env.TEST_REAL_API) {
+    if (!redditInput.postId && process.env.NODE_ENV === 'development' && !process.env.TEST_REAL_API) {
       return ResultEx.success({
         comments: [
           {
@@ -68,7 +67,7 @@ export class RedditFetcher implements CommentFetcherPort {
             createdAt: new Date(),
             contextTitle: 'Mock Reddit Post',
             contextUrl: 'https://www.reddit.com/r/test/comments/abc123/',
-            subsourceName: input.subredditNames[0] || 'r/test',
+            subsourceName: redditInput.subredditNames[0] || 'r/test',
             importOrigin: 'reddit'
           }
         ],
@@ -77,19 +76,19 @@ export class RedditFetcher implements CommentFetcherPort {
     }
 
     // If postId is provided, fetch comments from specific post
-    if (input.postId && input.subredditNames.length > 0) {
-      console.log(`[RedditFetcher] Fetching comments for post ${input.postId} in subreddit ${input.subredditNames[0]}`);
+    if (redditInput.postId && redditInput.subredditNames.length > 0) {
+      console.log(`[RedditFetcher] Fetching comments for post ${redditInput.postId} in subreddit ${redditInput.subredditNames[0]}`);
 
-      const subreddit = input.subredditNames[0];
+      const subreddit = redditInput.subredditNames[0];
       const name = subreddit.replace(/^r\//, '').trim();
       if (!name) {
         return ResultEx.success({ comments: [], errors: ['Invalid subreddit name'] });
       }
 
-      const userAgent = input.apiCredentials?.userAgent || 'validatey-app/1.0 (by /u/validatey-bot)';
+      const userAgent = redditInput.apiCredentials?.userAgent || 'validatey-app/1.0 (by /u/validatey-bot)';
       let authHeader: string | undefined;
-      if (input.apiCredentials?.clientId) {
-        const token = await this._getOAuthToken(input.apiCredentials.clientId, input.apiCredentials.clientSecret, userAgent);
+      if (redditInput.apiCredentials?.clientId) {
+        const token = await this._getOAuthToken(redditInput.apiCredentials.clientId, redditInput.apiCredentials.clientSecret, userAgent);
         if (token) {
           authHeader = `Bearer ${token}`;
         }
@@ -98,13 +97,13 @@ export class RedditFetcher implements CommentFetcherPort {
       console.log(`[RedditFetcher] Using auth: ${authHeader ? 'yes' : 'no'}, userAgent: ${userAgent}`);
 
       try {
-        const comments = await this._fetchCommentsFromPost(name, input.postId, authHeader, userAgent, input.sinceDate);
+        const comments = await this._fetchCommentsFromPost(name, redditInput.postId, authHeader, userAgent, redditInput.sinceDate);
         console.log(`[RedditFetcher] Fetched ${comments.length} comments from Reddit API`);
         if (comments.length > 0) {
           return ResultEx.success({ comments, errors: undefined });
         }
       } catch (error) {
-        console.log(`[RedditFetcher] Reddit API failed for post ${input.postId}:`, error.message);
+        console.log(`[RedditFetcher] Reddit API failed for post ${redditInput.postId}:`, error instanceof Error ? error.message : String(error));
       }
 
       // Fallback to realistic mock data based on real Reddit posts
@@ -115,10 +114,10 @@ export class RedditFetcher implements CommentFetcherPort {
             externalId: 't1_k8x2m4n',
             content: 'Congrats! This is such an amazing milestone. I remember my first paying customer - it felt like validation that all the late nights were worth it. What was the most surprising part of the whole experience for you?',
             author: 'SideProjectDev2023',
-            url: `https://www.reddit.com/r/${name}/comments/${input.postId}/t1_k8x2m4n/`,
+            url: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/t1_k8x2m4n/`,
             createdAt: new Date(Date.now() - 7200000),
             contextTitle: 'My first paying customer after 6 months of development!',
-            contextUrl: `https://www.reddit.com/r/${name}/comments/${input.postId}/`,
+            contextUrl: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/`,
             subsourceName: subreddit,
             importOrigin: 'reddit'
           },
@@ -126,10 +125,10 @@ export class RedditFetcher implements CommentFetcherPort {
             externalId: 't1_k8x3p9q',
             content: 'That\'s awesome! 🎉 I\'ve been working on my SaaS for 8 months and still haven\'t converted anyone. What pricing tier did they choose? Was it completely organic or did you do any marketing?',
             author: 'indie_hacker_89',
-            url: `https://www.reddit.com/r/${name}/comments/${input.postId}/t1_k8x3p9q/`,
+            url: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/t1_k8x3p9q/`,
             createdAt: new Date(Date.now() - 5400000),
             contextTitle: 'My first paying customer after 6 months of development!',
-            contextUrl: `https://www.reddit.com/r/${name}/comments/${input.postId}/`,
+            contextUrl: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/`,
             subsourceName: subreddit,
             importOrigin: 'reddit'
           },
@@ -137,10 +136,10 @@ export class RedditFetcher implements CommentFetcherPort {
             externalId: 't1_k8x4k7w',
             content: 'This is exactly the kind of story that keeps me motivated! I launched my tool last month and have been getting some interest but no conversions yet. What features did they sign up for specifically?',
             author: 'bootstrapper42',
-            url: `https://www.reddit.com/r/${name}/comments/${input.postId}/t1_k8x4k7w/`,
+            url: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/t1_k8x4k7w/`,
             createdAt: new Date(Date.now() - 3600000),
             contextTitle: 'My first paying customer after 6 months of development!',
-            contextUrl: `https://www.reddit.com/r/${name}/comments/${input.postId}/`,
+            contextUrl: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/`,
             subsourceName: subreddit,
             importOrigin: 'reddit'
           },
@@ -148,10 +147,10 @@ export class RedditFetcher implements CommentFetcherPort {
             externalId: 't1_k8x5n2e',
             content: 'Congrats on the milestone! That feeling of your first real revenue is incredible. Did you have any beta testers or early access program that helped convert them to paying customers?',
             author: 'product_builder',
-            url: `https://www.reddit.com/r/${name}/comments/${input.postId}/t1_k8x5n2e/`,
+            url: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/t1_k8x5n2e/`,
             createdAt: new Date(Date.now() - 1800000),
             contextTitle: 'My first paying customer after 6 months of development!',
-            contextUrl: `https://www.reddit.com/r/${name}/comments/${input.postId}/`,
+            contextUrl: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/`,
             subsourceName: subreddit,
             importOrigin: 'reddit'
           }
@@ -161,13 +160,13 @@ export class RedditFetcher implements CommentFetcherPort {
     }
 
     // Default strategy: direct fetch (backward compatibility)
-    const limit = input.limitPerSubreddit ?? 25;
+    const limit = redditInput.limitPerSubreddit ?? 25;
     const allComments: FetchedCommentRaw[] = [];
     const errors: string[] = [];
-    const userAgent = input.apiCredentials?.userAgent || USER_AGENT;
+    const userAgent = redditInput.apiCredentials?.userAgent || USER_AGENT;
     let authHeader: string | undefined;
-    if (input.apiCredentials?.clientId) {
-      const token = await this._getOAuthToken(input.apiCredentials.clientId, input.apiCredentials.clientSecret, userAgent);
+    if (redditInput.apiCredentials?.clientId) {
+      const token = await this._getOAuthToken(redditInput.apiCredentials.clientId, redditInput.apiCredentials.clientSecret, userAgent);
       if (token) {
         authHeader = `Bearer ${token}`;
       } else {
@@ -178,13 +177,13 @@ export class RedditFetcher implements CommentFetcherPort {
 
     let nextAfter: string | null = null;
 
-    for (const subreddit of input.subredditNames) {
+    for (const subreddit of redditInput.subredditNames) {
       const name = subreddit.replace(/^r\//, '').trim();
       if (!name) continue;
 
       try {
         const params = new URLSearchParams({ limit: String(limit) });
-        if (input.after) params.set('after', input.after);
+        if (redditInput.after) params.set('after', redditInput.after);
         const url = `${REDDIT_BASE}/r/${name}/comments.json?${params.toString()}`;
         const headers: Record<string, string> = { 'User-Agent': userAgent };
         if (authHeader) headers['Authorization'] = authHeader;
@@ -220,14 +219,14 @@ export class RedditFetcher implements CommentFetcherPort {
 
         const children = json?.data?.children ?? [];
         let rawList = this._mapChildrenToRaw(children, input);
-        if (input.sinceDate) {
-          rawList = rawList.filter((c: FetchedCommentRaw) => c.createdAt >= input.sinceDate!);
+        if (redditInput.sinceDate) {
+          rawList = rawList.filter((c: FetchedCommentRaw) => c.createdAt >= redditInput.sinceDate!);
         }
         if (children.length > 0 && rawList.length === 0) {
           errors.push(`Subreddit r/${name}: ${children.length} items in response but none parsed as comments (kind t1 with body)`);
         }
         allComments.push(...rawList);
-        if (input.subredditNames.length === 1) {
+        if (redditInput.subredditNames.length === 1) {
           nextAfter = json?.data?.after ?? null;
         }
       } catch (err) {

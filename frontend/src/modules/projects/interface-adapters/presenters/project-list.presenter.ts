@@ -6,7 +6,7 @@ import { Project, ProjectStatus } from '../../domain/entities/project.entity';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
-import { userContextService } from '../../../../shared/services/user-context.service';
+import { sessionManager } from '../../../../shared/services/session-manager';
 
 @injectable()
 export class ProjectListPresenter {
@@ -19,11 +19,11 @@ export class ProjectListPresenter {
     private readonly _logger: LoggerPort
   ) {}
 
-  async loadProjects(viewModel: ProjectListViewModel): Promise<void> {
+  async loadProjects(viewModel: ProjectListViewModel, workspaceId?: string): Promise<void> {
     viewModel.loading.value = true;
     viewModel.error.value = null;
 
-    const userId = userContextService.getUserId();
+    const userId = sessionManager.currentUserId;
     if (!userId) {
       viewModel.error.value = 'User not authenticated';
       viewModel.loading.value = false;
@@ -31,7 +31,7 @@ export class ProjectListPresenter {
       return;
     }
 
-    const result = await this._listProjectsUseCase.execute({ userId });
+    const result = await this._listProjectsUseCase.execute({ workspaceId });
 
     if (result.isSuccess) {
       // Map response to Project entities

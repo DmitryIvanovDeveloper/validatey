@@ -13,7 +13,9 @@ export class ListProjectsUseCase {
   ) {}
 
   async execute(input: ListProjectsUseCaseRequest): Promise<Result<ListProjectsUseCaseResponse, ProjectListError>> {
-    const result = await this._repository.list();
+    const result = input.workspaceId
+      ? await this._repository.listByWorkspace(input.workspaceId)
+      : await this._repository.list();
 
     if (!result.isSuccess) {
       return Result.failure(result.error);
