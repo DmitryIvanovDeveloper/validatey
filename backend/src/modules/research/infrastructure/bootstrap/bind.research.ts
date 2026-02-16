@@ -1,5 +1,7 @@
 import { Container } from 'inversify';
 import { TYPES } from './types';
+import { TYPES as RESPONSES_TYPES } from '../../../responses/infrastructure/bootstrap/types';
+import { COMMENT_TYPES } from '../../../comments/types';
 import { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
 import type { SynthesisLlmPort } from '../../application/ports/synthesis-llm.port';
 import type { MarketDataProviderPort } from '../../application/ports/market-data-provider.port';
@@ -8,6 +10,8 @@ import type { AutocompleteDataProviderPort } from '../../application/ports/autoc
 import type { SearchPhrasesGeneratorPort } from '../../application/ports/search-phrases-generator.port';
 import type { AutocompleteApiPort } from '../../application/ports/autocomplete-api.port';
 import type { ResearchAssistantLlmPort } from '../../application/ports/research-assistant-llm.port';
+import type { ResponseRepositoryPort } from '../../../responses/application/ports/response-repository.port';
+import type { CommentRepositoryPort } from '../../../comments/application/ports/comment-repository.port';
 import { GetResearchCanvasUseCase } from '../../application/use-cases/get-research-canvas.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
@@ -47,4 +51,6 @@ export function bindResearch(container: Container): void {
   container.bind<CollectResearchDataUseCase>(TYPES.CollectResearchDataUseCase).to(CollectResearchDataUseCase);
   container.bind<ResearchAssistantUseCase>(TYPES.ResearchAssistantUseCase).to(ResearchAssistantUseCase);
   container.bind<ResearchController>(TYPES.ResearchController).to(ResearchController);
+
+  // Cross-module dependencies for synthesis are resolved at runtime
 }

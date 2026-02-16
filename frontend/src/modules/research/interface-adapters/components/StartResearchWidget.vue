@@ -51,8 +51,23 @@ const handleStartResearch = async () => {
     if (result.error) {
       console.error('Failed to start research:', result.error);
     } else {
-      // Research started successfully
-      console.log('Research started successfully');
+      // Research data collected successfully
+      console.log('Research data collected successfully');
+
+      // Now generate synthesis automatically
+      try {
+        console.log('Generating synthesis...');
+        const synthesisResult = await researchPresenter.generateSynthesis(props.projectId);
+
+        if (synthesisResult.error) {
+          console.error('Failed to generate synthesis:', synthesisResult.error);
+        } else {
+          console.log('Synthesis generated successfully');
+        }
+      } catch (synthesisError) {
+        console.error('Exception during synthesis generation:', synthesisError);
+      }
+
       emit('researchCompleted');
     }
   } catch (error) {

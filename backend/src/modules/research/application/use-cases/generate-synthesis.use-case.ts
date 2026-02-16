@@ -6,10 +6,14 @@ import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstr
 import { TYPES as SIGNALS_TYPES } from '../../../signals/infrastructure/bootstrap/types';
 import { TYPES as METRICS_TYPES } from '../../../metrics/infrastructure/bootstrap/types';
 import { TYPES as RESEARCH_TYPES } from '../../infrastructure/bootstrap/types';
+import { TYPES as RESPONSES_TYPES } from '../../../responses/infrastructure/bootstrap/types';
+import { COMMENT_TYPES } from '../../../comments/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import type { EarlySignalsRepositoryPort } from '../../../signals/application/ports/early-signals-repository.port';
 import type { ResearchDataRepositoryPort } from '../ports/research-data-repository.port';
 import type { SynthesisLlmPort } from '../ports/synthesis-llm.port';
+import type { ResponseRepositoryPort } from '../../../responses/application/ports/response-repository.port';
+import type { CommentRepositoryPort } from '../../../comments/application/ports/comment-repository.port';
 import { CalculateMetricsUseCase } from '../../../metrics/application/use-cases/calculate-metrics.use-case';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
 import type { SynthesisReport } from '../../domain/value-objects/synthesis-report.vo';
@@ -18,6 +22,8 @@ import type {
   GenerateSynthesisRequest,
   GenerateSynthesisResponse,
 } from './input-output/generate-synthesis.io';
+import type { Response } from '../../../responses/domain/entities/response.entity';
+import { CommentEntity } from '../../../comments/domain/entities/comment.entity';
 
 @injectable()
 export class GenerateSynthesisUseCase {
@@ -28,6 +34,10 @@ export class GenerateSynthesisUseCase {
     private readonly _projectRepository: ProjectRepositoryPort,
     @inject(SIGNALS_TYPES.EarlySignalsRepository)
     private readonly _signalsRepository: EarlySignalsRepositoryPort,
+    @inject(RESPONSES_TYPES.ResponseRepository)
+    private readonly _responseRepository: ResponseRepositoryPort,
+    @inject(COMMENT_TYPES.CommentRepository)
+    private readonly _commentRepository: CommentRepositoryPort,
     @inject(METRICS_TYPES.CalculateMetricsUseCase)
     private readonly _calculateMetricsUseCase: CalculateMetricsUseCase,
     @inject(RESEARCH_TYPES.ResearchDataRepository)
@@ -60,11 +70,17 @@ export class GenerateSynthesisUseCase {
       const marketSummary = this.summarizeMarket(project.marketContext, stored?.marketData ?? null);
       const competitorSummary = this.summarizeCompetitors(stored?.competitorData ?? null);
       const autocompleteSummary = this.summarizeAutocomplete(stored?.autocompleteInsights ?? null);
-      const templateSlug = project.scenarioTemplateSlug ?? 'wtp';
-      const metricsResult = await this._calculateMetricsUseCase.execute({ projectId, templateSlug });
-      const userInsightsSummary = metricsResult.isSuccess
-        ? this.summarizeMetrics(metricsResult.data.metrics)
-        : 'No metrics yet';
+
+      // Get user insights from responses
+      const responsesResult = await this._responseRepository.findByProjectId(projectId);
+      const responses = responsesResult.isSuccess ? responsesResult.data : [];
+      const userInsightsSummary = this.summarizeUserInsights(responses);
+
+      // Get comments from social media
+      const commentsResult = await this._commentRepository.findByProjectId(projectId);
+      const comments = commentsResult.isSuccess ? commentsResult.data : [];
+      const commentsSummary = this.summarizeComments(comments);
+
       const earlySignalsSummary =
         signals.length > 0
           ? signals.map((s) => `[${s.type}] ${s.title}: ${s.description}`).join('. ')
@@ -77,6 +93,7 @@ export class GenerateSynthesisUseCase {
         competitorSummary,
         autocompleteSummary,
         userInsightsSummary,
+        commentsSummary,
         earlySignalsSummary,
       });
 
@@ -100,6 +117,179 @@ export class GenerateSynthesisUseCase {
       this._logger.error('generate-synthesis.exception', { projectId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
     }
+  }
+
+  private summarizeUserInsights(responses: Response[]): string {
+    if (!responses || responses.length === 0) {
+      return 'No user insights available yet';
+    }
+
+    // Extract both text and numeric answers
+    const surveyResponses: Array<{ theme: string; quote: string; value?: number }> = [];
+    const numericAnswers: Array<{ theme: string; value: number; questionId: string }> = [];
+
+    for (const response of responses) {
+      for (const [questionId, answer] of Object.entries(response.answers)) {
+        const questionLabel = response.questionLabels[questionId] || questionId;
+
+        if (typeof answer === 'string' && answer.trim().length > 0) {
+          // Text answers - always add to surveyResponses
+          surveyResponses.push({
+            theme: questionLabel.toLowerCase(),
+            quote: answer.trim()
+          });
+
+          // Try to extract numbers from text answers
+          const numMatch = answer.match(/(\d+(\.\d+)?)/);
+          if (numMatch) {
+            const numValue = parseFloat(numMatch[1]);
+            if (!isNaN(numValue) && numValue > 0) {
+              numericAnswers.push({
+                theme: questionLabel.toLowerCase(),
+                value: numValue,
+                questionId
+              });
+            }
+          }
+        } else if (typeof answer === 'number') {
+          // Pure numeric answers
+          numericAnswers.push({
+            theme: questionLabel.toLowerCase(),
+            value: answer,
+            questionId
+          });
+        }
+      }
+    }
+
+    if (surveyResponses.length === 0 && numericAnswers.length === 0) {
+      return 'Limited user insights available';
+    }
+
+    const parts: string[] = [];
+
+    // Analyze numeric answers (severity scores, pricing, etc.)
+    if (numericAnswers.length > 0) {
+      // Group numeric answers by question type
+      const severityScores = numericAnswers.filter(n =>
+        n.questionId === 'q_2' || // Standard severity question
+        n.theme.includes('severity') || n.theme.includes('problem') ||
+        n.theme.includes('pain') || n.theme.includes('annoying')
+      );
+
+      const pricingAnswers = numericAnswers.filter(n =>
+        n.questionId === 'q_5' || // Common pricing question
+        n.theme.includes('price') || n.theme.includes('pay') ||
+        n.theme.includes('cost') || n.theme.includes('willing') ||
+        n.value <= 300 // Reasonable price range for SaaS
+      );
+
+      // Calculate severity statistics
+      if (severityScores.length > 0) {
+        const values = severityScores.map(s => s.value);
+        const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+        const max = Math.max(...values);
+        const min = Math.min(...values);
+
+        parts.push(`Problem severity: average ${average.toFixed(1)}/10 (range: ${min}-${max})`);
+      }
+
+      // Analyze pricing
+      if (pricingAnswers.length > 0) {
+        const values = pricingAnswers.map(p => p.value);
+        const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+
+        parts.push(`Average willingness to pay: $${average.toFixed(0)}/month`);
+      }
+    }
+
+    // Analyze text responses
+    if (surveyResponses.length > 0) {
+      // Группировка по типам вопросов для лучшего анализа
+      const pricingInsights = surveyResponses.filter(r =>
+        (r.theme?.includes('pay') ?? false) || (r.theme?.includes('price') ?? false) ||
+        (r.theme?.includes('cost') ?? false) || r.quote.includes('$')
+      );
+      const painInsights = surveyResponses.filter(r =>
+        (r.theme?.includes('annoying') ?? false) || (r.theme?.includes('problem') ?? false) ||
+        (r.theme?.includes('pain') ?? false) || r.quote.includes('frustrat')
+      );
+      const toolInsights = surveyResponses.filter(r =>
+        (r.theme?.includes('tools') ?? false) || r.quote.includes('tool')
+      );
+      const timeInsights = surveyResponses.filter(r =>
+        (r.theme?.includes('hours') ?? false) || (r.theme?.includes('time') ?? false) ||
+        r.quote.includes('hour') || r.quote.includes('day')
+      );
+
+      // Add pricing insights
+      if (pricingInsights.length > 0) {
+        const pricingQuotes = pricingInsights.slice(0, 2).map(r =>
+          `"${r.quote.substring(0, 80)}${r.quote.length > 80 ? '...' : ''}"`
+        );
+        parts.push(`Pricing insights: ${pricingQuotes.join('; ')}`);
+      }
+
+      // Add pain points
+      if (painInsights.length > 0) {
+        const painQuotes = painInsights.slice(0, 2).map(r =>
+          `"${r.quote.substring(0, 80)}${r.quote.length > 80 ? '...' : ''}"`
+        );
+        parts.push(`Key pain points: ${painQuotes.join('; ')}`);
+      }
+
+      // Add tool insights
+      if (toolInsights.length > 0) {
+        const toolQuotes = toolInsights.slice(0, 2).map(r =>
+          `"${r.quote.substring(0, 80)}${r.quote.length > 80 ? '...' : ''}"`
+        );
+        parts.push(`Current tools: ${toolQuotes.join('; ')}`);
+      }
+
+      // Add time insights
+      if (timeInsights.length > 0) {
+        const timeQuotes = timeInsights.slice(0, 2).map(r =>
+          `"${r.quote.substring(0, 80)}${r.quote.length > 80 ? '...' : ''}"`
+        );
+        parts.push(`Time-related insights: ${timeQuotes.join('; ')}`);
+      }
+    }
+
+    // Add response count
+    parts.push(`${responses.length} survey responses analyzed`);
+
+    return parts.join('. ');
+  }
+
+  private summarizeComments(comments: CommentEntity[]): string {
+    if (!comments || comments.length === 0) {
+      return 'No comments collected yet';
+    }
+
+    // Группировка по источникам и анализ тем
+    const sourceGroups: Record<string, CommentEntity[]> = {};
+    for (const comment of comments) {
+      const source = comment.subsourceName || 'other';
+      if (!sourceGroups[source]) {
+        sourceGroups[source] = [];
+      }
+      sourceGroups[source].push(comment);
+    }
+
+    const parts: string[] = [];
+    for (const [source, sourceComments] of Object.entries(sourceGroups)) {
+      const recentComments = sourceComments
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .slice(0, 3);
+
+      const commentSummaries = recentComments.map(c =>
+        `"${c.content.substring(0, 100)}${c.content.length > 100 ? '...' : ''}"`
+      );
+
+      parts.push(`${source}: ${commentSummaries.join('; ')}`);
+    }
+
+    return parts.length > 0 ? parts.join('. ') : 'Comments collected but no clear themes identified';
   }
 
   private summarizeMarket(
@@ -136,17 +326,4 @@ export class GenerateSynthesisUseCase {
     return parts.length > 0 ? parts.join('. ') : 'No competitor data';
   }
 
-  private summarizeMetrics(metrics: {
-    problemSeverity?: { average: number };
-    wtp?: { median: number };
-    featureScore?: { average: number };
-    valueMatchScore?: { average: number };
-  }): string {
-    const parts: string[] = [];
-    if (metrics.wtp?.median != null) parts.push(`WTP median: $${metrics.wtp.median}/mo`);
-    const avg =
-      metrics.problemSeverity?.average ?? metrics.featureScore?.average ?? metrics.valueMatchScore?.average;
-    if (avg != null) parts.push(`Score avg: ${avg.toFixed(1)}/5`);
-    return parts.length > 0 ? parts.join('; ') : 'No metrics';
-  }
 }

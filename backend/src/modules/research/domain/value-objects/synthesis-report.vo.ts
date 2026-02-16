@@ -2,5 +2,6 @@
 export interface SynthesisReport {
 	readonly summary: string;
 	readonly recommendations: readonly string[];
+	readonly verdict: 'validated' | 'rejected' | 'needs-more-data';
 	readonly sections?: readonly { readonly title: string; readonly content: string }[];
 }

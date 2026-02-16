@@ -9,15 +9,17 @@ import { SynthesisGenerationError } from '../../domain/errors/research.error';
 
 const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 
-const SYSTEM_PROMPT = `You are a research analyst. Based on the provided project context (hypothesis, market, competitors, autocomplete/search intents, user insights, early signals), produce a well-formatted executive summary.
+const SYSTEM_PROMPT = `You are a research analyst specializing in product validation. Based on the provided project context, determine if the product idea is validated, rejected, or needs more data.
 
-Respond with ONLY a valid JSON object (no markdown, no extra text):
-{"summary":"Write a 2-4 sentence executive summary that synthesizes all the research findings. Use clear, professional language with proper formatting including paragraphs where appropriate. Focus on key insights, market opportunities, and validation signals.","recommendations":["recommendation 1","recommendation 2",...]}
+CRITICAL VALIDATION RULES:
+- User insights are the PRIMARY source for validation
+- If user insights show "Limited user insights available" or "No user insights available yet", return verdict: "needs-more-data"
+- Only return "validated" or "rejected" when substantial direct user insights exist
+- "needs-more-data" means more user research needed
+- Look for real user quotes, pain points, pricing sensitivity, and willingness to pay
 
-Rules:
-- summary: Well-structured executive summary with proper formatting, paragraphs, and clear insights
-- recommendations: 2-5 actionable recommendations based on the research
-- Use English and professional business writing style`;
+Respond with ONLY JSON:
+{"summary":"2-4 sentence executive summary synthesizing findings","recommendations":["2-5 actionable recommendations"],"verdict":"validated"|"rejected"|"needs-more-data"}`;
 
 @injectable()
 export class SynthesisLlmAdapter implements SynthesisLlmPort {
@@ -34,6 +36,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `Competitors: ${input.competitorSummary}`,
       `Search intents (Google Autocomplete): ${input.autocompleteSummary}`,
       `User insights: ${input.userInsightsSummary}`,
+      `Comments: ${input.commentsSummary}`,
       `Early signals: ${input.earlySignalsSummary}`,
     ].join('\n\n');
 
@@ -62,7 +65,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
   private parseJsonToReport(content: string): SynthesisReport {
     const match = content.match(/\{[\s\S]*\}/);
     if (!match) {
-      return { summary: content.slice(0, 500), recommendations: [] };
+      return { summary: content.slice(0, 500), recommendations: [], verdict: 'needs-more-data' };
     }
     try {
       const obj = JSON.parse(match[0]) as Record<string, unknown>;
@@ -70,9 +73,12 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       const recommendations = Array.isArray(obj.recommendations)
         ? (obj.recommendations as string[]).filter((r) => typeof r === 'string')
         : [];
-      return { summary: summary.trim(), recommendations };
+      const verdict = (obj.verdict === 'validated' || obj.verdict === 'rejected' || obj.verdict === 'needs-more-data')
+        ? obj.verdict as 'validated' | 'rejected' | 'needs-more-data'
+        : 'needs-more-data';
+      return { summary: summary.trim(), recommendations, verdict };
     } catch {
-      return { summary: '', recommendations: [] };
+      return { summary: '', recommendations: [], verdict: 'needs-more-data' };
     }
   }
 }

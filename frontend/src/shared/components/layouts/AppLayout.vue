@@ -68,6 +68,8 @@ watch(
   () => authViewModel.user.value,
   (user) => {
     if (user) {
+      // Set userId in context service after successful auth
+      userContextService.setUserId(user.id);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('validatey-user-id-synced'));
       }
@@ -98,6 +100,12 @@ const handleUserActivity = () => {
 
 onMounted(async () => {
   await authPresenter.loadSession(authViewModel);
+
+  // Set userId if session exists
+  if (authViewModel.user.value) {
+    userContextService.setUserId(authViewModel.user.value.id);
+  }
+
   userContextService.setSessionReady(true);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('validatey-session-ready'));

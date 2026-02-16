@@ -9,6 +9,7 @@ export interface SynthesisInput {
   competitorSummary: string;
   autocompleteSummary: string;
   userInsightsSummary: string;
+  commentsSummary: string;
   earlySignalsSummary: string;
 }
 
