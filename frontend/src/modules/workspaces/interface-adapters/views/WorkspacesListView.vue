@@ -120,8 +120,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { container } from '@/infrastructure/bootstrap/container';
 import { API_CONFIG } from '@/infrastructure/config/api.config';
 import { sessionManager } from '@/shared/services/session-manager';
@@ -136,7 +136,8 @@ import CreateWorkspaceModal from './components/CreateWorkspaceModal.vue';
 import EditWorkspaceModal from './components/EditWorkspaceModal.vue';
 import DeleteWorkspaceModal from './components/DeleteWorkspaceModal.vue';
 
-const router: ReturnType<typeof useRouter> = useRouter();
+const route = useRoute();
+const router = useRouter();
 
 let presenter: WorkspaceListPresenter | null = null;
 try {
@@ -157,6 +158,34 @@ const selectedWorkspace = ref<Workspace | null>(null);
 function refetchWorkspaces(): void {
   if (presenter) presenter.loadWorkspaces();
 }
+
+// Open modals when navigating from sidebar via query params
+watch(
+  () => route.query,
+  (query) => {
+    if (query.new === '1') {
+      openCreateModal();
+      router.replace({ path: '/workspaces' });
+    }
+    const editId = query.edit;
+    if (editId && typeof editId === 'string') {
+      const ws = presenter?.viewModel?.workspaces?.find((w) => w.id === editId);
+      if (ws) {
+        openEditModal(ws);
+      }
+      router.replace({ path: '/workspaces' });
+    }
+    const deleteId = query.delete;
+    if (deleteId && typeof deleteId === 'string') {
+      const ws = presenter?.viewModel?.workspaces?.find((w) => w.id === deleteId);
+      if (ws) {
+        openDeleteModal(ws);
+      }
+      router.replace({ path: '/workspaces' });
+    }
+  },
+  { immediate: true }
+);
 
 onMounted((): void => {
   if (sessionManager.isSessionReady && sessionManager.currentUserId) {

@@ -2,7 +2,7 @@
   <div class="app-layout">
     <header v-if="showNavbar" class="header" role="banner">
       <div class="header-inner">
-        <router-link to="/projects" class="brand" aria-label="Validatey home">
+        <router-link to="/workspaces" class="brand" aria-label="Validatey home">
           <span class="brand-icon" aria-hidden="true">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L2 7l10 5 10-5L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -25,20 +25,26 @@
         </div>
       </div>
     </header>
-    <main class="main-content">
-      <slot />
-    </main>
+    <div class="body-wrap">
+      <aside v-if="showNavbar && currentUser" class="sidebar" aria-label="Workspaces">
+        <WorkspaceSidebar />
+      </aside>
+      <main class="main-content">
+        <slot />
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { container } from '../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
 import type { AuthPresenter } from '../../../modules/auth/interface-adapters/presenters/auth.presenter';
 import type { AuthSession } from '../../../modules/auth/application/ports/auth-service.port';
 import { sessionManager } from '../../services/session-manager';
+import WorkspaceSidebar from '../../../modules/workspaces/interface-adapters/views/components/WorkspaceSidebar.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -144,6 +150,7 @@ onUnmounted(() => {
     window.removeEventListener('scroll', handleUserActivity);
     window.removeEventListener('touchstart', handleUserActivity);
   }
+
 });
 
 async function handleSignOut() {
@@ -163,6 +170,9 @@ async function handleSignOut() {
   display: flex;
   flex-direction: column;
   background: var(--color-bg, #fafafa);
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .header {
@@ -320,6 +330,13 @@ async function handleSignOut() {
   cursor: not-allowed;
 }
 
+/* Responsive: hide sidebar on small screens */
+@media (max-width: 900px) {
+  .sidebar {
+    display: none;
+  }
+}
+
 /* Responsive header layout */
 @media (max-width: 768px) {
   .header-inner {
@@ -333,9 +350,27 @@ async function handleSignOut() {
   }
 }
 
+.body-wrap {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.sidebar {
+  width: 14rem;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.6);
+  border-right: 1px solid var(--color-border, #e5e7eb);
+  overflow-y: auto;
+}
+
 .main-content {
   flex: 1;
-  max-width: min(1120px, 95vw); /* Responsive: 95% viewport width or 1120px, whichever is smaller */
+  min-width: 0;
+  max-width: min(1120px, 95vw);
   width: 100%;
   margin: 0 auto;
   padding: 1.5rem;

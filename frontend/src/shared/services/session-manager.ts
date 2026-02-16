@@ -1,5 +1,6 @@
 import type { AuthSession } from '../../modules/auth/application/ports/auth-service.port';
 import type { AuthUser } from '../../modules/auth/domain/entities/auth-user.entity';
+import { API_CONFIG } from '../../infrastructure/config/api.config';
 
 /**
  * Centralized session management service
@@ -138,12 +139,13 @@ class SessionManager {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-      const response = await fetch('/api/auth/session', {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_SESSION}`;
+      const response = await fetch(url, {
         credentials: 'include',
         headers: {
-          'x-user-id': userId
+          'x-user-id': userId,
         },
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -343,13 +345,16 @@ class SessionManager {
   }
 
   /**
-   * Force refresh session from backend
+   * Force refresh session from backend.
+   * Uses API base URL (e.g. http://localhost:8080/api) so the request hits the backend, not the Vite dev server.
+   * Clears session only on 401/403 (unauthorized); keeps session on network errors to avoid accidental logout.
    */
   async refreshSession(): Promise<void> {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH_SESSION}`;
     console.log('🔐 SESSION: Refreshing session from backend');
     try {
-      const response = await fetch('/api/auth/session', {
-        credentials: 'include'
+      const response = await fetch(url, {
+        credentials: 'include',
       });
       if (response.ok) {
         const data = await response.json();
@@ -358,16 +363,20 @@ class SessionManager {
             user: data.user as AuthUser,
             accessToken: '',
             expiresAt: 0,
-            role: data.role || 'user'
+            role: data.role || 'user',
           };
           this.setSession(session);
           return;
         }
       }
-      this.clearSession();
+      // Clear session only when backend explicitly says unauthorized (e.g. cookie expired)
+      if (response.status === 401 || response.status === 403) {
+        this.clearSession();
+      }
+      // On other errors (404, 5xx) or missing data, keep current session
     } catch (error) {
       console.error('🔐 SESSION: Failed to refresh session:', error);
-      this.clearSession();
+      // Do not clear session on network errors — user may be temporarily offline
     }
   }
 }

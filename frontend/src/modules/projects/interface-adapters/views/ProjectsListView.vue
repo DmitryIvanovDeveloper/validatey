@@ -167,12 +167,14 @@ const presenter = container.get<ProjectListPresenter>(TYPES.ProjectListPresenter
 // Get workspaceId from route params
 const workspaceId = computed(() => route.params.workspaceId as string);
 
-// Redirect to workspaces if no workspaceId
+// Redirect to workspaces if no workspaceId; load projects when workspaceId changes
 watch(workspaceId, (newWorkspaceId) => {
   if (!newWorkspaceId) {
     console.log('No workspaceId, redirecting to workspaces');
     router.replace('/workspaces');
+    return;
   }
+  refetchProjects();
 }, { immediate: true });
 
 const onboardingCompleted = ref(
