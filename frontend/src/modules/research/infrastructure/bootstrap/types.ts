@@ -1,4 +1,5 @@
 export const TYPES = {
+  ResearchRepository: Symbol('ResearchRepository'),
   ResearchRepositoryPort: Symbol('ResearchRepositoryPort'),
   HttpClientPort: Symbol('HttpClientPort'),
   ResearchPresenter: Symbol('ResearchPresenter'),

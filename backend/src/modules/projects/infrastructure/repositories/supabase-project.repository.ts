@@ -610,6 +610,41 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     }
   }
 
+  async userHasAccessToProject(projectId: string, userId: string): Promise<ResultEx<boolean, ProjectNotFoundError>> {
+    try {
+      const findResult = await this.findById(projectId);
+      if (!findResult.isSuccess) {
+        return ResultEx.failure(findResult.error);
+      }
+      const project = findResult.data;
+      if (project.userId === userId) {
+        return ResultEx.success(true);
+      }
+      if (!project.workspaceId) {
+        return ResultEx.success(false);
+      }
+      const supabase = getSupabaseClient();
+      const { data: workspace, error } = await supabase
+        .from('workspaces')
+        .select('user_id')
+        .eq('id', project.workspaceId)
+        .maybeSingle();
+      if (error) {
+        this._logger.error('supabase-project-repository.user-has-access-workspace-query-error', {
+          projectId,
+          workspaceId: project.workspaceId,
+          error: error.message
+        });
+        return ResultEx.success(false);
+      }
+      const hasAccess = workspace != null && String(workspace.user_id) === userId;
+      return ResultEx.success(hasAccess);
+    } catch (error) {
+      this._logger.error('supabase-project-repository.user-has-access-exception', { projectId, userId, error });
+      return ResultEx.success(false);
+    }
+  }
+
   async deleteByWorkspaceId(workspaceId: string): Promise<ResultEx<number, Error>> {
     try {
       const supabase = getSupabaseClient();

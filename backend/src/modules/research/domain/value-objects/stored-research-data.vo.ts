@@ -10,5 +10,6 @@ export interface StoredResearchData {
 	readonly competitorData: CompetitorInfoBlock | null;
 	readonly autocompleteInsights: AutocompleteInsights | null;
 	readonly synthesisReport: SynthesisReport | null;
+	readonly lastResearchRunAt: Date | null; // NEW: timestamp последнего запуска research
 	readonly updatedAt: Date;
 }

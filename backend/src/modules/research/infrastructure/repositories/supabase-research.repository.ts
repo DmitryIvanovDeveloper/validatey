@@ -35,6 +35,7 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
         competitorData: (data.competitor_data as CompetitorInfoBlock) ?? null,
         autocompleteInsights: (data.autocomplete_insights as AutocompleteInsights) ?? null,
         synthesisReport: (data.synthesis_report as SynthesisReport) ?? null,
+        lastResearchRunAt: data.last_research_run_at ? new Date(data.last_research_run_at) : null, // NEW
         updatedAt: new Date(data.updated_at),
       };
       return ResultEx.success(stored);
@@ -54,6 +55,7 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
           competitor_data: data.competitorData,
           autocomplete_insights: data.autocompleteInsights,
           synthesis_report: data.synthesisReport,
+          last_research_run_at: data.lastResearchRunAt?.toISOString(), // NEW
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'project_id' }

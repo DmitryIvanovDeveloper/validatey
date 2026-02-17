@@ -1,0 +1,137 @@
+/**
+ * Сервис для управления контекстом пользователя
+ * Хранит и предоставляет user ID для HTTP заголовков
+ */
+class UserContextService {
+  private static readonly USER_ID_KEY = 'validatey_user_id';
+  private userId: string | null = null;
+  private sessionReady = false;
+
+  constructor() {
+    console.log('🔍 USER CONTEXT: UserContextService constructor called');
+    // Загружаем user ID из localStorage при инициализации
+    this.loadUserId();
+    console.log('🔍 USER CONTEXT: Constructor completed, current userId:', this.userId);
+  }
+
+  /**
+   * Получить текущий user ID
+   */
+  getUserId(): string | null {
+    console.log('🔍 USER CONTEXT: getUserId called, current userId:', this.userId);
+    return this.userId;
+  }
+
+  /**
+   * Установить user ID
+   */
+  setUserId(userId: string): void {
+    console.log('🔍 USER CONTEXT: setUserId called with:', userId);
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      console.error('🔍 USER CONTEXT: invalid UUID format for userId:', userId);
+      return;
+    }
+    this.userId = userId;
+    // Сохраняем в localStorage для персистентности
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(UserContextService.USER_ID_KEY, userId);
+    }
+  }
+
+  /**
+   * Загрузить user ID из localStorage
+   */
+  private loadUserId(): void {
+    console.log('🔍 USER CONTEXT: loadUserId called');
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(UserContextService.USER_ID_KEY);
+      console.log('🔍 USER CONTEXT: loaded from localStorage:', stored);
+      if (stored) {
+        // Validate that the stored userId is a valid UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(stored)) {
+          this.userId = stored;
+          console.log('🔍 USER CONTEXT: set userId to:', this.userId);
+        } else {
+          console.log('🔍 USER CONTEXT: invalid UUID format, clearing localStorage');
+          localStorage.removeItem(UserContextService.USER_ID_KEY);
+          this.userId = null;
+        }
+      } else {
+        console.log('🔍 USER CONTEXT: no userId in localStorage');
+      }
+    }
+  }
+
+  /**
+   * Очистить user ID (при выходе из системы)
+   */
+  clearUserId(): void {
+    console.log('🔍 USER CONTEXT: clearUserId called, clearing userId:', this.userId);
+    this.userId = null;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(UserContextService.USER_ID_KEY);
+    }
+  }
+
+  /**
+   * Генерировать временный user ID для анонимных пользователей
+   * Используется до момента авторизации
+   */
+  generateTemporaryUserId(): string {
+    console.log('🔍 USER CONTEXT: generateTemporaryUserId called');
+    // Генерируем UUID v4
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+
+    console.log('🔍 USER CONTEXT: generated UUID:', uuid);
+    this.setUserId(uuid);
+    return uuid;
+  }
+
+  /**
+   * Получить user ID, создав временный, если его нет
+   */
+  getOrCreateUserId(): string {
+    console.log('🔍 USER CONTEXT: getOrCreateUserId called');
+    let id = this.getUserId();
+    console.log('🔍 USER CONTEXT: existing userId:', id);
+    if (!id) {
+      console.log('🔍 USER CONTEXT: generating new userId');
+      id = this.generateTemporaryUserId();
+      this.setUserId(id);
+    }
+    console.log('🔍 USER CONTEXT: returning userId:', id);
+    return id;
+  }
+
+  /**
+   * Получить текущий user ID без генерации нового
+   */
+  getCurrentUserId(): string | null {
+    console.log('🔍 USER CONTEXT: getCurrentUserId called');
+    return this.getUserId();
+  }
+
+  /** Session has been loaded (auth state known). Used to avoid loading projects with stale userId. */
+  isSessionReady(): boolean {
+    return this.sessionReady;
+  }
+
+  setSessionReady(ready: boolean): void {
+    this.sessionReady = ready;
+  }
+}
+
+// Singleton instance
+console.log('🔍 USER CONTEXT: Creating singleton instance');
+export const userContextService = new UserContextService();
+console.log('🔍 USER CONTEXT: Singleton instance created');
+
+
+

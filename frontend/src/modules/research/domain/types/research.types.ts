@@ -15,7 +15,19 @@ export interface GetResearchCanvasResponse {
 
 export interface CollectResearchDataResponse {
   canvas: ResearchCanvas;
-  error?: string;
+  error?: string | {
+    type: 'COOLDOWN';
+    nextAvailableAt: string;
+    timeUntilNext: number;
+    formattedTimeRemaining: string;
+  };
+}
+
+export interface CheckResearchAvailabilityResponse {
+  available: boolean;
+  nextAvailableAt: Date | null;
+  timeUntilNext: number;
+  formattedTimeRemaining?: string;
 }
 
 export interface GenerateSynthesisResponse {

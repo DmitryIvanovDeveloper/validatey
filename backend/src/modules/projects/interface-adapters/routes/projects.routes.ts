@@ -19,8 +19,10 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
+    const workspaceId = typeof req.body?.workspaceId === 'string' ? req.body.workspaceId.trim() || undefined : undefined;
     const result = await presenter.createProject({
       userId,
+      workspaceId,
       name: req.body?.name,
       segment: req.body?.segment,
       hypothesis: req.body?.hypothesis,

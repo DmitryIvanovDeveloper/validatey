@@ -162,10 +162,11 @@ function refetchWorkspaces(): void {
 // Open modals when navigating from sidebar via query params
 watch(
   () => route.query,
-  (query) => {
+  async (query) => {
     if (query.new === '1') {
+      await router.replace({ path: '/workspaces' });
+      await nextTick();
       openCreateModal();
-      router.replace({ path: '/workspaces' });
     }
     const editId = query.edit;
     if (editId && typeof editId === 'string') {
@@ -173,7 +174,7 @@ watch(
       if (ws) {
         openEditModal(ws);
       }
-      router.replace({ path: '/workspaces' });
+      await router.replace({ path: '/workspaces' });
     }
     const deleteId = query.delete;
     if (deleteId && typeof deleteId === 'string') {
@@ -181,7 +182,7 @@ watch(
       if (ws) {
         openDeleteModal(ws);
       }
-      router.replace({ path: '/workspaces' });
+      await router.replace({ path: '/workspaces' });
     }
   },
   { immediate: true }

@@ -4,7 +4,7 @@
  */
 
 const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'] as const;
-const OPTIONAL = ['SUPABASE_SERVICE_ROLE_KEY', 'CEREBRAS_API_KEY', 'CEREBRAS_MODEL', 'LLM_SERVICE_URL'] as const;
+const OPTIONAL = ['SUPABASE_SERVICE_ROLE_KEY', 'CEREBRAS_API_KEY', 'CEREBRAS_MODEL', 'LLM_SERVICE_URL', 'SYNTHESIS_LLM_URL'] as const;
 
 function hasValue(name: string): boolean {
   const v = process.env[name];
@@ -48,6 +48,7 @@ export function logEnvStatus(): void {
   console.log('   SUPABASE_KEY (anon or service_role):', status.required.SUPABASE_KEY ? '✓ set' : '✗ missing');
   console.log('   CEREBRAS_API_KEY:', status.optional.CEREBRAS_API_KEY ? '✓ set' : '– not set');
   console.log('   LLM_SERVICE_URL:', status.optional.LLM_SERVICE_URL ? '✓ set' : '– not set');
+  console.log('   SYNTHESIS_LLM_URL:', status.optional.SYNTHESIS_LLM_URL ? '✓ set' : '– not set');
   if (status.missing.length > 0) {
     console.warn('⚠️  Missing required:', status.missing.join(', '), '→ set them in .env');
   }

@@ -9,8 +9,9 @@ import type { ResearchDataRepositoryPort } from '../ports/research-data-reposito
 import type { MarketDataProviderPort } from '../ports/market-data-provider.port';
 import type { CompetitorDataProviderPort } from '../ports/competitor-data-provider.port';
 import type { AutocompleteDataProviderPort } from '../ports/autocomplete-data-provider.port';
-import { ResearchNotFoundError } from '../../domain/errors/research.error';
+import { ResearchNotFoundError, ResearchCooldownError } from '../../domain/errors/research.error';
 import type { StoredResearchData } from '../../domain/value-objects/stored-research-data.vo';
+import { CheckResearchAvailabilityUseCase } from './check-research-availability.use-case';
 import type {
   CollectResearchDataRequest,
   CollectResearchDataResponse,
@@ -26,6 +27,8 @@ export class CollectResearchDataUseCase {
     private readonly _projectRepository: ProjectRepositoryPort,
     @inject(RESEARCH_TYPES.ResearchDataRepository)
     private readonly _researchDataRepository: ResearchDataRepositoryPort,
+    @inject(RESEARCH_TYPES.CheckResearchAvailabilityUseCase)
+    private readonly _checkAvailabilityUseCase: CheckResearchAvailabilityUseCase,
     @inject(RESEARCH_TYPES.MarketDataProvider)
     private readonly _marketDataProvider: MarketDataProviderPort,
     @inject(RESEARCH_TYPES.CompetitorDataProvider)
@@ -36,11 +39,24 @@ export class CollectResearchDataUseCase {
 
   async execute(
     request: CollectResearchDataRequest
-  ): Promise<ResultEx<CollectResearchDataResponse, ResearchNotFoundError | Error>> {
-    const { projectId } = request;
+  ): Promise<ResultEx<CollectResearchDataResponse, ResearchNotFoundError | ResearchCooldownError | Error>> {
+    const { projectId }: CollectResearchDataRequest = request;
     this._logger.info('collect-research-data.start', { projectId });
 
     try {
+      // NEW: Проверка доступности запуска
+      const availabilityResult = await this._checkAvailabilityUseCase.execute({ projectId });
+      if (!availabilityResult.isSuccess) {
+        return ResultEx.failure(availabilityResult.error);
+      }
+
+      if (!availabilityResult.data.available) {
+        // Возвращаем domain error вместо generic Error
+        const nextAvailable: Date = availabilityResult.data.nextAvailableAt!;
+        const timeUntilNext: number = availabilityResult.data.timeUntilNext;
+        return ResultEx.failure(new ResearchCooldownError(nextAvailable, timeUntilNext));
+      }
+
       const projectResult = await this._projectRepository.findById(projectId);
       if (!projectResult.isSuccess) {
         return ResultEx.failure(new ResearchNotFoundError(projectId));
@@ -66,13 +82,15 @@ export class CollectResearchDataUseCase {
       const existingResult = await this._researchDataRepository.findByProjectId(projectId);
       const existing = existingResult.isSuccess ? existingResult.data : null;
 
+      const now: Date = new Date();
       const updated: StoredResearchData = {
         projectId,
         marketData: marketData ?? existing?.marketData ?? null,
         competitorData: competitorData ?? existing?.competitorData ?? null,
         autocompleteInsights: autocompleteInsights ?? existing?.autocompleteInsights ?? null,
         synthesisReport: existing?.synthesisReport ?? null,
-        updatedAt: new Date(),
+        lastResearchRunAt: now, // NEW: фиксируем время запуска
+        updatedAt: now,
       };
       const saveResult = await this._researchDataRepository.save(updated);
       if (!saveResult.isSuccess) {

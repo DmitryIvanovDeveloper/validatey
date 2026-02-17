@@ -6,6 +6,7 @@ import { ProjectNotFoundError, InvalidProjectDataError, ProjectListError } from 
 
 export interface CreateProjectData {
   name: string;
+  workspaceId?: string | null;
   segment: Segment | null;
   hypothesis: Hypothesis | null;
   marketContext?: MarketContext | null;

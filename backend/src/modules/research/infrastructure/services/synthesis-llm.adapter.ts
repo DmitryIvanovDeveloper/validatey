@@ -7,7 +7,8 @@ import type { SynthesisInput } from '../../application/ports/synthesis-llm.port'
 import type { SynthesisReport } from '../../domain/value-objects/synthesis-report.vo';
 import { SynthesisGenerationError } from '../../domain/errors/research.error';
 
-const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
+/** Override via SYNTHESIS_LLM_URL if cerebras-api.vercel.app fails (e.g. llama-3.3-70b model not available) */
+const AI_PROXY_URL = process.env.SYNTHESIS_LLM_URL || 'https://cerebras-api.vercel.app/api/prompt';
 
 const SYSTEM_PROMPT = `You are a research analyst specializing in product validation. Based on the provided project context, determine if the product idea is validated, rejected, or needs more data.
 

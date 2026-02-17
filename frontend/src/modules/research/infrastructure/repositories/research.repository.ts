@@ -5,7 +5,22 @@ import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import type { ResearchCanvas, SynthesisReport } from '../../domain/entities/research-canvas.entity';
 import type { ResearchIntent } from '../../domain/value-objects/research-intent.vo';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-import { ResearchNotFoundError, ResearchCollectError, ResearchSynthesisError } from '../../domain/errors/research.error';
+import { ResearchNotFoundError, ResearchCollectError, ResearchSynthesisError, ResearchCooldownError, type CooldownErrorDetails } from '../../domain/errors/research.error';
+
+interface CollectResearchDataResponse {
+  collected: boolean;
+  marketDataCollected: boolean;
+  competitorDataCollected: boolean;
+  autocompleteDataCollected: boolean;
+  canvas?: any; // For compatibility with existing frontend code
+}
+
+interface ApiCooldownError {
+  status: number;
+  response?: {
+    data?: CooldownErrorDetails;
+  };
+}
 
 @injectable()
 export class ResearchRepository implements ResearchRepositoryPort {
@@ -45,12 +60,7 @@ export class ResearchRepository implements ResearchRepositoryPort {
     }
   }
 
-  async collectResearchData(projectId: string, intent: ResearchIntent): Promise<{
-    collected: boolean;
-    marketDataCollected: boolean;
-    competitorDataCollected: boolean;
-    autocompleteDataCollected: boolean;
-  }> {
+  async collectResearchData(projectId: string, intent: ResearchIntent): Promise<CollectResearchDataResponse> {
     try {
       const response = await this._httpClient.post<{
         collected: boolean;
@@ -61,8 +71,23 @@ export class ResearchRepository implements ResearchRepositoryPort {
         API_CONFIG.ENDPOINTS.RESEARCH_COLLECT(projectId),
         intent
       );
-      return response;
-    } catch (error) {
+      return {
+        ...response,
+        canvas: {} // Empty canvas for compatibility
+      };
+    } catch (error: unknown) {
+      // Check if it's a cooldown error
+      if (error && typeof error === 'object' && 'status' in error && 'response' in error) {
+        const apiError = error as ApiCooldownError;
+        if (apiError.status === 429 && apiError.response?.data) {
+          const cooldownData = apiError.response.data;
+          throw new ResearchCooldownError(
+            cooldownData.nextAvailableAt,
+            cooldownData.timeUntilNext,
+            cooldownData.formattedTimeRemaining
+          );
+        }
+      }
       throw new ResearchCollectError(error instanceof Error ? error.message : 'Unknown error');
     }
   }
@@ -76,6 +101,32 @@ export class ResearchRepository implements ResearchRepositoryPort {
       return response;
     } catch (error) {
       throw new ResearchSynthesisError(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+
+  async checkResearchAvailability(projectId: string): Promise<{
+    available: boolean;
+    nextAvailableAt: Date | null;
+    timeUntilNext: number;
+    formattedTimeRemaining?: string;
+  }> {
+    try {
+      const response = await this._httpClient.get<{
+        available: boolean;
+        nextAvailableAt: string | null;
+        timeUntilNext: number;
+        formattedTimeRemaining?: string;
+      }>(
+        API_CONFIG.ENDPOINTS.RESEARCH_AVAILABILITY(projectId)
+      );
+      return {
+        available: response.available,
+        nextAvailableAt: response.nextAvailableAt ? new Date(response.nextAvailableAt) : null,
+        timeUntilNext: response.timeUntilNext,
+        formattedTimeRemaining: response.formattedTimeRemaining,
+      };
+    } catch (error: unknown) {
+      throw new ResearchCollectError(error instanceof Error ? error.message : 'Unknown error');
     }
   }
 

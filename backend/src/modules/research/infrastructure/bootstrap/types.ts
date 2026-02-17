@@ -9,6 +9,7 @@ export const TYPES = {
   SynthesisLlm: Symbol.for('SynthesisLlm'),
   GetResearchCanvasUseCase: Symbol.for('GetResearchCanvasUseCase'),
   GenerateSynthesisUseCase: Symbol.for('GenerateSynthesisUseCase'),
+  CheckResearchAvailabilityUseCase: Symbol.for('CheckResearchAvailabilityUseCase'),
   CollectResearchDataUseCase: Symbol.for('CollectResearchDataUseCase'),
   ResearchAssistantUseCase: Symbol.for('ResearchAssistantUseCase'),
   ResearchController: Symbol.for('ResearchController'),

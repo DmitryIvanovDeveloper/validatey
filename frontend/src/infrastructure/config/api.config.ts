@@ -57,6 +57,7 @@ export const API_CONFIG = {
     // Research (Canvas, Assistant, Collect, Synthesis)
     RESEARCH_CANVAS: (projectId: string) => `/projects/${projectId}/research/canvas`,
     RESEARCH_SYNTHESIS: (projectId: string) => `/projects/${projectId}/research/synthesis`,
+    RESEARCH_AVAILABILITY: (projectId: string) => `/projects/${projectId}/research/availability`,
     RESEARCH_COLLECT: (projectId: string) => `/projects/${projectId}/research/collect`,
     RESEARCH_ASSISTANT: (projectId: string) => `/projects/${projectId}/research/assistant`,
 

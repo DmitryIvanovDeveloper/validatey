@@ -9,11 +9,14 @@ import type {
   GetResearchCanvasResponse,
   CollectResearchDataResponse,
   GenerateSynthesisResponse,
-  AskAssistantResponse
+  AskAssistantResponse,
+  CheckResearchAvailabilityResponse
 } from '../../domain/types/research.types';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
+import { ResearchRepositoryPort } from '../../application/ports/research-repository.port';
+import { ResearchCooldownError } from '../../domain/errors/research.error';
 
 @injectable()
 export class ResearchPresenter {
@@ -27,7 +30,9 @@ export class ResearchPresenter {
     @inject(TYPES.ResearchAssistantUseCase)
     private readonly _researchAssistantUseCase: ResearchAssistantUseCase,
     @inject(ROOT_TYPES.Logger)
-    private readonly _logger: LoggerPort
+    private readonly _logger: LoggerPort,
+    @inject(TYPES.ResearchRepositoryPort)
+    private readonly _researchRepository: ResearchRepositoryPort
   ) {}
 
   async getResearchCanvas(projectId: string): Promise<GetResearchCanvasResponse> {
@@ -43,12 +48,36 @@ export class ResearchPresenter {
     }
   }
 
+  async checkResearchAvailability(projectId: string): Promise<CheckResearchAvailabilityResponse> {
+    try {
+      // NEW: Используем repository для вызова нового API endpoint
+      const response = await this._researchRepository.checkResearchAvailability(projectId);
+      return response;
+    } catch (error) {
+      this._logger.error('Failed to check research availability', { projectId, error });
+      return {
+        available: true, // fallback - считаем доступным
+        nextAvailableAt: null,
+        timeUntilNext: 0,
+      };
+    }
+  }
+
   async collectResearchData(projectId: string, intent: ResearchIntent): Promise<CollectResearchDataResponse> {
     try {
       const result = await this._collectResearchDataUseCase.execute({ projectId, intent });
       return result;
     } catch (error) {
       this._logger.error('Failed to collect research data', { projectId, error });
+
+      // Handle ResearchCooldownError specially - return the structured error object
+      if (error instanceof ResearchCooldownError) {
+        return {
+          canvas: this.createEmptyCanvas(projectId),
+          error: error.toDetails(), // Return structured error object, not just message
+        };
+      }
+
       return {
         canvas: this.createEmptyCanvas(projectId),
         error: error instanceof Error ? error.message : 'Failed to collect research data',

@@ -1,9 +1,12 @@
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { ResearchCooldownError, ResearchNotFoundError } from '../../domain/errors/research.error';
 import { GetResearchCanvasUseCase } from '../../application/use-cases/get-research-canvas.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
+import { CheckResearchAvailabilityUseCase } from '../../application/use-cases/check-research-availability.use-case';
 import type { GetResearchCanvasRequest, GetResearchCanvasResponse } from '../../application/use-cases/input-output/get-research-canvas.io';
 import type { GenerateSynthesisRequest, GenerateSynthesisResponse } from '../../application/use-cases/input-output/generate-synthesis.io';
+import type { CheckResearchAvailabilityRequest, CheckResearchAvailabilityResponse } from '../../application/use-cases/input-output/check-research-availability.io';
 import type { CollectResearchDataRequest, CollectResearchDataResponse } from '../../application/use-cases/input-output/collect-research-data.io';
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
 import type { ResearchAssistantRequest, ResearchAssistantResponse } from '../../application/use-cases/input-output/research-assistant.io';
@@ -17,6 +20,8 @@ export class ResearchController {
 		private readonly _getResearchCanvasUseCase: GetResearchCanvasUseCase,
 		@inject(TYPES.GenerateSynthesisUseCase)
 		private readonly _generateSynthesisUseCase: GenerateSynthesisUseCase,
+		@inject(TYPES.CheckResearchAvailabilityUseCase)
+		private readonly _checkResearchAvailabilityUseCase: CheckResearchAvailabilityUseCase,
 		@inject(TYPES.CollectResearchDataUseCase)
 		private readonly _collectResearchDataUseCase: CollectResearchDataUseCase,
 		@inject(TYPES.ResearchAssistantUseCase)
@@ -31,7 +36,11 @@ export class ResearchController {
 		return this._generateSynthesisUseCase.execute(request);
 	}
 
-	public async collectData(request: CollectResearchDataRequest): Promise<ResultEx<CollectResearchDataResponse, Error>> {
+	public async checkAvailability(request: CheckResearchAvailabilityRequest): Promise<ResultEx<CheckResearchAvailabilityResponse, ResearchNotFoundError | Error>> {
+		return this._checkResearchAvailabilityUseCase.execute(request);
+	}
+
+	public async collectData(request: CollectResearchDataRequest): Promise<ResultEx<CollectResearchDataResponse, ResearchNotFoundError | ResearchCooldownError | Error>> {
 		return this._collectResearchDataUseCase.execute(request);
 	}
 

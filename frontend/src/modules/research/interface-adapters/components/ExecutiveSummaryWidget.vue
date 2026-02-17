@@ -7,7 +7,7 @@
             <h3 class="section-title">Executive Summary</h3>
             <p class="section-subtitle">AI-powered research insights</p>
           </div>
-          <button @click="handleShowDetails" class="show-details-btn">
+          <button v-if="summary?.trim()" @click="handleShowDetails" class="show-details-btn">
             <span class="btn-icon">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -18,18 +18,24 @@
         </div>
       </div>
 
-      <!-- Loading state (when loading or no data available) -->
-      <div v-if="loading || !summary?.trim()" class="loading-state">
+      <!-- Loading state: only show animated dots while actually loading -->
+      <div v-if="loading" class="loading-state">
         <div class="loading-dots">
           <div class="dot"></div>
           <div class="dot"></div>
           <div class="dot"></div>
         </div>
-        <p class="loading-text">{{ loading ? 'Analyzing research data...' : 'No research insights available yet' }}</p>
+        <p class="loading-text">Analyzing research data...</p>
+      </div>
+
+      <!-- Empty state: no data in DB, loading finished -->
+      <div v-else-if="!summary?.trim()" class="empty-state">
+        <p class="empty-text">No research insights available yet</p>
+        <p class="empty-subtext">Run research and collect responses to see the executive summary here.</p>
       </div>
 
       <!-- Content -->
-      <div v-else-if="summary?.trim()" class="summary-content">
+      <div v-else class="summary-content">
         <p class="summary-text">{{ summary }}</p>
       </div>
     </div>

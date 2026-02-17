@@ -15,7 +15,10 @@ export interface ProjectRepositoryPort {
   update(project: Project): Promise<ResultEx<Project, ProjectNotFoundError | InvalidProjectDataError>>;
   delete(id: string): Promise<ResultEx<void, ProjectNotFoundError>>;
   deleteByWorkspaceId(workspaceId: string): Promise<ResultEx<number, Error>>;
-  /** Reassign all projects from one user id to another (e.g. after Google login). Returns count updated. */
+  /**
+   * Returns whether the user has access to the project (owner of project or owner of project's workspace).
+   */
+  userHasAccessToProject(projectId: string, userId: string): Promise<ResultEx<boolean, ProjectNotFoundError>>;
 }
 
 

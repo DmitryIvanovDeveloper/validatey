@@ -108,6 +108,7 @@ export class GenerateSynthesisUseCase {
         competitorData: stored?.competitorData ?? null,
         autocompleteInsights: stored?.autocompleteInsights ?? null,
         synthesisReport: report,
+        lastResearchRunAt: stored?.lastResearchRunAt ?? null,
         updatedAt: new Date(),
       };
       await this._researchDataRepository.save(updatedStored);

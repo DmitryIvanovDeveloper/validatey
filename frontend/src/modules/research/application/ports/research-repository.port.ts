@@ -2,7 +2,17 @@ import type { ResearchCanvas, SynthesisReport } from '../../domain/entities/rese
 import type { ResearchIntent } from '../../domain/value-objects/research-intent.vo';
 
 export interface ResearchRepositoryPort {
-  getResearchCanvas(projectId: string): Promise<ResearchCanvas>;
+  getResearchCanvas(projectId: string): Promise<{
+    canvas: ResearchCanvas;
+    synthesisReport?: SynthesisReport | null;
+    projectName?: string;
+    projectHypothesis?: string;
+    recommendedTemplate?: {
+      name: string;
+      slug: string;
+      description: string;
+    };
+  }>;
   collectResearchData(projectId: string, intent: ResearchIntent): Promise<{
     collected: boolean;
     marketDataCollected: boolean;

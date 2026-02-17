@@ -52,6 +52,7 @@ export class HttpClient implements HttpClientPort {
     let response = await fetch(fullUrl, {
       method,
       headers: requestHeaders,
+      credentials: 'include',
       body: body ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined
     });
 
@@ -66,6 +67,7 @@ export class HttpClient implements HttpClientPort {
           response = await fetch(fullUrl, {
             method,
             headers: requestHeaders,
+            credentials: 'include',
             body: body ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined
           });
         }

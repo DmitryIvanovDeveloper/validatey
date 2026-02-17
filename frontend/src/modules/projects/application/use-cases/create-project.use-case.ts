@@ -23,6 +23,7 @@ export class CreateProjectUseCase {
       // Не создаем domain entity с пустым ID, используем DTO напрямую
       const result = await this._repository.create({
         name: input.name,
+        workspaceId: input.workspaceId ?? null,
         segment: null,
         hypothesis: null,
         status: 'draft' as ProjectStatus

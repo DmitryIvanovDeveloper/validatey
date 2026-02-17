@@ -22,7 +22,8 @@ export class CollectResearchDataUseCase {
       );
 
       return {
-        canvas: result.canvas,
+        canvas: result.canvas || {},
+        error: undefined
       };
     } catch (error) {
       return {

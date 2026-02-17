@@ -14,6 +14,7 @@ import type { ResponseRepositoryPort } from '../../../responses/application/port
 import type { CommentRepositoryPort } from '../../../comments/application/ports/comment-repository.port';
 import { GetResearchCanvasUseCase } from '../../application/use-cases/get-research-canvas.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
+import { CheckResearchAvailabilityUseCase } from '../../application/use-cases/check-research-availability.use-case';
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
 import { SupabaseResearchRepository } from '../repositories/supabase-research.repository';
@@ -48,6 +49,7 @@ export function bindResearch(container: Container): void {
   container.bind<AutocompleteDataProviderPort>(TYPES.AutocompleteDataProvider).to(AutocompleteDataProviderAdapter);
   container.bind<GetResearchCanvasUseCase>(TYPES.GetResearchCanvasUseCase).to(GetResearchCanvasUseCase);
   container.bind<GenerateSynthesisUseCase>(TYPES.GenerateSynthesisUseCase).to(GenerateSynthesisUseCase);
+  container.bind<CheckResearchAvailabilityUseCase>(TYPES.CheckResearchAvailabilityUseCase).to(CheckResearchAvailabilityUseCase);
   container.bind<CollectResearchDataUseCase>(TYPES.CollectResearchDataUseCase).to(CollectResearchDataUseCase);
   container.bind<ResearchAssistantUseCase>(TYPES.ResearchAssistantUseCase).to(ResearchAssistantUseCase);
   container.bind<ResearchController>(TYPES.ResearchController).to(ResearchController);

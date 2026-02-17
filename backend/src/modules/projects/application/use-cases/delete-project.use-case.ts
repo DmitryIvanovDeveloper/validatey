@@ -28,9 +28,11 @@ export class DeleteProjectUseCase {
       return ResultEx.failure(findResult.error);
     }
 
-    const project = findResult.data;
-
-    if (project.userId !== request.userId) {
+    const accessResult = await this._repository.userHasAccessToProject(request.projectId, request.userId);
+    if (!accessResult.isSuccess) {
+      return ResultEx.failure(accessResult.error);
+    }
+    if (!accessResult.data) {
       this._logger.warn('delete-project.access-denied', { projectId: request.projectId, userId: request.userId });
       return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, request.userId));
     }

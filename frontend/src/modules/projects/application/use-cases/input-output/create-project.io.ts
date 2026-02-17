@@ -1,5 +1,6 @@
 export type CreateProjectUseCaseRequest = {
   name: string;
+  workspaceId?: string | null;
 };
 
 export type CreateProjectUseCaseResponse = {

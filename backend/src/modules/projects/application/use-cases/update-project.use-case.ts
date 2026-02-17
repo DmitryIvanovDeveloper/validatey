@@ -36,7 +36,11 @@ export class UpdateProjectUseCase {
 
     const existingProject = ProjectEntity.fromData(findResult.data);
 
-    if (existingProject.userId !== request.userId) {
+    const accessResult = await this._repository.userHasAccessToProject(request.projectId, request.userId);
+    if (!accessResult.isSuccess) {
+      return ResultEx.failure(accessResult.error);
+    }
+    if (!accessResult.data) {
       this._logger.warn('update-project.access-denied', { projectId: request.projectId, userId: request.userId });
       return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, request.userId));
     }

@@ -205,7 +205,7 @@ export class WorkspaceController {
       const request: DeleteWorkspaceUseCaseRequest = {
         workspaceId,
         userId,
-        confirmText: req.body.confirmText,
+        confirmText: req.headers.confirmtext as string,
       };
 
       const result = await this._deleteWorkspaceUseCase.execute(request);
