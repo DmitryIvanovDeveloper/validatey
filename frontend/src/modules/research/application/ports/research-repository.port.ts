@@ -20,6 +20,12 @@ export interface ResearchRepositoryPort {
     autocompleteDataCollected: boolean;
   }>;
   generateSynthesis(projectId: string): Promise<SynthesisReport>;
+  checkResearchAvailability(projectId: string): Promise<{
+    available: boolean;
+    nextAvailableAt: Date | null;
+    timeUntilNext: number;
+    formattedTimeRemaining?: string;
+  }>;
   askAssistant(projectId: string, question: string): Promise<{
     reply: string;
     suggestedMethods?: string[];

@@ -5,6 +5,7 @@ import ResultEx from '../../../../infrastructure/result/result';
 import { ProjectRepositoryPort } from '../ports/project-repository.port';
 import { ListProjectsUseCaseRequest, ListProjectsUseCaseResponse } from './input-output/list-projects.io';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import type { Project } from '../../domain/entities/project.entity';
 
 @injectable()
 export class ListProjectsUseCase {

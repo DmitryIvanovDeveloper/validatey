@@ -42,6 +42,7 @@ describe('WorkspaceEntity', () => {
         id: 'workspace-123',
         userId: 'user-123',
         name: 'Test Workspace',
+        iconUrl: null,
         createdAt: new Date('2023-01-01'),
         updatedAt: new Date('2023-01-02'),
       };
