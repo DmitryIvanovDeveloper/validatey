@@ -255,7 +255,7 @@ export class FetchCommentsUseCase {
         apiCredentials: {
           clientId: process.env.REDDIT_CLIENT_ID,
           clientSecret: process.env.REDDIT_CLIENT_SECRET,
-          userAgent: 'Validatey/1.0',
+          userAgent: 'web:com.validatey.comments:v1.0.0 (by /u/validatey_bot)',
         },
       };
     } else {

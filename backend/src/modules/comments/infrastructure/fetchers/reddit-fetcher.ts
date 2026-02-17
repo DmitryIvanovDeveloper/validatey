@@ -11,8 +11,9 @@ import ResultEx from '../../../../infrastructure/result/result';
 
 const REDDIT_BASE = 'https://www.reddit.com';
 const REDDIT_OAUTH_TOKEN_URL = 'https://www.reddit.com/api/v1/access_token';
-// Reddit requires a unique descriptive User-Agent (https://github.com/reddit-archive/reddit/wiki/API)
-const USER_AGENT = 'Validatey/1.0 (Comment Analysis; Node.js; https://github.com/validatey)';
+// Reddit requires a unique descriptive User-Agent in format: <platform>:<appId>:<version> (by /u/<username>)
+// See: https://github.com/reddit-archive/reddit/wiki/API
+const USER_AGENT = 'web:com.validatey.comments:v1.0.0 (by /u/validatey_bot)';
 
 interface RedditListingChild {
   kind: string;
@@ -54,27 +55,6 @@ export class RedditFetcher implements CommentFetcherPort {
       apiCredentials: redditInput.apiCredentials ? 'present' : 'none'
     });
 
-    // For testing purposes, return mock data for subreddit feeds only (not specific posts)
-    // Specific Reddit posts should use real API
-    if (!redditInput.postId && process.env.NODE_ENV === 'development' && !process.env.TEST_REAL_API) {
-      return ResultEx.success({
-        comments: [
-          {
-            externalId: 'mock_reddit_feed_1',
-            content: 'This is a mock comment from Reddit feed. Great discussion!',
-            author: 'reddit_user_1',
-            url: 'https://www.reddit.com/r/test/comments/abc123/mock_reddit_feed_1/',
-            createdAt: new Date(),
-            contextTitle: 'Mock Reddit Post',
-            contextUrl: 'https://www.reddit.com/r/test/comments/abc123/',
-            subsourceName: redditInput.subredditNames[0] || 'r/test',
-            importOrigin: 'reddit'
-          }
-        ],
-        errors: undefined
-      });
-    }
-
     // If postId is provided, fetch comments from specific post
     if (redditInput.postId && redditInput.subredditNames.length > 0) {
       console.log(`[RedditFetcher] Fetching comments for post ${redditInput.postId} in subreddit ${redditInput.subredditNames[0]}`);
@@ -85,7 +65,7 @@ export class RedditFetcher implements CommentFetcherPort {
         return ResultEx.success({ comments: [], errors: ['Invalid subreddit name'] });
       }
 
-      const userAgent = redditInput.apiCredentials?.userAgent || 'validatey-app/1.0 (by /u/validatey-bot)';
+      const userAgent = redditInput.apiCredentials?.userAgent || USER_AGENT;
       let authHeader: string | undefined;
       if (redditInput.apiCredentials?.clientId) {
         const token = await this._getOAuthToken(redditInput.apiCredentials.clientId, redditInput.apiCredentials.clientSecret, userAgent);
@@ -99,64 +79,12 @@ export class RedditFetcher implements CommentFetcherPort {
       try {
         const comments = await this._fetchCommentsFromPost(name, redditInput.postId, authHeader, userAgent, redditInput.sinceDate);
         console.log(`[RedditFetcher] Fetched ${comments.length} comments from Reddit API`);
-        if (comments.length > 0) {
-          return ResultEx.success({ comments, errors: undefined });
-        }
+        return ResultEx.success({ comments, errors: undefined });
       } catch (error) {
-        console.log(`[RedditFetcher] Reddit API failed for post ${redditInput.postId}:`, error instanceof Error ? error.message : String(error));
+        const msg = error instanceof Error ? error.message : String(error);
+        console.log(`[RedditFetcher] Reddit API failed for post ${redditInput.postId}:`, msg);
+        return ResultEx.success({ comments: [], errors: [`Failed to fetch post ${redditInput.postId}: ${msg}`] });
       }
-
-      // Fallback to realistic mock data based on real Reddit posts
-      // This simulates real Reddit API responses for development
-      return ResultEx.success({
-        comments: [
-          {
-            externalId: 't1_k8x2m4n',
-            content: 'Congrats! This is such an amazing milestone. I remember my first paying customer - it felt like validation that all the late nights were worth it. What was the most surprising part of the whole experience for you?',
-            author: 'SideProjectDev2023',
-            url: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/t1_k8x2m4n/`,
-            createdAt: new Date(Date.now() - 7200000),
-            contextTitle: 'My first paying customer after 6 months of development!',
-            contextUrl: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/`,
-            subsourceName: subreddit,
-            importOrigin: 'reddit'
-          },
-          {
-            externalId: 't1_k8x3p9q',
-            content: 'That\'s awesome! 🎉 I\'ve been working on my SaaS for 8 months and still haven\'t converted anyone. What pricing tier did they choose? Was it completely organic or did you do any marketing?',
-            author: 'indie_hacker_89',
-            url: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/t1_k8x3p9q/`,
-            createdAt: new Date(Date.now() - 5400000),
-            contextTitle: 'My first paying customer after 6 months of development!',
-            contextUrl: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/`,
-            subsourceName: subreddit,
-            importOrigin: 'reddit'
-          },
-          {
-            externalId: 't1_k8x4k7w',
-            content: 'This is exactly the kind of story that keeps me motivated! I launched my tool last month and have been getting some interest but no conversions yet. What features did they sign up for specifically?',
-            author: 'bootstrapper42',
-            url: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/t1_k8x4k7w/`,
-            createdAt: new Date(Date.now() - 3600000),
-            contextTitle: 'My first paying customer after 6 months of development!',
-            contextUrl: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/`,
-            subsourceName: subreddit,
-            importOrigin: 'reddit'
-          },
-          {
-            externalId: 't1_k8x5n2e',
-            content: 'Congrats on the milestone! That feeling of your first real revenue is incredible. Did you have any beta testers or early access program that helped convert them to paying customers?',
-            author: 'product_builder',
-            url: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/t1_k8x5n2e/`,
-            createdAt: new Date(Date.now() - 1800000),
-            contextTitle: 'My first paying customer after 6 months of development!',
-            contextUrl: `https://www.reddit.com/r/${name}/comments/${redditInput.postId}/`,
-            subsourceName: subreddit,
-            importOrigin: 'reddit'
-          }
-        ],
-        errors: undefined
-      });
     }
 
     // Default strategy: direct fetch (backward compatibility)
@@ -291,7 +219,7 @@ export class RedditFetcher implements CommentFetcherPort {
     sinceDate?: Date
   ): Promise<FetchedCommentRaw[]> {
     try {
-      const url = `${REDDIT_BASE}/r/${subreddit}/comments/${postId}.json`;
+      const url = `${REDDIT_BASE}/r/${subreddit}/comments/${postId}.json?limit=500`;
       const headers: Record<string, string> = { 'User-Agent': userAgent };
       if (authHeader) headers['Authorization'] = authHeader;
 
