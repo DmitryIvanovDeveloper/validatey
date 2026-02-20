@@ -22,6 +22,10 @@ import { RedditFetcher } from '../fetchers/reddit-fetcher';
 import { HackerNewsFetcher } from '../fetchers/hacker-news-fetcher';
 import { FetchStatusProjection } from '../projections/fetch-status.projection';
 
+// Pattern Analysis
+import { KeywordCommentPatternAnalyzerAdapter } from '../services/keyword-comment-pattern-analyzer.adapter';
+import { AnalyzeCommentPatternsUseCase } from '../../application/use-cases/analyze-comment-patterns.use-case';
+
 // Interface Adapters
 import { CommentController } from '../../interface-adapters/controllers/comment.controller';
 
@@ -54,6 +58,10 @@ export function bindComments(container: Container): void {
 
   // Projections
   container.bind(COMMENT_TYPES.FetchStatusProjection).to(FetchStatusProjection);
+
+  // Pattern Analysis
+  container.bind(COMMENT_TYPES.CommentPatternAnalyzer).to(KeywordCommentPatternAnalyzerAdapter);
+  container.bind(COMMENT_TYPES.AnalyzeCommentPatternsUseCase).to(AnalyzeCommentPatternsUseCase);
 
   // Controllers
   container.bind<CommentController>(COMMENT_TYPES.CommentController).to(CommentController);

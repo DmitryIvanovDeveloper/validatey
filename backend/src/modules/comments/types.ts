@@ -29,6 +29,10 @@ export const COMMENT_TYPES = {
   // Projections
   FetchStatusProjection: Symbol.for('FetchStatusProjection'),
 
+  // Pattern Analysis
+  CommentPatternAnalyzer: Symbol.for('CommentPatternAnalyzer'),
+  AnalyzeCommentPatternsUseCase: Symbol.for('AnalyzeCommentPatternsUseCase'),
+
   // Controllers
   CommentController: Symbol.for('CommentController'),
 };

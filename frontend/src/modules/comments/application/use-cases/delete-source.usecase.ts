@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { CommentsHttpRepositoryPort } from '../ports/comments-http-repository.port';
+import type { CommentsHttpRepositoryPort } from '../ports/comments-http-repository.port';
 import { COMMENT_TYPES } from '../../types';
 import Result from '../../../../infrastructure/result/result';
 

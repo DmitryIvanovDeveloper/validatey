@@ -12,6 +12,10 @@ import { CommentsPresenter } from '../../interface-adapters/presenters/comments.
 
 // Infrastructure
 import { CommentsHttpRepository } from '../repositories/comments.http.repository';
+import { CommentPatternHttpRepository } from '../repositories/comment-pattern.http.repository';
+
+// Pattern Analysis
+import { GetCommentPatternsUseCase } from '../../application/use-cases/get-comment-patterns.use-case';
 
 export function bindComments(container: Container): void {
   // Use Cases
@@ -19,10 +23,12 @@ export function bindComments(container: Container): void {
   container.bind<GetFetchStatusUseCase>(COMMENT_TYPES.GetFetchStatusUseCase).to(GetFetchStatusUseCase);
   container.bind<GetCommentsUseCase>(COMMENT_TYPES.GetCommentsUseCase).to(GetCommentsUseCase);
   container.bind<DeleteSourceUseCase>(COMMENT_TYPES.DeleteSourceUseCase).to(DeleteSourceUseCase);
+  container.bind<GetCommentPatternsUseCase>(COMMENT_TYPES.GetCommentPatternsUseCase).to(GetCommentPatternsUseCase);
 
   // Presenters
   container.bind<CommentsPresenter>(COMMENT_TYPES.CommentsPresenter).to(CommentsPresenter);
 
   // Repositories
   container.bind(COMMENT_TYPES.CommentsHttpRepository).to(CommentsHttpRepository);
+  container.bind(COMMENT_TYPES.CommentPatternRepository).to(CommentPatternHttpRepository);
 }

@@ -26,6 +26,7 @@ export interface CommentDTO {
   processedAt: string | null;
   importOrigin: string | null;
   subsourceName: string | null;
+  sourceType?: 'reddit' | 'hackernews';
 }
 
 export interface GetCommentsResponseDTO {

@@ -10,6 +10,7 @@ import type { DeleteSourceCommandHandler } from '../../application/commands/dele
 import type { DeleteSourceCommand } from '../../application/commands/delete-source.command';
 import type { CommentSourceRepositoryPort } from '../../application/ports/comment-source-repository.port';
 import type { FetchCommentsUseCase } from '../../application/use-cases/fetch-comments.usecase';
+import type { AnalyzeCommentPatternsUseCase } from '../../application/use-cases/analyze-comment-patterns.use-case';
 import { CommentSourceValueObject } from '../../domain/value-objects/comment-source.vo';
 
 @injectable()
@@ -28,7 +29,9 @@ export class CommentController {
     @inject(COMMENT_TYPES.CommentSourceRepository)
     private readonly _sourceRepository: CommentSourceRepositoryPort,
     @inject(COMMENT_TYPES.FetchCommentsUseCase)
-    private readonly _fetchCommentsUseCase: FetchCommentsUseCase
+    private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
+    @inject(COMMENT_TYPES.AnalyzeCommentPatternsUseCase)
+    private readonly _analyzeCommentPatternsUseCase: AnalyzeCommentPatternsUseCase
   ) {}
 
   public   async fetchComments(req: Request, res: Response): Promise<void> {
@@ -356,6 +359,29 @@ export class CommentController {
     }
   }
 
+
+  public async analyzePatterns(req: Request, res: Response): Promise<void> {
+    try {
+      const projectId = req.params.projectId;
+      if (!projectId) {
+        res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const result = await this._analyzeCommentPatternsUseCase.execute(projectId);
+
+      if (!result.isSuccess) {
+        res.status(500).json({ error: result.error?.message ?? 'Pattern analysis failed' });
+        return;
+      }
+
+      res.json(result.data);
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
 
   public async getSources(req: Request, res: Response): Promise<void> {
     try {

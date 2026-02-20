@@ -196,13 +196,14 @@ export class CommentsPresenter {
       this.viewModel.error = null;
       this.viewModel.fetchProgress = null;
 
+      const hasReddit = this.viewModel.redditUrls.length > 0;
       const input = {
         projectId,
-        // Send both arrays - backend will process them separately
-        redditUrls: this.viewModel.redditUrls.length > 0 ? this.viewModel.redditUrls : undefined,
-        hnFeedType: this.viewModel.hnUrls.length === 0 ? this.viewModel.hnFeedType : undefined,
+        sourceType: hasReddit ? ('reddit' as const) : ('hackernews' as const),
+        redditUrls: hasReddit ? this.viewModel.redditUrls : undefined,
+        hnFeedType: !hasReddit && this.viewModel.hnUrls.length === 0 ? this.viewModel.hnFeedType : undefined,
         hnUrls: this.viewModel.hnUrls.length > 0 ? this.viewModel.hnUrls : undefined,
-        periodDays: 30, // Default to last 30 days
+        periodDays: 30,
       };
 
       const result = await this._startFetchAndWaitUseCase.execute(input, {
@@ -273,8 +274,8 @@ export class CommentsPresenter {
     await this.loadSourcesFromBackend(projectId);
   }
 
-  setRedditUrl(url: string): void {
-    this.viewModel.redditUrl = url;
+  setRedditUrl(_url: string): void {
+    // Deprecated: use addRedditUrl instead
   }
 
   setHnFeedType(feedType: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments'): void {
@@ -483,7 +484,7 @@ export class CommentsPresenter {
       });
 
       if (!result.isSuccess) {
-        return { error: result.error.message };
+        return { data: { sourceStats: [], totalComments: 0 }, error: result.error.message };
       }
 
       const comments = result.data.comments;
@@ -520,7 +521,8 @@ export class CommentsPresenter {
     } catch (error) {
       this._logger.error('Exception getting comments overview', { projectId, error });
       return {
-        error: error instanceof Error ? error.message : 'Failed to load comments overview'
+        data: { sourceStats: [], totalComments: 0 },
+        error: error instanceof Error ? error.message : 'Failed to load comments overview',
       };
     }
   }

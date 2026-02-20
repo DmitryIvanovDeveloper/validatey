@@ -10,7 +10,7 @@ export class GetFetchStatusUseCase {
     private readonly _repository: CommentsHttpRepositoryPort
   ) {}
 
-  async execute(): Promise<Result<FetchJobStateDTO[], Error>> {
+  async execute(): Promise<Result<FetchJobStateDTO, Error>> {
     const result = await this._repository.getFetchStatus();
 
     if (!result.isSuccess) {

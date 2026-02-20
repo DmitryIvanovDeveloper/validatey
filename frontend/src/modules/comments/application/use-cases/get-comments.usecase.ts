@@ -71,6 +71,7 @@ export class GetCommentsUseCase {
       processedAt: comment.processedAt ? new Date(comment.processedAt) : null,
       importOrigin: comment.importOrigin,
       subsourceName: comment.subsourceName,
+      sourceType: comment.sourceType ?? ('reddit' as const),
     }));
 
     return Result.success({

@@ -11,4 +11,8 @@ export const COMMENT_TYPES = {
 
   // Repositories
   CommentsHttpRepository: Symbol.for('CommentsHttpRepository'),
+  CommentPatternRepository: Symbol.for('CommentPatternRepository'),
+
+  // Pattern Analysis Use Case
+  GetCommentPatternsUseCase: Symbol.for('GetCommentPatternsUseCase'),
 };

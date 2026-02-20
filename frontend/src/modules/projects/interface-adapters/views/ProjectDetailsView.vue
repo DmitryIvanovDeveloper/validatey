@@ -54,15 +54,9 @@
           :loading="executiveSummaryLoading"
           @show-details="handleShowDetails"
         />
-        <!-- Debug info -->
-        <div style="margin-top: 10px; padding: 10px; background: #f0f0f0; font-size: 12px; border: 1px solid #ccc;">
-          <strong>Debug Research Data:</strong><br>
-          researchData exists: {{ !!researchData }}<br>
-          synthesisReport exists: {{ !!researchData?.synthesisReport }}<br>
-          summary: "{{ researchData?.synthesisReport?.summary }}"<br>
-          summary length: {{ researchData?.synthesisReport?.summary?.length || 0 }}<br>
-          loading: {{ executiveSummaryLoading }}
-        </div>
+
+        <!-- Comment Pattern Analysis -->
+        <CommentPatternsWidget :project-id="projectId" />
 
         <!-- Research Context -->
         <SectionCard>
@@ -311,6 +305,7 @@ import type { ResearchPresenter } from '../../../research/interface-adapters/pre
 import ResponsePaceWidget from '../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
 import { CommentsWidget } from '../../../comments/interface-adapters/components';
 import { ExecutiveSummaryWidget, StartResearchWidget, ShowDetailsWidget } from '../../../research/interface-adapters';
+import CommentPatternsWidget from '../../../comments/interface-adapters/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../research/interface-adapters/views/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../shared/components/SectionCard.vue';
 

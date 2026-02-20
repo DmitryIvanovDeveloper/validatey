@@ -82,6 +82,9 @@ export const API_CONFIG = {
     ROUND: (projectId: string, roundId: string) => `/projects/${projectId}/rounds/${roundId}`,
     ROUND_FINALIZE: (projectId: string, roundId: string) => `/projects/${projectId}/rounds/${roundId}/finalize`,
 
+    // Comments pattern analysis
+    COMMENTS_PATTERNS: (projectId: string) => `/projects/${projectId}/comments/patterns`,
+
     // Overview (command center: executive summary, pulse, smart actions, research context, decision pathway)
     OVERVIEW: (projectId: string) => `/projects/${projectId}/overview`,
 

@@ -23,6 +23,7 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
       sourceType: 'reddit' | 'hackernews';
       redditUrls?: string[];
       hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
+      hnUrls?: string[];
       periodDays?: number;
     }
   ): Promise<Result<{ started: boolean }, Error>> {
@@ -83,15 +84,6 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
       return Result.success<GetCommentsResponseDTO>(data);
     } catch (error) {
       return Result.failure<GetCommentsResponseDTO, Error>(error as Error);
-    }
-  }
-
-  async createSource(projectId: string, input: CreateSourceInput): Promise<Result<SourceDTO, Error>> {
-    try {
-      const data = await this._httpClient.post<SourceDTO>(`/projects/${projectId}/comments/sources`, input);
-      return Result.success(data);
-    } catch (error) {
-      return Result.failure<SourceDTO, Error>(error as Error);
     }
   }
 
