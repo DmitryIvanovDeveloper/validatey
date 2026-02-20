@@ -48,6 +48,9 @@
           </button>
         </div>
 
+        <!-- How to read Overview (for beginners) -->
+        <OverviewGuideWidget />
+
         <!-- Executive Summary -->
         <ExecutiveSummaryWidget
           :summary="researchData?.synthesisReport?.summary || null"
@@ -90,16 +93,64 @@
               <div class="text-gray-900 formatted-text" v-html="formatMarkdown(getHypothesisText())"></div>
             </div>
 
-            <div v-if="getHypothesisAssumptions().length > 0" class="mb-4">
-              <p class="section-subtitle">Key Assumptions</p>
-              <ul class="space-y-2">
+            <div v-if="getHypothesisAssumptions().length > 0" class="key-assumptions-section mb-4" role="region" aria-label="Key Assumptions: status and evidence per assumption">
+              <div class="key-assumptions-header">
+                <p class="section-subtitle key-assumptions-title">Key Assumptions</p>
+                <p v-if="!researchData?.assumptionAssessments?.length" class="key-assumptions-hint">
+                  Run research and generate synthesis to see status and evidence for each assumption.
+                </p>
+              </div>
+              <ul class="key-assumptions-list">
                 <li
-                  v-for="(assumption, i) in getHypothesisAssumptions()"
-                  :key="i"
-                  class="flex items-start gap-2 text-gray-900"
+                  v-for="(assumption, index) in getHypothesisAssumptions()"
+                  :key="assumption.id"
+                  class="assumption-card"
+                  :class="getAssumptionStatus(assumption.id) ? `assumption-card--${getAssumptionStatus(assumption.id)}` : 'assumption-card--pending'"
                 >
-                  <span class="text-blue-600 mt-1">•</span>
-                  <span v-html="formatMarkdown(assumption)"></span>
+                  <div class="assumption-card-inner">
+                    <div class="assumption-card-header">
+                      <span class="assumption-index" :class="getAssumptionStatus(assumption.id) ? `assumption-index--${getAssumptionStatus(assumption.id)}` : ''" aria-hidden="true">
+                        <CheckCircle v-if="getAssumptionStatus(assumption.id) === 'confirmed'" class="assumption-status-icon" />
+                        <HelpCircle v-else-if="getAssumptionStatus(assumption.id) === 'need_more'" class="assumption-status-icon" />
+                        <XCircle v-else-if="getAssumptionStatus(assumption.id) === 'not_supported'" class="assumption-status-icon" />
+                        <span v-else class="assumption-number">{{ index + 1 }}</span>
+                      </span>
+                      <p class="assumption-label" v-html="formatMarkdown(assumption.text)"></p>
+                    </div>
+                    <div v-if="getAssumptionStatus(assumption.id)" class="assumption-card-status">
+                      <span
+                        :class="['assumption-badge', `assumption-badge--${getAssumptionStatus(assumption.id)}`]"
+                        :aria-label="`Status: ${getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more data' : 'Not supported'}`"
+                      >
+                        {{ getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more data' : 'Not supported' }}
+                      </span>
+                    </div>
+                    <div
+                      v-if="getAssumptionEvidence(assumption.id)"
+                      class="assumption-evidence-wrap"
+                      :aria-label="`Evidence: ${getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more data' : 'Not supported'}`"
+                    >
+                      <button
+                        type="button"
+                        class="assumption-evidence-toggle"
+                        :aria-expanded="expandedEvidenceIds.has(assumption.id)"
+                        :aria-controls="'evidence-content-' + assumption.id"
+                        :id="'evidence-toggle-' + assumption.id"
+                        @click="toggleEvidence(assumption.id)"
+                      >
+                        {{ getEvidenceLabel(assumption.id) }}
+                      </button>
+                      <div
+                        :id="'evidence-content-' + assumption.id"
+                        class="assumption-evidence-content"
+                        :class="{ 'assumption-evidence-content--open': expandedEvidenceIds.has(assumption.id) }"
+                        role="region"
+                        :aria-labelledby="'evidence-toggle-' + assumption.id"
+                      >
+                        <p class="assumption-evidence-text formatted-text" v-html="formatMarkdown(getAssumptionEvidence(assumption.id)!)"></p>
+                      </div>
+                    </div>
+                  </div>
                 </li>
               </ul>
             </div>
@@ -289,7 +340,9 @@ import {
   Target,
   Clock,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  HelpCircle,
+  XCircle
 } from 'lucide-vue-next';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
@@ -304,10 +357,11 @@ import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootst
 import type { ResearchPresenter } from '../../../research/interface-adapters/presenters/research.presenter';
 import ResponsePaceWidget from '../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
 import { CommentsWidget } from '../../../comments/interface-adapters/components';
-import { ExecutiveSummaryWidget, StartResearchWidget, ShowDetailsWidget } from '../../../research/interface-adapters';
+import { ExecutiveSummaryWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget } from '../../../research/interface-adapters';
 import CommentPatternsWidget from '../../../comments/interface-adapters/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../research/interface-adapters/views/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../shared/components/SectionCard.vue';
+import { normalizeAssumptions } from '../../domain/value-objects/hypothesis.vo';
 
 const route = useRoute();
 const router = useRouter();
@@ -367,6 +421,73 @@ const widgetsLoading = ref(false); // External loading state for Pain Points and
 const isShowDetailsModalOpen = ref(false);
 const researchContextFormatting = ref(false);
 
+/** Overall hypothesis status from research synthesis (fallback when no per-assumption data). */
+type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | null;
+const hypothesisOverallStatus = computed<HypothesisStatus>(() => {
+  const report = researchData.value?.synthesisReport;
+  if (!report?.verdict) return null;
+  const v = String(report.verdict).toLowerCase();
+  if (v === 'validated' || v === 'strong-validation' || v === 'strong_validation') return 'confirmed';
+  if (v === 'rejected') return 'not_supported';
+  if (v === 'needs-more-data' || v === 'needs_more_data') return 'need_more';
+  return null;
+});
+
+/** Per-assumption status from backend (same order as Key Assumptions). Use when length matches. */
+const assumptionStatuses = computed<HypothesisStatus[] | null>(() => {
+  const list = researchData.value?.assumptionStatuses;
+  const assumptions = getHypothesisAssumptions();
+  if (!Array.isArray(list) || list.length !== assumptions.length) return null;
+  return list as HypothesisStatus[];
+});
+
+/** Map assumptionId -> assessment (status + evidence) from research canvas. */
+const assumptionAssessmentsById = computed<Record<string, { status: string; evidence: string | null }>>(() => {
+  const list = researchData.value?.assumptionAssessments;
+  if (!Array.isArray(list)) return {};
+  return Object.fromEntries(list.map((a) => [a.assumptionId, { status: a.status, evidence: a.evidence ?? null }]));
+});
+
+/** Status for assumption by id: from assumptionAssessments, else legacy by index, else overall. */
+function getAssumptionStatus(assumptionId: string | number): HypothesisStatus | null {
+  if (typeof assumptionId === 'string') {
+    const assessment = assumptionAssessmentsById.value[assumptionId];
+    if (assessment?.status) {
+      const s = String(assessment.status).toLowerCase();
+      if (s === 'confirmed') return 'confirmed';
+      if (s === 'need_more' || s === 'needs_more_data') return 'need_more';
+      if (s === 'not_supported' || s === 'rejected') return 'not_supported';
+      return null;
+    }
+  }
+  const per = assumptionStatuses.value;
+  if (per && typeof assumptionId === 'number' && per[assumptionId] != null) return per[assumptionId];
+  return hypothesisOverallStatus.value;
+}
+
+/** Evidence text for assumption by id. */
+function getAssumptionEvidence(assumptionId: string): string | null {
+  const assessment = assumptionAssessmentsById.value[assumptionId];
+  return assessment?.evidence ?? null;
+}
+
+/** Clickable label for evidence block (English). */
+function getEvidenceLabel(assumptionId: string): string {
+  const status = getAssumptionStatus(assumptionId);
+  if (status === 'confirmed') return 'Evidence';
+  if (status === 'need_more') return 'Why more data is needed';
+  if (status === 'not_supported') return 'Why not supported';
+  return 'Explanation';
+}
+
+const expandedEvidenceIds = ref<Set<string>>(new Set());
+function toggleEvidence(assumptionId: string): void {
+  const next = new Set(expandedEvidenceIds.value);
+  if (next.has(assumptionId)) next.delete(assumptionId);
+  else next.add(assumptionId);
+  expandedEvidenceIds.value = next;
+}
+
 // Rounds
 const rounds = computed(() => overviewData.value?.learningJourney?.rounds ?? []);
 const newRoundSuggestion = computed(() => {
@@ -399,40 +520,20 @@ function dismissSuccessBanner(): void {
 }
 
 function getHypothesisText(): string {
-  console.log('getHypothesisText called, project.value:', project.value);
-  console.log('hypothesis:', project.value?.hypothesis);
-  console.log('hypothesis type:', typeof project.value?.hypothesis);
-
-  if (!project.value?.hypothesis) {
-    console.log('No hypothesis, returning Not specified');
-    return 'Not specified';
-  }
-
-  // Handle case where hypothesis is a string (legacy format)
-  if (typeof project.value.hypothesis === 'string') {
-    console.log('Hypothesis is string, returning:', project.value.hypothesis);
-    return project.value.hypothesis;
-  }
-
-  // Handle case where hypothesis is an object with description
+  if (!project.value?.hypothesis) return 'Not specified';
+  if (typeof project.value.hypothesis === 'string') return project.value.hypothesis;
   if (typeof project.value.hypothesis === 'object' && project.value.hypothesis.description) {
-    console.log('Hypothesis is object with description, returning:', project.value.hypothesis.description);
     return project.value.hypothesis.description;
   }
-
-  console.log('Fallback, returning Not specified');
   return 'Not specified';
 }
 
-function getHypothesisAssumptions(): string[] {
+function getHypothesisAssumptions(): Array<{ id: string; text: string }> {
   if (!project.value?.hypothesis) return [];
-
-  // Handle case where hypothesis is an object with assumptions
-  if (typeof project.value.hypothesis === 'object' && project.value.hypothesis.assumptions) {
-    return project.value.hypothesis.assumptions;
-  }
-
-  return [];
+  const a = (project.value.hypothesis as { assumptions?: string[] | Array<{ id: string; text: string }> }).assumptions;
+  if (!Array.isArray(a) || a.length === 0) return [];
+  if (typeof a[0] === 'string') return normalizeAssumptions(a as string[]);
+  return a as Array<{ id: string; text: string }>;
 }
 
 function formatMarkdown(text: string): string {
@@ -637,12 +738,9 @@ async function loadOverview() {
 async function loadResearchData() {
   if (!projectId) return;
   try {
-    console.log('Loading research data for project:', projectId);
     const result = await researchPresenter.getResearchCanvas(projectId);
-    console.log('Research data loaded:', result);
     researchData.value = result;
   } catch (error) {
-    console.error('Failed to load research data:', error);
     researchData.value = null;
   }
 }
@@ -1912,6 +2010,164 @@ watch(project, (p) => {
   background: rgba(255, 255, 255, 0.8);
   transform: translateY(-1px);
 }
+
+/* Key Assumptions — improved UI */
+.key-assumptions-section { }
+.key-assumptions-header { margin-bottom: 0.75rem; }
+.key-assumptions-title { margin-bottom: 0.25rem; }
+.key-assumptions-hint {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.key-assumptions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.assumption-card {
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  background: #fafafa;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.assumption-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.assumption-card--confirmed {
+  border-left: 4px solid #16a34a;
+  background: linear-gradient(to right, rgba(22, 163, 74, 0.04) 0%, #fafafa 1rem);
+}
+.assumption-card--need_more {
+  border-left: 4px solid #ca8a04;
+  background: linear-gradient(to right, rgba(202, 138, 4, 0.06) 0%, #fafafa 1rem);
+}
+.assumption-card--not_supported {
+  border-left: 4px solid #dc2626;
+  background: linear-gradient(to right, rgba(220, 38, 38, 0.04) 0%, #fafafa 1rem);
+}
+.assumption-card--pending {
+  border-left: 4px solid #94a3b8;
+}
+
+.assumption-card-inner {
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.assumption-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.assumption-index {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+}
+.assumption-index--confirmed { background: #dcfce7; color: #166534; }
+.assumption-index--need_more { background: #fef9c3; color: #854d0e; }
+.assumption-index--not_supported { background: #fee2e2; color: #991b1b; }
+
+.assumption-status-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.assumption-number {
+  line-height: 1;
+}
+
+.assumption-label {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.45;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+  flex: 1;
+}
+
+.assumption-card-status { flex-shrink: 0; }
+
+.assumption-badge {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+.assumption-badge--confirmed { background: #dcfce7; color: #166534; }
+.assumption-badge--need_more { background: #fef9c3; color: #854d0e; }
+.assumption-badge--not_supported { background: #fee2e2; color: #991b1b; }
+
+.assumption-evidence-wrap {
+  margin-top: 0.25rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.assumption-evidence-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #64748b;
+  text-align: left;
+  width: 100%;
+}
+
+.assumption-evidence-toggle:hover {
+  color: #0d9488;
+  text-decoration: underline;
+}
+
+.assumption-evidence-content {
+  display: none;
+  margin-top: 0.375rem;
+}
+
+.assumption-evidence-content--open {
+  display: block;
+}
+
+.assumption-evidence-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #475569;
+  line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
 .scenario-summary {
   margin: 0 0 0.75rem 0;
   font-size: 0.9375rem;

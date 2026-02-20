@@ -9,7 +9,7 @@ import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import { Segment } from '../../domain/value-objects/segment.vo';
-import { Hypothesis } from '../../domain/value-objects/hypothesis.vo';
+import { Hypothesis, normalizeAssumptions } from '../../domain/value-objects/hypothesis.vo';
 import { Project, ProjectStatus, MarketContext } from '../../domain/entities/project.entity';
 import type { ProjectRisk, ProjectRiskAssessment } from '../../domain/entities/project-risk.entity';
 import type { GetMarketContextSuggestionRequest } from '../../application/use-cases/input-output/get-market-context-suggestion.io';
@@ -65,15 +65,13 @@ export class ProjectPresenter {
       let hypothesis: Hypothesis | null = null;
       if (hypothesisDescription && hypothesisDescription.trim().length > 0) {
         try {
-          const validAssumptions = hypothesisAssumptions 
-            ? hypothesisAssumptions.filter(a => a && a.trim().length > 0)
+          const validAssumptions = hypothesisAssumptions
+            ? hypothesisAssumptions.filter((a) => a && typeof a === 'string' && a.trim().length > 0)
             : [];
-          if (validAssumptions.length > 0) {
-            hypothesis = new Hypothesis(hypothesisDescription.trim(), validAssumptions);
-          } else {
-            // Hypothesis может быть создан и без assumptions
-            hypothesis = new Hypothesis(hypothesisDescription.trim(), []);
-          }
+          hypothesis = new Hypothesis(
+            hypothesisDescription.trim(),
+            validAssumptions.length > 0 ? normalizeAssumptions(validAssumptions) : []
+          );
         } catch (error) {
           this._logger.warn('Failed to create Hypothesis, continuing without it', { error });
           hypothesis = null;
@@ -155,7 +153,7 @@ export class ProjectPresenter {
       ? new Segment(projectData.segment.description, projectData.segment.demographics)
       : null;
     const hypothesis = projectData.hypothesis
-      ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions || [])
+      ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions?.length ? projectData.hypothesis.assumptions : [])
       : null;
     const project = new Project(
       projectData.id,
@@ -194,7 +192,7 @@ export class ProjectPresenter {
         : null;
       
       const hypothesis = projectData.hypothesis
-        ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions || [])
+        ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions?.length ? projectData.hypothesis.assumptions : [])
         : null;
       
       const project = new Project(
@@ -281,7 +279,7 @@ export class ProjectPresenter {
       if (hypothesisDescription && hypothesisDescription.trim().length > 0) {
         try {
           const validAssumptions = hypothesisAssumptions && hypothesisAssumptions.length > 0
-            ? hypothesisAssumptions.filter(a => a && a.trim().length > 0)
+            ? normalizeAssumptions(hypothesisAssumptions.filter(a => a && a.trim().length > 0))
             : [];
           hypothesis = new Hypothesis(hypothesisDescription.trim(), validAssumptions);
         } catch (error) {

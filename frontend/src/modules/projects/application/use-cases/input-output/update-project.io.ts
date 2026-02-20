@@ -33,7 +33,7 @@ export type UpdateProjectUseCaseResponse = {
     } | null;
     hypothesis: {
       description: string;
-      assumptions: string[];
+      assumptions: Array<{ id: string; text: string }>;
     } | null;
     marketContext: MarketContext | null;
     status: string;

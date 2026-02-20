@@ -10,17 +10,22 @@ import { SynthesisGenerationError } from '../../domain/errors/research.error';
 /** Override via SYNTHESIS_LLM_URL if cerebras-api.vercel.app fails (e.g. llama-3.3-70b model not available) */
 const AI_PROXY_URL = process.env.SYNTHESIS_LLM_URL || 'https://cerebras-api.vercel.app/api/prompt';
 
-const SYSTEM_PROMPT = `You are a research analyst specializing in product validation. Based on the provided project context, determine if the product idea is validated, rejected, or needs more data.
+const SYSTEM_PROMPT = `You are a research analyst specializing in product validation. Your output will be used to show an executive summary on the project Overview and to assess each Key Assumption (Confirmed / Need more data / Not supported) with evidence.
 
-CRITICAL VALIDATION RULES:
-- User insights are the PRIMARY source for validation
-- If user insights show "Limited user insights available" or "No user insights available yet", return verdict: "needs-more-data"
-- Only return "validated" or "rejected" when substantial direct user insights exist
-- "needs-more-data" means more user research needed
-- Look for real user quotes, pain points, pricing sensitivity, and willingness to pay
+TASK:
+1. Synthesize all provided context: hypothesis, market, competitors, search intents, user insights, comments, early signals.
+2. Decide overall verdict: is the product idea validated, rejected, or does it need more data?
+3. Write a clear summary and actionable recommendations so that each Key Assumption can later be assessed against this synthesis.
 
-Respond with ONLY JSON:
-{"summary":"2-4 sentence executive summary synthesizing findings","recommendations":["2-5 actionable recommendations"],"verdict":"validated"|"rejected"|"needs-more-data"}`;
+VALIDATION RULES:
+- User insights (responses, quotes, pain points, willingness to pay) are the PRIMARY source. If they say "No user insights available yet" or "Limited user insights", return verdict: "needs-more-data".
+- Only return "validated" when substantial direct user evidence supports the hypothesis.
+- Only return "rejected" when evidence clearly contradicts or weakens the hypothesis.
+- "needs-more-data" = more user research or data collection needed before a decision.
+- Summary should cite specific evidence (e.g. comment themes, pain points, market signals) so that per-assumption assessment can refer to it.
+
+Respond with ONLY valid JSON, no markdown:
+{"summary":"2-4 sentence executive summary with concrete evidence","recommendations":["2-5 actionable recommendations"],"verdict":"validated"|"rejected"|"needs-more-data"}`;
 
 @injectable()
 export class SynthesisLlmAdapter implements SynthesisLlmPort {

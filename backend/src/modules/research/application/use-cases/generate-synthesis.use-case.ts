@@ -12,6 +12,7 @@ import type { ProjectRepositoryPort } from '../../../projects/application/ports/
 import type { EarlySignalsRepositoryPort } from '../../../signals/application/ports/early-signals-repository.port';
 import type { ResearchDataRepositoryPort } from '../ports/research-data-repository.port';
 import type { SynthesisLlmPort } from '../ports/synthesis-llm.port';
+import { GenerateAssumptionAssessmentsUseCase } from './generate-assumption-assessments.use-case';
 import type { ResponseRepositoryPort } from '../../../responses/application/ports/response-repository.port';
 import type { CommentRepositoryPort } from '../../../comments/application/ports/comment-repository.port';
 import { CalculateMetricsUseCase } from '../../../metrics/application/use-cases/calculate-metrics.use-case';
@@ -43,7 +44,9 @@ export class GenerateSynthesisUseCase {
     @inject(RESEARCH_TYPES.ResearchDataRepository)
     private readonly _researchDataRepository: ResearchDataRepositoryPort,
     @inject(RESEARCH_TYPES.SynthesisLlm)
-    private readonly _synthesisLlm: SynthesisLlmPort
+    private readonly _synthesisLlm: SynthesisLlmPort,
+    @inject(RESEARCH_TYPES.GenerateAssumptionAssessmentsUseCase)
+    private readonly _generateAssumptionAssessmentsUseCase: GenerateAssumptionAssessmentsUseCase
   ) {}
 
   async execute(
@@ -106,12 +109,24 @@ export class GenerateSynthesisUseCase {
         projectId,
         marketData: stored?.marketData ?? null,
         competitorData: stored?.competitorData ?? null,
+        userInsights: stored?.userInsights ?? null,
         autocompleteInsights: stored?.autocompleteInsights ?? null,
         synthesisReport: report,
+        assumptionAssessments: stored?.assumptionAssessments ?? null,
         lastResearchRunAt: stored?.lastResearchRunAt ?? null,
         updatedAt: new Date(),
       };
       await this._researchDataRepository.save(updatedStored);
+
+      const assessmentsResult = await this._generateAssumptionAssessmentsUseCase.execute({ projectId });
+      if (assessmentsResult.isSuccess && assessmentsResult.data?.length) {
+        const withAssessments: StoredResearchData = {
+          ...updatedStored,
+          assumptionAssessments: assessmentsResult.data,
+          updatedAt: new Date(),
+        };
+        await this._researchDataRepository.save(withAssessments);
+      }
 
       return ResultEx.success({ report });
     } catch (error) {

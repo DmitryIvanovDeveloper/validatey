@@ -6,7 +6,7 @@ import { sessionManager } from '../../../../shared/services/session-manager';
 import Result from '../../../../infrastructure/result/result';
 import { Project, ProjectStatus } from '../../domain/entities/project.entity';
 import { Segment } from '../../domain/value-objects/segment.vo';
-import { Hypothesis } from '../../domain/value-objects/hypothesis.vo';
+import { Hypothesis, normalizeAssumptions } from '../../domain/value-objects/hypothesis.vo';
 import { ProjectNotFoundError, InvalidProjectDataError, ProjectListError } from '../../domain/errors/project.error';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 
@@ -27,7 +27,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
         id: string;
         name: string;
         segment: { description: string; demographics: Record<string, unknown> } | null;
-        hypothesis: { description: string; assumptions: string[] } | null;
+        hypothesis: { description: string; assumptions: string[] | Array<{ id: string; text: string }> } | null;
         marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
         status: string;
         createdAt: string;
@@ -42,7 +42,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
         } : null,
         hypothesis: project.hypothesis ? {
           description: project.hypothesis.description,
-          assumptions: project.hypothesis.assumptions
+          assumptions: project.hypothesis.assumptions as Array<{ id: string; text: string }>
         } : null,
         marketContext: project.marketContext ?? null,
         status: project.status
@@ -54,7 +54,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
         response.id,
         response.name,
         response.segment ? new Segment(response.segment.description, response.segment.demographics) : null,
-        response.hypothesis ? new Hypothesis(response.hypothesis.description, response.hypothesis.assumptions) : null,
+        response.hypothesis ? new Hypothesis(response.hypothesis.description, normalizeAssumptions(response.hypothesis.assumptions)) : null,
         response.marketContext ?? null,
         response.status as ProjectStatus,
         createdAt,
@@ -74,7 +74,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
           id: string;
           name: string;
           segment: { description: string; demographics: Record<string, unknown> } | null;
-          hypothesis: { description: string; assumptions: string[] } | null;
+          hypothesis: { description: string; assumptions: string[] | Array<{ id: string; text: string }> } | null;
           marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
           status: string;
           createdAt: string;
@@ -99,7 +99,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
         projectData.id,
         projectData.name,
         projectData.segment ? new Segment(projectData.segment.description, projectData.segment.demographics) : null,
-        projectData.hypothesis ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions) : null,
+        projectData.hypothesis ? new Hypothesis(projectData.hypothesis.description, normalizeAssumptions(projectData.hypothesis.assumptions)) : null,
         projectData.marketContext ?? null,
         projectData.status as ProjectStatus,
         createdAt,
@@ -205,7 +205,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
           userId: string;
           name: string;
           segment: { description: string; demographics: Record<string, unknown> } | null;
-          hypothesis: { description: string; assumptions: string[] } | null;
+          hypothesis: { description: string; assumptions: string[] | Array<{ id: string; text: string }> } | null;
           marketContext?: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
           status: string;
           createdAt: string | Date;
@@ -244,7 +244,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
         projectData.id,
         projectData.name,
         projectData.segment ? new Segment(projectData.segment.description, projectData.segment.demographics) : null,
-        projectData.hypothesis ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions) : null,
+        projectData.hypothesis ? new Hypothesis(projectData.hypothesis.description, normalizeAssumptions(projectData.hypothesis.assumptions)) : null,
         projectData.marketContext ?? null,
         projectData.status as ProjectStatus,
         createdAt,

@@ -2,7 +2,7 @@ import { injectable, inject } from 'inversify';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
-import { ProjectEntity } from '../../domain/entities/project.entity';
+import { ProjectEntity, Hypothesis, normalizeAssumptions } from '../../domain/entities/project.entity';
 import { ProjectNotFoundError, ProjectAccessDeniedError, InvalidProjectDataError } from '../../domain/errors/project.error';
 import { ProjectRepositoryPort } from '../ports/project-repository.port';
 import { UpdateProjectUseCaseRequest, UpdateProjectUseCaseResponse } from './input-output/update-project.io';
@@ -67,7 +67,11 @@ export class UpdateProjectUseCase {
       }
 
       if (request.hypothesis !== undefined) {
-        updatedProject = updatedProject.withHypothesis(request.hypothesis);
+        const hypothesis: Hypothesis = {
+          description: request.hypothesis.description.trim(),
+          assumptions: normalizeAssumptions(request.hypothesis.assumptions),
+        };
+        updatedProject = updatedProject.withHypothesis(hypothesis);
       }
 
       if (request.marketContext !== undefined) {

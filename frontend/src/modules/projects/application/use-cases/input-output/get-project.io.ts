@@ -12,7 +12,7 @@ export type GetProjectUseCaseResponse = {
     } | null;
     hypothesis: {
       description: string;
-      assumptions: string[];
+      assumptions: Array<{ id: string; text: string }>;
     } | null;
     marketContext: { marketPicture?: string; marketFit?: string; differentiation?: string } | null;
     status: string;

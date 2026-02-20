@@ -3,7 +3,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
-import { Project } from '../../domain/entities/project.entity';
+import { Project, normalizeAssumptions } from '../../domain/entities/project.entity';
 import { ProjectNotFoundError, InvalidProjectDataError } from '../../domain/errors/project.error';
 import { ProjectRepositoryPort } from '../../application/ports/project-repository.port';
 
@@ -706,7 +706,14 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         name: String(data.name),
         status: String(data.status) as 'draft' | 'active' | 'completed' | 'archived',
         segment: (data.segment || null) as Project['segment'],
-        hypothesis: (data.hypothesis || null) as Project['hypothesis'],
+        hypothesis: data.hypothesis
+          ? {
+              description: String((data.hypothesis as { description?: string }).description ?? ''),
+              assumptions: normalizeAssumptions(
+                (data.hypothesis as { assumptions?: readonly string[] | ReadonlyArray<{ id?: string; text: string }> }).assumptions
+              ),
+            }
+          : null,
         marketContext: (data.market_context || null) as Project['marketContext'],
         targetAudience: (data.target_audience ?? null) as string | null,
         cost,

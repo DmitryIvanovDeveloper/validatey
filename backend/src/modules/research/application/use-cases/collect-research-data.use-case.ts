@@ -87,9 +87,11 @@ export class CollectResearchDataUseCase {
         projectId,
         marketData: marketData ?? existing?.marketData ?? null,
         competitorData: competitorData ?? existing?.competitorData ?? null,
+        userInsights: existing?.userInsights ?? null,
         autocompleteInsights: autocompleteInsights ?? existing?.autocompleteInsights ?? null,
         synthesisReport: existing?.synthesisReport ?? null,
-        lastResearchRunAt: now, // NEW: фиксируем время запуска
+        assumptionAssessments: existing?.assumptionAssessments ?? null,
+        lastResearchRunAt: now,
         updatedAt: now,
       };
       const saveResult = await this._researchDataRepository.save(updated);

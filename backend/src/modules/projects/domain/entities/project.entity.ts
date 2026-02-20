@@ -47,10 +47,37 @@ export interface Segment {
   readonly demographics: Record<string, any>;
 }
 
-// Frontend requirements: { description: string, assumptions: string[] }
+/** Single key assumption with stable id for research assessment mapping. */
+export interface AssumptionItem {
+  readonly id: string;
+  readonly text: string;
+}
+
+// Frontend requirements: { description: string, assumptions: AssumptionItem[] } (legacy: string[] accepted at API)
 export interface Hypothesis {
   readonly description: string;
-  readonly assumptions: string[];
+  readonly assumptions: AssumptionItem[];
+}
+
+/** Normalize assumptions from API/DB (string[] or {id?, text}[]) to AssumptionItem[]. */
+export function normalizeAssumptions(
+  raw: readonly string[] | ReadonlyArray<{ id?: string; text: string }> | null | undefined
+): AssumptionItem[] {
+  if (!raw || !Array.isArray(raw) || raw.length === 0) return [];
+  const result: AssumptionItem[] = [];
+  for (let i = 0; i < raw.length; i++) {
+    const item = raw[i];
+    if (typeof item === 'string') {
+      result.push({ id: randomUUID(), text: item.trim() });
+    } else if (item && typeof item === 'object' && typeof (item as { text?: string }).text === 'string') {
+      const o = item as { id?: string; text: string };
+      result.push({
+        id: o.id && o.id.trim() ? o.id.trim() : randomUUID(),
+        text: o.text.trim(),
+      });
+    }
+  }
+  return result;
 }
 
 export class ProjectEntity {

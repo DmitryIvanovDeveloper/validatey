@@ -5,3 +5,4 @@ export type { AutocompleteInsights } from './autocomplete-insights.vo';
 export type { SynthesisReport } from './synthesis-report.vo';
 export type { ResearchCanvas, EarlySignal } from './research-canvas.vo';
 export type { StoredResearchData } from './stored-research-data.vo';
+export type { AssumptionAssessment, AssumptionStatus } from './assumption-assessment.vo';

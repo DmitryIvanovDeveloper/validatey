@@ -12,6 +12,8 @@ export interface ResearchRepositoryPort {
       slug: string;
       description: string;
     };
+    assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported')[] | null;
+    assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
   }>;
   collectResearchData(projectId: string, intent: ResearchIntent): Promise<{
     collected: boolean;

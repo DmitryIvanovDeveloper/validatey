@@ -68,15 +68,20 @@ export class GenerateScenarioUseCase {
       }
 
       // Step 5: Generate scenario via LLM
-      // LLM service will form the prompt based on:
-      // - segment.description, segment.demographics
-      // - hypothesis.description, hypothesis.assumptions
-      // - significance target from template
-      // - custom prompt if provided
+      // LLM service expects hypothesis.assumptions as string[]; project may have AssumptionItem[].
+      const hypothesisForLlm = hypothesis
+        ? {
+            description: hypothesis.description,
+            assumptions: hypothesis.assumptions.map((a: string | { text: string }) =>
+              typeof a === 'string' ? a : a.text
+            ),
+          }
+        : null;
+
       const llmResult = await this._llmService.generateScenario({
         projectId: request.projectId,
         segment: segment,
-        hypothesis: hypothesis,
+        hypothesis: hypothesisForLlm,
         marketContext,
         templateSlug: request.templateSlug,
         significanceTarget,

@@ -26,6 +26,8 @@ export class GetResearchCanvasUseCase {
         slug: 'market-research',
         description: 'Comprehensive market analysis with competitor insights',
       },
+      assumptionStatuses: result.assumptionStatuses ?? null,
+      assumptionAssessments: result.assumptionAssessments ?? null,
     };
   }
 }

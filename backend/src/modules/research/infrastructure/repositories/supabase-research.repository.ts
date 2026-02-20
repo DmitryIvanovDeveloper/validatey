@@ -4,7 +4,7 @@ import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 import type { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
-import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights } from '../../domain/value-objects';
+import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights, UserInsightsBlock, AssumptionAssessment } from '../../domain/value-objects';
 
 @injectable()
 export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
@@ -33,9 +33,11 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
         projectId: data.project_id,
         marketData: (data.market_data as MarketDataBlock) ?? null,
         competitorData: (data.competitor_data as CompetitorInfoBlock) ?? null,
+        userInsights: (data.user_insights as UserInsightsBlock) ?? null,
         autocompleteInsights: (data.autocomplete_insights as AutocompleteInsights) ?? null,
         synthesisReport: (data.synthesis_report as SynthesisReport) ?? null,
-        lastResearchRunAt: data.last_research_run_at ? new Date(data.last_research_run_at) : null, // NEW
+        assumptionAssessments: (data.assumption_assessments as AssumptionAssessment[] | null) ?? null,
+        lastResearchRunAt: data.last_research_run_at ? new Date(data.last_research_run_at) : null,
         updatedAt: new Date(data.updated_at),
       };
       return ResultEx.success(stored);
@@ -55,7 +57,8 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
           competitor_data: data.competitorData,
           autocomplete_insights: data.autocompleteInsights,
           synthesis_report: data.synthesisReport,
-          last_research_run_at: data.lastResearchRunAt?.toISOString(), // NEW
+          assumption_assessments: data.assumptionAssessments ?? null,
+          last_research_run_at: data.lastResearchRunAt?.toISOString(),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'project_id' }
