@@ -1,0 +1,2450 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - banner [ref=e4]:
+        - generic [ref=e5]:
+          - link "Validatey home" [ref=e6] [cursor=pointer]:
+            - /url: /workspaces
+            - img [ref=e8]
+            - generic [ref=e11]: Validatey
+          - navigation "Main"
+          - generic [ref=e12]:
+            - generic "dmitry.ivanov.developer@gmail.com" [ref=e13]:
+              - generic [ref=e14]: D
+              - generic [ref=e15]: dmitry.ivanov.developer@gmail.com
+            - button "Sign out" [ref=e16] [cursor=pointer]
+      - generic [ref=e17]:
+        - complementary "Workspaces" [ref=e18]:
+          - generic [ref=e19]:
+            - heading "Workspaces" [level=2] [ref=e20]
+            - button "New workspace" [ref=e21] [cursor=pointer]:
+              - generic [ref=e22]: +
+              - text: New workspace
+            - link "All workspaces" [ref=e23] [cursor=pointer]:
+              - /url: /workspaces
+            - navigation "Workspace list" [ref=e24]:
+              - generic [ref=e25]:
+                - link "F Failure Patterns" [ref=e26] [cursor=pointer]:
+                  - /url: /workspaces/c2a529a0-c6e7-42de-8cc8-4b09a8e33dc3/projects
+                  - generic [ref=e27]: F
+                  - generic [ref=e28]: Failure Patterns
+                - button "Manage Failure Patterns" [ref=e30] [cursor=pointer]:
+                  - img [ref=e31]
+              - generic [ref=e35]:
+                - link "Brainstorm Brainstorm" [ref=e36] [cursor=pointer]:
+                  - /url: /workspaces/00aabd14-611d-40d6-8466-ee69ed4bceee/projects
+                  - img "Brainstorm" [ref=e38]
+                  - generic [ref=e39]: Brainstorm
+                - button "Manage Brainstorm" [ref=e41] [cursor=pointer]:
+                  - img [ref=e42]
+              - generic [ref=e46]:
+                - link "PII-Gurdian PII-Gurdian" [ref=e47] [cursor=pointer]:
+                  - /url: /workspaces/dfe42c69-7742-47af-bde4-574b1e4320b0/projects
+                  - img "PII-Gurdian" [ref=e49]
+                  - generic [ref=e50]: PII-Gurdian
+                - button "Manage PII-Gurdian" [ref=e52] [cursor=pointer]:
+                  - img [ref=e53]
+              - generic [ref=e57]:
+                - link "Validatey Validatey" [ref=e58] [cursor=pointer]:
+                  - /url: /workspaces/023fc4d2-e85a-4c22-ae5b-ad10c473e8c3/projects
+                  - img "Validatey" [ref=e60]
+                  - generic [ref=e61]: Validatey
+                - button "Manage Validatey" [ref=e63] [cursor=pointer]:
+                  - img [ref=e64]
+        - main [ref=e68]:
+          - generic [ref=e69]:
+            - generic [ref=e70]:
+              - navigation "Breadcrumb" [ref=e71]:
+                - link "Projects" [ref=e72] [cursor=pointer]:
+                  - /url: /workspaces/c2a529a0-c6e7-42de-8cc8-4b09a8e33dc3/projects
+                - generic [ref=e73]: /
+                - generic [ref=e74]: Startup Failure Patterns Analysis
+              - tablist [ref=e75]:
+                - tab "Overview" [ref=e76] [cursor=pointer]
+                - tab "Invitations" [ref=e77] [cursor=pointer]
+                - tab "Responses" [ref=e78] [cursor=pointer]
+                - tab "Comments" [ref=e79] [cursor=pointer]
+            - main [ref=e80]:
+              - generic [ref=e294]:
+                - generic [ref=e295]:
+                  - generic [ref=e297]:
+                    - img [ref=e299]
+                    - generic [ref=e300]:
+                      - heading "Reddit" [level=4] [ref=e301]
+                      - paragraph [ref=e302]: Collect comments from Reddit posts
+                  - generic [ref=e304]:
+                    - generic [ref=e306]: Reddit Sources
+                    - generic [ref=e307]:
+                      - generic [ref=e308]:
+                        - textbox "https://reddit.com/r/startup/comments/abc123" [ref=e310]: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/
+                        - generic [ref=e311]:
+                          - button "View comments for https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/" [active] [ref=e312] [cursor=pointer]:
+                            - img [ref=e313]
+                          - button "Remove URL" [ref=e318] [cursor=pointer]:
+                            - img [ref=e319]
+                      - generic [ref=e321]:
+                        - textbox "r/technology" [ref=e323]: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/
+                        - generic [ref=e324]:
+                          - button "View comments for https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/" [ref=e325] [cursor=pointer]:
+                            - img [ref=e326]
+                          - button "Remove URL" [ref=e331] [cursor=pointer]:
+                            - img [ref=e332]
+                      - generic [ref=e334]:
+                        - textbox "https://reddit.com/r/productivity" [ref=e336]: https://www.reddit.com/r/buildinpublic/comments/1r88nwc/i_built_too_much_products/
+                        - generic [ref=e337]:
+                          - button "View comments for https://www.reddit.com/r/buildinpublic/comments/1r88nwc/i_built_too_much_products/" [ref=e338] [cursor=pointer]:
+                            - img [ref=e339]
+                          - button "Remove URL" [ref=e344] [cursor=pointer]:
+                            - img [ref=e345]
+                    - generic [ref=e348]:
+                      - textbox "Paste Reddit URLs here..." [ref=e349]
+                      - button [disabled] [ref=e350]:
+                        - img [ref=e351]
+                - generic [ref=e353]:
+                  - generic [ref=e355]:
+                    - img [ref=e357]
+                    - generic [ref=e358]:
+                      - heading "Hacker News" [level=4] [ref=e359]
+                      - paragraph [ref=e360]: Collect comments from Hacker News posts
+                  - generic [ref=e362]:
+                    - generic [ref=e364]: Hacker News Sources
+                    - generic [ref=e366]:
+                      - textbox "Paste Hacker News URLs here..." [ref=e367]
+                      - button [disabled] [ref=e368]:
+                        - img [ref=e369]
+                - button "Fetch Comments" [ref=e373] [cursor=pointer]
+    - button "Share feedback" [ref=e288] [cursor=pointer]:
+      - img [ref=e290]
+      - generic [ref=e292]: Share feedback
+  - generic [ref=e375]:
+    - generic [ref=e376]:
+      - generic [ref=e377]:
+        - generic [ref=e378]:
+          - heading "Comments for URL" [level=3] [ref=e379]
+          - generic [ref=e380]: "145"
+        - button "Show All Comments" [ref=e382] [cursor=pointer]:
+          - img [ref=e383]
+          - text: Show All Comments
+      - button "Close" [ref=e385] [cursor=pointer]:
+        - img [ref=e386]
+    - generic [ref=e390]:
+      - generic [ref=e391]:
+        - generic [ref=e394]:
+          - generic [ref=e396]: "Y"
+          - generic [ref=e397]: Icy_Second_8578
+          - generic [ref=e398]: •
+          - generic [ref=e399]: Feb 18, 2026, 10:04 PM
+        - generic [ref=e400]: i plan to be like this and build at least 20 apps between now and end of march. im out of job atm and not too in a hurry to get a new job so ill have loads of time to do marketing
+        - generic [ref=e401]:
+          - generic [ref=e402]: 📄
+          - generic [ref=e403]: I built too much products
+        - generic [ref=e404]:
+          - generic [ref=e406]: Hacker News
+          - link "View Source" [ref=e407] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/buildinpublic/comments/1r88nwc/i_built_too_much_products/o63sgh7/
+            - img [ref=e408]
+            - text: View Source
+      - generic [ref=e412]:
+        - generic [ref=e415]:
+          - generic [ref=e417]: "Y"
+          - generic [ref=e418]: CAFATECH
+          - generic [ref=e419]: •
+          - generic [ref=e420]: Feb 18, 2026, 08:26 PM
+        - generic [ref=e421]: Building for yourself feels like validation, but it’s not the same as building for a market. The hard truth is if people aren’t already actively looking for a solution, it’s 10x harder to sell.pause building completely and pick the one product where you’ve seen *any* real signal even small things like someone asking for it, trying it twice, or offering feedback without you chasing them. Kill the rest for now.Before building anything new, try pre-selling. Talk to 10–20 people in that niche and ask about their problem, not your product. If they won’t pay or commit before it’s built, that’s your answer. Validation &gt; coding You don’t need more products. You need proof someone cares.
+        - generic [ref=e422]:
+          - generic [ref=e423]: 📄
+          - generic [ref=e424]: I built too much products
+        - generic [ref=e425]:
+          - generic [ref=e427]: Hacker News
+          - link "View Source" [ref=e428] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/buildinpublic/comments/1r88nwc/i_built_too_much_products/o636afh/
+            - img [ref=e429]
+            - text: View Source
+      - generic [ref=e433]:
+        - generic [ref=e436]:
+          - generic [ref=e438]: "Y"
+          - generic [ref=e439]: TriggerHydrant
+          - generic [ref=e440]: •
+          - generic [ref=e441]: Feb 18, 2026, 08:22 PM
+        - generic [ref=e442]: same but I ain't hit the wall of stopping yet, lol
+        - generic [ref=e443]:
+          - generic [ref=e444]: 📄
+          - generic [ref=e445]: I built too much products
+        - generic [ref=e446]:
+          - generic [ref=e448]: Hacker News
+          - link "View Source" [ref=e449] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/buildinpublic/comments/1r88nwc/i_built_too_much_products/o635fvk/
+            - img [ref=e450]
+            - text: View Source
+      - generic [ref=e454]:
+        - generic [ref=e457]:
+          - generic [ref=e459]: "Y"
+          - generic [ref=e460]: moshenkabobrenka
+          - generic [ref=e461]: •
+          - generic [ref=e462]: Feb 18, 2026, 08:14 PM
+        - generic [ref=e463]: story of my life, lol :)
+        - generic [ref=e464]:
+          - generic [ref=e465]: 📄
+          - generic [ref=e466]: I built too much products
+        - generic [ref=e467]:
+          - generic [ref=e469]: Hacker News
+          - link "View Source" [ref=e470] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/buildinpublic/comments/1r88nwc/i_built_too_much_products/o633nhs/
+            - img [ref=e471]
+            - text: View Source
+      - generic [ref=e475]:
+        - generic [ref=e478]:
+          - generic [ref=e480]: "Y"
+          - generic [ref=e481]: Standard-Till-5631
+          - generic [ref=e482]: •
+          - generic [ref=e483]: Feb 18, 2026, 08:09 PM
+        - generic [ref=e484]: Hey bro, i'll send you a DM might have a place you can ask the right kind of people, i also do sales and have thousands of leads we can use to sell your stuff.
+        - generic [ref=e485]:
+          - generic [ref=e486]: 📄
+          - generic [ref=e487]: I built too much products
+        - generic [ref=e488]:
+          - generic [ref=e490]: Hacker News
+          - link "View Source" [ref=e491] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/buildinpublic/comments/1r88nwc/i_built_too_much_products/o632k7p/
+            - img [ref=e492]
+            - text: View Source
+      - generic [ref=e496]:
+        - generic [ref=e499]:
+          - generic [ref=e501]: "Y"
+          - generic [ref=e502]: Harris04251998
+          - generic [ref=e503]: •
+          - generic [ref=e504]: Feb 18, 2026, 04:33 PM
+        - generic [ref=e505]: hey, it's tough when you've poured so much into something and aren't seeing traction. you mentioned people saying "this is cool" but then nothing happens, which is a super common pattern. i've found that often, the "cool" factor doesn't directly translate to solving an urgent pain point that someone is willing to pay for \*right now\*. for the next 30 days, maybe try shifting focus from describing the product's coolness to deeply understanding the \*specific\* problems your ideal customer faces that your product solves. instead of asking "what do you think of this," try asking "how are you currently dealing with X?" or "what's the biggest headache you have with Y?" it sounds small, but it can unlock much clearer value propositions and uncover people who are actively looking for a solution, not just admiring a clever one. also, stop offering broad trials and start offering highly targeted demos or consultations that address a specific pain you've uncovered with that person.
+        - generic [ref=e506]:
+          - generic [ref=e507]: 📄
+          - generic [ref=e508]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e509]:
+          - generic [ref=e511]: Hacker News
+          - link "View Source" [ref=e512] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o61texo/
+            - img [ref=e513]
+            - text: View Source
+      - generic [ref=e517]:
+        - generic [ref=e520]:
+          - generic [ref=e522]: "Y"
+          - generic [ref=e523]: Harris04251998
+          - generic [ref=e524]: •
+          - generic [ref=e525]: Feb 18, 2026, 04:08 PM
+        - generic [ref=e526]: man, i feel this. getting those first few users is definitely a whole different beast than building the thing itself. for me, the breakthrough wasn't just \*where\* i looked, but \*how\* i looked. instead of broad searches, i started digging into very specific subreddits where folks were actively complaining about the exact problem my product solves. the key was finding those high-intent signals – not just someone saying "ugh, this is annoying," but someone saying "i'm looking for a solution that does X" or mentioning budget constraints. it took a lot of manual sifting at first, but once i figured out what keywords and phrases really indicated buying intent, it became much more efficient. then it was about engaging authentically in those threads, offering value \*before\* ever mentioning my solution. it's a slower burn than ads, but the quality of those early users was way higher.
+        - generic [ref=e527]:
+          - generic [ref=e528]: 📄
+          - generic [ref=e529]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e530]:
+          - generic [ref=e532]: Hacker News
+          - link "View Source" [ref=e533] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o61p1l6/
+            - img [ref=e534]
+            - text: View Source
+      - generic [ref=e538]:
+        - generic [ref=e541]:
+          - generic [ref=e543]: "Y"
+          - generic [ref=e544]: srivatsamudumby
+          - generic [ref=e545]: •
+          - generic [ref=e546]: Feb 18, 2026, 09:01 AM
+        - generic [ref=e547]: my first 50 came from hitting up niche slack communities and offering a free trial. i also posted in relevnt subreddits and asked early users for feedback. word of mouth from those who actually needed the tool did the heavy lifting.
+        - generic [ref=e548]:
+          - generic [ref=e549]: 📄
+          - generic [ref=e550]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e551]:
+          - generic [ref=e553]: Hacker News
+          - link "View Source" [ref=e554] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o609wmb/
+            - img [ref=e555]
+            - text: View Source
+      - generic [ref=e559]:
+        - generic [ref=e562]:
+          - generic [ref=e564]: "Y"
+          - generic [ref=e565]: product_monster
+          - generic [ref=e566]: •
+          - generic [ref=e567]: Feb 18, 2026, 07:31 AM
+        - generic [ref=e568]: Smile and dial. 📲
+        - generic [ref=e569]:
+          - generic [ref=e570]: 📄
+          - generic [ref=e571]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e572]:
+          - generic [ref=e574]: Hacker News
+          - link "View Source" [ref=e575] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5zxl27/
+            - img [ref=e576]
+            - text: View Source
+      - generic [ref=e580]:
+        - generic [ref=e583]:
+          - generic [ref=e585]: "Y"
+          - generic [ref=e586]: Medium-Carrot9771
+          - generic [ref=e587]: •
+          - generic [ref=e588]: Feb 18, 2026, 07:12 AM
+        - generic [ref=e589]: Yep, you're not wrong, building is the easy bit. For us, content eventually worked, but man, the sheer effort to get enough quality stuff out there that actually ranked for relevant terms was nuts. We literally use Opinly internally now to automate a lot of that SEO content creation and optimization because doing it all manually is just not sustainable for a small team trying to scale.
+        - generic [ref=e590]:
+          - generic [ref=e591]: 📄
+          - generic [ref=e592]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e593]:
+          - generic [ref=e595]: Hacker News
+          - link "View Source" [ref=e596] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5zuqyd/
+            - img [ref=e597]
+            - text: View Source
+      - generic [ref=e601]:
+        - generic [ref=e604]:
+          - generic [ref=e606]: "Y"
+          - generic [ref=e607]: LegalWait6057
+          - generic [ref=e608]: •
+          - generic [ref=e609]: Feb 18, 2026, 06:57 AM
+        - generic [ref=e610]: A lot of people try everything at once, but what worked for me was picking one specific type of user and obsessing over them. I reached out manually, asked for feedback, tweaked the product, then went back to the same type of person again. It was repetitive and slow, but that tight loop made the message clearer and conversions improved without adding new channels.
+        - generic [ref=e611]:
+          - generic [ref=e612]: 📄
+          - generic [ref=e613]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e614]:
+          - generic [ref=e616]: Hacker News
+          - link "View Source" [ref=e617] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5zsjq2/
+            - img [ref=e618]
+            - text: View Source
+      - generic [ref=e622]:
+        - generic [ref=e625]:
+          - generic [ref=e627]: "Y"
+          - generic [ref=e628]: nhrtrix
+          - generic [ref=e629]: •
+          - generic [ref=e630]: Feb 18, 2026, 05:06 AM
+        - generic [ref=e631]: through Reddit and X... so far only have around 13+ users on my first DevTool extension for both Chrome and Firefox
+        - generic [ref=e632]:
+          - generic [ref=e633]: 📄
+          - generic [ref=e634]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e635]:
+          - generic [ref=e637]: Hacker News
+          - link "View Source" [ref=e638] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5z9732/
+            - img [ref=e639]
+            - text: View Source
+      - generic [ref=e643]:
+        - generic [ref=e646]:
+          - generic [ref=e648]: "Y"
+          - generic [ref=e649]: Sharp_Animal
+          - generic [ref=e650]: •
+          - generic [ref=e651]: Feb 18, 2026, 05:00 AM
+        - generic [ref=e652]: getting the first 50 is super hand-to-hand. what worked for me was hanging in niche communities where the pain shows up, DMing folks with a 60s screen share and offering 10 min white-glove setup - ask for blunt feedback, not a signup. for my own thing (smarter.day - tasks, events and habits in one place) the first 50 came from build-in-public posts and warm intros, then i asked each happy user for 1 intro and it grew alot more predictably.
+        - generic [ref=e653]:
+          - generic [ref=e654]: 📄
+          - generic [ref=e655]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e656]:
+          - generic [ref=e658]: Hacker News
+          - link "View Source" [ref=e659] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5z80zt/
+            - img [ref=e660]
+            - text: View Source
+      - generic [ref=e664]:
+        - generic [ref=e667]:
+          - generic [ref=e669]: "Y"
+          - generic [ref=e670]: Bottaniud2025
+          - generic [ref=e671]: •
+          - generic [ref=e672]: Feb 18, 2026, 04:56 AM
+        - generic [ref=e673]: Posting on X mainly
+        - generic [ref=e674]:
+          - generic [ref=e675]: 📄
+          - generic [ref=e676]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e677]:
+          - generic [ref=e679]: Hacker News
+          - link "View Source" [ref=e680] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5z7asj/
+            - img [ref=e681]
+            - text: View Source
+      - generic [ref=e685]:
+        - generic [ref=e688]:
+          - generic [ref=e690]: "Y"
+          - generic [ref=e691]: Odd_Cell_3454
+          - generic [ref=e692]: •
+          - generic [ref=e693]: Feb 18, 2026, 02:51 AM
+        - generic [ref=e694]: Through X, we went to threads about our niche + comp pages and started reaching out to users there. if you want to be a bit more efficient, you can scrape the followers of competitors and curate a list. either way, the first 50, heck 100 users will be scrappier than expected especially if boostrapping.
+        - generic [ref=e695]:
+          - generic [ref=e696]: 📄
+          - generic [ref=e697]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e698]:
+          - generic [ref=e700]: Hacker News
+          - link "View Source" [ref=e701] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5yjybg/
+            - img [ref=e702]
+            - text: View Source
+      - generic [ref=e706]:
+        - generic [ref=e709]:
+          - generic [ref=e711]: "Y"
+          - generic [ref=e712]: MundaneBase2915
+          - generic [ref=e713]: •
+          - generic [ref=e714]: Feb 18, 2026, 02:10 AM
+        - generic [ref=e715]: Honestly your first 50 users mostly come from volume and observation. You try things, some work a bit, others don’t at all, and you adjust. The trap is doing things without really knowing if they help or not man My first users came from Reddit, Indie Hackers, and some random posts. Nothing magical haha. But the most important thing is seeing what actually improves your situation, otherwise you just repeat bad actions without realizing it. That’s exactly why I built Decimly, to clearly see whether my actions were moving things forward or not. At the beginning it’s just testing, observing, and continuing what shows positive signals. Yeah it’s simpler than it looks
+        - generic [ref=e716]:
+          - generic [ref=e717]: 📄
+          - generic [ref=e718]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e719]:
+          - generic [ref=e721]: Hacker News
+          - link "View Source" [ref=e722] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5yciwi/
+            - img [ref=e723]
+            - text: View Source
+      - generic [ref=e727]:
+        - generic [ref=e730]:
+          - generic [ref=e732]: "Y"
+          - generic [ref=e733]: FlatNarrator
+          - generic [ref=e734]: •
+          - generic [ref=e735]: Feb 18, 2026, 01:27 AM
+        - generic [ref=e736]: i hit 50 by sliding into niche reddit threads where folks were whining about the exact pain point, dropped a free beta link and actually replied to every reply
+        - generic [ref=e737]:
+          - generic [ref=e738]: 📄
+          - generic [ref=e739]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e740]:
+          - generic [ref=e742]: Hacker News
+          - link "View Source" [ref=e743] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5y4dg4/
+            - img [ref=e744]
+            - text: View Source
+      - generic [ref=e748]:
+        - generic [ref=e751]:
+          - generic [ref=e753]: "Y"
+          - generic [ref=e754]: _jorgia_
+          - generic [ref=e755]: •
+          - generic [ref=e756]: Feb 18, 2026, 12:56 AM
+        - generic [ref=e757]: documenting your build &amp; growth on twitter. especially in the ‘build in public’ communities
+        - generic [ref=e758]:
+          - generic [ref=e759]: 📄
+          - generic [ref=e760]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e761]:
+          - generic [ref=e763]: Hacker News
+          - link "View Source" [ref=e764] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xxy08/
+            - img [ref=e765]
+            - text: View Source
+      - generic [ref=e769]:
+        - generic [ref=e772]:
+          - generic [ref=e774]: "Y"
+          - generic [ref=e775]: HMM0012
+          - generic [ref=e776]: •
+          - generic [ref=e777]: Feb 18, 2026, 12:18 AM
+        - generic [ref=e778]: Direct emails, one by one, took way longer than we wanted, but every step was worth it
+        - generic [ref=e779]:
+          - generic [ref=e780]: 📄
+          - generic [ref=e781]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e782]:
+          - generic [ref=e784]: Hacker News
+          - link "View Source" [ref=e785] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xpxxp/
+            - img [ref=e786]
+            - text: View Source
+      - generic [ref=e790]:
+        - generic [ref=e793]:
+          - generic [ref=e795]: "Y"
+          - generic [ref=e796]: whodoneit1
+          - generic [ref=e797]: •
+          - generic [ref=e798]: Feb 18, 2026, 12:06 AM
+        - generic [ref=e799]: I would try doing posts on different platforms to figure our where your users / target market is at. Then you could invest in paid ads. Cold outreach can work but it's a grind usually. If you want to join a community of builders where we are sharing development / marketing ideas join up [https://discord.gg/kv8WCTeTWV](https://discord.gg/kv8WCTeTWV) \-Cheers
+        - generic [ref=e800]:
+          - generic [ref=e801]: 📄
+          - generic [ref=e802]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e803]:
+          - generic [ref=e805]: Hacker News
+          - link "View Source" [ref=e806] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xncjc/
+            - img [ref=e807]
+            - text: View Source
+      - generic [ref=e811]:
+        - generic [ref=e814]:
+          - generic [ref=e816]: "Y"
+          - generic [ref=e817]: Kooky-Designer-2408
+          - generic [ref=e818]: •
+          - generic [ref=e819]: Feb 18, 2026, 12:00 AM
+        - generic [ref=e820]: Getting those first 50 users is definitely the hardest hurdle! Most people overlook the power of organic conversations on Reddit and X. I've been using a tool that automates high-quality engagement and social proof specifically for SaaS brands, and it makes the 'user acquisition' part much smoother. It really helps build authority without spending hours manually commenting. Happy to share more if you're looking for automation ideas
+        - generic [ref=e821]:
+          - generic [ref=e822]: 📄
+          - generic [ref=e823]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e824]:
+          - generic [ref=e826]: Hacker News
+          - link "View Source" [ref=e827] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xm47c/
+            - img [ref=e828]
+            - text: View Source
+      - generic [ref=e832]:
+        - generic [ref=e835]:
+          - generic [ref=e837]: "Y"
+          - generic [ref=e838]: eibrahim
+          - generic [ref=e839]: •
+          - generic [ref=e840]: Feb 17, 2026, 11:47 PM
+        - generic [ref=e841]: one thing i learned the hard way is that your first 50 users almost never come from the same channel. for me it was a mix of answering questions in niche subreddits, a couple linkedin posts that hit, and literally DMing people who were complaning about the problem i was solving. none of it scaled but thats kind of the point early on. the people who stuck around longest were the ones i had actual conversations with before they ever signed up.
+        - generic [ref=e842]:
+          - generic [ref=e843]: 📄
+          - generic [ref=e844]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e845]:
+          - generic [ref=e847]: Hacker News
+          - link "View Source" [ref=e848] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xj975/
+            - img [ref=e849]
+            - text: View Source
+      - generic [ref=e853]:
+        - generic [ref=e856]:
+          - generic [ref=e858]: "Y"
+          - generic [ref=e859]: vuongagiflow
+          - generic [ref=e860]: •
+          - generic [ref=e861]: Feb 17, 2026, 11:32 PM
+        - generic [ref=e862]: "First 50 for me came from “public complaint → fix → direct link”. I’d find people actively complaining about the exact problem on Reddit/Twitter, then message: “Saw you mention X. I built a small tool for that. If it helps, here’s the link.” No pitch deck, no funnel. Cold outreach to random lists was a graveyard. This worked because it was straight problem-solution matching."
+        - generic [ref=e863]:
+          - generic [ref=e864]: 📄
+          - generic [ref=e865]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e866]:
+          - generic [ref=e868]: Hacker News
+          - link "View Source" [ref=e869] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xg2of/
+            - img [ref=e870]
+            - text: View Source
+      - generic [ref=e874]:
+        - generic [ref=e877]:
+          - generic [ref=e879]: "Y"
+          - generic [ref=e880]: kram1505
+          - generic [ref=e881]: •
+          - generic [ref=e882]: Feb 17, 2026, 11:29 PM
+        - generic [ref=e883]: "**Cold outreach:** biggest lever at early stage. Pick target companies, send short emails offering **1-hour free consultancy**. Give them **2–3 actionable steps** they can implement immediately (automation, outreach, easy wins). Even cold, you’re giving real value—people notice. **Paid ads:** only if you have budget. If you’re starting with $500, usually **not worth it**. Lead generation costs money, and a 10% reply rate is already amazing. **Content:** I prefer **X (Twitter)** or **Reddit**. Share your journey, explain what you learned, respond to comments—show you’re real and helpful. **Key:** structure, consistency, and knowing who’s cold vs. hot. Value first, pitch second."
+        - generic [ref=e884]:
+          - generic [ref=e885]: 📄
+          - generic [ref=e886]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e887]:
+          - generic [ref=e889]: Hacker News
+          - link "View Source" [ref=e890] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xfizd/
+            - img [ref=e891]
+            - text: View Source
+      - generic [ref=e895]:
+        - generic [ref=e898]:
+          - generic [ref=e900]: "Y"
+          - generic [ref=e901]: locknetvpn
+          - generic [ref=e902]: •
+          - generic [ref=e903]: Feb 17, 2026, 11:25 PM
+        - generic [ref=e904]: Mostly i did cold outreach, I have 150 users now, only £295MRR (roughly $400MRR). It's taken 4 months to get there and its gradually climbing around 5 users per week as it stands. Up from.an average 4 last month, so i'm slowly gaining traction but cold emails, thats been my whole game.
+        - generic [ref=e905]:
+          - generic [ref=e906]: 📄
+          - generic [ref=e907]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e908]:
+          - generic [ref=e910]: Hacker News
+          - link "View Source" [ref=e911] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xenqs/
+            - img [ref=e912]
+            - text: View Source
+      - generic [ref=e916]:
+        - generic [ref=e919]:
+          - generic [ref=e921]: "Y"
+          - generic [ref=e922]: Udbhav81
+          - generic [ref=e923]: •
+          - generic [ref=e924]: Feb 17, 2026, 11:23 PM
+        - generic [ref=e925]: Congrats on the launch! For B2B SaaS, we found that automating 'warm' outreach worked best. Instead of cold DMs, we built a system that monitored relevant intent keywords (like 'hiring [role]') and alerted us to engage manually. It’s much higher conversion than spray-and-pray. If you're targeting a specific niche, I might have some search queries you can use to find them.
+        - generic [ref=e926]:
+          - generic [ref=e927]: 📄
+          - generic [ref=e928]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e929]:
+          - generic [ref=e931]: Hacker News
+          - link "View Source" [ref=e932] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5xe89p/
+            - img [ref=e933]
+            - text: View Source
+      - generic [ref=e937]:
+        - generic [ref=e940]:
+          - generic [ref=e942]: "Y"
+          - generic [ref=e943]: Numerous_Display_531
+          - generic [ref=e944]: •
+          - generic [ref=e945]: Feb 17, 2026, 11:00 PM
+        - generic [ref=e946]: I'll let you know when I get there lol I currently have my 1 sub. Set to renew on the 23rd, haven't cancelled yet haha
+        - generic [ref=e947]:
+          - generic [ref=e948]: 📄
+          - generic [ref=e949]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e950]:
+          - generic [ref=e952]: Hacker News
+          - link "View Source" [ref=e953] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5x9ikh/
+            - img [ref=e954]
+            - text: View Source
+      - generic [ref=e958]:
+        - generic [ref=e961]:
+          - generic [ref=e963]: "Y"
+          - generic [ref=e964]: Immediate_Bear_6132
+          - generic [ref=e965]: •
+          - generic [ref=e966]: Feb 17, 2026, 10:55 PM
+        - generic [ref=e967]: "cold calling everyone wants some magical organic strategy but reality is i just called people made a list of 200 companies that fit my icp, found decision makers, called them script was super simple: \"hey we built \\[product\\] for \\[specific problem\\], does that sound relevant to you?\" conversion was shit at first like 1-2% but you learn fast what resonates and what doesnt got my first 30 customers in like 6 weeks just grinding calls every day after that those customers referred others and i could use their logos for credibility which made the next 50 way easier content and communities are great long term but when you need users NOW and have zero proof cold outreach is the only thing that works fast enough paid ads with no social proof is just burning money"
+        - generic [ref=e968]:
+          - generic [ref=e969]: 📄
+          - generic [ref=e970]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e971]:
+          - generic [ref=e973]: Hacker News
+          - link "View Source" [ref=e974] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5x8ckl/
+            - img [ref=e975]
+            - text: View Source
+      - generic [ref=e979]:
+        - generic [ref=e982]:
+          - generic [ref=e984]: "Y"
+          - generic [ref=e985]: TurboDocx
+          - generic [ref=e986]: •
+          - generic [ref=e987]: Feb 17, 2026, 10:48 PM
+        - generic [ref=e988]: Make it free, index on the web, and make sure its things people want :)
+        - generic [ref=e989]:
+          - generic [ref=e990]: 📄
+          - generic [ref=e991]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e992]:
+          - generic [ref=e994]: Hacker News
+          - link "View Source" [ref=e995] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5x6wq9/
+            - img [ref=e996]
+            - text: View Source
+      - generic [ref=e1000]:
+        - generic [ref=e1003]:
+          - generic [ref=e1005]: "Y"
+          - generic [ref=e1006]: Nervous_Car1093
+          - generic [ref=e1007]: •
+          - generic [ref=e1008]: Feb 17, 2026, 10:24 PM
+        - generic [ref=e1009]: First 50 are hand-forged, not mass- produced.
+        - generic [ref=e1010]:
+          - generic [ref=e1011]: 📄
+          - generic [ref=e1012]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1013]:
+          - generic [ref=e1015]: Hacker News
+          - link "View Source" [ref=e1016] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5x1tx4/
+            - img [ref=e1017]
+            - text: View Source
+      - generic [ref=e1021]:
+        - generic [ref=e1024]:
+          - generic [ref=e1026]: "Y"
+          - generic [ref=e1027]: iamhereagainlol
+          - generic [ref=e1028]: •
+          - generic [ref=e1029]: Feb 17, 2026, 10:21 PM
+        - generic [ref=e1030]: Most of mine are coming from seo Because I started forcing on seo super early and built a bunch of free tools But the first 5 were definitely from dms and building in public on X
+        - generic [ref=e1031]:
+          - generic [ref=e1032]: 📄
+          - generic [ref=e1033]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1034]:
+          - generic [ref=e1036]: Hacker News
+          - link "View Source" [ref=e1037] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5x12dj/
+            - img [ref=e1038]
+            - text: View Source
+      - generic [ref=e1042]:
+        - generic [ref=e1045]:
+          - generic [ref=e1047]: "Y"
+          - generic [ref=e1048]: Fantastic_Tailor_948
+          - generic [ref=e1049]: •
+          - generic [ref=e1050]: Feb 17, 2026, 10:15 PM
+        - generic [ref=e1051]: I'm also kind of similar situation
+        - generic [ref=e1052]:
+          - generic [ref=e1053]: 📄
+          - generic [ref=e1054]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1055]:
+          - generic [ref=e1057]: Hacker News
+          - link "View Source" [ref=e1058] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5wzynm/
+            - img [ref=e1059]
+            - text: View Source
+      - generic [ref=e1063]:
+        - generic [ref=e1066]:
+          - generic [ref=e1068]: "Y"
+          - generic [ref=e1069]: Master_Equipment_841
+          - generic [ref=e1070]: •
+          - generic [ref=e1071]: Feb 17, 2026, 10:09 PM
+        - generic [ref=e1072]: you spent years in learning &amp; practicing building; imagine how much time you will need to reach the same skill level on marketing.
+        - generic [ref=e1073]:
+          - generic [ref=e1074]: 📄
+          - generic [ref=e1075]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1076]:
+          - generic [ref=e1078]: Hacker News
+          - link "View Source" [ref=e1079] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5wyltp/
+            - img [ref=e1080]
+            - text: View Source
+      - generic [ref=e1084]:
+        - generic [ref=e1087]:
+          - generic [ref=e1089]: "Y"
+          - generic [ref=e1090]: daniellachev
+          - generic [ref=e1091]: •
+          - generic [ref=e1092]: Feb 17, 2026, 08:43 PM
+        - generic [ref=e1093]: Find your exact ICP and join the places they complain. Answer those threads with actual value and drop an invite link once the conversation is warm. Treat that first win as a short case study and the next 50 will follow because people tell their friends.
+        - generic [ref=e1094]:
+          - generic [ref=e1095]: 📄
+          - generic [ref=e1096]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1097]:
+          - generic [ref=e1099]: Hacker News
+          - link "View Source" [ref=e1100] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5wfy1t/
+            - img [ref=e1101]
+            - text: View Source
+      - generic [ref=e1105]:
+        - generic [ref=e1108]:
+          - generic [ref=e1110]: "Y"
+          - generic [ref=e1111]: Gold-Appearance-6418
+          - generic [ref=e1112]: •
+          - generic [ref=e1113]: Feb 17, 2026, 08:26 PM
+        - generic [ref=e1114]: First five I gave away for free. Then I asked them to tell their friends, and provided them each with two vouchers for half off of the service. Then asked them to tell their friends without voucher and had 50 users before my 3rd month after launch. To be fair, I had a very specific target user base and solved a very annoying and costly pain point in the market with only 2 serious competitors who are not utilizing technology to the efficiency level or quality of services I provide.
+        - generic [ref=e1115]:
+          - generic [ref=e1116]: 📄
+          - generic [ref=e1117]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1118]:
+          - generic [ref=e1120]: Hacker News
+          - link "View Source" [ref=e1121] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5wc95j/
+            - img [ref=e1122]
+            - text: View Source
+      - generic [ref=e1126]:
+        - generic [ref=e1129]:
+          - generic [ref=e1131]: "Y"
+          - generic [ref=e1132]: Helpful-Direction291
+          - generic [ref=e1133]: •
+          - generic [ref=e1134]: Feb 17, 2026, 08:25 PM
+        - generic [ref=e1135]: Cold outreach worked best. manually DM’d 100–150 people who clearly had the problem, offer free access, and ask for feedback — not sales. Communities help you too, but only when you share useful insights and mentioned the product naturally. Paid ads were useless that early.
+        - generic [ref=e1136]:
+          - generic [ref=e1137]: 📄
+          - generic [ref=e1138]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1139]:
+          - generic [ref=e1141]: Hacker News
+          - link "View Source" [ref=e1142] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5wc1cw/
+            - img [ref=e1143]
+            - text: View Source
+      - generic [ref=e1147]:
+        - generic [ref=e1150]:
+          - generic [ref=e1152]: "Y"
+          - generic [ref=e1153]: Jealous_Ratio346
+          - generic [ref=e1154]: •
+          - generic [ref=e1155]: Feb 17, 2026, 08:23 PM
+        - generic [ref=e1156]: good idea is to find groups on facebook, try paid ads with small $ per day - just to see if theres any interest :) cold outreach might be a good idea too. Everything depends from the niche of your product. Is it btb or btc ?
+        - generic [ref=e1157]:
+          - generic [ref=e1158]: 📄
+          - generic [ref=e1159]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1160]:
+          - generic [ref=e1162]: Hacker News
+          - link "View Source" [ref=e1163] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5wbquv/
+            - img [ref=e1164]
+            - text: View Source
+      - generic [ref=e1168]:
+        - generic [ref=e1171]:
+          - generic [ref=e1173]: "Y"
+          - generic [ref=e1174]: Public-Tomorrow3731
+          - generic [ref=e1175]: •
+          - generic [ref=e1176]: Feb 17, 2026, 08:04 PM
+        - generic [ref=e1177]: Reddit
+        - generic [ref=e1178]:
+          - generic [ref=e1179]: 📄
+          - generic [ref=e1180]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1181]:
+          - generic [ref=e1183]: Hacker News
+          - link "View Source" [ref=e1184] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5w7ttu/
+            - img [ref=e1185]
+            - text: View Source
+      - generic [ref=e1189]:
+        - generic [ref=e1192]:
+          - generic [ref=e1194]: "Y"
+          - generic [ref=e1195]: TRO_KIK
+          - generic [ref=e1196]: •
+          - generic [ref=e1197]: Feb 17, 2026, 07:47 PM
+        - generic [ref=e1198]: By building recognition while being immersed in the niche as a hobby first. Had almost a thousand users day 1, 50+ paying.
+        - generic [ref=e1199]:
+          - generic [ref=e1200]: 📄
+          - generic [ref=e1201]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1202]:
+          - generic [ref=e1204]: Hacker News
+          - link "View Source" [ref=e1205] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5w4dp6/
+            - img [ref=e1206]
+            - text: View Source
+      - generic [ref=e1210]:
+        - generic [ref=e1213]:
+          - generic [ref=e1215]: "Y"
+          - generic [ref=e1216]: Available-Mud-4095
+          - generic [ref=e1217]: •
+          - generic [ref=e1218]: Feb 17, 2026, 07:41 PM
+        - generic [ref=e1219]: Getting the first 50 users is less about channels and more about clarity — who it’s really for and what problem it solves. I’ve been building something called [Human OS Copilot](https://chatgpt.com/g/g-692bc764dd148191b601fb5aa8cc3611-human-os-copilot) — it helps founders think clearly, plan sustainably, and avoid building from panic. If anyone here is in the “built it, now what?” stage, I’d love to offer access to test it. Especially curious what early-stage SaaS builders think.
+        - generic [ref=e1220]:
+          - generic [ref=e1221]: 📄
+          - generic [ref=e1222]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1223]:
+          - generic [ref=e1225]: Hacker News
+          - link "View Source" [ref=e1226] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5w3bnk/
+            - img [ref=e1227]
+            - text: View Source
+      - generic [ref=e1231]:
+        - generic [ref=e1234]:
+          - generic [ref=e1236]: "Y"
+          - generic [ref=e1237]: Classic-Example190
+          - generic [ref=e1238]: •
+          - generic [ref=e1239]: Feb 17, 2026, 07:36 PM
+        - generic [ref=e1240]: It’s not either the paid ad or cold outreach, there is a mistake that everyone here understands it in the wrong way, you don’t just have an idea that sounds great in your mind and no one needs it , and I think the most easy part for programers who build saaS that they are extremely good at building ideas not generating them! The most important part which is the easiest is the idea of your business and the second one is timing, so if you have an idea but the time is wrong you will have many issues getting customers, the first thing that you should focus on is anyone there really needs it and willing to pay for ? If no, do a market research about another idea If yes , then we move to the next step , if there are people need my business how many they are? Is the market share is big enough to work on If yes , then write things that your business do better then your competitors and check if your targeted audience really need them After you write it you are already 80% ahead from achieving your goal Then the marketing and getting users will be the easier part Just use these things that you are doing it better then competitors and start making content about them Start advertising , ambassador strategy, organic content You will see the real growth then
+        - generic [ref=e1241]:
+          - generic [ref=e1242]: 📄
+          - generic [ref=e1243]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1244]:
+          - generic [ref=e1246]: Hacker News
+          - link "View Source" [ref=e1247] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5w2a85/
+            - img [ref=e1248]
+            - text: View Source
+      - generic [ref=e1252]:
+        - generic [ref=e1255]:
+          - generic [ref=e1257]: "Y"
+          - generic [ref=e1258]: Negative-Fly-4659
+          - generic [ref=e1259]: •
+          - generic [ref=e1260]: Feb 17, 2026, 07:26 PM
+        - generic [ref=e1261]: "What worked for me was shifting from \"building mode\" to \"conversation mode\" as early as possible. Instead of waiting for the product to be perfect, I started talking to potential users 2 weeks after the first line of code. Here's the breakdown of my first 50: - 15 came from direct outreach in communities like this one (not pitching, just genuinely helping, then mentioning what I'm building when relevant) - 12 came from a single Hacker News \"Show HN\" post that hit the right nerve - 10 were referrals from early users who got value quickly - 8 came from writing about the problem I was solving (not the solution) on my blog - 5 from Twitter/X building in public threads The pattern? Every single one came from showing up consistently where my ICP hangs out and providing value first. No paid ads, no cold email blasts. Biggest lesson: your first 50 don't need a perfect product. They need to feel heard and see that you're shipping fast based on their feedback. The faster your iteration loop, the faster word spreads. What's your ICP and where do they currently hang out online? That usually tells you exactly where to focus."
+        - generic [ref=e1262]:
+          - generic [ref=e1263]: 📄
+          - generic [ref=e1264]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1265]:
+          - generic [ref=e1267]: Hacker News
+          - link "View Source" [ref=e1268] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5w0gf2/
+            - img [ref=e1269]
+            - text: View Source
+      - generic [ref=e1273]:
+        - generic [ref=e1276]:
+          - generic [ref=e1278]: "Y"
+          - generic [ref=e1279]: quietoddsreader
+          - generic [ref=e1280]: •
+          - generic [ref=e1281]: Feb 17, 2026, 07:22 PM
+        - generic [ref=e1282]: first 50 usually come from conversations, not ads.. cold outreach works if it’s tight and specific, not spammy.. communities can work if u’re already part of them.. what helped us most was talking to users before the product was polished and iterating with them weekly.. building was easy, earning attention was the real work.
+        - generic [ref=e1283]:
+          - generic [ref=e1284]: 📄
+          - generic [ref=e1285]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1286]:
+          - generic [ref=e1288]: Hacker News
+          - link "View Source" [ref=e1289] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vzn9e/
+            - img [ref=e1290]
+            - text: View Source
+      - generic [ref=e1294]:
+        - generic [ref=e1297]:
+          - generic [ref=e1299]: "Y"
+          - generic [ref=e1300]: Majestic_Hornet_4194
+          - generic [ref=e1301]: •
+          - generic [ref=e1302]: Feb 17, 2026, 07:06 PM
+        - generic [ref=e1303]: First 50 came from targeted outreach and communities, not ads. I picked one narrow ICP, built a small list, and sent short emails asking one simple question, then followed up a few times. For list building I used SocLeads to pull fresh contacts from Google Maps and socials so I was not guessing or using stale databases. Once a few people tried it, I used their feedback as social proof and that made the next 20 to 30 way easier.
+        - generic [ref=e1304]:
+          - generic [ref=e1305]: 📄
+          - generic [ref=e1306]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1307]:
+          - generic [ref=e1309]: Hacker News
+          - link "View Source" [ref=e1310] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vwhvz/
+            - img [ref=e1311]
+            - text: View Source
+      - generic [ref=e1315]:
+        - generic [ref=e1318]:
+          - generic [ref=e1320]: "Y"
+          - generic [ref=e1321]: Inner_Warrior22
+          - generic [ref=e1322]: •
+          - generic [ref=e1323]: Feb 17, 2026, 07:02 PM
+        - generic [ref=e1324]: For us it was manual and kind of boring. We picked a super tight ICP, dev teams at 20 to 100 people dealing with security reviews, and just lived where they were already talking about that pain. No ads. Mostly direct conversations after seeing someone actively struggling with the problem. First 50 users came from maybe 200 real conversations. It did not scale at all, but it forced us to sharpen the pitch and understand what they would actually pay for.
+        - generic [ref=e1325]:
+          - generic [ref=e1326]: 📄
+          - generic [ref=e1327]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1328]:
+          - generic [ref=e1330]: Hacker News
+          - link "View Source" [ref=e1331] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vvpdp/
+            - img [ref=e1332]
+            - text: View Source
+      - generic [ref=e1336]:
+        - generic [ref=e1339]:
+          - generic [ref=e1341]: "Y"
+          - generic [ref=e1342]: Jaded-Evening-3115
+          - generic [ref=e1343]: •
+          - generic [ref=e1344]: Feb 17, 2026, 07:00 PM
+        - generic [ref=e1345]: For me, the shift happened when I stopped trying to “market a product” and started solving a specific person’s problem. My first handful of users didn’t come from scale tactics they came from conversations. I shared what I was building in small communities where the problem actually existed, not where SaaS founders hang out. A few DMs, a few honest posts, and asking for feedback instead of pushing signups made a big difference. Cold outreach worked better when it was framed as “Can I get your thoughts?” rather than “Try my tool.” The first 50 felt less like acquisition and more like collaboration.
+        - generic [ref=e1346]:
+          - generic [ref=e1347]: 📄
+          - generic [ref=e1348]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1349]:
+          - generic [ref=e1351]: Hacker News
+          - link "View Source" [ref=e1352] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vv6q4/
+            - img [ref=e1353]
+            - text: View Source
+      - generic [ref=e1357]:
+        - generic [ref=e1360]:
+          - generic [ref=e1362]: "Y"
+          - generic [ref=e1363]: tokyooprophet
+          - generic [ref=e1364]: •
+          - generic [ref=e1365]: Feb 17, 2026, 06:52 PM
+        - generic [ref=e1366]: Talking to friends / family to get first few users. Then email a random people you've took class with in school/uni few years ago. And if you have paid product, you should actually charge That's Sam Altman guide :)
+        - generic [ref=e1367]:
+          - generic [ref=e1368]: 📄
+          - generic [ref=e1369]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1370]:
+          - generic [ref=e1372]: Hacker News
+          - link "View Source" [ref=e1373] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vtig3/
+            - img [ref=e1374]
+            - text: View Source
+      - generic [ref=e1378]:
+        - generic [ref=e1381]:
+          - generic [ref=e1383]: "Y"
+          - generic [ref=e1384]: cesncn
+          - generic [ref=e1385]: •
+          - generic [ref=e1386]: Feb 17, 2026, 06:31 PM
+        - generic [ref=e1387]: "The short answer is: \"Over time\". There is no over night success."
+        - generic [ref=e1388]:
+          - generic [ref=e1389]: 📄
+          - generic [ref=e1390]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1391]:
+          - generic [ref=e1393]: Hacker News
+          - link "View Source" [ref=e1394] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vpah8/
+            - img [ref=e1395]
+            - text: View Source
+      - generic [ref=e1399]:
+        - generic [ref=e1402]:
+          - generic [ref=e1404]: "Y"
+          - generic [ref=e1405]: Balibaby17
+          - generic [ref=e1406]: •
+          - generic [ref=e1407]: Feb 17, 2026, 06:08 PM
+        - generic [ref=e1408]: Manual graft, we've often found cold email as a great way to start especially if targeting B2b but the product has to be strong I wouldnt touch paid traffic yet until you can confirm/validate ICP + PMF or else you'll just be putting money into a black hole
+        - generic [ref=e1409]:
+          - generic [ref=e1410]: 📄
+          - generic [ref=e1411]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1412]:
+          - generic [ref=e1414]: Hacker News
+          - link "View Source" [ref=e1415] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vkiiu/
+            - img [ref=e1416]
+            - text: View Source
+      - generic [ref=e1420]:
+        - generic [ref=e1423]:
+          - generic [ref=e1425]: "Y"
+          - generic [ref=e1426]: ralf-boltshauser
+          - generic [ref=e1427]: •
+          - generic [ref=e1428]: Feb 17, 2026, 05:55 PM
+        - generic [ref=e1429]: "I ran into the same problem. What helped most wasn’t trying to “get users” immediately, but running small experiments to understand who actually cares and what messaging resonates. I started running tiny paid tests (\\~$10/day) just to learn which problem framing and audience responded. That gave me much clearer direction on where to focus and what to change. I wrote up the approach I’m using here if you’re curious: [https://www.usemarketing.dev/](https://www.usemarketing.dev/)"
+        - generic [ref=e1430]:
+          - generic [ref=e1431]: 📄
+          - generic [ref=e1432]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1433]:
+          - generic [ref=e1435]: Hacker News
+          - link "View Source" [ref=e1436] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vhxbd/
+            - img [ref=e1437]
+            - text: View Source
+      - generic [ref=e1441]:
+        - generic [ref=e1444]:
+          - generic [ref=e1446]: "Y"
+          - generic [ref=e1447]: Consistent_Voice_732
+          - generic [ref=e1448]: •
+          - generic [ref=e1449]: Feb 17, 2026, 05:50 PM
+        - generic [ref=e1450]: Cold outreach+ fast iteration. I'd reach out, gets 5 calls, improve the product, repeat. It's slow but very high quality
+        - generic [ref=e1451]:
+          - generic [ref=e1452]: 📄
+          - generic [ref=e1453]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1454]:
+          - generic [ref=e1456]: Hacker News
+          - link "View Source" [ref=e1457] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vh1vh/
+            - img [ref=e1458]
+            - text: View Source
+      - generic [ref=e1462]:
+        - generic [ref=e1465]:
+          - generic [ref=e1467]: "Y"
+          - generic [ref=e1468]: Remarkable-Garlic295
+          - generic [ref=e1469]: •
+          - generic [ref=e1470]: Feb 17, 2026, 05:50 PM
+        - generic [ref=e1471]: Getting your first users is usually hands on, direct outreach, niche communities, and content that actually solves a specific problem. Even agencies like Taktical Digital notice early traction comes from tight feedback loops, not broad campaigns.
+        - generic [ref=e1472]:
+          - generic [ref=e1473]: 📄
+          - generic [ref=e1474]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1475]:
+          - generic [ref=e1477]: Hacker News
+          - link "View Source" [ref=e1478] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vh0wv/
+            - img [ref=e1479]
+            - text: View Source
+      - generic [ref=e1483]:
+        - generic [ref=e1486]:
+          - generic [ref=e1488]: "Y"
+          - generic [ref=e1489]: Virtual_Frame_4952
+          - generic [ref=e1490]: •
+          - generic [ref=e1491]: Feb 17, 2026, 05:38 PM
+        - generic [ref=e1492]: Definitely do a product hunt launch!!!
+        - generic [ref=e1493]:
+          - generic [ref=e1494]: 📄
+          - generic [ref=e1495]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1496]:
+          - generic [ref=e1498]: Hacker News
+          - link "View Source" [ref=e1499] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5veqi9/
+            - img [ref=e1500]
+            - text: View Source
+      - generic [ref=e1504]:
+        - generic [ref=e1507]:
+          - generic [ref=e1509]: "Y"
+          - generic [ref=e1510]: Far_Move2785
+          - generic [ref=e1511]: •
+          - generic [ref=e1512]: Feb 17, 2026, 05:34 PM
+        - generic [ref=e1513]: Getting users is brutal. I feel you on that startup grind. This might not be your exact problem but I had huge conversion issues too. Turned out most of my drop off was from in-app browsers. When people click ads on Instagram/Facebook/TikTok they land in those app browsers and those things are terrible for checkout. No credit card autofills, no Apple Pay, and way slower. My conversion was 1.2% in those browsers vs 4% in Safari. Fix was routing people to their real browser before checkout. Saw 15% revenue lift from same ad spend. Check your analytics for conversion by browser. If Instagram or Facebook is way lower than Safari that's your leak. https://tryhoox.com handles the redirect automatically if you want to test it
+        - generic [ref=e1514]:
+          - generic [ref=e1515]: 📄
+          - generic [ref=e1516]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1517]:
+          - generic [ref=e1519]: Hacker News
+          - link "View Source" [ref=e1520] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vdw8l/
+            - img [ref=e1521]
+            - text: View Source
+      - generic [ref=e1525]:
+        - generic [ref=e1528]:
+          - generic [ref=e1530]: "Y"
+          - generic [ref=e1531]: New_Magician4336
+          - generic [ref=e1532]: •
+          - generic [ref=e1533]: Feb 17, 2026, 05:21 PM
+        - generic [ref=e1534]: Getting the first users was harder than building for me too. For my QR SaaS I did three simple things. First I talked directly to small businesses already using QR codes. Restaurants event organizers local stores. I asked what frustrated them. Most said they could not update content after printing and had zero analytics. That conversation itself converted a few early users. Second I joined communities and replied to posts about marketing and offline to online tracking. Instead of pitching I explained how dynamic updates and detailed analytics like location device and time actually help measure campaigns. That brought steady signups. Third I leaned into use cases. We support 18+ QR types like Website PDF WiFi Menu vCard and WhatsApp so I showed specific scenarios not just the product. Early users come from conversations not campaigns. If helpful here is what I am building https://qrforever.com/go/rd-reply
+        - generic [ref=e1535]:
+          - generic [ref=e1536]: 📄
+          - generic [ref=e1537]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1538]:
+          - generic [ref=e1540]: Hacker News
+          - link "View Source" [ref=e1541] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5vbl81/
+            - img [ref=e1542]
+            - text: View Source
+      - generic [ref=e1546]:
+        - generic [ref=e1549]:
+          - generic [ref=e1551]: "Y"
+          - generic [ref=e1552]: CurveNo5173
+          - generic [ref=e1553]: •
+          - generic [ref=e1554]: Feb 17, 2026, 05:05 PM
+        - generic [ref=e1555]: "All of you mentioned: \\- Building credibility by building content \\- Being active in the community \\- Using existing reaches on Linkedin for example \\- Talking about the problem and the solution with my friends \\- Paid ads"
+        - generic [ref=e1556]:
+          - generic [ref=e1557]: 📄
+          - generic [ref=e1558]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1559]:
+          - generic [ref=e1561]: Hacker News
+          - link "View Source" [ref=e1562] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5v8l8i/
+            - img [ref=e1563]
+            - text: View Source
+      - generic [ref=e1567]:
+        - generic [ref=e1570]:
+          - generic [ref=e1572]: "Y"
+          - generic [ref=e1573]: Constant_Session_66
+          - generic [ref=e1574]: •
+          - generic [ref=e1575]: Feb 17, 2026, 04:42 PM
+        - generic [ref=e1576]: "Still pre-launch myself, but here's what I've learned from talking to other founders and reading every post-mortem I can find: The pattern is almost always the same — the first 50 come from places where you already have context. Reddit threads where people complain about the exact problem. LinkedIn DMs to people you've actually worked with. Cold emails that reference something specific about their business. What doesn't work: posting on ProductHunt and hoping. Building a landing page with a waitlist and calling it traction. The uncomfortable truth is that the first 50 are basically manual sales. You're not scaling anything yet — you're validating that someone cares enough to use your thing. I'm building a B2B tool right now and my plan is dead simple: find 10 companies that have the exact pain point, reach out personally, offer free access in exchange for feedback. No ads, no content strategy yet. Just conversations. What's your product? The \"how\" depends a lot on who you're selling to."
+        - generic [ref=e1577]:
+          - generic [ref=e1578]: 📄
+          - generic [ref=e1579]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1580]:
+          - generic [ref=e1582]: Hacker News
+          - link "View Source" [ref=e1583] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5v4f2a/
+            - img [ref=e1584]
+            - text: View Source
+      - generic [ref=e1588]:
+        - generic [ref=e1591]:
+          - generic [ref=e1593]: "Y"
+          - generic [ref=e1594]: Nick_Kramer
+          - generic [ref=e1595]: •
+          - generic [ref=e1596]: Feb 17, 2026, 04:31 PM
+        - generic [ref=e1597]: "Been there. Building was the easy dopamine hit. Getting the first real users was mostly unsexy repetition. For Tooling Studio, what actually moved the needle was very targeted outreach. Not “hey try my app” messages. More like: find people who clearly live in Gmail (ops, sales, founders, EAs), mention the exact pain (“follow-ups die in the inbox”), and offer a quick setup &amp; feedback. A bunch of those turned into long-term users because they felt the value in their own workflow fast. LinkedIn helped too, but only when I posted super practical stuff (short clips of the tool solving one specific problem) and then had a normal conversation in DMs with anyone who engaged. Product Hunt was a nice spike and gave credibility, but the real win was the follow-up and onboarding after. What’s your product and who’s it for? I can tell you where I’d hunt for the first 50."
+        - generic [ref=e1598]:
+          - generic [ref=e1599]: 📄
+          - generic [ref=e1600]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1601]:
+          - generic [ref=e1603]: Hacker News
+          - link "View Source" [ref=e1604] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5v2i01/
+            - img [ref=e1605]
+            - text: View Source
+      - generic [ref=e1609]:
+        - generic [ref=e1612]:
+          - generic [ref=e1614]: "Y"
+          - generic [ref=e1615]: Weary-Wolverine-9301
+          - generic [ref=e1616]: •
+          - generic [ref=e1617]: Feb 17, 2026, 04:29 PM
+        - generic [ref=e1618]: "Same here, building was the easy part, getting users was the grind. What worked for me early on for keytomic: * LinkedIn outreach (targeted, short, and personal) * Posting on Reddit was hit-or-miss for me. Most of my posts got removed, it’s tough unless you really play by each sub’s rules, but if you can pull it off, it can work. * Affiliates can help too once you’ve got a couple happy users and a clear offer *I stayed away from paid ads until my messaging was already converting and I had a few real results to show.*"
+        - generic [ref=e1619]:
+          - generic [ref=e1620]: 📄
+          - generic [ref=e1621]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1622]:
+          - generic [ref=e1624]: Hacker News
+          - link "View Source" [ref=e1625] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5v2555/
+            - img [ref=e1626]
+            - text: View Source
+      - generic [ref=e1630]:
+        - generic [ref=e1633]:
+          - generic [ref=e1635]: "Y"
+          - generic [ref=e1636]: TasqAI_Official
+          - generic [ref=e1637]: •
+          - generic [ref=e1638]: Feb 17, 2026, 04:07 PM
+        - generic [ref=e1639]: Good luck!! The first 50 is the hardest part
+        - generic [ref=e1640]:
+          - generic [ref=e1641]: 📄
+          - generic [ref=e1642]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1643]:
+          - generic [ref=e1645]: Hacker News
+          - link "View Source" [ref=e1646] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5uyg7p/
+            - img [ref=e1647]
+            - text: View Source
+      - generic [ref=e1651]:
+        - generic [ref=e1654]:
+          - generic [ref=e1656]: "Y"
+          - generic [ref=e1657]: reddtimes101
+          - generic [ref=e1658]: •
+          - generic [ref=e1659]: Feb 17, 2026, 03:51 PM
+        - generic [ref=e1660]: Posting on Reddit
+        - generic [ref=e1661]:
+          - generic [ref=e1662]: 📄
+          - generic [ref=e1663]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1664]:
+          - generic [ref=e1666]: Hacker News
+          - link "View Source" [ref=e1667] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5uvvpf/
+            - img [ref=e1668]
+            - text: View Source
+      - generic [ref=e1672]:
+        - generic [ref=e1675]:
+          - generic [ref=e1677]: "Y"
+          - generic [ref=e1678]: Cap_Morg_19
+          - generic [ref=e1679]: •
+          - generic [ref=e1680]: Feb 17, 2026, 03:38 PM
+        - generic [ref=e1681]: The base is always through referrals who are reached out by the founders. After setting the strong base and generating a recurring revenue, jumping into hiring a sales team makes sense. A strong feedback and live platform adds value.
+        - generic [ref=e1682]:
+          - generic [ref=e1683]: 📄
+          - generic [ref=e1684]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1685]:
+          - generic [ref=e1687]: Hacker News
+          - link "View Source" [ref=e1688] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5utv4r/
+            - img [ref=e1689]
+            - text: View Source
+      - generic [ref=e1693]:
+        - generic [ref=e1696]:
+          - generic [ref=e1698]: "Y"
+          - generic [ref=e1699]: matfish22
+          - generic [ref=e1700]: •
+          - generic [ref=e1701]: Feb 17, 2026, 03:33 PM
+        - generic [ref=e1702]: I managed to get some (free) sign ups with reddit ads, but no usage so far. Getting started from 0 brand awareness is very challenging. Also religiously follow analytics and keep optimizing the landing page and on boarding to remove bottlenecks. Value should be immediately apparent and easy to sample.
+        - generic [ref=e1703]:
+          - generic [ref=e1704]: 📄
+          - generic [ref=e1705]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1706]:
+          - generic [ref=e1708]: Hacker News
+          - link "View Source" [ref=e1709] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ut7sk/
+            - img [ref=e1710]
+            - text: View Source
+      - generic [ref=e1714]:
+        - generic [ref=e1717]:
+          - generic [ref=e1719]: "Y"
+          - generic [ref=e1720]: Sudden_Text_7779
+          - generic [ref=e1721]: •
+          - generic [ref=e1722]: Feb 17, 2026, 03:30 PM
+        - generic [ref=e1723]: Just talking where your tool is kinda needed.
+        - generic [ref=e1724]:
+          - generic [ref=e1725]: 📄
+          - generic [ref=e1726]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1727]:
+          - generic [ref=e1729]: Hacker News
+          - link "View Source" [ref=e1730] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5usrrp/
+            - img [ref=e1731]
+            - text: View Source
+      - generic [ref=e1735]:
+        - generic [ref=e1738]:
+          - generic [ref=e1740]: "Y"
+          - generic [ref=e1741]: Acceptable_Mood8840
+          - generic [ref=e1742]: •
+          - generic [ref=e1743]: Feb 17, 2026, 03:03 PM
+        - generic [ref=e1744]: Building is definitely the easy part compared to finding people who actually care about your solution. I've seen most early wins come from going where your ideal users already hang out and actually helping them before pitching anything. Communities work but only if you're genuinely useful first. What problem does your SaaS solve and who feels that pain most?
+        - generic [ref=e1745]:
+          - generic [ref=e1746]: 📄
+          - generic [ref=e1747]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1748]:
+          - generic [ref=e1750]: Hacker News
+          - link "View Source" [ref=e1751] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5uozk1/
+            - img [ref=e1752]
+            - text: View Source
+      - generic [ref=e1756]:
+        - generic [ref=e1759]:
+          - generic [ref=e1761]: "Y"
+          - generic [ref=e1762]: SmallIntroduction345
+          - generic [ref=e1763]: •
+          - generic [ref=e1764]: Feb 17, 2026, 02:53 PM
+        - generic [ref=e1765]: One by one. It’s a slow grind but you just gotta start. Cold DMs across all your channels. Warm intros. Posting on socials. Providing value. Trying diff content types. Being generous and helpful and making connections. Get in communities. Go on podcasts. Interview other founders or clients and create content talking about pain points. Just push push push 🚀🚀🚀
+        - generic [ref=e1766]:
+          - generic [ref=e1767]: 📄
+          - generic [ref=e1768]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1769]:
+          - generic [ref=e1771]: Hacker News
+          - link "View Source" [ref=e1772] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5unk0b/
+            - img [ref=e1773]
+            - text: View Source
+      - generic [ref=e1777]:
+        - generic [ref=e1780]:
+          - generic [ref=e1782]: "Y"
+          - generic [ref=e1783]: Negative-Fly-4659
+          - generic [ref=e1784]: •
+          - generic [ref=e1785]: Feb 17, 2026, 02:35 PM
+        - generic [ref=e1786]: "Zero customers + lots of “this is cool” usually means: you’re showing it to polite people, not to buyers in a burning use-case. If I had 30 days, I’d do: 1) Pick ONE ICP + ONE urgent trigger (a deadline, compliance, month-end, outage, churn, etc). Ignore everyone else. 2) Rewrite the pitch as “when X happens, we do Y in Z minutes” (not features). 3) Build a list of 100 targets where the trigger is common. Do manual research so each outreach line shows you understand their context. 4) Run 20 live calls (not demos). Goal: map current workflow + what they tried + what it costs them. 5) Offer a paid pilot / setup fee that’s easy to say yes to (even small). If they won’t pay anything, you probably don’t have a must-have. 6) If they say “cool” -&gt; ask the disqualifier: “what would need to be true for you to pay for this this month?” 7) Stop: broad cold email blasts, pricing tweaks, landing page churn, feature shipping without a specific buyer request. What’s the product and who is the buyer (role) you’re currently talking to?"
+        - generic [ref=e1787]:
+          - generic [ref=e1788]: 📄
+          - generic [ref=e1789]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e1790]:
+          - generic [ref=e1792]: Hacker News
+          - link "View Source" [ref=e1793] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5ulf05/
+            - img [ref=e1794]
+            - text: View Source
+      - generic [ref=e1798]:
+        - generic [ref=e1801]:
+          - generic [ref=e1803]: "Y"
+          - generic [ref=e1804]: lorzs
+          - generic [ref=e1805]: •
+          - generic [ref=e1806]: Feb 17, 2026, 02:33 PM
+        - generic [ref=e1807]: addiction hooks bro
+        - generic [ref=e1808]:
+          - generic [ref=e1809]: 📄
+          - generic [ref=e1810]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1811]:
+          - generic [ref=e1813]: Hacker News
+          - link "View Source" [ref=e1814] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ul5bh/
+            - img [ref=e1815]
+            - text: View Source
+      - generic [ref=e1819]:
+        - generic [ref=e1822]:
+          - generic [ref=e1824]: "Y"
+          - generic [ref=e1825]: zulic
+          - generic [ref=e1826]: •
+          - generic [ref=e1827]: Feb 17, 2026, 02:29 PM
+        - generic [ref=e1828]: Guys, I literally launched a tool today that solves this exact problem - [hotleadalerts.com](http://hotleadalerts.com)
+        - generic [ref=e1829]:
+          - generic [ref=e1830]: 📄
+          - generic [ref=e1831]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1832]:
+          - generic [ref=e1834]: Hacker News
+          - link "View Source" [ref=e1835] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ukngb/
+            - img [ref=e1836]
+            - text: View Source
+      - generic [ref=e1840]:
+        - generic [ref=e1843]:
+          - generic [ref=e1845]: "Y"
+          - generic [ref=e1846]: Longjumping-Tap-5506
+          - generic [ref=e1847]: •
+          - generic [ref=e1848]: Feb 17, 2026, 02:28 PM
+        - generic [ref=e1849]: "For most people, the first 50 don’t come from scale tactics, they come from proximity.It can come from: Personal network and warm intros DMing people who already had the problem Posting progress publicly and inviting feedback Cold ads rarely work that early. At this stage, conversations convert better than campaigns.Focus less on traffic, more on talking to 1–2 ideal users every day."
+        - generic [ref=e1850]:
+          - generic [ref=e1851]: 📄
+          - generic [ref=e1852]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1853]:
+          - generic [ref=e1855]: Hacker News
+          - link "View Source" [ref=e1856] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ukgso/
+            - img [ref=e1857]
+            - text: View Source
+      - generic [ref=e1861]:
+        - generic [ref=e1864]:
+          - generic [ref=e1866]: "Y"
+          - generic [ref=e1867]: Mean-Arm659
+          - generic [ref=e1868]: •
+          - generic [ref=e1869]: Feb 17, 2026, 02:19 PM
+        - generic [ref=e1870]: Also curious, when people say “first 50 users”, do you mean 50 signups, 50 active weekly users, or 50 paying customers? I feel like everyone answers differently depending on what they count.
+        - generic [ref=e1871]:
+          - generic [ref=e1872]: 📄
+          - generic [ref=e1873]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1874]:
+          - generic [ref=e1876]: Hacker News
+          - link "View Source" [ref=e1877] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ujelm/
+            - img [ref=e1878]
+            - text: View Source
+      - generic [ref=e1882]:
+        - generic [ref=e1885]:
+          - generic [ref=e1887]: "Y"
+          - generic [ref=e1888]: buggy-sama-090598
+          - generic [ref=e1889]: •
+          - generic [ref=e1890]: Feb 17, 2026, 02:06 PM
+        - generic [ref=e1891]: For me it wasn’t ads or fancy funnels. It was just talking to people 1:1. DMs, comments, small communities where my ICP was already hanging out. Slow, manual, a bit awkward… but real. Once I stopped “launching” and started having conversations, users started coming. Who’s your exact ICP right now?
+        - generic [ref=e1892]:
+          - generic [ref=e1893]: 📄
+          - generic [ref=e1894]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1895]:
+          - generic [ref=e1897]: Hacker News
+          - link "View Source" [ref=e1898] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5uhy3w/
+            - img [ref=e1899]
+            - text: View Source
+      - generic [ref=e1903]:
+        - generic [ref=e1906]:
+          - generic [ref=e1908]: "Y"
+          - generic [ref=e1909]: CommunityGlobal8094
+          - generic [ref=e1910]: •
+          - generic [ref=e1911]: Feb 17, 2026, 01:35 PM
+        - generic [ref=e1912]: "you're right that getting users is way harder than building the product. Most founders underestimate this part by like 10x. Here's the reframe though: your first 50 users shouldn't come from one channel. They should come from you manually doing things that don't scale. That means going where your target users already are and being genuinely helpful before you ever mention your product. Reddit's actually perfect for this because there are hyper-specific communities for almost any niche, and if you answer questions helpfully, people will check out your profile and find your product naturally. The key is being active in 3-5 subreddits where your ICP hangs out, commenting daily with actual value (not pitching), and only mentioning your product when it's truly relevant. Most people quit after a week because it feels slow, but the ones who stick with it for 2-3 months start seeing real traction. You're playing the long game here. That said, if you don't have time to do the manual work or you're worried about getting banned for self-promo (which happens a lot), there are done-for-you services that handle Reddit engagement on your behalf. I came across Community Mentions (https://communitymentions . com) recently and it's basically this, they find relevant conversations and post helpful responses for B2B companies so you get discovered without the spam risk. Could be worth looking into if you want the benefits of Reddit without the time investement."
+        - generic [ref=e1913]:
+          - generic [ref=e1914]: 📄
+          - generic [ref=e1915]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1916]:
+          - generic [ref=e1918]: Hacker News
+          - link "View Source" [ref=e1919] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5uehnf/
+            - img [ref=e1920]
+            - text: View Source
+      - generic [ref=e1924]:
+        - generic [ref=e1927]:
+          - generic [ref=e1929]: "Y"
+          - generic [ref=e1930]: MindVegetable9898
+          - generic [ref=e1931]: •
+          - generic [ref=e1932]: Feb 17, 2026, 01:33 PM
+        - generic [ref=e1933]: "lot of good advice here but i think people are skipping the step before distribution. before you figure out WHERE to find users you need to figure out WHO your user actually is and WHY they would care. i wasted months trying every channel - reddit, cold email, communities, product hunt - and nothing stuck. turns out my positioning was off. i was describing my product the way i built it, not the way users experienced it. what actually got me my first real users was talking to the 3-4 people who had signed up and asking them one question: 'what were you trying to do right before you found us?' their answers were completely different from what i expected. once i rewrote my landing page in their words instead of mine, the same channels that weren't working before started converting. the channels aren't the problem for most early SaaS. the problem is you don't understand your users well enough yet to speak their language. figure that out first and the first 50 come way faster than you'd think."
+        - generic [ref=e1934]:
+          - generic [ref=e1935]: 📄
+          - generic [ref=e1936]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1937]:
+          - generic [ref=e1939]: Hacker News
+          - link "View Source" [ref=e1940] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ue6fp/
+            - img [ref=e1941]
+            - text: View Source
+      - generic [ref=e1945]:
+        - generic [ref=e1948]:
+          - generic [ref=e1950]: "Y"
+          - generic [ref=e1951]: satanclauses
+          - generic [ref=e1952]: •
+          - generic [ref=e1953]: Feb 17, 2026, 01:28 PM
+        - generic [ref=e1954]: Try https://appshout.co - it connects developers to influencers and creators - they speak about your product to their audience and that gets you users
+        - generic [ref=e1955]:
+          - generic [ref=e1956]: 📄
+          - generic [ref=e1957]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1958]:
+          - generic [ref=e1960]: Hacker News
+          - link "View Source" [ref=e1961] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5udpgz/
+            - img [ref=e1962]
+            - text: View Source
+      - generic [ref=e1966]:
+        - generic [ref=e1969]:
+          - generic [ref=e1971]: "Y"
+          - generic [ref=e1972]: Right-Influence-2460
+          - generic [ref=e1973]: •
+          - generic [ref=e1974]: Feb 17, 2026, 01:21 PM
+        - generic [ref=e1975]: First 50 = conversations, not campaigns. Id pick one ICP, monitor where they complain (Reddit/X), and show up daily with real answers. No pitch.Highintent threads convert way better than cold volume. Once you see the pattern, it compounds.
+        - generic [ref=e1976]:
+          - generic [ref=e1977]: 📄
+          - generic [ref=e1978]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e1979]:
+          - generic [ref=e1981]: Hacker News
+          - link "View Source" [ref=e1982] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ucwg0/
+            - img [ref=e1983]
+            - text: View Source
+      - generic [ref=e1987]:
+        - generic [ref=e1990]:
+          - generic [ref=e1992]: "Y"
+          - generic [ref=e1993]: PlasticCollection116
+          - generic [ref=e1994]: •
+          - generic [ref=e1995]: Feb 17, 2026, 01:10 PM
+        - generic [ref=e1996]: For me it was cold outreach. Not ads. Not content. I made a list of people who clearly had the problem my product solved and just started conversations. Short message. No pitch. Just a question about how they currently handle the issue. If they replied with frustration, I showed them the product. If not, I moved on. The first 50 didn’t come from scale. They came from direct conversations and feedback loops. Early on, distribution matters more than polishing features. My product is sneo (dot) ai - It allows you to chat with yout SEO data.
+        - generic [ref=e1997]:
+          - generic [ref=e1998]: 📄
+          - generic [ref=e1999]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2000]:
+          - generic [ref=e2002]: Hacker News
+          - link "View Source" [ref=e2003] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ubqht/
+            - img [ref=e2004]
+            - text: View Source
+      - generic [ref=e2008]:
+        - generic [ref=e2011]:
+          - generic [ref=e2013]: "Y"
+          - generic [ref=e2014]: OkPomegranate6198
+          - generic [ref=e2015]: •
+          - generic [ref=e2016]: Feb 17, 2026, 12:47 PM
+        - generic [ref=e2017]: Community Groups (Facebook) and Youtube Videos
+        - generic [ref=e2018]:
+          - generic [ref=e2019]: 📄
+          - generic [ref=e2020]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2021]:
+          - generic [ref=e2023]: Hacker News
+          - link "View Source" [ref=e2024] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5u974u/
+            - img [ref=e2025]
+            - text: View Source
+      - generic [ref=e2029]:
+        - generic [ref=e2032]:
+          - generic [ref=e2034]: "Y"
+          - generic [ref=e2035]: FrameOver9095
+          - generic [ref=e2036]: •
+          - generic [ref=e2037]: Feb 17, 2026, 12:42 PM
+        - generic [ref=e2038]: built it brick by brick
+        - generic [ref=e2039]:
+          - generic [ref=e2040]: 📄
+          - generic [ref=e2041]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2042]:
+          - generic [ref=e2044]: Hacker News
+          - link "View Source" [ref=e2045] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5u8r42/
+            - img [ref=e2046]
+            - text: View Source
+      - generic [ref=e2050]:
+        - generic [ref=e2053]:
+          - generic [ref=e2055]: "Y"
+          - generic [ref=e2056]: kowdermesiter
+          - generic [ref=e2057]: •
+          - generic [ref=e2058]: Feb 17, 2026, 12:39 PM
+        - generic [ref=e2059]: Account or retained user?
+        - generic [ref=e2060]:
+          - generic [ref=e2061]: 📄
+          - generic [ref=e2062]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2063]:
+          - generic [ref=e2065]: Hacker News
+          - link "View Source" [ref=e2066] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5u8e8m/
+            - img [ref=e2067]
+            - text: View Source
+      - generic [ref=e2071]:
+        - generic [ref=e2074]:
+          - generic [ref=e2076]: "Y"
+          - generic [ref=e2077]: Old-Manager-1301
+          - generic [ref=e2078]: •
+          - generic [ref=e2079]: Feb 17, 2026, 12:36 PM
+        - generic [ref=e2080]: I got 250+ in a day because of a thread I posted. It got viral.
+        - generic [ref=e2081]:
+          - generic [ref=e2082]: 📄
+          - generic [ref=e2083]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2084]:
+          - generic [ref=e2086]: Hacker News
+          - link "View Source" [ref=e2087] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5u828i/
+            - img [ref=e2088]
+            - text: View Source
+      - generic [ref=e2092]:
+        - generic [ref=e2095]:
+          - generic [ref=e2097]: "Y"
+          - generic [ref=e2098]: Slow-Pear5071
+          - generic [ref=e2099]: •
+          - generic [ref=e2100]: Feb 17, 2026, 12:20 PM
+        - generic [ref=e2101]: "I am doing: \\- cold email \\- linkedin dm \\- reddit dm \\- trying to be active on X \\- directories: I got most traffic out of it \\- friends and your network: best source to start"
+        - generic [ref=e2102]:
+          - generic [ref=e2103]: 📄
+          - generic [ref=e2104]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2105]:
+          - generic [ref=e2107]: Hacker News
+          - link "View Source" [ref=e2108] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5u6ge4/
+            - img [ref=e2109]
+            - text: View Source
+      - generic [ref=e2113]:
+        - generic [ref=e2116]:
+          - generic [ref=e2118]: "Y"
+          - generic [ref=e2119]: Leather_Knee_2468
+          - generic [ref=e2120]: •
+          - generic [ref=e2121]: Feb 17, 2026, 12:19 PM
+        - generic [ref=e2122]: For most early SaaS, first 50 users come from direct conversations, not passive channels. Pick one narrow ICP, solve one painful workflow, and do manual outreach + community participation every day for 2-3 weeks. At August Ads, direct user conversations have consistently beaten broad top-of-funnel content.
+        - generic [ref=e2123]:
+          - generic [ref=e2124]: 📄
+          - generic [ref=e2125]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2126]:
+          - generic [ref=e2128]: Hacker News
+          - link "View Source" [ref=e2129] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5u6ddl/
+            - img [ref=e2130]
+            - text: View Source
+      - generic [ref=e2134]:
+        - generic [ref=e2137]:
+          - generic [ref=e2139]: "Y"
+          - generic [ref=e2140]: pack007
+          - generic [ref=e2141]: •
+          - generic [ref=e2142]: Feb 17, 2026, 12:19 PM
+        - generic [ref=e2143]: I'm at the exact same stage. It can last damn long, specialy when you work solo. The mix between spending time in code, testing and improments and make the marketing part, is hard. Hope you get it handled ;-) Actually i'm following the advices from the Ycombinator school, is really worthfull.
+        - generic [ref=e2144]:
+          - generic [ref=e2145]: 📄
+          - generic [ref=e2146]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2147]:
+          - generic [ref=e2149]: Hacker News
+          - link "View Source" [ref=e2150] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5u6bqf/
+            - img [ref=e2151]
+            - text: View Source
+      - generic [ref=e2155]:
+        - generic [ref=e2158]:
+          - generic [ref=e2160]: "Y"
+          - generic [ref=e2161]: Away_You9725
+          - generic [ref=e2162]: •
+          - generic [ref=e2163]: Feb 17, 2026, 10:58 AM
+        - generic [ref=e2164]: def cold outreach, and you get faster feedback and build from there
+        - generic [ref=e2165]:
+          - generic [ref=e2166]: 📄
+          - generic [ref=e2167]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2168]:
+          - generic [ref=e2170]: Hacker News
+          - link "View Source" [ref=e2171] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5txwnc/
+            - img [ref=e2172]
+            - text: View Source
+      - generic [ref=e2176]:
+        - generic [ref=e2179]:
+          - generic [ref=e2181]: "Y"
+          - generic [ref=e2182]: greyzor7
+          - generic [ref=e2183]: •
+          - generic [ref=e2184]: Feb 17, 2026, 10:57 AM
+        - generic [ref=e2185]: "First step of your acquisition funnel. Start with organic only, outbound. Ads later when conversions are solid. DMs, ideally warmed. Build authority in your niche. Be daily in contact with people from your ICP. Then try launching your app on a combo of social media: X/Twitter, Reddit + launch platforms: Product Hunt, Microlaunch (running the [app](https://microlaunch.net/premium)). And any channel relevant to your ICP. Run campaigns, measure all ROIs, then simply double down on what worked. Then keep doing this until you get users &amp; customers. Fix conversions, channel selection, targeting when necessary."
+        - generic [ref=e2186]:
+          - generic [ref=e2187]: 📄
+          - generic [ref=e2188]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2189]:
+          - generic [ref=e2191]: Hacker News
+          - link "View Source" [ref=e2192] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5txrfb/
+            - img [ref=e2193]
+            - text: View Source
+      - generic [ref=e2197]:
+        - generic [ref=e2200]:
+          - generic [ref=e2202]: "Y"
+          - generic [ref=e2203]: Your-Startup-Advisor
+          - generic [ref=e2204]: •
+          - generic [ref=e2205]: Feb 17, 2026, 10:54 AM
+        - generic [ref=e2206]: "Two words: customer discovery."
+        - generic [ref=e2207]:
+          - generic [ref=e2208]: 📄
+          - generic [ref=e2209]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2210]:
+          - generic [ref=e2212]: Hacker News
+          - link "View Source" [ref=e2213] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5txhkd/
+            - img [ref=e2214]
+            - text: View Source
+      - generic [ref=e2218]:
+        - generic [ref=e2221]:
+          - generic [ref=e2223]: "Y"
+          - generic [ref=e2224]: Many_Bed_3948
+          - generic [ref=e2225]: •
+          - generic [ref=e2226]: Feb 17, 2026, 10:44 AM
+        - generic [ref=e2227]: For my first 50, I focused almost entirely on manual outreach in niche communities like specific Slack groups and subreddits where my target audience hung out.
+        - generic [ref=e2228]:
+          - generic [ref=e2229]: 📄
+          - generic [ref=e2230]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2231]:
+          - generic [ref=e2233]: Hacker News
+          - link "View Source" [ref=e2234] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5twec3/
+            - img [ref=e2235]
+            - text: View Source
+      - generic [ref=e2239]:
+        - generic [ref=e2242]:
+          - generic [ref=e2244]: "Y"
+          - generic [ref=e2245]: porushpuri
+          - generic [ref=e2246]: •
+          - generic [ref=e2247]: Feb 17, 2026, 09:32 AM
+        - generic [ref=e2248]: Build my landing page first, and added a gamified waitlist (used QueueForm for that) Meanwhile I started building up the foundation for SEO and AEO, within a month or so, I started showing up in queries and got my initial user base. Double downed on it once the product was ready in 2-3 months, 99% of users now come from AEO and SEO. Best part, the intent is super high, better conversion rate, better quality of users.
+        - generic [ref=e2249]:
+          - generic [ref=e2250]: 📄
+          - generic [ref=e2251]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2252]:
+          - generic [ref=e2254]: Hacker News
+          - link "View Source" [ref=e2255] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tocqv/
+            - img [ref=e2256]
+            - text: View Source
+      - generic [ref=e2260]:
+        - generic [ref=e2263]:
+          - generic [ref=e2265]: "Y"
+          - generic [ref=e2266]: "[deleted]"
+          - generic [ref=e2267]: •
+          - generic [ref=e2268]: Feb 17, 2026, 09:00 AM
+        - generic [ref=e2269]: "[removed]"
+        - generic [ref=e2270]:
+          - generic [ref=e2271]: 📄
+          - generic [ref=e2272]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2273]:
+          - generic [ref=e2275]: Hacker News
+          - link "View Source" [ref=e2276] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tkj7n/
+            - img [ref=e2277]
+            - text: View Source
+      - generic [ref=e2281]:
+        - generic [ref=e2284]:
+          - generic [ref=e2286]: "Y"
+          - generic [ref=e2287]: ExcellentEngine8370
+          - generic [ref=e2288]: •
+          - generic [ref=e2289]: Feb 17, 2026, 08:58 AM
+        - generic [ref=e2290]: A single comment on a reddit post 😅
+        - generic [ref=e2291]:
+          - generic [ref=e2292]: 📄
+          - generic [ref=e2293]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2294]:
+          - generic [ref=e2296]: Hacker News
+          - link "View Source" [ref=e2297] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tkaj1/
+            - img [ref=e2298]
+            - text: View Source
+      - generic [ref=e2302]:
+        - generic [ref=e2305]:
+          - generic [ref=e2307]: "Y"
+          - generic [ref=e2308]: whereusersdrop
+          - generic [ref=e2309]: •
+          - generic [ref=e2310]: Feb 17, 2026, 08:23 AM
+        - generic [ref=e2311]: Early users usually aren’t a traffic problem, they’re a comprehension problem. Most new SaaS founders (me included) try to increase acquisition before confirming a new visitor actually understands the value quickly enough. If someone lands and needs to think for 20–30 seconds to figure out what success with the product looks like, they leave and it feels like a distribution issue. The first 50 users often come after you fix the moment where a visitor decides “this is for me” vs “I’ll check this later”. Before pushing more channels, I’d look at the first visit to first action path and see whether a brand new person can reach a meaningful outcome without explanation. When people have tried your product so far, do they sign up but not use it, or do most never create an account?
+        - generic [ref=e2312]:
+          - generic [ref=e2313]: 📄
+          - generic [ref=e2314]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2315]:
+          - generic [ref=e2317]: Hacker News
+          - link "View Source" [ref=e2318] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tfvej/
+            - img [ref=e2319]
+            - text: View Source
+      - generic [ref=e2323]:
+        - generic [ref=e2326]:
+          - generic [ref=e2328]: "Y"
+          - generic [ref=e2329]: huntern_
+          - generic [ref=e2330]: •
+          - generic [ref=e2331]: Feb 17, 2026, 08:21 AM
+        - generic [ref=e2332]: Reddit has worked the best for me as its easy to start without a previous audience. Im building media/community for [founders](https://toolclarity.co/subscribe) who want to learn AI workflows and stay ahead. You just have to keep trying different posts and subreddits.
+        - generic [ref=e2333]:
+          - generic [ref=e2334]: 📄
+          - generic [ref=e2335]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2336]:
+          - generic [ref=e2338]: Hacker News
+          - link "View Source" [ref=e2339] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tfomr/
+            - img [ref=e2340]
+            - text: View Source
+      - generic [ref=e2344]:
+        - generic [ref=e2347]:
+          - generic [ref=e2349]: "Y"
+          - generic [ref=e2350]: crispnotes_
+          - generic [ref=e2351]: •
+          - generic [ref=e2352]: Feb 17, 2026, 08:07 AM
+        - generic [ref=e2353]: sharing it in small communities where the problem already exists and talking to users one by one helped more than ads. the first users usually come from real conversations and feedback, not scaling tactics
+        - generic [ref=e2354]:
+          - generic [ref=e2355]: 📄
+          - generic [ref=e2356]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2357]:
+          - generic [ref=e2359]: Hacker News
+          - link "View Source" [ref=e2360] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tdr6t/
+            - img [ref=e2361]
+            - text: View Source
+      - generic [ref=e2365]:
+        - generic [ref=e2368]:
+          - generic [ref=e2370]: "Y"
+          - generic [ref=e2371]: jaymartingale
+          - generic [ref=e2372]: •
+          - generic [ref=e2373]: Feb 17, 2026, 08:01 AM
+        - generic [ref=e2374]: manual outreach is king. i searched keywords on twitter to find people complaining about the problem i solved and dmed them. no pitch, just asked for feedback. also niche slack communities and directories like betalist. gl man.
+        - generic [ref=e2375]:
+          - generic [ref=e2376]: 📄
+          - generic [ref=e2377]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2378]:
+          - generic [ref=e2380]: Hacker News
+          - link "View Source" [ref=e2381] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tcwpm/
+            - img [ref=e2382]
+            - text: View Source
+      - generic [ref=e2386]:
+        - generic [ref=e2389]:
+          - generic [ref=e2391]: "Y"
+          - generic [ref=e2392]: Wide_Brief3025
+          - generic [ref=e2393]: •
+          - generic [ref=e2394]: Feb 17, 2026, 07:58 AM
+        - generic [ref=e2395]: Joining niche communities and adding thoughtful comments worked best for me. Engaging on threads where folks actually discuss the problem your SaaS solves gets real attention without feeling forced. If you want to speed things up, using something like ParseStream to track those conversations in real time lets you jump in right as people discuss your keywords. That made finding early users way faster for me.
+        - generic [ref=e2396]:
+          - generic [ref=e2397]: 📄
+          - generic [ref=e2398]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2399]:
+          - generic [ref=e2401]: Hacker News
+          - link "View Source" [ref=e2402] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tcicl/
+            - img [ref=e2403]
+            - text: View Source
+      - generic [ref=e2407]:
+        - generic [ref=e2410]:
+          - generic [ref=e2412]: "Y"
+          - generic [ref=e2413]: PackageMajor250
+          - generic [ref=e2414]: •
+          - generic [ref=e2415]: Feb 17, 2026, 07:45 AM
+        - generic [ref=e2416]: Yup this is my dilemma too. I'm starting post ony socials to see how that goes. How have you done it so far. I was thinking of bulk scheduling posts for social media. Buffer.com allows for 10 scheduled posts at any given time. So I was thinking of schedule 10 and have 10 waiting in the wings to be scheduled
+        - generic [ref=e2417]:
+          - generic [ref=e2418]: 📄
+          - generic [ref=e2419]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2420]:
+          - generic [ref=e2422]: Hacker News
+          - link "View Source" [ref=e2423] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5tari4/
+            - img [ref=e2424]
+            - text: View Source
+      - generic [ref=e2428]:
+        - generic [ref=e2431]:
+          - generic [ref=e2433]: "Y"
+          - generic [ref=e2434]: NeedleworkerSmart486
+          - generic [ref=e2435]: •
+          - generic [ref=e2436]: Feb 17, 2026, 07:41 AM
+        - generic [ref=e2437]: The SEO comment here is underrated. For my first 50 I did something similar but with Reddit specifically. I searched for threads where people were complaining about the exact problem my tool solved and just answered their questions honestly. Didnt even mention my product in most of them. People clicked my profile, saw what I was building, and signed up on their own. Took about 3 weeks of doing that daily to hit 50. The key was answering questions I actually knew the answer to instead of forcing my product into conversations where it didnt fit.
+        - generic [ref=e2438]:
+          - generic [ref=e2439]: 📄
+          - generic [ref=e2440]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2441]:
+          - generic [ref=e2443]: Hacker News
+          - link "View Source" [ref=e2444] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5ta7dv/
+            - img [ref=e2445]
+            - text: View Source
+      - generic [ref=e2449]:
+        - generic [ref=e2452]:
+          - generic [ref=e2454]: "Y"
+          - generic [ref=e2455]: MathematicianBanda
+          - generic [ref=e2456]: •
+          - generic [ref=e2457]: Feb 17, 2026, 07:39 AM
+        - generic [ref=e2458]: I have a b2c product. I launched it in September end. I did no marketing. Rather i leveraged SEO. I started doing SEO in mid October. In these last 4 months i have almost written 20 articles. I have around 120 pages targeting different keywords (kind of micro pSEO). With only this setup i have now around 1100+ sign ups and 100+ paid users(no free plan). It is a one time product. SEO is so underrated. Today i am on google 1st page, i am in AI overviews, i am in chatgpt, i am in gemini. Each day I'm doubling down on SEO... Because the results are just awesome, they are giving me better results than any paid ads marketing. Of course i leveraged social media initially. But now everything is compounding.
+        - generic [ref=e2459]:
+          - generic [ref=e2460]: 📄
+          - generic [ref=e2461]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2462]:
+          - generic [ref=e2464]: Hacker News
+          - link "View Source" [ref=e2465] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t9yp8/
+            - img [ref=e2466]
+            - text: View Source
+      - generic [ref=e2470]:
+        - generic [ref=e2473]:
+          - generic [ref=e2475]: "Y"
+          - generic [ref=e2476]: Sea_Inflation_2881
+          - generic [ref=e2477]: •
+          - generic [ref=e2478]: Feb 17, 2026, 07:39 AM
+        - generic [ref=e2479]: what is your saas?
+        - generic [ref=e2480]:
+          - generic [ref=e2481]: 📄
+          - generic [ref=e2482]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2483]:
+          - generic [ref=e2485]: Hacker News
+          - link "View Source" [ref=e2486] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t9y8c/
+            - img [ref=e2487]
+            - text: View Source
+      - generic [ref=e2491]:
+        - generic [ref=e2494]:
+          - generic [ref=e2496]: "Y"
+          - generic [ref=e2497]: Much_Pomegranate6272
+          - generic [ref=e2498]: •
+          - generic [ref=e2499]: Feb 17, 2026, 07:38 AM
+        - generic [ref=e2500]: "First 50 users almost never come from paid ads or \"marketing strategy.\" What works: 1. Solve your own problem publicly Build in public, share your journey. People who have the same problem find you. 2. Be helpful in communities Reddit, forums, Slack groups where your target users hang out. Answer questions, don't pitch. DMs come naturally. 3. Direct outreach to people who need it Not cold email blasts - find 10 people who clearly have the problem your product solves, reach out personally."
+        - generic [ref=e2501]:
+          - generic [ref=e2502]: 📄
+          - generic [ref=e2503]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2504]:
+          - generic [ref=e2506]: Hacker News
+          - link "View Source" [ref=e2507] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t9ste/
+            - img [ref=e2508]
+            - text: View Source
+      - generic [ref=e2512]:
+        - generic [ref=e2515]:
+          - generic [ref=e2517]: "Y"
+          - generic [ref=e2518]: legalminimalist2701
+          - generic [ref=e2519]: •
+          - generic [ref=e2520]: Feb 17, 2026, 07:36 AM
+        - generic [ref=e2521]: Go where your target users already are, help them solve real problems (like on reddit, linkedin or X), and then mention your tool. your first 50 users should be people you talk to personally and learn from. Cold emails only work if you have a well-defined target audience and a list of people who actually fit your product. If you’re unsure they care or would reply, your emails will likely be ignored.
+        - generic [ref=e2522]:
+          - generic [ref=e2523]: 📄
+          - generic [ref=e2524]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2525]:
+          - generic [ref=e2527]: Hacker News
+          - link "View Source" [ref=e2528] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t9ey6/
+            - img [ref=e2529]
+            - text: View Source
+      - generic [ref=e2533]:
+        - generic [ref=e2536]:
+          - generic [ref=e2538]: "Y"
+          - generic [ref=e2539]: Overall-Ice-1229
+          - generic [ref=e2540]: •
+          - generic [ref=e2541]: Feb 17, 2026, 07:26 AM
+        - generic [ref=e2542]: Usually on X and via cold email using lemlist
+        - generic [ref=e2543]:
+          - generic [ref=e2544]: 📄
+          - generic [ref=e2545]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2546]:
+          - generic [ref=e2548]: Hacker News
+          - link "View Source" [ref=e2549] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t84i0/
+            - img [ref=e2550]
+            - text: View Source
+      - generic [ref=e2554]:
+        - generic [ref=e2557]:
+          - generic [ref=e2559]: "Y"
+          - generic [ref=e2560]: InterYuG1oCard
+          - generic [ref=e2561]: •
+          - generic [ref=e2562]: Feb 17, 2026, 07:25 AM
+        - generic [ref=e2563]: Outreach and outreach
+        - generic [ref=e2564]:
+          - generic [ref=e2565]: 📄
+          - generic [ref=e2566]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2567]:
+          - generic [ref=e2569]: Hacker News
+          - link "View Source" [ref=e2570] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t7yc9/
+            - img [ref=e2571]
+            - text: View Source
+      - generic [ref=e2575]:
+        - generic [ref=e2578]:
+          - generic [ref=e2580]: "Y"
+          - generic [ref=e2581]: mixmax-972
+          - generic [ref=e2582]: •
+          - generic [ref=e2583]: Feb 17, 2026, 07:19 AM
+        - generic [ref=e2584]: "First 50 users from our incubator in Paris (station F) then from ending #1st product of the day on producthunt 🤩"
+        - generic [ref=e2585]:
+          - generic [ref=e2586]: 📄
+          - generic [ref=e2587]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2588]:
+          - generic [ref=e2590]: Hacker News
+          - link "View Source" [ref=e2591] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t73w8/
+            - img [ref=e2592]
+            - text: View Source
+      - generic [ref=e2596]:
+        - generic [ref=e2599]:
+          - generic [ref=e2601]: "Y"
+          - generic [ref=e2602]: jobhelpvishu
+          - generic [ref=e2603]: •
+          - generic [ref=e2604]: Feb 17, 2026, 07:10 AM
+        - generic [ref=e2605]: Is it a B2B or a B2C SaaS?
+        - generic [ref=e2606]:
+          - generic [ref=e2607]: 📄
+          - generic [ref=e2608]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2609]:
+          - generic [ref=e2611]: Hacker News
+          - link "View Source" [ref=e2612] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t5sn5/
+            - img [ref=e2613]
+            - text: View Source
+      - generic [ref=e2617]:
+        - generic [ref=e2620]:
+          - generic [ref=e2622]: "Y"
+          - generic [ref=e2623]: No_Worker6397
+          - generic [ref=e2624]: •
+          - generic [ref=e2625]: Feb 17, 2026, 07:07 AM
+        - generic [ref=e2626]: Im excited to hear the back street methods !
+        - generic [ref=e2627]:
+          - generic [ref=e2628]: 📄
+          - generic [ref=e2629]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2630]:
+          - generic [ref=e2632]: Hacker News
+          - link "View Source" [ref=e2633] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t5a0b/
+            - img [ref=e2634]
+            - text: View Source
+      - generic [ref=e2638]:
+        - generic [ref=e2641]:
+          - generic [ref=e2643]: "Y"
+          - generic [ref=e2644]: Weak_Cartoonist1345
+          - generic [ref=e2645]: •
+          - generic [ref=e2646]: Feb 17, 2026, 07:05 AM
+        - generic [ref=e2647]: i got my first 50 users from my personal network, word to mouth and warm outreach
+        - generic [ref=e2648]:
+          - generic [ref=e2649]: 📄
+          - generic [ref=e2650]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2651]:
+          - generic [ref=e2653]: Hacker News
+          - link "View Source" [ref=e2654] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t5209/
+            - img [ref=e2655]
+            - text: View Source
+      - generic [ref=e2659]:
+        - generic [ref=e2662]:
+          - generic [ref=e2664]: "Y"
+          - generic [ref=e2665]: kubrador
+          - generic [ref=e2666]: •
+          - generic [ref=e2667]: Feb 17, 2026, 07:02 AM
+        - generic [ref=e2668]: cold emails to people actively complaining about the problem on twitter/reddit/forums actually worked. not spam blasts, like 5-10 per day to specific people. took three months to hit 50 but they stuck around. paid ads was a money pit until we had product-market fit, which we didn't have yet so that was fun.
+        - generic [ref=e2669]:
+          - generic [ref=e2670]: 📄
+          - generic [ref=e2671]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2672]:
+          - generic [ref=e2674]: Hacker News
+          - link "View Source" [ref=e2675] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t4lb1/
+            - img [ref=e2676]
+            - text: View Source
+      - generic [ref=e2680]:
+        - generic [ref=e2683]:
+          - generic [ref=e2685]: "Y"
+          - generic [ref=e2686]: Bob_Duncan
+          - generic [ref=e2687]: •
+          - generic [ref=e2688]: Feb 17, 2026, 07:02 AM
+        - generic [ref=e2689]: One by one, step by step. Direct email, direct LinkedIn message, post on Reddit, post on X etc.. You should do a mix, not only one will work.
+        - generic [ref=e2690]:
+          - generic [ref=e2691]: 📄
+          - generic [ref=e2692]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2693]:
+          - generic [ref=e2695]: Hacker News
+          - link "View Source" [ref=e2696] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t4i74/
+            - img [ref=e2697]
+            - text: View Source
+      - generic [ref=e2701]:
+        - generic [ref=e2704]:
+          - generic [ref=e2706]: "Y"
+          - generic [ref=e2707]: HarjjotSinghh
+          - generic [ref=e2708]: •
+          - generic [ref=e2709]: Feb 17, 2026, 06:54 AM
+        - generic [ref=e2710]: first 50 users are my superpower!
+        - generic [ref=e2711]:
+          - generic [ref=e2712]: 📄
+          - generic [ref=e2713]: How did you get your first 50 users for your SaaS?
+        - generic [ref=e2714]:
+          - generic [ref=e2716]: Hacker News
+          - link "View Source" [ref=e2717] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/SaaS/comments/1r6vim0/how_did_you_get_your_first_50_users_for_your_saas/o5t3e6d/
+            - img [ref=e2718]
+            - text: View Source
+      - generic [ref=e2722]:
+        - generic [ref=e2725]:
+          - generic [ref=e2727]: "Y"
+          - generic [ref=e2728]: Negative-Fly-4659
+          - generic [ref=e2729]: •
+          - generic [ref=e2730]: Feb 16, 2026, 04:20 PM
+        - generic [ref=e2731]: "You’re probably closer than it feels. “Cool” with no payment usually means value is understood but urgency and ICP are off. I’d run a 14-day reset: 1) Pick one narrow ICP (not everyone who might like it). 2) Do 10 problem calls with that ICP only. 3) Offer a paid pilot upfront (even small, e.g. $20-$50) to test willingness. 4) Track one funnel: outreach -&gt; calls -&gt; paid pilots. If paid pilots are zero after clear conversations, pivot the problem. If pilots happen but retention is weak, fix onboarding/outcome. This gives you signal fast without rebuilding everything."
+        - generic [ref=e2732]:
+          - generic [ref=e2733]: 📄
+          - generic [ref=e2734]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2735]:
+          - generic [ref=e2737]: Hacker News
+          - link "View Source" [ref=e2738] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5ofh75/
+            - img [ref=e2739]
+            - text: View Source
+      - generic [ref=e2743]:
+        - generic [ref=e2746]:
+          - generic [ref=e2748]: "Y"
+          - generic [ref=e2749]: mrtrly
+          - generic [ref=e2750]: •
+          - generic [ref=e2751]: Feb 16, 2026, 12:05 PM
+        - generic [ref=e2752]: The data on this is pretty clear - if you're getting "this is cool" reactions but zero conversions, you're solving a nice-to-have problem instead of a must-have one. bootstrapped founders get stuck in this loop because they build what they think people want vs what they'll actually pay for. the harsh reality is most people will say nice things to avoid being rude. you need to dig deeper into whether this is actually a painful problem worth paying to solve. ask follow-ups like "how are you handling this today?" and "what happens if you don't fix this?" if they're not spending money/time on the problem currently, they won't pay you to solve it. been there as a solo founder making every decision alone. actually built tryperspectify.com for exactly this - when you describe a tough decision, it gives you analysis from different perspectives (CFO, growth advisor, devil's advocate etc). helps avoid blind spots when you don't have cofounders or advisors to push back on your thinking. might be worth running your "pivot vs double down" decision through something like that. sometimes an outside perspective catches what we miss when we're too close to the problem.
+        - generic [ref=e2753]:
+          - generic [ref=e2754]: 📄
+          - generic [ref=e2755]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2756]:
+          - generic [ref=e2758]: Hacker News
+          - link "View Source" [ref=e2759] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5nkjv5/
+            - img [ref=e2760]
+            - text: View Source
+      - generic [ref=e2764]:
+        - generic [ref=e2767]:
+          - generic [ref=e2769]: "Y"
+          - generic [ref=e2770]: BuddhasFinger
+          - generic [ref=e2771]: •
+          - generic [ref=e2772]: Feb 16, 2026, 02:57 AM
+        - generic [ref=e2773]: Welcome to have built a product no one needs.
+        - generic [ref=e2774]:
+          - generic [ref=e2775]: 📄
+          - generic [ref=e2776]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2777]:
+          - generic [ref=e2779]: Hacker News
+          - link "View Source" [ref=e2780] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5lia54/
+            - img [ref=e2781]
+            - text: View Source
+      - generic [ref=e2785]:
+        - generic [ref=e2788]:
+          - generic [ref=e2790]: "Y"
+          - generic [ref=e2791]: nokrach_
+          - generic [ref=e2792]: •
+          - generic [ref=e2793]: Feb 15, 2026, 01:30 PM
+        - generic [ref=e2794]: Leverage organic content, focus on the pain point of your target clients and write about it, answer their queries and position yourself to solve their problem. Takes a bit of time but it compounds in the long run
+        - generic [ref=e2795]:
+          - generic [ref=e2796]: 📄
+          - generic [ref=e2797]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2798]:
+          - generic [ref=e2800]: Hacker News
+          - link "View Source" [ref=e2801] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5hk0ij/
+            - img [ref=e2802]
+            - text: View Source
+      - generic [ref=e2806]:
+        - generic [ref=e2809]:
+          - generic [ref=e2811]: "Y"
+          - generic [ref=e2812]: ninadpathak
+          - generic [ref=e2813]: •
+          - generic [ref=e2814]: Feb 15, 2026, 11:24 AM
+        - generic [ref=e2815]: Since you mentioned people keep saying "this is cool" but won't pay, try finding folks in the middle of a crisis-like crypto traders during a flash crash. They'll actually open their wallets when the problem costs them real money. Good luck.
+        - generic [ref=e2816]:
+          - generic [ref=e2817]: 📄
+          - generic [ref=e2818]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2819]:
+          - generic [ref=e2821]: Hacker News
+          - link "View Source" [ref=e2822] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5h72wj/
+            - img [ref=e2823]
+            - text: View Source
+      - generic [ref=e2827]:
+        - generic [ref=e2830]:
+          - generic [ref=e2832]: "Y"
+          - generic [ref=e2833]: jfranklynw
+          - generic [ref=e2834]: •
+          - generic [ref=e2835]: Feb 15, 2026, 01:56 AM
+        - generic [ref=e2836]: The bit about making it so simple seniors could use it stood out. That's a really common trap - polishing the experience for people who were never going to pay anyway. Nobody's buying decision ever came down to "it was easy to use." They buy because the pain of NOT having it is worse than the cost. I'm building B2B software and went through a similar phase where I kept tweaking onboarding and messaging when the real issue was I was talking to the wrong people. The ones who convert aren't the ones who say "cool" - they're the ones who say "oh thank god, I've been doing this manually for months."
+        - generic [ref=e2837]:
+          - generic [ref=e2838]: 📄
+          - generic [ref=e2839]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2840]:
+          - generic [ref=e2842]: Hacker News
+          - link "View Source" [ref=e2843] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5f2b60/
+            - img [ref=e2844]
+            - text: View Source
+      - generic [ref=e2848]:
+        - generic [ref=e2851]:
+          - generic [ref=e2853]: "Y"
+          - generic [ref=e2854]: MilesOfMotion
+          - generic [ref=e2855]: •
+          - generic [ref=e2856]: Feb 14, 2026, 09:39 PM
+        - generic [ref=e2857]: "Much like most people have said... differentiate between: \"this is cool\" \"interesting\" \"nice idea\" and \"when can i use this?\" \"can you put it in my product?\" \"i need this\" basically, you want the market to pull the product out of you. i say take it back to the drawing boards until you can get that feeling. keep iterating!"
+        - generic [ref=e2858]:
+          - generic [ref=e2859]: 📄
+          - generic [ref=e2860]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2861]:
+          - generic [ref=e2863]: Hacker News
+          - link "View Source" [ref=e2864] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5dqura/
+            - img [ref=e2865]
+            - text: View Source
+      - generic [ref=e2869]:
+        - generic [ref=e2872]:
+          - generic [ref=e2874]: "Y"
+          - generic [ref=e2875]: Fun_Dog_3346
+          - generic [ref=e2876]: •
+          - generic [ref=e2877]: Feb 14, 2026, 09:25 PM
+        - generic [ref=e2878]: Seniors ? Have you tried visiting senior living places ? Meet with them in person, spend some quality time before trying to sell? Your audience barely in online ; "this is cool" can be very fake too if they're trying to be polite with you (I think it's the case bc they don't use) so they didn't even really loved enough to use.. These are your obvious signs that you should take serious
+        - generic [ref=e2879]:
+          - generic [ref=e2880]: 📄
+          - generic [ref=e2881]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2882]:
+          - generic [ref=e2884]: Hacker News
+          - link "View Source" [ref=e2885] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5dnz03/
+            - img [ref=e2886]
+            - text: View Source
+      - generic [ref=e2890]:
+        - generic [ref=e2893]:
+          - generic [ref=e2895]: "Y"
+          - generic [ref=e2896]: RobertLigthart
+          - generic [ref=e2897]: •
+          - generic [ref=e2898]: Feb 14, 2026, 04:19 PM
+        - generic [ref=e2899]: the year of building before launching is the real issue here honestly. next time ship in 2-3 months max and start selling before its even finished... you learn more from 10 sales conversations than 12 months of building in isolation
+        - generic [ref=e2900]:
+          - generic [ref=e2901]: 📄
+          - generic [ref=e2902]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2903]:
+          - generic [ref=e2905]: Hacker News
+          - link "View Source" [ref=e2906] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5c2ysu/
+            - img [ref=e2907]
+            - text: View Source
+      - generic [ref=e2911]:
+        - generic [ref=e2914]:
+          - generic [ref=e2916]: "Y"
+          - generic [ref=e2917]: chloe_vdl
+          - generic [ref=e2918]: •
+          - generic [ref=e2919]: Feb 14, 2026, 03:33 PM
+        - generic [ref=e2920]: been there. not with a saas but i spent months building a service offering that nobody wanted to pay for even though everyone said it was "cool". the thing that finally clicked for me was realizing "cool" is just a polite way of saying "i don't need this enough to open my wallet". what worked was going back to basics and literally asking people "what are you currently paying for to solve this?" and if the answer is nothing or some janky spreadsheet, that's actually a bad sign because it means the pain isn't bad enough to justify spending money. you want people who are already paying for a worse solution. that's where the money is. also 2 months is early. the psychological toll is real though, i get it. try not to measure yourself against people who post their success stories on here because survivorship bias is wild
+        - generic [ref=e2921]:
+          - generic [ref=e2922]: 📄
+          - generic [ref=e2923]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2924]:
+          - generic [ref=e2926]: Hacker News
+          - link "View Source" [ref=e2927] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5bwnlm/
+            - img [ref=e2928]
+            - text: View Source
+      - generic [ref=e2932]:
+        - generic [ref=e2935]:
+          - generic [ref=e2937]: "Y"
+          - generic [ref=e2938]: SuspiciousTruth1602
+          - generic [ref=e2939]: •
+          - generic [ref=e2940]: Feb 14, 2026, 02:30 PM
+        - generic [ref=e2941]: Its a really tough spot to be in I totally get it I launched an app years ago and had a similar experience It can really get to you when you pour your heart into something and it doesnt immediately click with people. I think focusing on the right kind of outreach can make a huge difference For my first app (educational audiobooks) I found Reddit to be a goldmine. Ads never really worked for me but showing up organically in relevant subreddits answering questions and mentioning my app when it fit the conversation did. People on Reddit especially in niche communities can be really passionate and become loyal users. The problem was finding those relevant conversations. I was using F5 bot and it was a massive time sink going through endless notifications. It became obvious that my app could only grow as much as I scaled community engagement something that wasnt scalable So I ended up building an internal tool to solve that problem now its my main project. It automatically finds relevant conversations across Reddit X and LinkedIn. Its designed to surface the posts where your product is actually relevant not just based on keywords. This means you can jump into discussions where you can genuinely help people and maybe even find some paying customers in the process. Its what led me to your post actually! If you think something like that could help you cut through the noise and focus on the right conversations let me know. It may make community engagment less tiresome
+        - generic [ref=e2942]:
+          - generic [ref=e2943]: 📄
+          - generic [ref=e2944]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2945]:
+          - generic [ref=e2947]: Hacker News
+          - link "View Source" [ref=e2948] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5bp94k/
+            - img [ref=e2949]
+            - text: View Source
+      - generic [ref=e2953]:
+        - generic [ref=e2956]:
+          - generic [ref=e2958]: "Y"
+          - generic [ref=e2959]: fschuers
+          - generic [ref=e2960]: •
+          - generic [ref=e2961]: Feb 14, 2026, 02:06 PM
+        - generic [ref=e2962]: "A few things that helped me when I was in a similar conversion gap. The \"this is cool\" followed by silence usually points to one of three specific breakdowns, and each has a different fix: **1. You're talking to the right people but about the wrong angle.** They see value, but it doesn't connect to something they're actively trying to solve this week. Try this: go back to the last 5 people who said \"this is cool\" and ask them one question: \"what's the most frustrating part of \\[the workflow your product touches\\] right now?\" If their answer doesn't match your pitch, you've found the gap. **2. You're solving the right problem but for the wrong buyer.** Sometimes the person who says \"cool\" isn't the one feeling the pain daily. The decision-maker and the pain-feeler are often different people. Worth mapping out: who actually suffers from this problem vs. who you've been reaching out to. **3. Your positioning is too broad.** \"Simple enough for seniors\" is a UX achievement, but it might also signal that you haven't narrowed down who this is specifically for. When a product is for \"everyone,\" it's urgent for no one. Try describing your user in one sentence with a specific role, a specific context, and a specific frustration. If you can't, that's the thing to fix first. For the next 30 days, I'd pick one: either validate your positioning (are you describing the right problem?), your targeting (are you reaching the right people?), or your timing (are you catching them when they actually feel the pain?). Trying to fix all three at once is what keeps founders stuck in the loop you described. What does your current outreach message look like? That might help pinpoint which of the three is the bottleneck."
+        - generic [ref=e2963]:
+          - generic [ref=e2964]: 📄
+          - generic [ref=e2965]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2966]:
+          - generic [ref=e2968]: Hacker News
+          - link "View Source" [ref=e2969] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5bmp4i/
+            - img [ref=e2970]
+            - text: View Source
+      - generic [ref=e2974]:
+        - generic [ref=e2977]:
+          - generic [ref=e2979]: "Y"
+          - generic [ref=e2980]: No_Boysenberry_6827
+          - generic [ref=e2981]: •
+          - generic [ref=e2982]: Feb 14, 2026, 01:41 PM
+        - generic [ref=e2983]: "been exactly here. built a product, 8 million lines of code, technically impressive. zero paying customers for months. the \"this is cool\" replies were the worst because they kept me hoping. here is what I learned after going through this: the problem is almost never the product. it is the conversation after someone shows interest. \"this is cool\" means they see value but do not feel urgency. and urgency does not come from better pricing or better features - it comes from how deeply you understand their specific pain. what changed everything for me: I stopped pitching and started asking questions. instead of \"here is what my product does\" I started with \"what is the most expensive problem in your workflow right now?\" the ones who had a real answer became customers. the ones who said \"nothing really\" were never going to buy no matter what. the cold email thing - what does your follow-up look like after someone replies? because most solo founders send one email, get a \"cool\" response, send a link, then silence. the gap between \"cool\" and \"paid\" is 3-5 more touches where you dig into their pain and show them what their world looks like without it. what industry is the product for?"
+        - generic [ref=e2984]:
+          - generic [ref=e2985]: 📄
+          - generic [ref=e2986]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e2987]:
+          - generic [ref=e2989]: Hacker News
+          - link "View Source" [ref=e2990] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5bk402/
+            - img [ref=e2991]
+            - text: View Source
+      - generic [ref=e2995]:
+        - generic [ref=e2998]:
+          - generic [ref=e3000]: "Y"
+          - generic [ref=e3001]: alanjnr
+          - generic [ref=e3002]: •
+          - generic [ref=e3003]: Feb 14, 2026, 01:19 PM
+        - generic [ref=e3004]: Are you selling vitamins or painkillers? I was in the same boat, still am kind of. Added another revenue stream which is the painkiller and the vitamins from that.
+        - generic [ref=e3005]:
+          - generic [ref=e3006]: 📄
+          - generic [ref=e3007]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3008]:
+          - generic [ref=e3010]: Hacker News
+          - link "View Source" [ref=e3011] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5bhv74/
+            - img [ref=e3012]
+            - text: View Source
+      - generic [ref=e3016]:
+        - generic [ref=e3019]:
+          - generic [ref=e3021]: "Y"
+          - generic [ref=e3022]: Plane-Tiger-4534
+          - generic [ref=e3023]: •
+          - generic [ref=e3024]: Feb 14, 2026, 01:08 PM
+        - generic [ref=e3025]: And this is why salespeople exist.
+        - generic [ref=e3026]:
+          - generic [ref=e3027]: 📄
+          - generic [ref=e3028]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3029]:
+          - generic [ref=e3031]: Hacker News
+          - link "View Source" [ref=e3032] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5bgntj/
+            - img [ref=e3033]
+            - text: View Source
+      - generic [ref=e3037]:
+        - generic [ref=e3040]:
+          - generic [ref=e3042]: "Y"
+          - generic [ref=e3043]: rt2828
+          - generic [ref=e3044]: •
+          - generic [ref=e3045]: Feb 14, 2026, 12:54 PM
+        - generic [ref=e3046]: Do you have a clear ICP and the pain point you’re solving?
+        - generic [ref=e3047]:
+          - generic [ref=e3048]: 📄
+          - generic [ref=e3049]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3050]:
+          - generic [ref=e3052]: Hacker News
+          - link "View Source" [ref=e3053] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5bfaei/
+            - img [ref=e3054]
+            - text: View Source
+      - generic [ref=e3058]:
+        - generic [ref=e3061]:
+          - generic [ref=e3063]: "Y"
+          - generic [ref=e3064]: AnonJian
+          - generic [ref=e3065]: •
+          - generic [ref=e3066]: Feb 14, 2026, 11:36 AM
+        - generic [ref=e3067]: "Build It And They Will Come is a bitch when you never solved for \"they.\" &gt;If you were in my situation, what would you do for the next 30 days to get the first paying customer, and what would you stop doing immediately? Stop pushing on a string, step one. Call out \"Clue Powers ....*Activate!*\" as step two. Let me get this straight. The product is extremely easy to understand. Frictionless onboarding, so you claim. And the forever assumption launch is the very best time to start customer discovery and basic market demand research. Yes. Well. About that. Zero is a number. Silence is a response. At least you never blithered \"em-vee-pee\" over this boondoggle. You have the market answer ... ...Don't ask if three, six, twelve people filling out an online survey -- nobody paid but a moment's attention to fill out -- is enough 'market traction' to launch ...CANCEL. ...Do not come on here to crow about one hundred non-paying users on an internet with almost six billion users ...CANCEL. ...Stop asking where to find the complete strangers you don't understand where to find because you never developed a product for them ...CANCEL. Since nobody will activate clue powers: Launch Is The Very Worst Time To Find Out If Anybody Wants The Product You Crapped Out Market-Blind. Look up the term Sunk Cost Fallacy. It's what Lean Startup was trying to prevent. Wantrepreneurs mutilated the meaning, ditched the advice to put up a landing page, and acted like crippleware was minimal. Yeah ... the book was never about that."
+        - generic [ref=e3068]:
+          - generic [ref=e3069]: 📄
+          - generic [ref=e3070]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3071]:
+          - generic [ref=e3073]: Hacker News
+          - link "View Source" [ref=e3074] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5b7bsi/
+            - img [ref=e3075]
+            - text: View Source
+      - generic [ref=e3079]:
+        - generic [ref=e3082]:
+          - generic [ref=e3084]: "Y"
+          - generic [ref=e3085]: patrickjquinn
+          - generic [ref=e3086]: •
+          - generic [ref=e3087]: Feb 14, 2026, 09:44 AM
+        - generic [ref=e3088]: If there is a flair why does every title need to include it.
+        - generic [ref=e3089]:
+          - generic [ref=e3090]: 📄
+          - generic [ref=e3091]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3092]:
+          - generic [ref=e3094]: Hacker News
+          - link "View Source" [ref=e3095] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5avjl7/
+            - img [ref=e3096]
+            - text: View Source
+      - generic [ref=e3100]:
+        - generic [ref=e3103]:
+          - generic [ref=e3105]: "Y"
+          - generic [ref=e3106]: KrismerOfEarth
+          - generic [ref=e3107]: •
+          - generic [ref=e3108]: Feb 14, 2026, 07:53 AM
+        - generic [ref=e3109]: You have a need for speed brother. Sounds like you need to do things a lot more quickly, and tell a lot more people about it.
+        - generic [ref=e3110]:
+          - generic [ref=e3111]: 📄
+          - generic [ref=e3112]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3113]:
+          - generic [ref=e3115]: Hacker News
+          - link "View Source" [ref=e3116] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5ai9w1/
+            - img [ref=e3117]
+            - text: View Source
+      - generic [ref=e3121]:
+        - generic [ref=e3124]:
+          - generic [ref=e3126]: "Y"
+          - generic [ref=e3127]: DicksDraggon
+          - generic [ref=e3128]: •
+          - generic [ref=e3129]: Feb 14, 2026, 07:47 AM
+        - generic [ref=e3130]: How many people did you talk to in person?
+        - generic [ref=e3131]:
+          - generic [ref=e3132]: 📄
+          - generic [ref=e3133]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3134]:
+          - generic [ref=e3136]: Hacker News
+          - link "View Source" [ref=e3137] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5ahj0k/
+            - img [ref=e3138]
+            - text: View Source
+      - generic [ref=e3142]:
+        - generic [ref=e3145]:
+          - generic [ref=e3147]: "Y"
+          - generic [ref=e3148]: CulturalFig1237
+          - generic [ref=e3149]: •
+          - generic [ref=e3150]: Feb 14, 2026, 07:43 AM
+        - generic [ref=e3151]: For the next 30 days, I’d only chase people who already feel the problem today.
+        - generic [ref=e3152]:
+          - generic [ref=e3153]: 📄
+          - generic [ref=e3154]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3155]:
+          - generic [ref=e3157]: Hacker News
+          - link "View Source" [ref=e3158] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5agwvr/
+            - img [ref=e3159]
+            - text: View Source
+      - generic [ref=e3163]:
+        - generic [ref=e3166]:
+          - generic [ref=e3168]: "Y"
+          - generic [ref=e3169]: New_Grape7181
+          - generic [ref=e3170]: •
+          - generic [ref=e3171]: Feb 14, 2026, 07:15 AM
+        - generic [ref=e3172]: "I've been in that exact spot where people say \"cool\" but don't pull out their wallet. That gap usually means one of two things: either they don't have the problem urgently enough, or the value isn't clear in their specific context. For the next 30 days, I'd stop doing any kind of broad outreach and instead get on 10 proper calls with people in your target market, even if they haven't tried your product. Not demo calls, discovery calls. Ask them what their actual workflow looks like, where it breaks down, what they've tried to fix it, and why they're not using a solution right now. You're looking for the moment they say \"I hate that I have to...\" because that's where real urgency lives. The \"this is cool\" response usually means you've built something clever but not something they're desperate for. Sometimes the problem we think we're solving isn't the one keeping them up at night. Also, making something simple isn't always the win. Sometimes people need to see complexity to justify paying for it, or they need it to fit into their existing messy process rather than replace it with something cleaner. When you do these calls, what's the one question you're most afraid to ask them?"
+        - generic [ref=e3173]:
+          - generic [ref=e3174]: 📄
+          - generic [ref=e3175]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3176]:
+          - generic [ref=e3178]: Hacker News
+          - link "View Source" [ref=e3179] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o5ad5ws/
+            - img [ref=e3180]
+            - text: View Source
+      - generic [ref=e3184]:
+        - generic [ref=e3187]:
+          - generic [ref=e3189]: "Y"
+          - generic [ref=e3190]: MODiSu
+          - generic [ref=e3191]: •
+          - generic [ref=e3192]: Feb 14, 2026, 04:32 AM
+        - generic [ref=e3193]: "Been there. Spent months building an AI tool thinking \"if I make this good enough, people will buy it.\" They didn't. What actually worked for me: stop trying to sell the product and start finding people who are already spending money (badly) on the problem you're solving. Not people who think it's cool. People who are literally throwing cash at terrible solutions right now. For the next 30 days I'd do this: find 20 people who are actively posting about the exact problem you solve (Reddit, forums, X, wherever). Message them. Don't pitch. Just ask what they're currently using and how much it's costing them. If they're not spending money or time on it already, move on. The hard truth is \"this is cool\" usually means \"I don't have this problem badly enough to pay for a solution.\" You need people who are in pain, not people who think your idea is neat."
+        - generic [ref=e3194]:
+          - generic [ref=e3195]: 📄
+          - generic [ref=e3196]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3197]:
+          - generic [ref=e3199]: Hacker News
+          - link "View Source" [ref=e3200] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o59ol5g/
+            - img [ref=e3201]
+            - text: View Source
+      - generic [ref=e3205]:
+        - generic [ref=e3208]:
+          - generic [ref=e3210]: "Y"
+          - generic [ref=e3211]: rancailin
+          - generic [ref=e3212]: •
+          - generic [ref=e3213]: Feb 14, 2026, 04:23 AM
+        - generic [ref=e3214]: In your year of building product, did anyone at all tell you they had this problem or wanted your product? Sounds like a classic case of hammer looking for a nail.
+        - generic [ref=e3215]:
+          - generic [ref=e3216]: 📄
+          - generic [ref=e3217]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3218]:
+          - generic [ref=e3220]: Hacker News
+          - link "View Source" [ref=e3221] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o59n7jg/
+            - img [ref=e3222]
+            - text: View Source
+      - generic [ref=e3226]:
+        - generic [ref=e3229]:
+          - generic [ref=e3231]: "Y"
+          - generic [ref=e3232]: jfranklynw
+          - generic [ref=e3233]: •
+          - generic [ref=e3234]: Feb 14, 2026, 04:16 AM
+        - generic [ref=e3235]: The "this is cool" thing is probably the most common trap in bootstrapping. I went through something similar - built something for about 6 months, showed it to people in my industry, got loads of positive feedback, and then crickets when I asked them to actually use it. What changed for me was stopping the general outreach and instead finding people mid-crisis. Not "this might be useful someday" people but "I have this exact problem right now and it's costing me money" people. In my case that meant finding bookkeepers who were drowning in month-end work that week, not bookkeepers who theoretically agreed that month-end was annoying. The other thing worth checking - are you selling to the person who has the problem, or the person who approves the budget? They're often different people and you can get stuck in "this is cool" loops with the wrong one. The person who feels the pain will fight internally to get your thing approved. The person who just thinks it's neat won't bother.
+        - generic [ref=e3236]:
+          - generic [ref=e3237]: 📄
+          - generic [ref=e3238]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3239]:
+          - generic [ref=e3241]: Hacker News
+          - link "View Source" [ref=e3242] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o59m3iy/
+            - img [ref=e3243]
+            - text: View Source
+      - generic [ref=e3247]:
+        - generic [ref=e3250]:
+          - generic [ref=e3252]: "Y"
+          - generic [ref=e3253]: Tall-Log-1955
+          - generic [ref=e3254]: •
+          - generic [ref=e3255]: Feb 14, 2026, 03:31 AM
+        - generic [ref=e3256]: I assume the problem it solves is not a big enough problem
+        - generic [ref=e3257]:
+          - generic [ref=e3258]: 📄
+          - generic [ref=e3259]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3260]:
+          - generic [ref=e3262]: Hacker News
+          - link "View Source" [ref=e3263] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o59eqia/
+            - img [ref=e3264]
+            - text: View Source
+      - generic [ref=e3268]:
+        - generic [ref=e3271]:
+          - generic [ref=e3273]: "Y"
+          - generic [ref=e3274]: External_Purchase691
+          - generic [ref=e3275]: •
+          - generic [ref=e3276]: Feb 14, 2026, 03:16 AM
+        - generic [ref=e3277]: If you're confident you've built something valuable, then it might be more of a targeting problem than a product issue. You could be talking to the wrong audience, or framing the product around the wrong pain point. In the next 30 days, try to narrow your focus to one clear ICP and one urgent use case, then rewrite your pitch around a measurable outcome and only talk to people who actually have that pain point.
+        - generic [ref=e3278]:
+          - generic [ref=e3279]: 📄
+          - generic [ref=e3280]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3281]:
+          - generic [ref=e3283]: Hacker News
+          - link "View Source" [ref=e3284] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o59c7ta/
+            - img [ref=e3285]
+            - text: View Source
+      - generic [ref=e3289]:
+        - generic [ref=e3292]:
+          - generic [ref=e3294]: "Y"
+          - generic [ref=e3295]: reddefcode
+          - generic [ref=e3296]: •
+          - generic [ref=e3297]: Feb 14, 2026, 02:48 AM
+        - generic [ref=e3298]: You've optimized for onboarding, but you're missing the critical step of finding people in active pain. Standard outreach fails because it targets interest, not intent. You need to find prospects who are already complaining about the exact workflow your product fixes. In the US alone, with a population of more than 300ml there should be at least 100 customers for you.
+        - generic [ref=e3299]:
+          - generic [ref=e3300]: 📄
+          - generic [ref=e3301]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3302]:
+          - generic [ref=e3304]: Hacker News
+          - link "View Source" [ref=e3305] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o597lgw/
+            - img [ref=e3306]
+            - text: View Source
+      - generic [ref=e3310]:
+        - generic [ref=e3313]:
+          - generic [ref=e3315]: "Y"
+          - generic [ref=e3316]: LatterBackground8370
+          - generic [ref=e3317]: •
+          - generic [ref=e3318]: Feb 14, 2026, 12:44 AM
+        - generic [ref=e3319]: Did you validate before you started building? Did you have prospect feedback during building?
+        - generic [ref=e3320]:
+          - generic [ref=e3321]: 📄
+          - generic [ref=e3322]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3323]:
+          - generic [ref=e3325]: Hacker News
+          - link "View Source" [ref=e3326] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o58ksl7/
+            - img [ref=e3327]
+            - text: View Source
+      - generic [ref=e3331]:
+        - generic [ref=e3334]:
+          - generic [ref=e3336]: "Y"
+          - generic [ref=e3337]: Worldly_Ad_6475
+          - generic [ref=e3338]: •
+          - generic [ref=e3339]: Feb 13, 2026, 10:33 PM
+        - generic [ref=e3340]: For the next 30 days, stop tweaking messaging and do 15-20 calls with one very specific ICP. Don't pitch. Ask how they're solving it now and what it's costing them. If they haven't already tried to fix it, it's probably not painful enough. Simplicity removes friction. It doesn't create demand.
+        - generic [ref=e3341]:
+          - generic [ref=e3342]: 📄
+          - generic [ref=e3343]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3344]:
+          - generic [ref=e3346]: Hacker News
+          - link "View Source" [ref=e3347] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o57um19/
+            - img [ref=e3348]
+            - text: View Source
+      - generic [ref=e3352]:
+        - generic [ref=e3355]:
+          - generic [ref=e3357]: "Y"
+          - generic [ref=e3358]: Delicious-Part2456
+          - generic [ref=e3359]: •
+          - generic [ref=e3360]: Feb 13, 2026, 10:14 PM
+        - generic [ref=e3361]: “This is cool” usually means the pain isn’t urgent. If they won’t pay, either the problem isn’t painful enough or you’re not talking to the right buyer. For the next 30 days, stop building. Do 30 deep customer calls and look for someone already hacking a workaround.
+        - generic [ref=e3362]:
+          - generic [ref=e3363]: 📄
+          - generic [ref=e3364]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3365]:
+          - generic [ref=e3367]: Hacker News
+          - link "View Source" [ref=e3368] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o57qppe/
+            - img [ref=e3369]
+            - text: View Source
+      - generic [ref=e3373]:
+        - generic [ref=e3376]:
+          - generic [ref=e3378]: "Y"
+          - generic [ref=e3379]: SlowPotential6082
+          - generic [ref=e3380]: •
+          - generic [ref=e3381]: Feb 13, 2026, 09:53 PM
+        - generic [ref=e3382]: The "this is cool" response is actually a red flag - it means you've built something that sounds nice but doesn't solve a painful enough problem for people to pull out their credit card. I'd bet you're getting polite interest instead of desperate "I need this yesterday" responses, which usually means the problem isn't urgent enough or you're not reaching the people who feel the pain most acutely. Instead of tweaking messaging, go back to customer interviews and ask people what they're currently doing to solve this problem and how much time/money it costs them - if they're not already spending significant resources on workarounds, your solution might be solving a "nice to have" instead of a "must have." We use Brew for our email outreach and the biggest lesson has been that timing matters more than perfect messaging - catching people right when they're actively frustrated with their current solution.
+        - generic [ref=e3383]:
+          - generic [ref=e3384]: 📄
+          - generic [ref=e3385]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3386]:
+          - generic [ref=e3388]: Hacker News
+          - link "View Source" [ref=e3389] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o57m7te/
+            - img [ref=e3390]
+            - text: View Source
+      - generic [ref=e3394]:
+        - generic [ref=e3397]:
+          - generic [ref=e3399]: "Y"
+          - generic [ref=e3400]: InitialWorldliness91
+          - generic [ref=e3401]: •
+          - generic [ref=e3402]: Feb 13, 2026, 08:51 PM
+        - generic [ref=e3403]: The number one reason a business fails is because they build something that few people are willing to pay for or that they dont need. There is not enough information in your post to offer any practical advice because, we do not know * What the business is * Do You have competitors * How do you differentiate between you and your competitors * How you validated demand * What your pricing is * How you validated pricing * Did you run any trials * What specific feedback have you gotten, particularly what negative feedback have you gotten To be blunt, "Cool" is irrelevent and does not help. You are not looking for people who think your product is cool (helicopters are cool but I dont want one). You are looking for people that have a problem that you solve and for a cost that they are willing to pay to have that problem solved. The only thing I can suggest for now, is to go back to the people who have replied and ask why they are not willing to become customers. If you are talking to people in the industry, ask them directly what would make them become customers. Only when you know this can you put together a truly effective marketing campaign
+        - generic [ref=e3404]:
+          - generic [ref=e3405]: 📄
+          - generic [ref=e3406]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3407]:
+          - generic [ref=e3409]: Hacker News
+          - link "View Source" [ref=e3410] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o579adz/
+            - img [ref=e3411]
+            - text: View Source
+      - generic [ref=e3415]:
+        - generic [ref=e3418]:
+          - generic [ref=e3420]: "Y"
+          - generic [ref=e3421]: Ecaglar
+          - generic [ref=e3422]: •
+          - generic [ref=e3423]: Feb 13, 2026, 08:42 PM
+        - generic [ref=e3424]: "\"this is cool\" but no conversion usually means they dont have the problem bad enough to pay for it right now. for the next 30 days id stop cold outreach entirely and instead find 10 people who are actively complaining about the problem you solve in forums/communities and dm them. people in pain convert, people who think its cool dont"
+        - generic [ref=e3425]:
+          - generic [ref=e3426]: 📄
+          - generic [ref=e3427]: "[I will not promote] Bootstrapped for a year, launched 2 months ago, still zero customers. What am I doing wrong?"
+        - generic [ref=e3428]:
+          - generic [ref=e3430]: Hacker News
+          - link "View Source" [ref=e3431] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/startups/comments/1r3vmqb/i_will_not_promote_bootstrapped_for_a_year/o577by0/
+            - img [ref=e3432]
+            - text: View Source
