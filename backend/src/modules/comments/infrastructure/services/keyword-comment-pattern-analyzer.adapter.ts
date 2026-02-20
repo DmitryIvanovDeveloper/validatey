@@ -5,114 +5,92 @@ import type {
   CommentPattern,
   CommentPatternAnalysis,
   CommentPatternExample,
-  PatternType,
 } from '../../domain/value-objects/comment-pattern-analysis.vo';
-
-interface PatternDefinition {
-  type: PatternType;
-  label: string;
-  keywords: string[];
-  buildInsight: (count: number, total: number) => string;
-}
-
-const PATTERN_DEFINITIONS: PatternDefinition[] = [
-  {
-    type: 'myth',
-    label: 'Startup Myths',
-    keywords: ['lie', 'myth', 'believe', 'wrong', 'mistake', 'think', 'thought', 'assumed', 'false', 'delusion', 'trap', 'illusion'],
-    buildInsight: (count, total) =>
-      `${count} comments (${Math.round((count / total) * 100)}%) mention common startup myths or false beliefs.`,
-  },
-  {
-    type: 'failure',
-    label: 'Failure Patterns',
-    keywords: ['fail', 'failed', 'failure', 'waste', 'wasted', 'lose', 'lost', 'burn', 'burned', 'zero', 'struggling', 'disaster', 'quit', 'gave up', 'shut down', 'no customers', 'no users'],
-    buildInsight: (count, total) =>
-      `${count} comments (${Math.round((count / total) * 100)}%) share failure stories or struggles.`,
-  },
-  {
-    type: 'advice',
-    label: 'Advice & Lessons',
-    keywords: ['should', 'advice', 'lesson', 'learn', 'tip', 'recommend', 'suggest', 'important', 'crucial', 'must', 'key', 'focus on'],
-    buildInsight: (count, total) =>
-      `${count} comments (${Math.round((count / total) * 100)}%) offer actionable advice or lessons learned.`,
-  },
-  {
-    type: 'validation',
-    label: 'Validation Signals',
-    keywords: ['validate', 'validation', 'test', 'hypothesis', 'customer', 'problem', 'pain', 'research', 'interview', 'survey', 'feedback', 'market'],
-    buildInsight: (count, total) =>
-      `${count} comments (${Math.round((count / total) * 100)}%) discuss validation and real customer pain.`,
-  },
-];
-
-const MAX_EXAMPLES = 3;
+import type { PatternRule, ScoreWeight } from '../../domain/value-objects/pattern-rules.vo';
 
 function containsAny(text: string, keywords: string[]): boolean {
   const lower = text.toLowerCase();
   return keywords.some((kw) => lower.includes(kw));
 }
 
-function buildExample(comment: CommentEntity): CommentPatternExample {
+function buildExample(comment: CommentEntity, maxLen = 200): CommentPatternExample {
   const content = comment.content.trim();
+  // Fair Use: limit to 200 characters for analysis examples
+  const truncated = content.length > maxLen ? content.slice(0, maxLen) + '…' : content;
+
   return {
-    content: content.length > 200 ? content.slice(0, 200) + '…' : content,
+    content: truncated,
     author: comment.author ?? 'Anonymous',
     source: comment.contextTitle ?? 'Unknown source',
+    url: comment.url, // Add URL for proper attribution
   };
 }
 
-function computeValidationScore(patterns: CommentPattern[], total: number): number {
+function buildInsight(template: string, count: number, total: number): string {
+  const pct = Math.round((count / total) * 100);
+  return template
+    .replace('{count}', String(count))
+    .replace('{pct}', String(pct));
+}
+
+function computeValidationScore(
+  patterns: CommentPattern[],
+  total: number,
+  weights: ScoreWeight[]
+): number {
   if (total === 0) return 0;
 
-  const mythPattern = patterns.find((p) => p.type === 'myth');
-  const failurePattern = patterns.find((p) => p.type === 'failure');
-  const advicePattern = patterns.find((p) => p.type === 'advice');
-  const validationPattern = patterns.find((p) => p.type === 'validation');
-
-  // More failure + validation signals → higher score (more evidence of real problem)
   let score = 0;
-  if (failurePattern) score += Math.min(40, Math.round((failurePattern.count / total) * 100));
-  if (validationPattern) score += Math.min(30, Math.round((validationPattern.count / total) * 80));
-  if (mythPattern) score += Math.min(20, Math.round((mythPattern.count / total) * 50));
-  if (advicePattern) score += Math.min(10, Math.round((advicePattern.count / total) * 20));
+  let globalBonus50 = 0;
+  let globalBonus100 = 0;
 
-  // Bonus for significant comment volume
-  if (total >= 50) score = Math.min(100, score + 10);
-  if (total >= 100) score = Math.min(100, score + 10);
+  for (const weight of weights) {
+    const pattern = patterns.find((p) => p.type === weight.patternType);
+    if (pattern) {
+      const contribution = Math.min(
+        weight.maxScore,
+        Math.round((pattern.count / total) * 100 * weight.multiplier)
+      );
+      score += contribution;
+    }
+    globalBonus50 = Math.max(globalBonus50, weight.volumeBonus50);
+    globalBonus100 = Math.max(globalBonus100, weight.volumeBonus100);
+  }
+
+  if (total >= 50) score = Math.min(100, score + globalBonus50);
+  if (total >= 100) score = Math.min(100, score + globalBonus100);
 
   return Math.min(100, score);
 }
 
 @injectable()
 export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnalyzerPort {
-  analyze(comments: CommentEntity[]): CommentPatternAnalysis {
+  analyze(
+    comments: CommentEntity[],
+    rules: PatternRule[],
+    weights: ScoreWeight[]
+  ): CommentPatternAnalysis {
     const total = comments.length;
 
     if (total === 0) {
-      return {
-        totalComments: 0,
-        patterns: [],
-        validationScore: 0,
-        analyzedAt: new Date(),
-      };
+      return { totalComments: 0, patterns: [], validationScore: 0, analyzedAt: new Date() };
     }
 
-    const patterns: CommentPattern[] = PATTERN_DEFINITIONS
-      .reduce<CommentPattern[]>((acc, def) => {
-        const matched = comments.filter((c) => containsAny(c.content, def.keywords));
+    const patterns: CommentPattern[] = rules
+      .reduce<CommentPattern[]>((acc, rule) => {
+        const matched = comments.filter((c) => containsAny(c.content, rule.keywords));
         const count = matched.length;
 
         if (count === 0) return acc;
 
         const examples: CommentPatternExample[] = matched
-          .slice(0, MAX_EXAMPLES)
-          .map(buildExample);
+          .slice(0, rule.maxExamples)
+          .map((c) => buildExample(c));
 
         acc.push({
-          type: def.type,
-          label: def.label,
-          insight: def.buildInsight(count, total),
+          type: rule.type,
+          label: rule.label,
+          insight: buildInsight(rule.insightTemplate, count, total),
           count,
           percentage: Math.round((count / total) * 100),
           examples,
@@ -122,13 +100,8 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
       }, [])
       .sort((a, b) => b.count - a.count);
 
-    const validationScore = computeValidationScore(patterns, total);
+    const validationScore = computeValidationScore(patterns, total, weights);
 
-    return {
-      totalComments: total,
-      patterns,
-      validationScore,
-      analyzedAt: new Date(),
-    };
+    return { totalComments: total, patterns, validationScore, analyzedAt: new Date() };
   }
 }

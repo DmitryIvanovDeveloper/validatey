@@ -4,6 +4,7 @@ export interface CommentPatternExample {
   readonly content: string;
   readonly author: string;
   readonly source: string;
+  readonly url?: string; // Link to original comment for attribution
 }
 
 export interface CommentPattern {

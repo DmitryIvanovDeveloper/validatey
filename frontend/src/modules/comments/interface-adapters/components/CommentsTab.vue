@@ -246,6 +246,9 @@
                         {{ filteredComments.length }}
                       </div>
                     </div>
+                    <div class="fair-use-notice">
+                      <small>Content shown under Fair Use for research purposes. Full comments available via "View Source" links.</small>
+                    </div>
                     <div v-if="commentsFilterUrl" class="header-actions">
                       <button @click="openCommentsSidebar" class="btn-outline btn-sm">
                         <svg viewBox="0 0 24 24" class="btn-icon">
@@ -292,7 +295,10 @@
 
                       <!-- Comment Content with better typography -->
                       <div class="comment-content-sidebar">
-                        {{ comment.content }}
+                        {{ truncateForFairUse(comment.content) }}
+                        <span v-if="comment.content.length > 500" class="fair-use-indicator">
+                          [Content truncated for Fair Use - click "View Source" for full text]
+                        </span>
                       </div>
 
                       <!-- Context information -->
@@ -502,6 +508,11 @@ const formatDate = (date: Date) => {
 const truncateText = (text: string, maxLength: number) => {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength);
+};
+
+const truncateForFairUse = (text: string, maxLength: number = 500) => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 };
 
 // Reactive data
@@ -1300,6 +1311,12 @@ onMounted(async () => {
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
+.url-input-item:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
 .url-input-item::placeholder {
   font-family: var(--font-sans);
   color: var(--color-text-muted);
@@ -1602,10 +1619,21 @@ onMounted(async () => {
 
 .detail-header-content {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
-  gap: 1rem;
+  gap: 0.5rem;
+}
+
+.fair-use-notice {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+.fair-use-notice small {
+  font-weight: 400;
 }
 
 .header-info {
@@ -2073,6 +2101,17 @@ onMounted(async () => {
   .header-info {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .fair-use-indicator {
+    display: block;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-style: italic;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(156, 163, 175, 0.1);
+    border-radius: 3px;
   }
 }
 </style>

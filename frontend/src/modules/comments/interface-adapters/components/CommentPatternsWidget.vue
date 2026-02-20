@@ -9,6 +9,10 @@
         <div>
           <h3 class="cpw-title">Comment Pattern Analysis</h3>
           <p v-if="analysis" class="cpw-subtitle">Based on {{ analysis.totalComments }} collected comments</p>
+          <p class="cpw-disclaimer">
+            Content shown under Fair Use for research purposes.
+            <a href="#" @click.prevent="showFairUseInfo" class="cpw-disclaimer-link">Learn more</a>
+          </p>
         </div>
       </div>
       <div v-if="analysis" class="cpw-score-badge" :class="scoreBadgeClass">
@@ -63,8 +67,21 @@
         <!-- Examples (collapsible) -->
         <div v-if="expandedPattern === pattern.type" class="cpw-examples">
           <div v-for="(ex, idx) in pattern.examples" :key="idx" class="cpw-example">
-            <p class="cpw-example-content">"{{ ex.content }}"</p>
-            <p class="cpw-example-meta">{{ ex.author }} · {{ ex.source }}</p>
+            <blockquote class="cpw-example-content" :cite="ex.url">
+              "{{ ex.content }}"
+            </blockquote>
+            <div class="cpw-example-meta">
+              <span class="cpw-example-author">by {{ ex.author }}</span>
+              <span class="cpw-example-source">{{ ex.source }}</span>
+              <a v-if="ex.url" :href="ex.url" target="_blank" rel="noopener noreferrer" class="cpw-example-link">
+                View Original
+                <svg viewBox="0 0 24 24" class="cpw-external-icon">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15,3 21,3 21,9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -89,6 +106,30 @@
       </svg>
       Analyzed {{ analysis.totalComments }} real comments from community sources
     </div>
+
+    <!-- Fair Use Modal -->
+    <div v-if="showFairUseModal" class="cpw-modal-overlay" @click="closeFairUseModal">
+      <div class="cpw-modal" @click.stop>
+        <div class="cpw-modal-header">
+          <h4>Fair Use & Attribution</h4>
+          <button @click="closeFairUseModal" class="cpw-modal-close">
+            <svg viewBox="0 0 24 24" class="cpw-close-icon">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="cpw-modal-body">
+          <p><strong>Fair Use Policy:</strong> Comment excerpts shown here are limited to 200 characters and used solely for research and analysis purposes under U.S. Fair Use guidelines (17 U.S.C. § 107).</p>
+
+          <p><strong>Attribution:</strong> All comments are properly attributed to their original authors with links to the source material.</p>
+
+          <p><strong>Rights:</strong> We respect intellectual property rights. If you are the author of any comment shown here and wish it removed, please contact us.</p>
+
+          <p><strong>Sources:</strong> Comments are collected from public Reddit and HackerNews posts with permission from their respective APIs.</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -109,6 +150,7 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const analysis = ref<CommentPatternAnalysis | null>(null);
 const expandedPattern = ref<PatternType | null>(null);
+const showFairUseModal = ref(false);
 
 const scoreBadgeClass = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
@@ -126,6 +168,14 @@ const scoreLabel = computed(() => {
 
 function togglePattern(type: PatternType): void {
   expandedPattern.value = expandedPattern.value === type ? null : type;
+}
+
+function showFairUseInfo(): void {
+  showFairUseModal.value = true;
+}
+
+function closeFairUseModal(): void {
+  showFairUseModal.value = false;
 }
 
 async function loadPatterns(): Promise<void> {
@@ -423,5 +473,168 @@ onMounted(() => {
   width: 0.875rem;
   height: 0.875rem;
   flex-shrink: 0;
+}
+
+/* Fair Use Disclaimer */
+.cpw-disclaimer {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.4;
+}
+
+.cpw-disclaimer-link {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.cpw-disclaimer-link:hover {
+  text-decoration: underline;
+}
+
+/* Enhanced Example Attribution */
+.cpw-example-content {
+  font-size: 0.8125rem;
+  color: #374151;
+  margin: 0 0 0.5rem;
+  line-height: 1.5;
+  font-style: italic;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.cpw-example-content::before {
+  content: '"';
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 1.2em;
+  color: #d1d5db;
+}
+
+.cpw-example-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cpw-example-author {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.cpw-example-source {
+  color: #9ca3af;
+}
+
+.cpw-example-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #6366f1;
+  text-decoration: none;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.cpw-example-link:hover {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.cpw-external-icon {
+  width: 0.625rem;
+  height: 0.625rem;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+/* Fair Use Modal */
+.cpw-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.cpw-modal {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.cpw-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cpw-modal-header h4 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.cpw-modal-close {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.cpw-modal-close:hover {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.cpw-close-icon {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.cpw-modal-body {
+  padding: 1.5rem;
+}
+
+.cpw-modal-body p {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.cpw-modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+.cpw-modal-body strong {
+  color: #111827;
 }
 </style>
