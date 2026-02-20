@@ -6,4 +6,5 @@ export const TYPES = {
   UpdateRoundUseCase: Symbol.for('UpdateRoundUseCase'),
   DeleteRoundUseCase: Symbol.for('DeleteRoundUseCase'),
   RoundController: Symbol.for('RoundController'),
+  RoundSynthesisOrchestrator: Symbol.for('RoundSynthesisOrchestrator'),
 } as const;

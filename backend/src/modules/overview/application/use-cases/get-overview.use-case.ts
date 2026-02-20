@@ -314,6 +314,17 @@ export class GetOverviewUseCase {
       });
     }
 
+    // Suggest new round when synthesis says more data needed
+    if (d.synthesisVerdict === 'needs-more-data') {
+      actions.push({
+        id: 'new_round',
+        label: 'Start next round',
+        hint: 'AI says more data needed',
+        href: `/projects/${projectId}#new-round`,
+        priority: 0,
+      });
+    }
+
     return actions.sort((a, b) => a.priority - b.priority).slice(0, 4);
   }
 
@@ -339,11 +350,35 @@ export class GetOverviewUseCase {
       keyFinding: r.results?.keyFinding ?? null,
       reportHref: `/projects/${projectId}/report?roundId=${r.id}`,
     }));
-    const extendSuggestions = [
-      'Add A/B test round to compare messaging',
-      'Add interview round for depth',
-      'Add pricing experiment if WTP is high',
-    ];
+
+    // Tailor extend-suggestions based on synthesis verdict
+    let extendSuggestions: string[];
+    if (d.synthesisVerdict === 'needs-more-data') {
+      extendSuggestions = [
+        'Run a follow-up interview round to deepen qualitative evidence',
+        'Expand respondent pool with a broader survey',
+        'Add a pricing experiment round to test WTP',
+      ];
+    } else if (d.synthesisVerdict === 'validated') {
+      extendSuggestions = [
+        'Hypothesis validated — run an A/B test to compare messaging',
+        'Conduct a pricing round to find optimal price point',
+        'Explore adjacent segments in a new discovery round',
+      ];
+    } else if (d.synthesisVerdict === 'rejected') {
+      extendSuggestions = [
+        'Pivot hypothesis — run a new discovery round with revised assumptions',
+        'Explore a different customer segment',
+        'Reframe the problem with qualitative interviews',
+      ];
+    } else {
+      extendSuggestions = [
+        'Add A/B test round to compare messaging',
+        'Add interview round for depth',
+        'Add pricing experiment if WTP is high',
+      ];
+    }
+
     return { rounds, extendSuggestions };
   }
 

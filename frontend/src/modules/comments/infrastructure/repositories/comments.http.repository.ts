@@ -5,6 +5,8 @@ import type {
   CommentsHttpRepositoryPort,
   FetchJobStateDTO,
   GetCommentsResponseDTO,
+  CreateSourceInput,
+  SourceDTO,
 } from '../../application/ports/comments-http-repository.port';
 import Result from '../../../../infrastructure/result/result';
 
@@ -60,6 +62,7 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
     projectId: string,
     options?: {
       sourceId?: string;
+      url?: string;
       isProcessed?: boolean;
       limit?: number;
     }
@@ -68,6 +71,7 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
       const params = new URLSearchParams();
 
       if (options?.sourceId) params.set('sourceId', options.sourceId);
+      if (options?.url) params.set('url', options.url);
       if (options?.isProcessed !== undefined) params.set('isProcessed', String(options.isProcessed));
       if (options?.limit) params.set('limit', String(options.limit));
 
@@ -79,6 +83,24 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
       return Result.success<GetCommentsResponseDTO>(data);
     } catch (error) {
       return Result.failure<GetCommentsResponseDTO, Error>(error as Error);
+    }
+  }
+
+  async createSource(projectId: string, input: CreateSourceInput): Promise<Result<SourceDTO, Error>> {
+    try {
+      const data = await this._httpClient.post<SourceDTO>(`/projects/${projectId}/comments/sources`, input);
+      return Result.success(data);
+    } catch (error) {
+      return Result.failure<SourceDTO, Error>(error as Error);
+    }
+  }
+
+  async createSource(projectId: string, input: CreateSourceInput): Promise<Result<SourceDTO, Error>> {
+    try {
+      const data = await this._httpClient.post<{ source: SourceDTO }>(`/projects/${projectId}/comments/sources`, input);
+      return Result.success<SourceDTO>(data.source);
+    } catch (error) {
+      return Result.failure<SourceDTO, Error>(error as Error);
     }
   }
 

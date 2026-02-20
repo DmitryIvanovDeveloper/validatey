@@ -21,23 +21,23 @@
           </div>
 
           <!-- List of URLs -->
-          <div class="url-list" v-if="viewModel.redditUrls.length > 0">
+          <div class="url-list" v-if="viewModel.redditSources.length > 0">
             <div
-              v-for="(url, index) in viewModel.redditUrls"
-              :key="index"
+              v-for="(source, index) in viewModel.redditSources"
+              :key="source.id"
               class="url-item"
-              :class="{ 'url-item-error': !isValidUrl(url) }"
+              :class="{ 'url-item-error': !isValidUrl(source.url) }"
             >
 
               <div class="url-input-wrapper">
                 <input
                   type="text"
-                  :value="url"
+                  :value="source.url"
                   readonly="true"
                   class="url-input-item"
                   :placeholder="getPlaceholderForIndex(index)"
                 />
-                <div class="url-validation" v-if="!isValidUrl(url)">
+                <div class="url-validation" v-if="!isValidUrl(source.url)">
                   <svg viewBox="0 0 24 24" class="validation-icon">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="15" y1="9" x2="9" y2="15"/>
@@ -48,11 +48,11 @@
 
               <div class="url-actions">
                 <button
-                  @click="openCommentsSidebarForUrl(url)"
+                  @click="openCommentsSidebarForSource(source.id)"
                   class="url-action-btn url-comments-btn"
                   type="button"
-                  :aria-label="`View comments for ${url}`"
-                  :title="`View comments for ${url}`"
+                  :aria-label="`View comments for ${source.url}`"
+                  :title="`View comments for ${source.url}`"
                 >
                   <svg viewBox="0 0 24 24" class="action-icon">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -126,23 +126,23 @@
           </div>
 
           <!-- List of HN URLs -->
-          <div class="url-list" v-if="viewModel.hnUrls.length > 0">
+          <div class="url-list" v-if="viewModel.hnSources.length > 0">
             <div
-              v-for="(url, index) in viewModel.hnUrls"
-              :key="index"
+              v-for="(source, index) in viewModel.hnSources"
+              :key="source.id"
               class="url-item"
-              :class="{ 'url-item-error': !isValidHnUrl(url) }"
+              :class="{ 'url-item-error': !isValidHnUrl(source.url) }"
             >
 
               <div class="url-input-wrapper">
                 <input
                   type="text"
-                  :value="url"
+                  :value="source.url"
                   readonly="true"
                   class="url-input-item"
                   :placeholder="getHnPlaceholderForIndex(index)"
                 />
-                <div class="url-validation" v-if="!isValidHnUrl(url)">
+                <div class="url-validation" v-if="!isValidHnUrl(source.url)">
                   <svg viewBox="0 0 24 24" class="validation-icon">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="15" y1="9" x2="9" y2="15"/>
@@ -153,11 +153,11 @@
 
               <div class="url-actions">
                 <button
-                  @click="openCommentsSidebarForUrl(url)"
+                  @click="openCommentsSidebarForSource(source.id)"
                   class="url-action-btn url-comments-btn"
                   type="button"
-                  :aria-label="`View comments for ${url}`"
-                  :title="`View comments for ${url}`"
+                  :aria-label="`View comments for ${source.url}`"
+                  :title="`View comments for ${source.url}`"
                 >
                   <svg viewBox="0 0 24 24" class="action-icon">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -525,16 +525,21 @@ const showCommentsSidebar = ref(false);
 const commentsFilterUrl = ref<string | null>(null);
 
 // Methods
-const addUrl = () => {
+const addUrl = async () => {
   if (newUrl.value.trim()) {
-    presenter.addRedditUrl(newUrl.value.trim(), props.projectId);
-    newUrl.value = '';
-    newUrlInput.value?.focus();
+    try {
+      await presenter.addRedditUrl(newUrl.value.trim(), props.projectId);
+      newUrl.value = '';
+      newUrlInput.value?.focus();
+    } catch (error) {
+      console.error('Failed to add Reddit URL:', error);
+      // Error will be handled by presenter and shown in UI
+    }
   }
 };
 
 const removeUrl = async (index: number) => {
-  const url = viewModel.redditUrls[index];
+  const url = viewModel.redditSources[index]?.url ?? viewModel.redditUrls[index];
   if (url) {
     const message = `
       <div style="display: flex; align-items: center; margin-bottom: 1rem;">
@@ -565,40 +570,54 @@ const removeUrl = async (index: number) => {
   }
 };
 
-const updateUrl = (index: number, url: string) => {
-  presenter.updateRedditUrl(index, url, props.projectId);
+const updateUrl = async (index: number, url: string) => {
+  try {
+    await presenter.updateRedditUrl(index, url, props.projectId);
+  } catch (error) {
+    console.error('Failed to update Reddit URL:', error);
+    // Error will be handled by presenter and shown in UI
+  }
 };
 
 
 
-const handlePaste = (event: ClipboardEvent, index: number) => {
+const handlePaste = async (event: ClipboardEvent, index: number) => {
   const pastedText = event.clipboardData?.getData('text') || '';
   if (pastedText.includes('\n') || pastedText.includes('\t')) {
     event.preventDefault();
     const urls = parseBulkUrls(pastedText);
     if (urls.length > 1) {
       // Multiple URLs - insert them all
-      urls.forEach((url, i) => {
+      for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
         if (i === 0) {
-          updateUrl(index, url);
+          await updateUrl(index, url);
         } else {
-          presenter.addRedditUrl(url);
+          try {
+            await presenter.addRedditUrl(url, props.projectId);
+          } catch (error) {
+            console.error('Failed to add Reddit URL from paste:', error);
+          }
         }
-      });
+      }
     }
   }
 };
 
-const handleBulkPaste = (event: ClipboardEvent) => {
+const handleBulkPaste = async (event: ClipboardEvent) => {
   const pastedText = event.clipboardData?.getData('text') || '';
   if (pastedText.includes('\n') || pastedText.includes('\t') || pastedText.includes(' ')) {
     event.preventDefault();
     const urls = parseBulkUrls(pastedText);
-    urls.forEach(url => {
+    for (const url of urls) {
       if (url.trim()) {
-        presenter.addRedditUrl(url.trim(), props.projectId);
+        try {
+          await presenter.addRedditUrl(url.trim(), props.projectId);
+        } catch (error) {
+          console.error('Failed to add Reddit URL from bulk paste:', error);
+        }
       }
-    });
+    }
     newUrl.value = '';
   }
 };
@@ -641,11 +660,16 @@ const isValidHnUrl = (url: string): boolean => {
   return /^https?:\/\/news\.ycombinator\.com\/item\?id=\d+$/.test(trimmed);
 };
 
-const addHnUrl = () => {
+const addHnUrl = async () => {
   if (newHnUrl.value.trim()) {
-    presenter.addHnUrl(newHnUrl.value.trim(), props.projectId);
-    newHnUrl.value = '';
-    newHnUrlInput.value?.focus();
+    try {
+      await presenter.addHnUrl(newHnUrl.value.trim(), props.projectId);
+      newHnUrl.value = '';
+      newHnUrlInput.value?.focus();
+    } catch (error) {
+      console.error('Failed to add HN URL:', error);
+      // Error will be handled by presenter and shown in UI
+    }
   }
 };
 
@@ -681,22 +705,31 @@ const removeHnUrl = async (index: number) => {
   }
 };
 
-const updateHnUrl = (index: number, url: string) => {
-  presenter.updateHnUrl(index, url, props.projectId);
+const updateHnUrl = async (index: number, url: string) => {
+  try {
+    await presenter.updateHnUrl(index, url, props.projectId);
+  } catch (error) {
+    console.error('Failed to update HN URL:', error);
+    // Error will be handled by presenter and shown in UI
+  }
 };
 
 
 
-const handleHnBulkPaste = (event: ClipboardEvent) => {
+const handleHnBulkPaste = async (event: ClipboardEvent) => {
   const pastedText = event.clipboardData?.getData('text') || '';
   if (pastedText.includes('\n') || pastedText.includes('\t') || pastedText.includes(' ')) {
     event.preventDefault();
     const urls = parseHnBulkUrls(pastedText);
-    urls.forEach(url => {
+    for (const url of urls) {
       if (url.trim()) {
-        presenter.addHnUrl(url.trim(), props.projectId);
+        try {
+          await presenter.addHnUrl(url.trim(), props.projectId);
+        } catch (error) {
+          console.error('Failed to add HN URL from bulk paste:', error);
+        }
       }
-    });
+    }
     newHnUrl.value = '';
   }
 };
@@ -742,9 +775,14 @@ const openCommentsSidebar = () => {
 };
 
 const openCommentsSidebarForUrl = async (url: string) => {
-  // Load comments for this specific URL from backend
   await presenter.loadCommentsByUrl(props.projectId, url);
   commentsFilterUrl.value = url;
+  showCommentsSidebar.value = true;
+};
+
+const openCommentsSidebarForSource = async (sourceId: string) => {
+  await presenter.loadCommentsBySourceId(props.projectId, sourceId);
+  commentsFilterUrl.value = sourceId; // used only as a truthy flag to show commentsForUrl
   showCommentsSidebar.value = true;
 };
 
@@ -756,7 +794,7 @@ const closeCommentsSidebar = () => {
 
 // Initialize presenter and load data on mount
 onMounted(async () => {
-  presenter.initialize(props.projectId);
+  await presenter.initialize(props.projectId);
   await presenter.loadComments(props.projectId);
 });
 </script>

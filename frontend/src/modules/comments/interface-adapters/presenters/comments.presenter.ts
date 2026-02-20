@@ -6,18 +6,25 @@ import { DeleteSourceUseCase } from '../../application/use-cases/delete-source.u
 import { COMMENT_TYPES } from '../../types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
-import type { FetchJobStateDTO } from '../../application/ports/comments-http-repository.port';
+import type { FetchJobStateDTO, CommentsHttpRepositoryPort, CreateSourceInput } from '../../application/ports/comments-http-repository.port';
+
+export interface SourceItem {
+  id: string;
+  url: string;
+}
 
 export interface CommentsViewModel {
   isLoading: boolean;
   isFetching: boolean;
   comments: CommentItem[];
-  commentsForUrl: CommentItem[]; // Comments loaded for specific URL
+  commentsForUrl: CommentItem[];
   fetchProgress: FetchJobStateDTO | null;
   error: string | null;
   redditUrls: string[];
+  redditSources: SourceItem[];
   hnFeedType: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
   hnUrls: string[];
+  hnSources: SourceItem[];
 }
 
 export interface CommentsOverviewData {
@@ -38,8 +45,10 @@ export class CommentsPresenter {
     fetchProgress: null,
     error: null,
     redditUrls: [],
+    redditSources: [],
     hnFeedType: 'top',
     hnUrls: [],
+    hnSources: [],
   };
 
   constructor(
@@ -51,6 +60,8 @@ export class CommentsPresenter {
     private readonly _getCommentsUseCase: GetCommentsUseCase,
     @inject(COMMENT_TYPES.DeleteSourceUseCase)
     private readonly _deleteSourceUseCase: DeleteSourceUseCase,
+    @inject(COMMENT_TYPES.CommentsHttpRepository)
+    private readonly _httpRepository: CommentsHttpRepositoryPort,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort
   ) {}
@@ -84,11 +95,10 @@ export class CommentsPresenter {
       const result = await this._getCommentsUseCase.execute({
         projectId,
         url,
-        limit: 100 // Limit to prevent loading too many comments at once
+        limit: 100,
       });
 
       if (result.isSuccess) {
-        // Backend already filtered comments by URL, so we can just use them directly
         this.viewModel.commentsForUrl = result.data.comments;
       } else {
         this.viewModel.error = result.error.message;
@@ -102,13 +112,38 @@ export class CommentsPresenter {
     }
   }
 
+  async loadCommentsBySourceId(projectId: string, sourceId: string): Promise<void> {
+    try {
+      this.viewModel.isLoading = true;
+      this.viewModel.error = null;
+
+      const result = await this._getCommentsUseCase.execute({
+        projectId,
+        sourceId,
+        limit: 500,
+      });
+
+      if (result.isSuccess) {
+        this.viewModel.commentsForUrl = result.data.comments;
+      } else {
+        this.viewModel.error = result.error.message;
+        this._logger.error('Failed to load comments by sourceId', { projectId, sourceId, error: result.error });
+      }
+    } catch (error) {
+      this.viewModel.error = error instanceof Error ? error.message : 'Failed to load comments by sourceId';
+      this._logger.error('Exception loading comments by sourceId', { projectId, sourceId, error });
+    } finally {
+      this.viewModel.isLoading = false;
+    }
+  }
+
   async deleteSourceByUrl(projectId: string, url: string): Promise<void> {
     try {
       this.viewModel.error = null;
 
       // Get all sources for this project to find the matching sourceId
-      const sourcesResult = await this._getCommentsUseCase.getCommentSources?.(projectId);
-      if (!sourcesResult || !sourcesResult.isSuccess) {
+      const sourcesResult = await this._getCommentsUseCase.getCommentSources(projectId);
+      if (!sourcesResult.isSuccess) {
         this.viewModel.error = 'Failed to find source to delete';
         return;
       }
@@ -136,18 +171,18 @@ export class CommentsPresenter {
         const index = this.viewModel.redditUrls.indexOf(url);
         if (index !== -1) {
           this.viewModel.redditUrls.splice(index, 1);
-          this.saveUrlsToStorage(projectId);
         }
       } else if (url.includes('ycombinator.com') || url.includes('news.ycombinator.com')) {
         const index = this.viewModel.hnUrls.indexOf(url);
         if (index !== -1) {
           this.viewModel.hnUrls.splice(index, 1);
-          this.saveUrlsToStorage(projectId);
         }
       }
 
       // Reload comments to reflect the changes
       await this.loadComments(projectId);
+
+      this._logger.info('Successfully deleted source by URL', { projectId, url });
 
     } catch (error) {
       this.viewModel.error = error instanceof Error ? error.message : 'Failed to delete source';
@@ -193,14 +228,49 @@ export class CommentsPresenter {
   }
 
 
-  // Initialize URLs from storage when presenter is created
-  initialize(projectId?: string): void {
-    this.loadUrlsFromStorage(projectId);
+  // Load sources from backend and populate URLs and source ID maps
+  async loadSourcesFromBackend(projectId: string): Promise<void> {
+    try {
+      const sourcesResult = await this._getCommentsUseCase.getCommentSources(projectId);
+      if (sourcesResult.isSuccess) {
+        const redditRaw = sourcesResult.data.filter(s => s.sourceType === 'reddit' && s.redditUrl);
+        const hnRaw = sourcesResult.data.filter(s => s.sourceType === 'hackernews' && s.hnUrl);
+
+        this.viewModel.redditSources = redditRaw.map(s => ({ id: s.id, url: s.redditUrl! }));
+        this.viewModel.redditUrls = this.viewModel.redditSources.map(s => s.url);
+
+        this.viewModel.hnSources = hnRaw.map(s => ({ id: s.id, url: s.hnUrl! }));
+        this.viewModel.hnUrls = this.viewModel.hnSources.map(s => s.url);
+
+        this._logger.info('Loaded sources from backend', {
+          projectId,
+          redditSourcesCount: this.viewModel.redditSources.length,
+          hnSourcesCount: this.viewModel.hnSources.length,
+        });
+      } else {
+        this._logger.error('Failed to load sources from backend', {
+          projectId,
+          error: sourcesResult.error,
+        });
+      }
+    } catch (error) {
+      this._logger.error('Exception loading sources from backend', {
+        projectId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
   }
 
-  // Load URLs for a specific project
-  loadUrlsForProject(projectId: string): void {
-    this.loadUrlsFromStorage(projectId);
+  // Initialize URLs from backend when presenter is created
+  async initialize(projectId?: string): Promise<void> {
+    if (projectId) {
+      await this.loadSourcesFromBackend(projectId);
+    }
+  }
+
+  // Load URLs for a specific project from backend
+  async loadUrlsForProject(projectId: string): Promise<void> {
+    await this.loadSourcesFromBackend(projectId);
   }
 
   setRedditUrl(url: string): void {
@@ -211,95 +281,196 @@ export class CommentsPresenter {
     this.viewModel.hnFeedType = feedType;
   }
 
-  addRedditUrl(url: string, projectId?: string): void {
-    if (url.trim() && !this.viewModel.redditUrls.includes(url.trim())) {
-      this.viewModel.redditUrls.push(url.trim());
-      this.saveUrlsToStorage(projectId);
+  async addRedditUrl(url: string, projectId: string): Promise<void> {
+    if (!url.trim() || this.viewModel.redditUrls.includes(url.trim())) {
+      return;
     }
-  }
 
-  removeRedditUrl(index: number, projectId?: string): void {
-    this.viewModel.redditUrls.splice(index, 1);
-    this.saveUrlsToStorage(projectId);
-  }
-
-  updateRedditUrl(index: number, url: string, projectId?: string): void {
-    this.viewModel.redditUrls[index] = url.trim();
-    this.saveUrlsToStorage(projectId);
-  }
-
-  addHnUrl(url: string, projectId?: string): void {
-    if (url.trim() && !this.viewModel.hnUrls.includes(url.trim())) {
-      this.viewModel.hnUrls.push(url.trim());
-      this.saveUrlsToStorage(projectId);
-    }
-  }
-
-  removeHnUrl(index: number, projectId?: string): void {
-    this.viewModel.hnUrls.splice(index, 1);
-    this.saveUrlsToStorage(projectId);
-  }
-
-  updateHnUrl(index: number, url: string, projectId?: string): void {
-    if (index >= 0 && index < this.viewModel.hnUrls.length) {
-      this.viewModel.hnUrls[index] = url.trim();
-      this.saveUrlsToStorage(projectId);
-    }
-  }
-
-  private saveUrlsToStorage(projectId?: string): void {
     try {
-      // Save Reddit URLs
-      const redditKey = projectId ? `comments-reddit-urls-${projectId}` : `comments-reddit-urls`;
-      localStorage.setItem(redditKey, JSON.stringify(this.viewModel.redditUrls));
+      const createInput: CreateSourceInput = {
+        sourceType: 'reddit',
+        redditUrl: url.trim()
+      };
 
-      // Save Hacker News URLs
-      const hnKey = projectId ? `comments-hn-urls-${projectId}` : `comments-hn-urls`;
-      localStorage.setItem(hnKey, JSON.stringify(this.viewModel.hnUrls));
+      const createResult = await this._httpRepository.createSource(projectId, createInput);
+      if (createResult.isSuccess) {
+        const newUrl = url.trim();
+        this.viewModel.redditUrls.push(newUrl);
+        this.viewModel.redditSources.push({ id: createResult.data.id, url: newUrl });
+        this._logger.info('Created Reddit source', { projectId, url: newUrl });
+      } else {
+        this._logger.error('Failed to create Reddit source', {
+          projectId,
+          url: url.trim(),
+          error: createResult.error
+        });
+        throw createResult.error;
+      }
     } catch (error) {
-      this._logger.warn('Failed to save URLs to localStorage', { error });
+      this._logger.error('Exception creating Reddit source', {
+        projectId,
+        url: url.trim(),
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
     }
   }
 
-  private loadUrlsFromStorage(projectId?: string): void {
+  async removeRedditUrl(index: number, projectId: string): Promise<void> {
+    const url = this.viewModel.redditUrls[index];
+    if (!url) return;
+
     try {
-      // Load Reddit URLs
-      let redditKey = projectId ? `comments-reddit-urls-${projectId}` : `comments-reddit-urls`;
-      let redditStored = localStorage.getItem(redditKey);
+      // Find source by URL and delete it
+      const sourcesResult = await this._getCommentsUseCase.getCommentSources(projectId);
+      if (sourcesResult.isSuccess) {
+        const source = sourcesResult.data.find(s =>
+          s.sourceType === 'reddit' && s.redditUrl === url
+        );
 
-      if (!redditStored && projectId) {
-        // Fallback to global key for backward compatibility
-        redditKey = `comments-reddit-urls`;
-        redditStored = localStorage.getItem(redditKey);
-      }
-
-      if (redditStored) {
-        const urls = JSON.parse(redditStored);
-        if (Array.isArray(urls)) {
-          this.viewModel.redditUrls = urls;
-        }
-      }
-
-      // Load Hacker News URLs
-      let hnKey = projectId ? `comments-hn-urls-${projectId}` : `comments-hn-urls`;
-      let hnStored = localStorage.getItem(hnKey);
-
-      if (!hnStored && projectId) {
-        // Fallback to global key for backward compatibility
-        hnKey = `comments-hn-urls`;
-        hnStored = localStorage.getItem(hnKey);
-      }
-
-      if (hnStored) {
-        const urls = JSON.parse(hnStored);
-        if (Array.isArray(urls)) {
-          this.viewModel.hnUrls = urls;
+        if (source) {
+          const deleteResult = await this._deleteSourceUseCase.execute(projectId, source.id);
+          if (deleteResult.isSuccess) {
+            this.viewModel.redditUrls.splice(index, 1);
+            const srcIdx = this.viewModel.redditSources.findIndex(s => s.id === source.id);
+            if (srcIdx !== -1) this.viewModel.redditSources.splice(srcIdx, 1);
+            this._logger.info('Deleted Reddit source', { projectId, url });
+          } else {
+            this._logger.error('Failed to delete Reddit source', {
+              projectId,
+              url,
+              error: deleteResult.error
+            });
+            throw deleteResult.error;
+          }
+        } else {
+          this.viewModel.redditUrls.splice(index, 1);
+          this.viewModel.redditSources.splice(index, 1);
+          this._logger.warn('Reddit source not found in backend, removed from UI', { projectId, url });
         }
       }
     } catch (error) {
-      this._logger.warn('Failed to load URLs from localStorage', { error });
+      this._logger.error('Exception removing Reddit URL', {
+        projectId,
+        url,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
     }
   }
+
+  async updateRedditUrl(index: number, url: string, projectId: string): Promise<void> {
+    const oldUrl = this.viewModel.redditUrls[index];
+    if (!oldUrl || oldUrl === url.trim()) return;
+
+    try {
+      // First, remove the old source
+      await this.removeRedditUrl(index, projectId);
+
+      // Then add the new one
+      await this.addRedditUrl(url, projectId);
+    } catch (error) {
+      // Restore the old URL on failure
+      this.viewModel.redditUrls[index] = oldUrl;
+      throw error;
+    }
+  }
+
+  async addHnUrl(url: string, projectId: string): Promise<void> {
+    if (!url.trim() || this.viewModel.hnUrls.includes(url.trim())) {
+      return;
+    }
+
+    try {
+      const createInput: CreateSourceInput = {
+        sourceType: 'hackernews',
+        hnUrl: url.trim()
+      };
+
+      const createResult = await this._httpRepository.createSource(projectId, createInput);
+      if (createResult.isSuccess) {
+        const newUrl = url.trim();
+        this.viewModel.hnUrls.push(newUrl);
+        this.viewModel.hnSources.push({ id: createResult.data.id, url: newUrl });
+        this._logger.info('Created HN source', { projectId, url: newUrl });
+      } else {
+        this._logger.error('Failed to create HN source', {
+          projectId,
+          url: url.trim(),
+          error: createResult.error
+        });
+        throw createResult.error;
+      }
+    } catch (error) {
+      this._logger.error('Exception creating HN source', {
+        projectId,
+        url: url.trim(),
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  async removeHnUrl(index: number, projectId: string): Promise<void> {
+    const url = this.viewModel.hnUrls[index];
+    if (!url) return;
+
+    try {
+      // Find source by URL and delete it
+      const sourcesResult = await this._getCommentsUseCase.getCommentSources(projectId);
+      if (sourcesResult.isSuccess) {
+        const source = sourcesResult.data.find(s =>
+          s.sourceType === 'hackernews' && s.hnUrl === url
+        );
+
+        if (source) {
+          const deleteResult = await this._deleteSourceUseCase.execute(projectId, source.id);
+          if (deleteResult.isSuccess) {
+            this.viewModel.hnUrls.splice(index, 1);
+            const srcIdx = this.viewModel.hnSources.findIndex(s => s.id === source.id);
+            if (srcIdx !== -1) this.viewModel.hnSources.splice(srcIdx, 1);
+            this._logger.info('Deleted HN source', { projectId, url });
+          } else {
+            this._logger.error('Failed to delete HN source', {
+              projectId,
+              url,
+              error: deleteResult.error
+            });
+            throw deleteResult.error;
+          }
+        } else {
+          this.viewModel.hnUrls.splice(index, 1);
+          this.viewModel.hnSources.splice(index, 1);
+          this._logger.warn('HN source not found in backend, removed from UI', { projectId, url });
+        }
+      }
+    } catch (error) {
+      this._logger.error('Exception removing HN URL', {
+        projectId,
+        url,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  async updateHnUrl(index: number, url: string, projectId: string): Promise<void> {
+    const oldUrl = this.viewModel.hnUrls[index];
+    if (!oldUrl || oldUrl === url.trim()) return;
+
+    try {
+      // First, remove the old source
+      await this.removeHnUrl(index, projectId);
+
+      // Then add the new one
+      await this.addHnUrl(url, projectId);
+    } catch (error) {
+      // Restore the old URL on failure
+      this.viewModel.hnUrls[index] = oldUrl;
+      throw error;
+    }
+  }
+
 
   async getCommentsOverview(projectId: string): Promise<{
     data: CommentsOverviewData;

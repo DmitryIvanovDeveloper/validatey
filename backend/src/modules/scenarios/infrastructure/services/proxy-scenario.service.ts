@@ -44,7 +44,7 @@ export class ProxyScenarioService implements LLMServicePort {
 
       const proxyResponse = await this._httpClient.post<{ response?: string }>(
         AI_PROXY_URL,
-        { prompt: fullPrompt },
+        { prompt: fullPrompt }, // Remove model parameter to see default behavior
         {
           'Content-Type': 'application/json',
           'User-Agent':
@@ -72,20 +72,20 @@ export class ProxyScenarioService implements LLMServicePort {
         if (!Array.isArray(parsed.questions) || parsed.questions.length === 0) {
           throw new Error('Invalid scenario format: missing or empty questions array');
         }
-        
+
         // Ensure all questions have required fields
         for (const question of parsed.questions) {
           if (!question.id || !question.text || !question.type) {
             throw new Error(`Invalid question format: missing id, text, or type in question ${JSON.stringify(question)}`);
           }
-          
+
           // Validate question type
           const validTypes = ['scale', 'open', 'multiple_choice', 'audio'];
           if (!validTypes.includes(question.type)) {
             throw new Error(`Invalid question type: ${question.type}. Valid types are: ${validTypes.join(', ')}`);
           }
         }
-        
+
         // Convert back to string to store as content
         content = JSON.stringify(parsed);
       } catch (parseError) {
@@ -110,6 +110,8 @@ export class ProxyScenarioService implements LLMServicePort {
       return ResultEx.failure(new ScenarioGenerationError(message));
     }
   }
+
+
 
   private _buildSystemPrompt(): string {
     return `You are an expert product validation interviewer following the principles from Rob Fitzpatrick's "Ask Your Mother: How to Interview Customers and Confirm Your Business Idea If Everyone Lies."

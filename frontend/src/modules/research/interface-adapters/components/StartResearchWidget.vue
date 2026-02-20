@@ -2,29 +2,11 @@
   <div class="start-research-widget">
     <!-- Cooldown Notice -->
     <div v-if="!availability.available" class="cooldown-notice">
-      <div class="cooldown-header">
-        <div class="cooldown-icon">⏰</div>
-        <div class="cooldown-content">
-          <h4 class="cooldown-title">Research Cooldown Active</h4>
-          <p class="cooldown-description">
-            You can run research once per day to ensure data quality and fair usage
-          </p>
-        </div>
-      </div>
-
-      <div class="cooldown-timer">
-        <div class="timer-section">
-          <span class="timer-label">Next research available in:</span>
-          <div class="timer-display">
-            <span class="timer-value">{{ formatCountdown(availability.timeUntilNext) }}</span>
-          </div>
-        </div>
-
-        <div class="cooldown-progress">
-          <div
-            class="progress-bar"
-            :style="{ width: `${getProgressPercentage()}%` }"
-          ></div>
+      <div class="cooldown-content">
+        <Clock class="cooldown-icon" />
+        <div class="cooldown-text">
+          <div class="cooldown-title">Research Cooldown Active</div>
+          <div class="cooldown-timer">{{ formatCountdown(availability.timeUntilNext) }}</div>
         </div>
       </div>
     </div>
@@ -63,6 +45,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, type Ref } from 'vue';
+import { Clock } from 'lucide-vue-next';
 import { container } from '@infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../presenters/research.presenter';
 import { TYPES as RESEARCH_TYPES } from '@modules/research/infrastructure/bootstrap/types';
@@ -251,125 +234,67 @@ const emit = defineEmits<EmitEvents>();
 
 /* Cooldown Notice */
 .cooldown-notice {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #f59e0b;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
-}
-
-.cooldown-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.cooldown-icon {
-  font-size: 2rem;
-  line-height: 1;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(13, 148, 136, 0.15);
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 12px rgba(13, 148, 136, 0.08);
 }
 
 .cooldown-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cooldown-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #0d9488;
+  flex-shrink: 0;
+}
+
+.cooldown-text {
   flex: 1;
   min-width: 0;
 }
 
 .cooldown-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #92400e;
-}
-
-.cooldown-description {
-  margin: 0;
   font-size: 0.875rem;
-  color: #a16207;
-  line-height: 1.4;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.125rem;
 }
 
 .cooldown-timer {
-  border-top: 1px solid rgba(245, 158, 11, 0.3);
-  padding-top: 1.25rem;
-}
-
-.timer-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.timer-label {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: #92400e;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.timer-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-}
-
-.timer-value {
-  font-size: 1.75rem;
-  font-weight: 700;
+  color: #0d9488;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  color: #dc2626;
-  background: rgba(220, 38, 38, 0.1);
-  padding: 0.25rem 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(220, 38, 38, 0.2);
-  min-width: 120px;
-  text-align: center;
-}
-
-.cooldown-progress {
-  width: 100%;
-  height: 6px;
-  background: rgba(245, 158, 11, 0.2);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
-  border-radius: 3px;
-  transition: width 0.3s ease;
 }
 
 /* Research Button */
 .btn-research-primary {
   width: 100%;
-  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
   color: #fff;
   border: none;
-  padding: 1.5rem 2rem;
-  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
   font-weight: 600;
-  font-size: var(--text-base);
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
-  position: relative;
-  overflow: hidden;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
 }
 
 .btn-research-primary:hover:not(.btn-disabled) {
-  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  background: linear-gradient(135deg, #0891b2 0%, #0d9488 100%);
   box-shadow: 0 4px 16px rgba(13, 148, 136, 0.3);
   transform: translateY(-1px);
 }
@@ -380,11 +305,11 @@ const emit = defineEmits<EmitEvents>();
 
 .btn-research-primary:disabled,
 .btn-disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+  background: #9ca3af;
+  box-shadow: 0 1px 3px rgba(156, 163, 175, 0.25);
 }
 
 .btn-icon {
@@ -408,27 +333,26 @@ const emit = defineEmits<EmitEvents>();
 }
 
 /* Responsive adjustments */
-@media (max-width: 640px) {
-  .cooldown-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.75rem;
+@media (max-width: 768px) {
+  .cooldown-notice {
+    padding: 0.875rem 1.25rem;
   }
 
-  .cooldown-icon {
-    margin-top: 0;
+  .cooldown-content {
+    gap: 0.625rem;
+  }
+
+  .cooldown-title {
+    font-size: 0.8125rem;
+  }
+
+  .cooldown-timer {
+    font-size: 0.8125rem;
   }
 
   .btn-research-primary {
-    padding: 1.25rem 1.5rem;
-    font-size: 0.95rem;
-  }
-
-  .timer-value {
-    font-size: 1.5rem;
-    padding: 0.25rem 0.75rem;
-    min-width: 100px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.8125rem;
   }
 }
 </style>

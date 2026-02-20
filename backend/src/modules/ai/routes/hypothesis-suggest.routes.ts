@@ -57,7 +57,10 @@ router.post('/hypothesis-suggest', async (req: Request, res: Response) => {
     const fullPrompt = `${SYSTEM_PROMPT}\n\n---\nUser input:\n${userContent}`;
     const proxyResponse = await httpClient.post<{ response?: string }>(
       AI_PROXY_URL,
-      { prompt: fullPrompt },
+      {
+        prompt: fullPrompt,
+        model: 'llama3.1-8b'
+      },
       {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',

@@ -93,6 +93,11 @@ export const routes: RouteRecordRaw[] = [
         name: 'project-comments',
         component: () => import('@/modules/comments/interface-adapters/views/CommentsView.vue'),
       },
+      {
+        path: 'rounds/:roundId',
+        name: 'round-detail',
+        component: () => import('@/modules/rounds/interface-adapters/views/RoundDetailView.vue'),
+      },
     ],
   },
   {

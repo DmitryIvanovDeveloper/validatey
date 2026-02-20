@@ -19,6 +19,7 @@ export interface OverviewRawData {
   researchSummary: string | null;
   researchMarketSnippet: string | null;
   researchCompetitorsSnippet: string | null;
+  synthesisVerdict: 'validated' | 'rejected' | 'needs-more-data' | null;
   rounds: Array<{
     id: string;
     title: string;

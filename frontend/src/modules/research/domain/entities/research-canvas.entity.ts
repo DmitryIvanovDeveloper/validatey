@@ -31,5 +31,12 @@ export interface ResearchCanvas {
 
 export interface SynthesisReport {
   readonly summary: string;
+  readonly key_findings?: Array<{
+    pattern: string;
+    frequency: string;
+    description: string;
+    quotes?: string[];
+  }>;
+  readonly insights?: string[];
   readonly recommendations: string[];
 }

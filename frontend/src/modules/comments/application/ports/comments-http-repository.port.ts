@@ -34,6 +34,24 @@ export interface GetCommentsResponseDTO {
   hasMore?: boolean;
 }
 
+export interface CreateSourceInput {
+  sourceType: 'reddit' | 'hackernews';
+  redditUrl?: string;
+  hnUrl?: string;
+  hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
+}
+
+export interface SourceDTO {
+  id: string;
+  sourceType: 'reddit' | 'hackernews';
+  redditUrl?: string;
+  hnUrl?: string;
+  subredditName?: string;
+  hnFeedType?: string;
+  hnItemId?: string;
+  createdAt: string;
+}
+
 export interface CommentsHttpRepositoryPort {
   startFetch(
     projectId: string,
@@ -52,10 +70,13 @@ export interface CommentsHttpRepositoryPort {
     projectId: string,
     options?: {
       sourceId?: string;
+      url?: string;
       isProcessed?: boolean;
       limit?: number;
     }
   ): Promise<Result<GetCommentsResponseDTO, Error>>;
+
+  createSource(projectId: string, input: CreateSourceInput): Promise<Result<SourceDTO, Error>>;
 
   deleteSource(projectId: string, sourceId: string): Promise<Result<void, Error>>;
 

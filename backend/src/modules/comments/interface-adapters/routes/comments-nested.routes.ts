@@ -30,6 +30,12 @@ router.get('/', async (req: Request, res: Response) => {
   await controller.getComments(req, res);
 });
 
+// POST /api/projects/:projectId/comments/sources
+// Create a new comment source
+router.post('/sources', async (req: Request, res: Response) => {
+  await controller.createSource(req, res);
+});
+
 // GET /api/projects/:projectId/comments/sources
 // Get all comment sources for a project
 router.get('/sources', async (req: Request, res: Response) => {

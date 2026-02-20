@@ -61,17 +61,28 @@ export class OverviewDataProviderAdapter implements OverviewDataProviderPort {
       const responses = responsesResult.isSuccess ? responsesResult.data : [];
       const metricsData = metricsResult.isSuccess ? metricsResult.data : null;
 
-      const researchSummary = stored?.synthesisReport?.summary ?? null;
+      const researchSummary =
+        stored?.synthesisReport?.summary ??
+        (project.marketContext?.marketFit ? `Market Fit: ${project.marketContext.marketFit}` : null);
+      const synthesisVerdict = stored?.synthesisReport?.verdict ?? null;
+
+      // Get market snippet from research data or project marketContext
       const marketSnippet =
         stored?.marketData && (stored.marketData.size || stored.marketData.growth)
           ? [stored.marketData.size, stored.marketData.growth].filter(Boolean).join(', ')
+          : project.marketContext?.marketPicture
+          ? project.marketContext.marketPicture.substring(0, 200) + (project.marketContext.marketPicture.length > 200 ? '...' : '')
           : null;
+
       const competitorsSnippet =
         stored?.competitorData && (stored.competitorData.priceRange || (stored.competitorData.competitors?.length ?? 0) > 0)
           ? [stored.competitorData.priceRange, (stored.competitorData.competitors ?? []).slice(0, 3).join(', ')].filter(Boolean).join(' · ')
+          : project.marketContext?.differentiation
+          ? project.marketContext.differentiation.substring(0, 150) + (project.marketContext.differentiation.length > 150 ? '...' : '')
           : null;
 
       const raw: OverviewRawData = {
+        synthesisVerdict,
         project: {
           id: project.id,
           name: project.name,

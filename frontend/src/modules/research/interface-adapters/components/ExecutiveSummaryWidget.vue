@@ -53,6 +53,15 @@ interface Props {
 
 const props = defineProps<Props>();
 
+// Debug logging
+console.log('ExecutiveSummaryWidget props:', {
+  summary: props.summary,
+  summaryLength: props.summary?.length || 0,
+  summaryTrimmed: props.summary?.trim(),
+  summaryTrimmedLength: props.summary?.trim()?.length || 0,
+  loading: props.loading
+});
+
 const handleShowDetails = () => {
   emit('show-details');
 };

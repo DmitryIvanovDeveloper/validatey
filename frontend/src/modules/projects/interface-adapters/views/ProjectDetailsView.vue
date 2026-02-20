@@ -3,39 +3,109 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Main Content -->
       <div class="lg:col-span-2 space-y-6">
+        <!-- AI "Start New Round" suggestion banner -->
+        <!-- Success Banner after Round Creation -->
+        <div
+          v-if="showSuccessBanner && justCreatedRound"
+          class="success-banner"
+        >
+          <div class="success-banner-icon">✅</div>
+          <div class="success-banner-body">
+            <p class="success-banner-title">Round "{{ justCreatedRound.title }}" created successfully!</p>
+            <p class="success-banner-hint">What's next? Configure your scenario or start sending invitations.</p>
+          </div>
+          <div class="success-banner-actions">
+            <button class="success-action-btn primary" @click="goToRound(justCreatedRound!.id)">
+              Configure Scenario
+            </button>
+            <button class="success-action-btn secondary" @click="goToInvitations(justCreatedRound!.id)">
+              Send Invitations
+            </button>
+            <button class="success-action-btn tertiary" @click="dismissSuccessBanner()">
+              Continue Here
+            </button>
+          </div>
+        </div>
+
+
+        <!-- AI Suggestion Banner -->
+        <div
+          v-if="newRoundSuggestion && !showSuccessBanner"
+          class="new-round-banner"
+          id="new-round"
+        >
+          <div class="new-round-banner-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            </svg>
+          </div>
+          <div class="new-round-banner-body">
+            <p class="new-round-banner-title">AI suggests starting a new round</p>
+            <p class="new-round-banner-hint">{{ newRoundSuggestion.hint }}</p>
+          </div>
+          <button class="new-round-banner-btn" @click="openNewRoundModal()">
+            + New Round
+          </button>
+        </div>
+
         <!-- Executive Summary -->
         <ExecutiveSummaryWidget
           :summary="researchData?.synthesisReport?.summary || null"
           :loading="executiveSummaryLoading"
           @show-details="handleShowDetails"
         />
+        <!-- Debug info -->
+        <div style="margin-top: 10px; padding: 10px; background: #f0f0f0; font-size: 12px; border: 1px solid #ccc;">
+          <strong>Debug Research Data:</strong><br>
+          researchData exists: {{ !!researchData }}<br>
+          synthesisReport exists: {{ !!researchData?.synthesisReport }}<br>
+          summary: "{{ researchData?.synthesisReport?.summary }}"<br>
+          summary length: {{ researchData?.synthesisReport?.summary?.length || 0 }}<br>
+          loading: {{ executiveSummaryLoading }}
+        </div>
 
         <!-- Research Context -->
         <SectionCard>
           <template #header>
-            <h3 class="section-title">Research Context</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="section-title">Research Context</h3>
+              <button
+                class="btn btn-secondary btn-sm flex items-center gap-2"
+                @click="formatResearchContext"
+                :disabled="researchContextFormatting"
+              >
+                <svg v-if="researchContextFormatting" class="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <svg v-else class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+                {{ researchContextFormatting ? 'Formatting...' : 'AI Format' }}
+              </button>
+            </div>
           </template>
           <div class="space-y-4">
             <div class="mb-4">
               <p class="section-subtitle">Target Segment</p>
-              <div class="text-gray-900">{{ project?.segment?.description || 'Not specified' }}</div>
+              <div class="text-gray-900 formatted-text" v-html="formatMarkdown(project?.segment?.description || 'Not specified')"></div>
             </div>
 
             <div class="mb-4">
               <p class="section-subtitle">Hypothesis</p>
-              <div class="text-gray-900">{{ project?.hypothesis?.description || 'Not specified' }}</div>
+              <div class="text-gray-900 formatted-text" v-html="formatMarkdown(getHypothesisText())"></div>
             </div>
 
-            <div v-if="project?.hypothesis?.assumptions && project.hypothesis.assumptions.length > 0" class="mb-4">
+            <div v-if="getHypothesisAssumptions().length > 0" class="mb-4">
               <p class="section-subtitle">Key Assumptions</p>
               <ul class="space-y-2">
                 <li
-                  v-for="(assumption, i) in project.hypothesis.assumptions"
+                  v-for="(assumption, i) in getHypothesisAssumptions()"
                   :key="i"
                   class="flex items-start gap-2 text-gray-900"
                 >
                   <span class="text-blue-600 mt-1">•</span>
-                  <span>{{ assumption }}</span>
+                  <span v-html="formatMarkdown(assumption)"></span>
                 </li>
               </ul>
             </div>
@@ -45,15 +115,15 @@
               <div class="space-y-3">
                 <div v-if="project.marketContext.marketPicture" class="bg-blue-50 p-3 rounded-lg">
                   <div class="text-sm font-medium text-blue-800 mb-1">Market Picture</div>
-                  <div class="text-gray-700">{{ project.marketContext.marketPicture }}</div>
+                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project.marketContext.marketPicture)"></div>
                 </div>
                 <div v-if="project.marketContext.marketFit" class="bg-green-50 p-3 rounded-lg">
                   <div class="text-sm font-medium text-green-800 mb-1">Market Fit</div>
-                  <div class="text-gray-700">{{ project.marketContext.marketFit }}</div>
+                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project.marketContext.marketFit)"></div>
                 </div>
                 <div v-if="project.marketContext.differentiation" class="bg-purple-50 p-3 rounded-lg">
                   <div class="text-sm font-medium text-purple-800 mb-1">Differentiation</div>
-                  <div class="text-gray-700">{{ project.marketContext.differentiation }}</div>
+                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project.marketContext.differentiation)"></div>
                 </div>
               </div>
             </div>
@@ -119,20 +189,103 @@
         <!-- Learning Journey -->
         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
           <h3 class="section-title">Learning Journey</h3>
-          <p class="text-gray-700 text-sm mb-4">
-            This is validation round #1. After analyzing the results, you can launch the next round for deeper verification.
+
+          <!-- Empty state -->
+          <p v-if="!rounds.length" class="text-gray-600 text-sm mb-4">
+            Rounds help you track each iteration of your validation. Start a round to collect insights systematically.
           </p>
-          <button class="learn-more-btn">
-            Learn more →
+
+          <!-- Rounds list -->
+          <div v-else class="space-y-3 mb-4">
+            <router-link
+              v-for="round in rounds"
+              :key="round.id"
+              :to="roundHref(round.id)"
+              class="journey-round block no-underline"
+            >
+              <div class="flex items-center gap-2 mb-1">
+                <span :class="['journey-status', `journey-status-${round.status}`]">{{ round.status }}</span>
+                <span class="journey-type">{{ round.type }}</span>
+              </div>
+              <div class="journey-title">{{ round.title }}</div>
+              <div v-if="round.keyFinding" class="journey-finding">{{ round.keyFinding }}</div>
+              <div class="journey-open-hint">Open round →</div>
+            </router-link>
+          </div>
+
+          <!-- Suggestion from overview -->
+          <p v-if="rounds.length && overviewData?.learningJourney?.extendSuggestions?.[0]" class="text-gray-500 text-xs mb-3 italic">
+            {{ overviewData.learningJourney.extendSuggestions[0] }}
+          </p>
+
+          <!-- Start New Round button -->
+          <button
+            class="w-full mt-1 px-4 py-2 rounded-lg text-sm font-semibold bg-teal-600 text-white hover:bg-teal-700 transition-colors disabled:opacity-50"
+            @click="openNewRoundModal()"
+          >
+            + Start New Round
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Round Modal -->
+  <div
+    v-if="showNewRoundModal"
+    v-show="showNewRoundModal"
+    class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
+    @click.self="modalState.showNewRoundModal = false"
+  >
+    <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+      <h3 class="text-lg font-bold text-gray-900 mb-1">Start New Round</h3>
+      <p class="text-sm text-gray-500 mb-5">Each round is an independent iteration: own scenario, invitations and results.</p>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Round Title</label>
+          <input
+            v-model="newRoundTitle"
+            type="text"
+            placeholder="e.g. Deep Interviews — Round 2"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Method</label>
+          <select
+            v-model="newRoundType"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="survey">Survey — structured questionnaire</option>
+            <option value="interview">Interview — qualitative 1-on-1</option>
+            <option value="ab_test">A/B Test — compare variants</option>
+            <option value="field">Field Study — observation</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-6">
+        <button
+          class="flex-1 px-4 py-2 rounded-lg text-sm font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+          @click="modalState.showNewRoundModal = false"
+        >
+          Cancel
+        </button>
+        <button
+          class="flex-1 px-4 py-2 rounded-lg text-sm font-semibold bg-teal-600 text-white hover:bg-teal-700 transition-colors disabled:opacity-50"
+          :disabled="!newRoundTitle.trim() || roundCreating"
+          @click="createRound"
+        >
+          {{ roundCreating ? 'Creating…' : 'Start Round' }}
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   Send,
@@ -217,9 +370,232 @@ const researchData = ref<any>(null);
 const executiveSummaryLoading = ref(false);
 const widgetsLoading = ref(false); // External loading state for Pain Points and Response Pace widgets
 const isShowDetailsModalOpen = ref(false);
+const researchContextFormatting = ref(false);
+
+// Rounds
+const rounds = computed(() => overviewData.value?.learningJourney?.rounds ?? []);
+const newRoundSuggestion = computed(() => {
+  return overviewData.value?.smartActions?.find((a) => a.id === 'new_round') ?? null;
+});
+
+function roundHref(roundId: string): string {
+  const workspaceId = route.params.workspaceId as string;
+  return `/workspaces/${workspaceId}/projects/${projectId}/rounds/${roundId}`;
+}
+
+function goToRound(roundId: string): void {
+  dismissSuccessBanner();
+  router.push(roundHref(roundId));
+}
+
+function goToInvitations(roundId: string): void {
+  dismissSuccessBanner();
+  const workspaceId = route.params.workspaceId as string;
+  router.push(`/workspaces/${workspaceId}/projects/${projectId}/rounds/${roundId}/invitations`);
+}
+
+function dismissSuccessBanner(): void {
+  showSuccessBanner.value = false;
+  justCreatedRound.value = null;
+  if (successBannerTimeout) {
+    clearTimeout(successBannerTimeout);
+    successBannerTimeout = null;
+  }
+}
+
+function getHypothesisText(): string {
+  console.log('getHypothesisText called, project.value:', project.value);
+  console.log('hypothesis:', project.value?.hypothesis);
+  console.log('hypothesis type:', typeof project.value?.hypothesis);
+
+  if (!project.value?.hypothesis) {
+    console.log('No hypothesis, returning Not specified');
+    return 'Not specified';
+  }
+
+  // Handle case where hypothesis is a string (legacy format)
+  if (typeof project.value.hypothesis === 'string') {
+    console.log('Hypothesis is string, returning:', project.value.hypothesis);
+    return project.value.hypothesis;
+  }
+
+  // Handle case where hypothesis is an object with description
+  if (typeof project.value.hypothesis === 'object' && project.value.hypothesis.description) {
+    console.log('Hypothesis is object with description, returning:', project.value.hypothesis.description);
+    return project.value.hypothesis.description;
+  }
+
+  console.log('Fallback, returning Not specified');
+  return 'Not specified';
+}
+
+function getHypothesisAssumptions(): string[] {
+  if (!project.value?.hypothesis) return [];
+
+  // Handle case where hypothesis is an object with assumptions
+  if (typeof project.value.hypothesis === 'object' && project.value.hypothesis.assumptions) {
+    return project.value.hypothesis.assumptions;
+  }
+
+  return [];
+}
+
+function formatMarkdown(text: string): string {
+  if (!text || typeof text !== 'string') return text;
+
+  let formatted = text;
+
+  // Convert **bold** to <strong>bold</strong>
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+  // Convert *italic* to <em>italic</em>
+  formatted = formatted.replace(/(?<!\*)\*(?!\*)([^*]+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+
+  // Convert markdown lists to HTML lists
+  // Handle - item format
+  if (formatted.includes('\n- ')) {
+    const lines = formatted.split('\n');
+    let inList = false;
+    const result: string[] = [];
+
+    for (const line of lines) {
+      if (line.trim().startsWith('- ')) {
+        if (!inList) {
+          result.push('<ul>');
+          inList = true;
+        }
+        result.push(`<li>${line.trim().substring(2)}</li>`);
+      } else {
+        if (inList) {
+          result.push('</ul>');
+          inList = false;
+        }
+        result.push(line);
+      }
+    }
+
+    if (inList) {
+      result.push('</ul>');
+    }
+
+    formatted = result.join('\n');
+  }
+
+  // Convert line breaks to <br> tags for better formatting
+  formatted = formatted.replace(/\n/g, '<br>');
+
+  return formatted;
+}
+
+function openNewRoundModal(): void {
+  dismissSuccessBanner();
+  modalState.showNewRoundModal = true;
+}
+
+// Try using reactive object instead of separate refs
+const modalState = reactive({
+  showNewRoundModal: false,
+  newRoundTitle: '',
+  newRoundType: 'interview' as 'survey' | 'interview' | 'ab_test' | 'field',
+  roundCreating: false
+});
+
+// For backward compatibility
+const showNewRoundModal = computed({
+  get: () => modalState.showNewRoundModal,
+  set: (value) => {
+    modalState.showNewRoundModal = value;
+  }
+});
+
+const newRoundTitle = computed({
+  get: () => modalState.newRoundTitle,
+  set: (value) => modalState.newRoundTitle = value
+});
+
+const newRoundType = computed({
+  get: () => modalState.newRoundType,
+  set: (value) => modalState.newRoundType = value
+});
+
+const roundCreating = computed({
+  get: () => modalState.roundCreating,
+  set: (value) => modalState.roundCreating = value
+});
+
+
+// Success state after round creation
+type Round = {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  keyFinding: string | null;
+  reportHref: string;
+};
+
+// API response type for created round
+type CreateRoundResponse = {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  projectId: string;
+  parentRoundId: string | null;
+  sortOrder: number;
+  results: unknown;
+  createdAt: string;
+  updatedAt: string;
+};
+const justCreatedRound = ref<Round | null>(null);
+const showSuccessBanner = ref(false);
+let successBannerTimeout: NodeJS.Timeout | null = null;
+
+
+
+async function createRound() {
+  if (!newRoundTitle.value.trim() || roundCreating.value) return;
+  roundCreating.value = true;
+  try {
+    const response = await httpClient.post<CreateRoundResponse>(API_CONFIG.ENDPOINTS.ROUNDS(projectId), {
+      title: newRoundTitle.value.trim(),
+      type: newRoundType.value,
+    });
+
+    // Store created round info for success banner
+    justCreatedRound.value = {
+      id: response.id,
+      title: response.title,
+      type: response.type,
+      status: response.status,
+      keyFinding: null,
+      reportHref: `/projects/${projectId}/report?roundId=${response.id}`,
+    };
+    showSuccessBanner.value = true;
+
+    // Auto-hide success banner after 10 seconds
+    if (successBannerTimeout) {
+      clearTimeout(successBannerTimeout);
+    }
+    successBannerTimeout = setTimeout(() => {
+      dismissSuccessBanner();
+    }, 10000);
+
+    modalState.showNewRoundModal = false;
+    newRoundTitle.value = '';
+    newRoundType.value = 'interview';
+    await loadOverview();
+  } catch (e) {
+    console.error('Failed to create round', e);
+  } finally {
+    roundCreating.value = false;
+  }
+}
 
 const project = computed(() => {
-  return viewModel.project.value;
+  const result = viewModel.project.value;
+  console.log('Project computed called, returning:', result);
+  return result;
 });
 
 const overviewStats = computed(() => {
@@ -266,13 +642,99 @@ async function loadOverview() {
 async function loadResearchData() {
   if (!projectId) return;
   try {
+    console.log('Loading research data for project:', projectId);
     const result = await researchPresenter.getResearchCanvas(projectId);
+    console.log('Research data loaded:', result);
     researchData.value = result;
-  } catch {
+  } catch (error) {
+    console.error('Failed to load research data:', error);
     researchData.value = null;
   }
 }
 
+async function formatResearchContext() {
+  if (!projectId || !project.value) return;
+
+  researchContextFormatting.value = true;
+  try {
+    // Format all research context texts
+    const formattedData: {
+      segmentDescription?: string;
+      hypothesisDescription?: string;
+      marketPicture?: string;
+      marketFit?: string;
+      differentiation?: string;
+    } = {};
+
+    // Format segment description
+    if (project.value.segment?.description) {
+      const response = await httpClient.post<{ formatted: string }>(
+        API_CONFIG.ENDPOINTS.AI_FORMAT_TEXT,
+        { text: project.value.segment.description }
+      );
+      formattedData.segmentDescription = response.formatted;
+    }
+
+    // Format hypothesis description
+    const hypothesisText = getHypothesisText();
+    if (hypothesisText && hypothesisText !== 'Not specified') {
+      const response = await httpClient.post<{ formatted: string }>(
+        API_CONFIG.ENDPOINTS.AI_FORMAT_TEXT,
+        { text: hypothesisText }
+      );
+      formattedData.hypothesisDescription = response.formatted;
+    }
+
+    // Format market context
+    if (project.value.marketContext?.marketPicture) {
+      const response = await httpClient.post<{ formatted: string }>(
+        API_CONFIG.ENDPOINTS.AI_FORMAT_TEXT,
+        { text: project.value.marketContext.marketPicture }
+      );
+      formattedData.marketPicture = response.formatted;
+    }
+
+    if (project.value.marketContext?.marketFit) {
+      const response = await httpClient.post<{ formatted: string }>(
+        API_CONFIG.ENDPOINTS.AI_FORMAT_TEXT,
+        { text: project.value.marketContext.marketFit }
+      );
+      formattedData.marketFit = response.formatted;
+    }
+
+    if (project.value.marketContext?.differentiation) {
+      const response = await httpClient.post<{ formatted: string }>(
+        API_CONFIG.ENDPOINTS.AI_FORMAT_TEXT,
+        { text: project.value.marketContext.differentiation }
+      );
+      formattedData.differentiation = response.formatted;
+    }
+
+    // Update project data with formatted texts
+    await presenter.updateProject(
+      projectId,
+      undefined, // name
+      formattedData.segmentDescription,
+      undefined, // segmentDemographics
+      formattedData.hypothesisDescription,
+      undefined, // hypothesisAssumptions
+      undefined, // status
+      formattedData.marketPicture || formattedData.marketFit || formattedData.differentiation ? {
+        marketPicture: formattedData.marketPicture,
+        marketFit: formattedData.marketFit,
+        differentiation: formattedData.differentiation,
+      } : undefined
+    );
+
+    // Reload project data to reflect changes
+    await presenter.loadProject(projectId, viewModel);
+
+  } catch (error) {
+    console.error('Failed to format research context:', error);
+  } finally {
+    researchContextFormatting.value = false;
+  }
+}
 
 function handleResearchStarted() {
   executiveSummaryLoading.value = true;
@@ -295,6 +757,13 @@ onMounted(() => {
     presenter.loadProject(projectId, viewModel);
     loadOverview();
     loadResearchData();
+  }
+});
+
+onUnmounted(() => {
+  if (successBannerTimeout) {
+    clearTimeout(successBannerTimeout);
+    successBannerTimeout = null;
   }
 });
 
@@ -870,6 +1339,187 @@ watch(project, (p) => {
   color: #64748b;
   margin: 0 0 0.75rem 0;
   line-height: 1.5;
+}
+.journey-open-hint {
+  font-size: 0.75rem;
+  color: #0891b2;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+.no-underline { text-decoration: none; }
+
+/* New Round banner */
+.new-round-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.25rem;
+  background: linear-gradient(135deg, #ede9fe, #dbeafe);
+  border: 1px solid #c4b5fd;
+  border-radius: 0.875rem;
+  box-shadow: 0 4px 12px rgba(124,58,237,0.1);
+}
+.new-round-banner-icon {
+  flex-shrink: 0;
+  color: #7c3aed;
+}
+.new-round-banner-body { flex: 1; min-width: 0; }
+.new-round-banner-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #4c1d95;
+  margin: 0 0 0.125rem 0;
+}
+.new-round-banner-hint {
+  font-size: 0.8125rem;
+  color: #5b21b6;
+  margin: 0;
+}
+.new-round-banner-btn {
+  flex-shrink: 0;
+  padding: 0.4rem 1rem;
+  border-radius: 0.5rem;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.new-round-banner-btn:hover { background: #6d28d9; }
+
+/* Success Banner */
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1.25rem;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border: 1px solid #86efac;
+  border-radius: 0.875rem;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
+  animation: slideInFromTop 0.5s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-banner-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.success-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.success-banner-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #166534;
+  margin: 0 0 0.125rem 0;
+}
+
+.success-banner-hint {
+  font-size: 0.8125rem;
+  color: #15803d;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.success-banner-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.success-action-btn {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.success-action-btn.primary {
+  background: #166534;
+  color: white;
+  border-color: #166534;
+}
+
+.success-action-btn.primary:hover {
+  background: #14532d;
+  border-color: #14532d;
+  transform: translateY(-1px);
+}
+
+.success-action-btn.secondary {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+}
+
+.success-action-btn.secondary:hover {
+  background: #15803d;
+  border-color: #15803d;
+  transform: translateY(-1px);
+}
+
+.success-action-btn.tertiary {
+  background: rgba(255, 255, 255, 0.8);
+  color: #166534;
+  border-color: rgba(22, 101, 52, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.success-action-btn.tertiary:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(22, 101, 52, 0.5);
+}
+
+/* Responsive adjustments for Success Banner */
+@media (max-width: 768px) {
+  .success-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .success-banner-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .success-action-btn {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.6875rem;
+    padding: 0.5rem 0.5rem;
+  }
+
+  .success-banner-title {
+    font-size: 0.875rem;
+  }
+
+  .success-banner-hint {
+    font-size: 0.75rem;
+  }
 }
 
 .overview-decision-pathway {

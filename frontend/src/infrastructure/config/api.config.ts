@@ -20,6 +20,7 @@ export const API_CONFIG = {
     // Projects
     PROJECTS: '/projects',
     PROJECT: (id: string) => `/projects/${id}`,
+    PROJECTS_ASSESS_RISK: '/projects/assess-risk',
     
     // Scenarios
     SCENARIOS: (projectId: string) => `/projects/${projectId}/scenarios`,
@@ -79,6 +80,7 @@ export const API_CONFIG = {
     // Rounds (iterative validation rounds per project)
     ROUNDS: (projectId: string) => `/projects/${projectId}/rounds`,
     ROUND: (projectId: string, roundId: string) => `/projects/${projectId}/rounds/${roundId}`,
+    ROUND_FINALIZE: (projectId: string, roundId: string) => `/projects/${projectId}/rounds/${roundId}/finalize`,
 
     // Overview (command center: executive summary, pulse, smart actions, research context, decision pathway)
     OVERVIEW: (projectId: string) => `/projects/${projectId}/overview`,

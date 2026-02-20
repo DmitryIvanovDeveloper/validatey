@@ -277,6 +277,166 @@ export class CommentController {
     }
   }
 
+  public async createSource(req: Request, res: Response): Promise<void> {
+    try {
+      const projectId = req.params.projectId;
+      if (!projectId) {
+        res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const { sourceType, redditUrl, hnUrl, hnFeedType } = req.body;
+
+      if (!sourceType || !['reddit', 'hackernews'].includes(sourceType)) {
+        res.status(400).json({ error: 'Valid sourceType (reddit or hackernews) is required' });
+        return;
+      }
+
+      // Validate required fields based on source type
+      if (sourceType === 'reddit' && !redditUrl) {
+        res.status(400).json({ error: 'redditUrl is required for reddit sources' });
+        return;
+      }
+
+      if (sourceType === 'hackernews' && !hnUrl && !hnFeedType) {
+        res.status(400).json({ error: 'hnUrl or hnFeedType is required for hackernews sources' });
+        return;
+      }
+
+      // Create value object to parse URL and extract additional fields
+      let sourceValueObject;
+      try {
+        if (sourceType === 'reddit') {
+          sourceValueObject = CommentSourceValueObject.createReddit(redditUrl);
+        } else {
+          if (hnUrl) {
+            sourceValueObject = CommentSourceValueObject.createHackerNews(hnUrl);
+          } else {
+            sourceValueObject = CommentSourceValueObject.createHackerNews(hnFeedType);
+          }
+        }
+      } catch (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : 'Invalid URL format' });
+        return;
+      }
+
+      // Create source in repository
+      const createResult = await this._sourceRepository.create({
+        projectId,
+        sourceType,
+        redditUrl: sourceType === 'reddit' ? redditUrl : undefined,
+        subredditName: sourceType === 'reddit' ? sourceValueObject.subredditName : undefined,
+        postId: sourceType === 'reddit' ? sourceValueObject.postId : undefined,
+        hnFeedType: sourceType === 'hackernews' ? hnFeedType : undefined,
+        hnUrl: sourceType === 'hackernews' ? hnUrl : undefined,
+        hnItemId: sourceType === 'hackernews' ? sourceValueObject.hnItemId : undefined,
+      });
+
+      if (!createResult.isSuccess) {
+        res.status(400).json({ error: createResult.error.message });
+        return;
+      }
+
+      res.status(201).json({
+        source: {
+          id: createResult.data.id,
+          sourceType: createResult.data.sourceType,
+          redditUrl: createResult.data.redditUrl,
+          hnUrl: createResult.data.hnUrl,
+          subredditName: createResult.data.subredditName,
+          hnFeedType: createResult.data.hnFeedType,
+          hnItemId: createResult.data.hnItemId,
+          createdAt: createResult.data.createdAt,
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
+
+  public async createSource(req: Request, res: Response): Promise<void> {
+    try {
+      const projectId = req.params.projectId;
+      if (!projectId) {
+        res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const { sourceType, redditUrl, hnUrl, hnFeedType } = req.body;
+
+      if (!sourceType || (sourceType !== 'reddit' && sourceType !== 'hackernews')) {
+        res.status(400).json({ error: 'Valid sourceType (reddit or hackernews) is required' });
+        return;
+      }
+
+      let createInput: any = {
+        projectId,
+        sourceType,
+      };
+
+      if (sourceType === 'reddit') {
+        if (!redditUrl) {
+          res.status(400).json({ error: 'redditUrl is required for reddit sources' });
+          return;
+        }
+
+        const sourceValueObject = CommentSourceValueObject.createReddit(redditUrl);
+        createInput = {
+          ...createInput,
+          redditUrl,
+          subredditName: sourceValueObject.subredditName,
+          postId: sourceValueObject.postId,
+        };
+      } else if (sourceType === 'hackernews') {
+        if (!hnUrl && !hnFeedType) {
+          res.status(400).json({ error: 'Either hnUrl or hnFeedType is required for hackernews sources' });
+          return;
+        }
+
+        if (hnUrl) {
+          const sourceValueObject = CommentSourceValueObject.createHackerNews(hnUrl);
+          createInput = {
+            ...createInput,
+            hnUrl,
+            hnItemId: sourceValueObject.hnItemId,
+          };
+        } else if (hnFeedType) {
+          const sourceValueObject = CommentSourceValueObject.createHackerNews(hnFeedType);
+          createInput = {
+            ...createInput,
+            hnFeedType,
+          };
+        }
+      }
+
+      // Create source
+      const createResult = await this._sourceRepository.create(createInput);
+      if (!createResult.isSuccess) {
+        res.status(400).json({ error: createResult.error.message });
+        return;
+      }
+
+      res.status(201).json({
+        source: {
+          id: createResult.data.id,
+          sourceType: createResult.data.sourceType,
+          redditUrl: createResult.data.redditUrl,
+          hnUrl: createResult.data.hnUrl,
+          subredditName: createResult.data.subredditName,
+          hnFeedType: createResult.data.hnFeedType,
+          hnItemId: createResult.data.hnItemId,
+          createdAt: createResult.data.createdAt,
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
+
   public async getSources(req: Request, res: Response): Promise<void> {
     try {
       const projectId = req.params.projectId;

@@ -3,6 +3,7 @@ import type { CreateProjectUseCase } from '../../application/use-cases/create-pr
 import type { GetProjectUseCase } from '../../application/use-cases/get-project.use-case';
 import type { UpdateProjectUseCase } from '../../application/use-cases/update-project.use-case';
 import type { GetMarketContextSuggestionUseCase } from '../../application/use-cases/get-market-context-suggestion.use-case';
+import type { AssessProjectRiskUseCase } from '../../application/use-cases/assess-project-risk.use-case';
 import { ProjectViewModel } from '../view-models/project.view-model';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
@@ -10,6 +11,7 @@ import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger
 import { Segment } from '../../domain/value-objects/segment.vo';
 import { Hypothesis } from '../../domain/value-objects/hypothesis.vo';
 import { Project, ProjectStatus, MarketContext } from '../../domain/entities/project.entity';
+import type { ProjectRisk, ProjectRiskAssessment } from '../../domain/entities/project-risk.entity';
 import type { GetMarketContextSuggestionRequest } from '../../application/use-cases/input-output/get-market-context-suggestion.io';
 
 @injectable()
@@ -23,6 +25,8 @@ export class ProjectPresenter {
     private readonly _updateProjectUseCase: UpdateProjectUseCase,
     @inject(TYPES.GetMarketContextSuggestionUseCase)
     private readonly _getMarketContextSuggestionUseCase: GetMarketContextSuggestionUseCase,
+    @inject(TYPES.AssessProjectRiskUseCase)
+    private readonly _assessProjectRiskUseCase: AssessProjectRiskUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort
   ) {}
@@ -214,7 +218,9 @@ export class ProjectPresenter {
         projectData.scenarioTemplateSlug ?? null
       );
       
+      console.log('Presenter: Setting project to viewModel', project);
       viewModel.project.value = project;
+      console.log('Presenter: viewModel.project.value set to', viewModel.project.value);
       viewModel.loading.value = false;
       this._logger.info('Project loaded', { projectId });
     } else {
@@ -384,6 +390,20 @@ export class ProjectPresenter {
     } catch (error) {
       this._logger.error('Unexpected error getting market context suggestions', { error });
       throw error instanceof Error ? error : new Error('Failed to get market context suggestions');
+    }
+  }
+
+  async assessProjectRisk(
+    hypothesis: string,
+    segment: string,
+    assumptions: string[]
+  ): Promise<{ risks: ProjectRisk[]; overallRiskScore: number }> {
+    try {
+      const assessment = await this._assessProjectRiskUseCase.execute(hypothesis, segment, assumptions);
+      return { risks: Array.from(assessment.risks), overallRiskScore: assessment.overallRiskScore };
+    } catch (error) {
+      this._logger.warn('Risk assessment failed, returning empty result', { error });
+      return { risks: [], overallRiskScore: 0 };
     }
   }
 }

@@ -25,6 +25,7 @@ export interface CommentItem {
 export interface GetCommentsInput {
   projectId: string;
   sourceId?: string;
+  url?: string;
   isProcessed?: boolean;
   limit?: number;
 }
@@ -45,6 +46,7 @@ export class GetCommentsUseCase {
   async execute(input: GetCommentsInput): Promise<Result<GetCommentsOutput, Error>> {
     const result = await this._repository.getComments(input.projectId, {
       sourceId: input.sourceId,
+      url: input.url,
       isProcessed: input.isProcessed,
       limit: input.limit,
     });

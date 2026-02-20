@@ -83,6 +83,14 @@
                     <button @click="addAssumption" class="btn-add" type="button">+ Add Assumption</button>
                   </div>
                 </div>
+
+                <!-- Prevention Warnings — inline risk assessment based on failure patterns -->
+                <ProjectRiskWarnings
+                  :risks="riskWarnings"
+                  :loading="riskLoading"
+                  :overall-risk-score="riskOverallScore"
+                />
+
                 <div class="form-group" :class="{ error: fieldErrors.marketPicture }">
                   <label for="market-picture">Market Picture</label>
                   <textarea
@@ -307,7 +315,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import PageHeader from '../../../../shared/components/PageHeader.vue';
 import Wizard from '../../../../shared/components/Wizard.vue';
@@ -316,6 +324,7 @@ import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
 import Button from '../../../../shared/components/atoms/Button.vue';
 import ScenarioViewer from './components/ScenarioViewer.vue';
 import Toast from '../../../../shared/components/Toast.vue';
+import ProjectRiskWarnings from '../components/ProjectRiskWarnings.vue';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
@@ -324,6 +333,7 @@ import { ScenarioPresenter } from '../../../scenarios/interface-adapters/present
 import { ScenarioViewModel } from '../../../scenarios/interface-adapters/view-models/scenario.view-model';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
 import type { Project } from '../../domain/entities/project.entity';
+import type { ProjectRisk } from '../../domain/entities/project-risk.entity';
 
 const route = useRoute();
 const router = useRouter();
@@ -352,6 +362,44 @@ const formData = ref({
   audienceSize: 100,
   pricePerResponse: 5.0,
 });
+
+const riskWarnings = ref<ProjectRisk[]>([]);
+const riskOverallScore = ref(0);
+const riskLoading = ref(false);
+
+let riskDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+watch(
+  () => [formData.value.hypothesisDescription, formData.value.segmentDescription, formData.value.hypothesisAssumptions] as const,
+  () => {
+    if (riskDebounceTimer) clearTimeout(riskDebounceTimer);
+    riskDebounceTimer = setTimeout(async () => {
+      const hypothesis = formData.value.hypothesisDescription.trim();
+      const segment = formData.value.segmentDescription.trim();
+      if (!hypothesis && !segment) {
+        riskWarnings.value = [];
+        riskOverallScore.value = 0;
+        return;
+      }
+      riskLoading.value = true;
+      try {
+        const result = await projectPresenter.assessProjectRisk(
+          hypothesis,
+          segment,
+          formData.value.hypothesisAssumptions.filter(Boolean)
+        );
+        riskWarnings.value = result.risks;
+        riskOverallScore.value = result.overallRiskScore;
+      } catch {
+        riskWarnings.value = [];
+        riskOverallScore.value = 0;
+      } finally {
+        riskLoading.value = false;
+      }
+    }, 800);
+  },
+  { deep: true }
+);
 
 const scenarioContent = ref<string>('');
 const scenarioLoading = ref(false);

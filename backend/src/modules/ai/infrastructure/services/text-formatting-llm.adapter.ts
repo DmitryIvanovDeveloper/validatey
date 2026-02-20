@@ -27,7 +27,10 @@ export class TextFormattingLlmAdapter implements TextFormattingPort {
     try {
       const response = await this._http.post<{ response?: string }>(
         AI_PROXY_URL,
-        { prompt: fullPrompt },
+        {
+          prompt: fullPrompt,
+          model: 'llama3.1-8b'
+        },
         {
           'Content-Type': 'application/json',
           'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)',

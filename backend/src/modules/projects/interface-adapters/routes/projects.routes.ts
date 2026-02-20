@@ -8,6 +8,25 @@ const router = Router();
 const controller = container.get<ProjectController>(TYPES.ProjectController);
 const presenter = controller;
 
+// Assess project risk (stateless — no projectId needed)
+router.post('/assess-risk', async (req: Request, res: Response) => {
+  try {
+    const hypothesis = typeof req.body?.hypothesis === 'string' ? req.body.hypothesis.trim() : '';
+    const segment = typeof req.body?.segment === 'string' ? req.body.segment.trim() : '';
+    const assumptions = Array.isArray(req.body?.assumptions) ? req.body.assumptions.filter((a: unknown) => typeof a === 'string') : [];
+
+    const result = await controller.assessProjectRisk({ hypothesis, segment, assumptions });
+
+    if (!result.isSuccess) {
+      return res.status(400).json({ error: result.error.message });
+    }
+
+    return res.status(200).json(result.data.assessment);
+  } catch (error) {
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
 // Create project
 router.post('/', async (req: Request, res: Response) => {
   try {
@@ -20,12 +39,19 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const workspaceId = typeof req.body?.workspaceId === 'string' ? req.body.workspaceId.trim() || undefined : undefined;
+
+    // Normalize hypothesis - convert string to object if needed
+    let hypothesis = req.body?.hypothesis;
+    if (typeof hypothesis === 'string') {
+      hypothesis = { description: hypothesis, assumptions: [] };
+    }
+
     const result = await presenter.createProject({
       userId,
       workspaceId,
       name: req.body?.name,
       segment: req.body?.segment,
-      hypothesis: req.body?.hypothesis,
+      hypothesis,
       marketContext: req.body?.marketContext,
       targetAudience: req.body?.targetAudience,
       cost: req.body?.cost,

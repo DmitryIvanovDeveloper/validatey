@@ -58,6 +58,12 @@
           Report
         </router-link>
       </nav>
+      <!-- Sub-header for round context -->
+      <div v-if="isTabActive('round')" class="round-sub-header">
+        <router-link :to="projectBase" class="round-back-link">
+          ← Back to Overview
+        </router-link>
+      </div>
     </header>
     <main class="dashboard-content">
       <router-view />
@@ -88,6 +94,7 @@ function isTabActive(tab: string): boolean {
   if (tab === 'invitations') return name === 'project-invitations';
   if (tab === 'responses') return name === 'project-responses';
   if (tab === 'comments') return name === 'project-comments';
+  if (tab === 'round') return name === 'round-detail';
   return false;
 }
 
@@ -161,5 +168,20 @@ onMounted(() => {
 
 .dashboard-content {
   min-height: 200px;
+}
+
+.round-sub-header {
+  padding: 0.5rem 0 0 0;
+}
+
+.round-back-link {
+  font-size: 0.8125rem;
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.round-back-link:hover {
+  text-decoration: underline;
 }
 </style>

@@ -2,12 +2,14 @@ import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { RoundController } from '../controllers/round.controller';
+import { RoundSynthesisOrchestratorAdapter } from '../../infrastructure/adapters/round-synthesis-orchestrator.adapter';
 
 const ROUND_TYPES = ['survey', 'interview', 'ab_test', 'field'] as const;
 const ROUND_STATUSES = ['draft', 'active', 'completed', 'archived'] as const;
 
 const router = Router({ mergeParams: true });
 const controller = container.get<RoundController>(TYPES.RoundController);
+const synthesisOrchestrator = container.get<RoundSynthesisOrchestratorAdapter>(TYPES.RoundSynthesisOrchestrator);
 
 // GET /projects/:projectId/rounds
 router.get('/', async (req: Request, res: Response) => {
@@ -102,6 +104,28 @@ router.patch('/:roundId', async (req: Request, res: Response) => {
     });
     if (!result.isSuccess) {
       return res.status(400).json({ error: result.error.message });
+    }
+    return res.status(200).json(result.data);
+  } catch (error) {
+    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// POST /projects/:projectId/rounds/:roundId/finalize
+// Runs synthesis orchestration: reads latest synthesis, marks round completed, saves verdict to round.results
+router.post('/:roundId/finalize', async (req: Request, res: Response) => {
+  try {
+    const { projectId, roundId } = req.params;
+    if (!projectId || !roundId) {
+      return res.status(400).json({ error: 'projectId and roundId are required' });
+    }
+    const result = await synthesisOrchestrator.finalize(projectId, roundId);
+    if (!result.isSuccess) {
+      const msg = result.error.message;
+      if (result.error.name === 'RoundNotFoundError') {
+        return res.status(404).json({ error: msg });
+      }
+      return res.status(400).json({ error: msg });
     }
     return res.status(200).json(result.data);
   } catch (error) {

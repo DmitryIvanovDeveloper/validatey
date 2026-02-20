@@ -8,6 +8,7 @@ import { GetRoundUseCase } from '../../application/use-cases/get-round.use-case'
 import { UpdateRoundUseCase } from '../../application/use-cases/update-round.use-case';
 import { DeleteRoundUseCase } from '../../application/use-cases/delete-round.use-case';
 import { RoundController } from '../../interface-adapters/controllers/round.controller';
+import { RoundSynthesisOrchestratorAdapter } from '../adapters/round-synthesis-orchestrator.adapter';
 
 export function bindRounds(container: Container): void {
   container.bind<RoundRepositoryPort>(TYPES.RoundRepository).to(SupabaseRoundRepository);
@@ -17,4 +18,5 @@ export function bindRounds(container: Container): void {
   container.bind<UpdateRoundUseCase>(TYPES.UpdateRoundUseCase).to(UpdateRoundUseCase);
   container.bind<DeleteRoundUseCase>(TYPES.DeleteRoundUseCase).to(DeleteRoundUseCase);
   container.bind<RoundController>(TYPES.RoundController).to(RoundController);
+  container.bind<RoundSynthesisOrchestratorAdapter>(TYPES.RoundSynthesisOrchestrator).to(RoundSynthesisOrchestratorAdapter);
 }
