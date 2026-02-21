@@ -158,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
@@ -188,9 +188,15 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const platforms = ref<SurveyPlatformSuggestion[]>([]);
 const copiedPostIndex = ref<number | null>(null);
+const loadedProjectId = ref<string | null>(null);
 
 async function generatePlatforms(): Promise<void> {
   if (!props.projectId) return;
+
+  // Skip if already loaded for this project
+  if (loadedProjectId.value === props.projectId && platforms.value.length > 0) {
+    return;
+  }
 
   loading.value = true;
   error.value = null;
@@ -201,6 +207,7 @@ async function generatePlatforms(): Promise<void> {
       {}
     );
     platforms.value = data.platforms;
+    loadedProjectId.value = props.projectId;
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : 'Failed to generate platform suggestions';
     error.value = errorMessage;
@@ -209,6 +216,23 @@ async function generatePlatforms(): Promise<void> {
     loading.value = false;
   }
 }
+
+// Auto-load platforms on mount
+onMounted(() => {
+  if (props.projectId) {
+    generatePlatforms();
+  }
+});
+
+// Watch for projectId changes
+watch(() => props.projectId, (newProjectId) => {
+  if (newProjectId && loadedProjectId.value !== newProjectId) {
+    // Reset state when project changes
+    platforms.value = [];
+    error.value = null;
+    generatePlatforms();
+  }
+});
 
 function getPlatformUrl(platform: string, subplatform?: string): string {
   const platformLower = platform.toLowerCase();
