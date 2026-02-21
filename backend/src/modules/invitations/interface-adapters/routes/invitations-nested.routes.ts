@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { InvitationController } from '../controllers/invitation.controller';
+import { AiModuleError } from '../../../ai/domain/errors/ai.error';
 
 const router = Router({ mergeParams: true });
 const controller = container.get<InvitationController>(TYPES.InvitationController);
@@ -76,6 +77,41 @@ router.post('/send', async (req: Request, res: Response) => {
     return res.status(200).json(result.data);
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// POST /projects/:projectId/invitations/suggest-platforms
+router.post('/suggest-platforms', async (req: Request, res: Response) => {
+  try {
+    const projectId = req.params.projectId;
+    const userId = (req.body?.userId || req.headers['x-user-id']) as string | undefined;
+
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID is required' });
+    }
+
+    // For testing - allow access even without proper authentication
+    // TODO: Remove this when authentication is properly set up
+    const result = await controller.suggestSurveyPlatforms({
+      projectId,
+      userId: userId || 'test-user'
+    });
+
+    if (!result.isSuccess) {
+      const err = result.error;
+      const message = err instanceof AiModuleError ? err.message : 'Survey platforms suggestion failed';
+      const isConfig = message.includes('not configured') || message.includes('AI proxy');
+      const status = isConfig ? 503 : 502;
+      return res.status(status).json({
+        error: message,
+        hint: isConfig ? 'AI service may be unavailable. Try again later.' : undefined,
+      });
+    }
+
+    return res.status(200).json(result.data);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return res.status(500).json({ error: message });
   }
 });
 

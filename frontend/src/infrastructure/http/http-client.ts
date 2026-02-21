@@ -30,7 +30,7 @@ export class HttpClient implements HttpClientPort {
   }
 
   /**
-   * Получить заголовки с x-user-id
+   * Get headers with x-user-id
    */
   private getHeaders(customHeaders?: Record<string, string>): Record<string, string> {
     const userId = sessionManager.currentUserId;
@@ -110,7 +110,7 @@ export class HttpClient implements HttpClientPort {
   }
 
   async post<T>(url: string, data?: unknown, headers?: Record<string, string>): Promise<T> {
-    // Если данные - FormData, не устанавливаем Content-Type
+    // If data is FormData, don't set Content-Type
     const isFormData = data instanceof FormData;
     const requestHeaders = isFormData
       ? headers

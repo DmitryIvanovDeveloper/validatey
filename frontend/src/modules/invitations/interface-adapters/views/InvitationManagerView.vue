@@ -164,6 +164,9 @@
         <p v-if="shareLinkError" class="msg msg-error" role="alert">{{ shareLinkError }}</p>
       </div>
     </Card>
+
+    <!-- Survey Distribution Platforms -->
+    <SurveyPlatformsWidget :project-id="projectId" />
     </div>
 
     <div v-show="invitationsTab === 'personal'" class="invitations-tab-panel">
@@ -519,6 +522,7 @@ import type { InvitationPresenter } from '../presenters/invitation.presenter';
 import type { InvitationListItem } from '../presenters/invitation.presenter';
 import { ProjectPresenter } from '../../../projects/interface-adapters/presenters/project.presenter';
 import type { Response } from '../../../projects/domain/entities/response.entity';
+import SurveyPlatformsWidget from '../../../projects/interface-adapters/components/SurveyPlatformsWidget.vue';
 
 const route = useRoute();
 const workspaceId = computed(() => (route.params.workspaceId as string) || '');

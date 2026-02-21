@@ -38,6 +38,8 @@ export const API_CONFIG = {
     INVITATIONS: (projectId: string) => `/projects/${projectId}/invitations`,
     INVITATION: (projectId: string, invitationId: string) => `/projects/${projectId}/invitations/${invitationId}`,
     SEND_INVITATIONS: (projectId: string) => `/projects/${projectId}/invitations/send`,
+    /** POST - suggest survey distribution platforms for project */
+    SUGGEST_PLATFORMS: (projectId: string) => `/projects/${projectId}/invitations/suggest-platforms`,
     
     // Responses
     RESPONSES: (projectId: string) => `/responses/project/${projectId}`, // Using direct endpoint until nested route works

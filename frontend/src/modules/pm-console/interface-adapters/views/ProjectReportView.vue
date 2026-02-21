@@ -1,25 +1,25 @@
 <template>
   <div class="report-view">
-    <h1>Отчёт по проекту</h1>
+    <h1>Project Report</h1>
     <p>Project ID: {{ $route.params.projectId }}</p>
     <div class="report-content">
-      <p>Отчёт будет отображаться здесь:</p>
+      <p>Report will be displayed here:</p>
       <ul>
-        <li>Вердикт</li>
-        <li>Метрики</li>
-        <li>Кластеры</li>
-        <li>Альтернативы</li>
+        <li>Verdict</li>
+        <li>Metrics</li>
+        <li>Clusters</li>
+        <li>Alternatives</li>
         <li>WTP (Willingness To Pay)</li>
-        <li>Рекомендации</li>
+        <li>Recommendations</li>
       </ul>
-      <button class="export-btn">Скачать PDF</button>
-      <button class="export-btn">Скачать HTML</button>
+      <button class="export-btn">Download PDF</button>
+      <button class="export-btn">Download HTML</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Project Report View - отчёт по проекту
+// Project Report View - project report
 </script>
 
 <style scoped>

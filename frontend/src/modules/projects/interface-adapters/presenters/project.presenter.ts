@@ -42,7 +42,7 @@ export class ProjectPresenter {
     workspaceId?: string | null
   ): Promise<{ projectId: string | null; error?: string }> {
     try {
-      // Валидация и создание Segment
+      // Validate and create Segment
       let segment: Segment | null = null;
       if (segmentDescription && segmentDescription.trim().length > 0 && segmentDemographics && segmentDemographics.trim().length > 0) {
         try {
@@ -61,7 +61,7 @@ export class ProjectPresenter {
         }
       }
 
-      // Валидация и создание Hypothesis
+      // Validate and create Hypothesis
       let hypothesis: Hypothesis | null = null;
       if (hypothesisDescription && hypothesisDescription.trim().length > 0) {
         try {
@@ -78,7 +78,7 @@ export class ProjectPresenter {
         }
       }
 
-      // Создаём проект
+        // Create project
       console.log('🔄 Creating project with name:', name);
       const result = await this._createProjectUseCase.execute({
         name,
@@ -86,7 +86,7 @@ export class ProjectPresenter {
       });
 
       if (!result.isSuccess) {
-        // Безопасное извлечение сообщения об ошибке
+        // Safe error message extraction
         let errorMessage = 'Unknown error';
         if (result.error instanceof Error) {
           errorMessage = result.error.message;
@@ -107,7 +107,7 @@ export class ProjectPresenter {
       const projectId = result.data.project.id;
       console.log('✅ Project created with ID:', projectId);
       
-      // Обновляем проект с segment, hypothesis и marketContext, если есть
+      // Update project with segment, hypothesis and marketContext if available
       if (segment || hypothesis || marketContext) {
         console.log('🔄 Updating project with segment/hypothesis/marketContext');
         const updateResult = await this._updateProjectUseCase.execute({
@@ -124,7 +124,7 @@ export class ProjectPresenter {
             projectId,
             error: updateResult.error
           });
-          // Не возвращаем null, проект уже создан
+          // Don't return null, project is already created
         } else {
           console.log('✅ Project updated with segment/hypothesis');
         }
@@ -186,7 +186,7 @@ export class ProjectPresenter {
     if (result.isSuccess) {
       const projectData = result.data.project;
       
-      // Маппим ответ на Project entity
+      // Map response to Project entity
       const segment = projectData.segment 
         ? new Segment(projectData.segment.description, projectData.segment.demographics)
         : null;
@@ -222,7 +222,7 @@ export class ProjectPresenter {
       viewModel.loading.value = false;
       this._logger.info('Project loaded', { projectId });
     } else {
-      // Безопасное извлечение сообщения об ошибке
+      // Safe error message extraction
       const errorMessage = result.error instanceof Error
         ? result.error.message
         : typeof result.error === 'string'

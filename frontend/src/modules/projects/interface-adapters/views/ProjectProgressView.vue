@@ -1039,7 +1039,7 @@ onMounted(async () => {
       project.value = null;
     }
     
-    // Загружаем приглашения
+    // Load invitations
     const invitationsResult = await invitationRepository.getStatuses(projectId);
     
     if (invitationsResult.isSuccess) {
@@ -1067,7 +1067,7 @@ onMounted(async () => {
       questionLabels.value = {};
     }
     
-    // Загружаем ответы
+    // Load responses
     try {
       const responsesUrl = API_CONFIG.ENDPOINTS.RESPONSES(projectId);
       console.log('Loading responses from:', responsesUrl);
@@ -1096,7 +1096,7 @@ onMounted(async () => {
       responses.value = [];
     }
     
-    // Загружаем early signals (бэкенд анализирует комментарии через LLM и возвращает сигналы)
+    // Load early signals (backend analyzes comments via LLM and returns signals)
     try {
       const earlySignalsUrl = API_CONFIG.ENDPOINTS.EARLY_SIGNALS(projectId);
       const earlySignalsData = await httpClient.get<{ signals: Array<{

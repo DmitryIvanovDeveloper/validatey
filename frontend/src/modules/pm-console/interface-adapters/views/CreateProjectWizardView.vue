@@ -1,18 +1,18 @@
 <template>
   <div class="wizard-view">
-    <h1>Создание проекта</h1>
-    <p>Мастер создания проекта будет здесь</p>
+    <h1>Create Project</h1>
+    <p>Project creation wizard will be here</p>
     <div class="steps">
-      <div class="step">1. Сегмент</div>
-      <div class="step">2. Гипотеза</div>
-      <div class="step">3. Сценарий</div>
-      <div class="step">4. Аудитория и оплата</div>
+      <div class="step">1. Segment</div>
+      <div class="step">2. Hypothesis</div>
+      <div class="step">3. Scenario</div>
+      <div class="step">4. Audience and Payment</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Create Project Wizard View - мастер создания проекта (4 шага)
+// Create Project Wizard View - project creation wizard (4 steps)
 </script>
 
 <style scoped>

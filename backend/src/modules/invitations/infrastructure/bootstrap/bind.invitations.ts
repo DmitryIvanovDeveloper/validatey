@@ -13,6 +13,10 @@ import { UpdateInvitationStatusUseCase } from '../../application/use-cases/updat
 import { SendInvitationsUseCase } from '../../application/use-cases/send-invitations.use-case';
 import { CreateAnonymousInvitationForPublicLinkUseCase } from '../../application/use-cases/create-anonymous-invitation-for-public-link.use-case';
 import { InvitationController } from '../../interface-adapters/controllers/invitation.controller';
+// Cross-module dependencies
+import { SurveyPlatformsLlmPort } from '../../../projects/application/ports/survey-platforms-llm.port';
+import { SurveyPlatformsLlmAdapter } from '../../../projects/infrastructure/services/survey-platforms-llm.adapter';
+import { SuggestSurveyPlatformsUseCase } from '../../application/use-cases/suggest-survey-platforms.use-case';
 
 export function bindInvitations(container: Container): void {
   // Repository
@@ -21,6 +25,10 @@ export function bindInvitations(container: Container): void {
   // Services
   container.bind<EmailServicePort>(TYPES.EmailService).to(SMTPEmailService);
   container.bind<SMSServicePort>(TYPES.SMSService).to(SMSProviderService);
+
+  // Survey Platforms components
+  container.bind<SurveyPlatformsLlmPort>(TYPES.SurveyPlatformsLlm).to(SurveyPlatformsLlmAdapter);
+  container.bind<SuggestSurveyPlatformsUseCase>(TYPES.SuggestSurveyPlatformsUseCase).to(SuggestSurveyPlatformsUseCase);
 
   // Use Cases
   container.bind<CreateInvitationsUseCase>(TYPES.CreateInvitationsUseCase).to(CreateInvitationsUseCase);

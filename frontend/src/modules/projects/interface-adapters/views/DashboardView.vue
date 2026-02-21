@@ -291,7 +291,7 @@ const goToProject = (projectId: string) => {
   opacity: 0.8;
 }
 
-/* Добавим специфичные стили для элементов, имитирующих кнопки действия */
+/* Add specific styles for elements that mimic action buttons */
 .skeleton-menu-actions {
   display: flex;
   flex-direction: column;

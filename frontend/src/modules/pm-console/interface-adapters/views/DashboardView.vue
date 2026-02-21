@@ -1,15 +1,15 @@
 <template>
   <div class="dashboard-view">
-    <h1>Дашборд</h1>
-    <p>Добро пожаловать в Validatey!</p>
+    <h1>Dashboard</h1>
+    <p>Welcome to Validatey!</p>
     <router-link to="/projects/new" class="create-btn">
-      Создать новый проект
+      Create New Project
     </router-link>
   </div>
 </template>
 
 <script setup lang="ts">
-// Dashboard View - главная страница PM консоли
+// Dashboard View - main page of PM console
 </script>
 
 <style scoped>

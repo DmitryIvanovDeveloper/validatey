@@ -1,15 +1,15 @@
 <template>
   <div class="project-details-view">
-    <h1>Детали проекта</h1>
+    <h1>Project Details</h1>
     <p>Project ID: {{ $route.params.projectId }}</p>
     <router-link :to="`/projects/${$route.params.projectId}/report`">
-      Посмотреть отчёт
+      View Report
     </router-link>
   </div>
 </template>
 
 <script setup lang="ts">
-// Project Details View - детали проекта
+// Project Details View - project details
 </script>
 
 <style scoped>

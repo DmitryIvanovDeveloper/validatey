@@ -16,13 +16,13 @@ export const CONSENT_TEMPLATES: Record<ConsentTemplateId, ConsentTemplate> = {
   eu_gdpr: {
     id: 'eu_gdpr',
     label: 'EU / GDPR',
-    consentText: `Я даю согласие на обработку моих персональных данных (электронная почта) компанией [Название компании] для целей участия в исследовании. Я понимаю, что могу отозвать согласие в любое время, написав на [email@company.com]`,
+    consentText: `I consent to the processing of my personal data (email address) by [Company Name] for the purposes of participating in this research. I understand that I can withdraw my consent at any time by writing to [email@company.com]`,
     dataUsageText: '',
   },
   us_ccpa: {
     id: 'us_ccpa',
     label: 'USA / CCPA',
-    consentText: `Нажимая кнопку, я подтверждаю, что ознакомлен с политикой конфиденциальности и соглашаюсь на обработку моих данных для исследовательских целей`,
+    consentText: `By clicking the button, I confirm that I have read the privacy policy and agree to the processing of my data for research purposes`,
     dataUsageText: '',
   },
   international: {

@@ -50,13 +50,13 @@ export class ResearchPresenter {
 
   async checkResearchAvailability(projectId: string): Promise<CheckResearchAvailabilityResponse> {
     try {
-      // NEW: Используем repository для вызова нового API endpoint
+      // NEW: Use repository to call new API endpoint
       const response = await this._researchRepository.checkResearchAvailability(projectId);
       return response;
     } catch (error) {
       this._logger.error('Failed to check research availability', { projectId, error });
       return {
-        available: true, // fallback - считаем доступным
+        available: true, // fallback - consider available
         nextAvailableAt: null,
         timeUntilNext: 0,
       };

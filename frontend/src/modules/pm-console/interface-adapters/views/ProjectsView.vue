@@ -1,19 +1,19 @@
 <template>
   <div class="projects-view">
     <div class="header">
-      <h1>Проекты</h1>
+      <h1>Projects</h1>
       <router-link to="/projects/new" class="create-btn">
-        + Новый проект
+        + New Project
       </router-link>
     </div>
     <div class="projects-list">
-      <p class="empty-state">Проекты будут отображаться здесь</p>
+      <p class="empty-state">Projects will be displayed here</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Projects View - список проектов
+// Projects View - projects list
 </script>
 
 <style scoped>

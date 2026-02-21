@@ -240,7 +240,7 @@
                   @input="clearFieldError('name')"
                 />
               </div>
-              <!-- Скрытые поля Audience Size и Price per Response -->
+              <!-- Hidden fields: Audience Size and Price per Response -->
               <!--
               <div class="form-row">
                 <div class="form-group" :class="{ error: fieldErrors.audienceSize }">
@@ -279,7 +279,7 @@
                 <p class="form-hint audience-hint-general">You can enable a public link or share link on the Invitations page after creating the project.</p>
               </div>
 
-              <!-- Скрытый блок Project Cost -->
+              <!-- Hidden block: Project Cost -->
               <!--
               <div class="price-summary">
                 <div class="price-row">
@@ -591,7 +591,7 @@ const handleStepChange = async (step: number) => {
   if (step === 1) {
     await ensureProjectCreated();
 
-    // Всегда загружаем шаблоны, чтобы пользователь мог выбрать типы валидации
+    // Always load templates so user can select validation types
     if (scenarioTemplates.value.length === 0) {
       const { templates, error } = await scenarioPresenter.getTemplates();
       if (!error) scenarioTemplates.value = templates;
@@ -902,7 +902,7 @@ async function doComplete() {
   if (route.query.onboarding === '1' && typeof localStorage !== 'undefined') {
     localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
   }
-  // В режиме редактирования всегда возвращаемся к странице проекта
+  // In edit mode, always return to project page
   if (isEditing.value) {
     router.push(workspaceId.value
       ? `/workspaces/${workspaceId.value}/projects/${projectId}`
@@ -934,7 +934,7 @@ async function doComplete() {
 }
 
 const handleComplete = async () => {
-  // В режиме редактирования используем editingProjectId, иначе currentProjectId
+  // In edit mode use editingProjectId, otherwise currentProjectId
   if (!currentProjectId.value && !editingProjectId.value) return;
 
   completingProject.value = true;
@@ -978,11 +978,11 @@ function saveAnyway() {
   });
 }
 
-// Функция для загрузки существующего проекта для редактирования
+// Function to load existing project for editing
 async function loadProjectForEditing(projectId: string) {
   loadingProject.value = true;
   try {
-    // Создаем временный viewModel для загрузки проекта
+    // Create temporary viewModel for loading project
     const tempViewModel = {
       project: ref<Project | null>(null),
       loading: ref(false),
@@ -994,13 +994,13 @@ async function loadProjectForEditing(projectId: string) {
     if (tempViewModel.project.value) {
       const project = tempViewModel.project.value;
 
-      // Заполняем formData данными проекта
+      // Fill formData with project data
       formData.value.name = project.name;
       if (project.segment) {
         formData.value.segmentDescription = project.segment.description;
-        // Преобразуем demographics в строку если нужно
+        // Convert demographics to string if needed
         if (typeof project.segment.demographics === 'object' && project.segment.demographics) {
-          // Если demographics - объект, извлекаем текстовое значение
+          // If demographics is an object, extract text value
           if ('text' in project.segment.demographics) {
             formData.value.segmentDemographics = String(project.segment.demographics.text || '');
           } else {
@@ -1012,7 +1012,10 @@ async function loadProjectForEditing(projectId: string) {
       }
       if (project.hypothesis) {
         formData.value.hypothesisDescription = project.hypothesis.description;
-        formData.value.hypothesisAssumptions = project.hypothesis.assumptions || [''];
+        const raw = project.hypothesis.assumptions || [];
+        formData.value.hypothesisAssumptions = raw.length
+          ? raw.map((a: string | { text: string }) => (typeof a === 'string' ? a : a.text))
+          : [''];
       }
       if (project.marketContext) {
         formData.value.marketPicture = project.marketContext.marketPicture || '';
@@ -1024,7 +1027,7 @@ async function loadProjectForEditing(projectId: string) {
       isEditing.value = true;
       editingProjectId.value = projectId;
 
-      // Загружаем шаблоны и восстанавливаем выбранные типы валидации
+      // Load templates and restore selected validation types
       if (scenarioTemplates.value.length === 0) {
         const { templates, error } = await scenarioPresenter.getTemplates();
         if (!error) scenarioTemplates.value = templates;
@@ -1049,7 +1052,7 @@ async function loadProjectForEditing(projectId: string) {
         }
       }
 
-      // Загружаем существующий сценарий проекта
+      // Load existing project scenario
       const scenarioResult = await scenarioPresenter.getLatestByProjectId(projectId);
       if (!('error' in scenarioResult)) {
         scenarioContent.value = scenarioResult.content;
@@ -1063,14 +1066,14 @@ async function loadProjectForEditing(projectId: string) {
 }
 
 onMounted(async () => {
-  // Проверяем, есть ли projectId в route params для режима редактирования
+  // Check if projectId exists in route params for edit mode
   const projectId = route.params.projectId;
   const projectIdStr = Array.isArray(projectId) ? projectId[0] : projectId;
 
   if (projectIdStr) {
     await loadProjectForEditing(projectIdStr);
   } else {
-    // Обычный режим создания проекта
+    // Normal project creation mode
     if (route.query.onboarding === '1' && typeof sessionStorage !== 'undefined') {
       const hypothesis = sessionStorage.getItem(ONBOARDING_HYPOTHESIS_KEY);
       if (hypothesis?.trim()) {
