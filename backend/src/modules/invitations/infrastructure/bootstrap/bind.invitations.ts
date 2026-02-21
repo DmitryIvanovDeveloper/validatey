@@ -17,10 +17,13 @@ import { InvitationController } from '../../interface-adapters/controllers/invit
 import { SurveyPlatformsLlmPort } from '../../../projects/application/ports/survey-platforms-llm.port';
 import { SurveyPlatformsLlmAdapter } from '../../../projects/infrastructure/services/survey-platforms-llm.adapter';
 import { SuggestSurveyPlatformsUseCase } from '../../application/use-cases/suggest-survey-platforms.use-case';
+import { SurveyPlatformSuggestionsRepositoryPort } from '../../application/ports/survey-platform-suggestions-repository.port';
+import { SupabaseSurveyPlatformSuggestionsRepository } from '../repositories/supabase-survey-platform-suggestions.repository';
 
 export function bindInvitations(container: Container): void {
   // Repository
   container.bind<InvitationRepositoryPort>(TYPES.InvitationRepository).to(SupabaseInvitationRepository);
+  container.bind<SurveyPlatformSuggestionsRepositoryPort>(TYPES.SurveyPlatformSuggestionsRepository).to(SupabaseSurveyPlatformSuggestionsRepository);
 
   // Services
   container.bind<EmailServicePort>(TYPES.EmailService).to(SMTPEmailService);

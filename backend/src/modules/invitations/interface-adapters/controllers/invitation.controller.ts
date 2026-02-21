@@ -5,11 +5,13 @@ import { GetInvitationByTokenUseCase } from '../../application/use-cases/get-inv
 import { GetInvitationsByProjectIdUseCase } from '../../application/use-cases/get-invitations-by-project-id.use-case';
 import { UpdateInvitationStatusUseCase } from '../../application/use-cases/update-invitation-status.use-case';
 import { SendInvitationsUseCase } from '../../application/use-cases/send-invitations.use-case';
+import { SuggestSurveyPlatformsUseCase } from '../../application/use-cases/suggest-survey-platforms.use-case';
 import { CreateInvitationsUseCaseRequest } from '../../application/use-cases/input-output/create-invitations.io';
 import { GetInvitationByTokenUseCaseRequest } from '../../application/use-cases/input-output/get-invitation-by-token.io';
 import { GetInvitationsByProjectIdUseCaseRequest } from '../../application/use-cases/input-output/get-invitations-by-project-id.io';
 import { UpdateInvitationStatusUseCaseRequest } from '../../application/use-cases/input-output/update-invitation-status.io';
 import { SendInvitationsUseCaseInput } from '../../application/use-cases/input-output/send-invitations.io';
+import { SuggestSurveyPlatformsRequest } from '../../application/use-cases/suggest-survey-platforms.use-case';
 
 @injectable()
 export class InvitationController {
@@ -23,7 +25,9 @@ export class InvitationController {
 		@inject(TYPES.UpdateInvitationStatusUseCase)
 		private readonly _updateInvitationStatusUseCase: UpdateInvitationStatusUseCase,
 		@inject(TYPES.SendInvitationsUseCase)
-		private readonly _sendInvitationsUseCase: SendInvitationsUseCase
+		private readonly _sendInvitationsUseCase: SendInvitationsUseCase,
+		@inject(TYPES.SuggestSurveyPlatformsUseCase)
+		private readonly _suggestSurveyPlatformsUseCase: SuggestSurveyPlatformsUseCase
 	) {}
 
 	public async createInvitations(request: CreateInvitationsUseCaseRequest): Promise<ReturnType<CreateInvitationsUseCase['execute']>> {
@@ -44,5 +48,9 @@ export class InvitationController {
 
 	public async sendInvitations(input: SendInvitationsUseCaseInput): Promise<ReturnType<SendInvitationsUseCase['execute']>> {
 		return this._sendInvitationsUseCase.execute(input);
+	}
+
+	public async suggestSurveyPlatforms(request: SuggestSurveyPlatformsRequest): Promise<ReturnType<SuggestSurveyPlatformsUseCase['execute']>> {
+		return this._suggestSurveyPlatformsUseCase.execute(request);
 	}
 }

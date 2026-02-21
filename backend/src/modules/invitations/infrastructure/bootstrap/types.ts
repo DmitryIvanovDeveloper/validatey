@@ -9,6 +9,7 @@ export const TYPES = {
   SendInvitationsUseCase: Symbol.for('SendInvitationsUseCase'),
   CreateAnonymousInvitationForPublicLinkUseCase: Symbol.for('CreateAnonymousInvitationForPublicLinkUseCase'),
   SurveyPlatformsLlm: Symbol.for('SurveyPlatformsLlm'),
+  SurveyPlatformSuggestionsRepository: Symbol.for('SurveyPlatformSuggestionsRepository'),
   SuggestSurveyPlatformsUseCase: Symbol.for('SuggestSurveyPlatformsUseCase'),
   InvitationController: Symbol.for('InvitationController'),
 } as const;

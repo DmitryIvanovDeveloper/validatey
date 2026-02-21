@@ -8,6 +8,7 @@ import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstr
 import { SurveyPlatformsLlmPort } from '../../../projects/application/ports/survey-platforms-llm.port';
 import { AiModuleError } from '../../../ai/domain/errors/ai.error';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { SurveyPlatformSuggestionsRepositoryPort } from '../ports/survey-platform-suggestions-repository.port';
 
 export interface SuggestSurveyPlatformsRequest {
   readonly projectId: string;
@@ -33,7 +34,9 @@ export class SuggestSurveyPlatformsUseCase {
     @inject(PROJECT_TYPES.ProjectRepository)
     private readonly _projectRepository: ProjectRepositoryPort,
     @inject(TYPES.SurveyPlatformsLlm)
-    private readonly _surveyPlatformsLlm: SurveyPlatformsLlmPort
+    private readonly _surveyPlatformsLlm: SurveyPlatformsLlmPort,
+    @inject(TYPES.SurveyPlatformSuggestionsRepository)
+    private readonly _suggestionsRepository: SurveyPlatformSuggestionsRepositoryPort
   ) {}
 
   async execute(
@@ -67,6 +70,18 @@ export class SuggestSurveyPlatformsUseCase {
 
     const project = projectResult.data;
 
+    // Check if we have cached suggestions
+    const cachedResult = await this._suggestionsRepository.findByProjectId(request.projectId);
+    if (cachedResult.isSuccess && cachedResult.data) {
+      this._logger.info('suggest-survey-platforms.cache-hit', {
+        projectId: request.projectId,
+        platformsCount: cachedResult.data.length
+      });
+      return ResultEx.success({
+        platforms: cachedResult.data,
+      });
+    }
+
     // Формирование входных данных для AI на основе данных проекта
     const aiInput = {
       targetSegment: project.segment?.description,
@@ -93,6 +108,16 @@ export class SuggestSurveyPlatformsUseCase {
         error: aiResult.error.message
       });
       return ResultEx.failure(aiResult.error);
+    }
+
+    // Save results to database
+    const saveResult = await this._suggestionsRepository.save(request.projectId, aiResult.data);
+    if (!saveResult.isSuccess) {
+      this._logger.warn('suggest-survey-platforms.save-failed', {
+        projectId: request.projectId,
+        error: saveResult.error.message
+      });
+      // Continue even if save fails - return the results anyway
     }
 
     this._logger.info('suggest-survey-platforms.success', {
