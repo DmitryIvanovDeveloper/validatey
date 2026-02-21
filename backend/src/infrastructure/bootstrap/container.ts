@@ -29,6 +29,7 @@ import { bindRounds } from '../../modules/rounds/infrastructure/bootstrap/bind.r
 import { bindOverview } from '../../modules/overview/infrastructure/bootstrap/bind.overview';
 import { bindComments } from '../../modules/comments/infrastructure/bootstrap/bind.comments';
 import { bindWorkspaces } from '../../modules/workspaces/infrastructure/bootstrap/bind.workspaces';
+import { bindWishlist } from '../../modules/wishlist/infrastructure/bootstrap/bind.wishlist';
 
 const container = new Container();
 
@@ -60,6 +61,7 @@ bindRounds(container);
 bindOverview(container);
 bindComments(container);
 bindWorkspaces(container);
+bindWishlist(container);
 
 export { container, TYPES };
 

@@ -153,7 +153,7 @@ function syncFormFromProject() {
   form.segmentDemographics = getDemographicsText(p);
   form.hypothesisDescription = p.hypothesis?.description ?? '';
   form.assumptions = Array.isArray(p.hypothesis?.assumptions)
-    ? [...p.hypothesis.assumptions]
+    ? p.hypothesis.assumptions.map((a) => (typeof a === 'string' ? a : (a as { text: string }).text))
     : [];
   form.marketPicture = p.marketContext?.marketPicture ?? '';
   form.marketFit = p.marketContext?.marketFit ?? '';

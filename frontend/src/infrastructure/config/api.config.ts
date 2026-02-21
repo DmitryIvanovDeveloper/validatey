@@ -121,6 +121,10 @@ export const API_CONFIG = {
 
     // Feedback (widget submit)
     FEEDBACK: '/feedback',
+
+    // Wishlist
+    WISHLIST: '/wishlist',
+    WISHLIST_COUNT: '/wishlist/count',
   },
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,

@@ -6,7 +6,7 @@ import type { AuthServicePort } from '../../../modules/auth/application/ports/au
 import { sessionManager } from '../../../shared/services/session-manager';
 
 /** Routes that are allowed without authentication (no redirect to login). */
-const PUBLIC_ROUTE_NAMES = new Set(['login', 'auth-callback', 'respondent-survey', 'survey-public', 'survey-public-short']);
+const PUBLIC_ROUTE_NAMES = new Set(['login', 'auth-callback', 'landing', 'respondent-survey', 'survey-public', 'survey-public-short']);
 
 /** User app routes (workspaces/projects): admin has no access, redirect to /admin/users. */
 const USER_APP_ROUTE_NAMES = new Set([
@@ -115,9 +115,14 @@ export async function tokenGuard(
     return;
   }
 
-  // Root: let RootRedirectView handle this
+  // Root (login page): already handled above
   if (to.name === 'home') {
-    console.log('🔐 Root route: letting component handle redirect');
+    next();
+    return;
+  }
+
+  // Landing page: public access
+  if (to.name === 'landing') {
     next();
     return;
   }

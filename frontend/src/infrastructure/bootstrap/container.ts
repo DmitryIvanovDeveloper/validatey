@@ -19,6 +19,7 @@ import { bindResearch } from '../../modules/research/infrastructure/bootstrap/bi
 import { bindResponses } from '../../modules/responses/infrastructure/bootstrap/bind.responses';
 import { bindComments } from '../../modules/comments/infrastructure/bootstrap/bind.comments';
 import { bindWorkspaces } from '../../modules/workspaces/infrastructure/bootstrap/bind.workspaces';
+import { bindWishlist } from '../../modules/wishlist/infrastructure/bootstrap/bind.wishlist';
 const container = new Container();
 
 // Infrastructure bindings
@@ -38,5 +39,6 @@ bindResearch(container);
 bindResponses(container);
 bindComments(container);
 bindWorkspaces(container);
+bindWishlist(container);
 
 export { container, TYPES };

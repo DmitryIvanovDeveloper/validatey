@@ -12,6 +12,22 @@ const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 const SERPER_URL = 'https://google.serper.dev/search';
 const MAX_SNIPPETS = 15;
 const MAX_SNIPPET_LENGTH = 400;
+/** Serper allows max 2048 characters for the search query. */
+const SERPER_QUERY_MAX_LENGTH = 2000;
+const LLM_QUERY_MAX_LENGTH = 1800;
+
+const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a product name and one-sentence description, generate ONE precise Google search query to find market size, growth rate and industry trends.
+
+Rules:
+- Output ONLY the search query. No quotes, no explanation, no punctuation at the end.
+- 4-8 words maximum. Name the MARKET CATEGORY, not the product brand.
+- Focus on the industry/niche the product belongs to (e.g. "idea validation software market", "pre-launch SaaS tools market size").
+- Append "market size" or "industry trends" at the end.
+- Example outputs:
+  - "startup idea validation software market size"
+  - "indie founder feedback tools industry trends"
+  - "pre-launch product validation platform market growth"
+- Maximum 120 characters.`;
 
 interface SerperOrganicItem {
   title?: string;
@@ -66,19 +82,61 @@ export class LlmMarketDataProviderAdapter implements MarketDataProviderPort {
     }
   }
 
+  private extractFirstSentence(text: string, maxLen = 200): string {
+    const match = text.match(/^[^.!?\n]+[.!?]?/);
+    const sentence = (match ? match[0] : text).trim();
+    return sentence.length > maxLen ? sentence.slice(0, maxLen) : sentence;
+  }
+
+  private async buildSearchQueryForSerper(intent: ResearchIntent): Promise<string> {
+    // Use hypothesis description only — project name confuses LLM (e.g. "Showcase" → demo platforms)
+    const description = intent.productDescription?.trim() || intent.topic?.trim();
+    if (!description) {
+      throw new ResearchDataCollectionError('Market data collection failed: no topic');
+    }
+
+    const firstSentence = this.extractFirstSentence(description);
+    const geoNote = intent.geography ? ` (${intent.geography})` : '';
+    const context = `Product description: ${firstSentence}${geoNote}`;
+
+    try {
+      const prompt = `${SEARCH_QUERY_PROMPT}\n\nInput:\n${context}`;
+      const response = await this._http.post<{ response?: string }>(
+        AI_PROXY_URL,
+        { prompt },
+        { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)' }
+      );
+      const q = (response?.response ?? '').trim().replace(/^["']|["']$/g, '').slice(0, LLM_QUERY_MAX_LENGTH);
+      if (q.length >= 10) {
+        this._logger.info('llm-market-data-provider.search-query-llm', { query: q });
+        return q;
+      }
+    } catch (err) {
+      this._logger.warn('llm-market-data-provider.search-query-llm-fallback', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    // Fallback: first sentence of hypothesis + market suffix (no project name)
+    return `${firstSentence.slice(0, 150)} market size growth`.slice(0, SERPER_QUERY_MAX_LENGTH);
+  }
+
   private async fetchSearchSnippets(intent: ResearchIntent): Promise<string[]> {
     const apiKey = process.env.SERPER_API_KEY?.trim();
     if (!apiKey) {
       throw new ResearchDataCollectionError('Market data collection not configured: SERPER_API_KEY is missing');
     }
-    const query = [intent.topic, intent.geography, intent.segment].filter(Boolean).join(' ');
-    if (!query.trim()) {
-      throw new ResearchDataCollectionError('Market data collection failed: no topic');
-    }
+
+    const query = await this.buildSearchQueryForSerper(intent);
+    const q = query.slice(0, SERPER_QUERY_MAX_LENGTH);
+    const needsSuffix =
+      !q.toLowerCase().includes('market') && !q.toLowerCase().includes('trend') && !q.toLowerCase().includes('growth');
+    const finalQ = (needsSuffix ? `${q} market size growth trends` : q).slice(0, SERPER_QUERY_MAX_LENGTH);
+
     try {
       const response = await this._http.post<SerperResponse>(
         SERPER_URL,
-        { q: `${query} market size growth trends`, num: 10 },
+        { q: finalQ, num: 10 },
         { 'Content-Type': 'application/json', 'X-Api-Key': apiKey }
       );
       const organic = response?.organic ?? [];

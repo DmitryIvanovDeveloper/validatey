@@ -2,6 +2,7 @@ import { Container } from 'inversify';
 import { TYPES } from './types';
 import { ProjectRepositoryPort } from '../../application/ports/project-repository.port';
 import type { ProjectRiskAssessorPort } from '../../application/ports/project-risk-assessor.port';
+import type { SurveyPlatformsLlmPort } from '../../application/ports/survey-platforms-llm.port';
 import { SupabaseProjectRepository } from '../repositories/supabase-project.repository';
 import { CreateProjectUseCase } from '../../application/use-cases/create-project.use-case';
 import { GetProjectUseCase } from '../../application/use-cases/get-project.use-case';

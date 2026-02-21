@@ -1,0 +1,199 @@
+- generic [ref=e2]:
+  - generic [ref=e31]:
+    - banner [ref=e32]:
+      - generic [ref=e33]:
+        - link "Validatey home" [ref=e34] [cursor=pointer]:
+          - /url: /workspaces
+          - img [ref=e36]
+          - generic [ref=e39]: Validatey
+        - navigation "Main"
+        - generic [ref=e40]:
+          - generic "test@example.com" [ref=e41]:
+            - generic [ref=e42]: T
+            - generic [ref=e43]: test@example.com
+          - button "Sign out" [ref=e44] [cursor=pointer]
+    - generic [ref=e45]:
+      - complementary "Workspaces" [ref=e46]:
+        - generic [ref=e47]:
+          - heading "Workspaces" [level=2] [ref=e48]
+          - button "New workspace" [ref=e49] [cursor=pointer]:
+            - generic [ref=e50]: +
+            - text: New workspace
+          - link "All workspaces" [ref=e51] [cursor=pointer]:
+            - /url: /workspaces
+          - navigation "Workspace list" [ref=e225]:
+            - generic [ref=e226]:
+              - link "S Sidebar Test WS (updated)" [ref=e227] [cursor=pointer]:
+                - /url: /workspaces/da4b4d53-e68b-4588-9a91-cbe3fe7162e2/projects
+                - generic [ref=e228]: S
+                - generic [ref=e229]: Sidebar Test WS (updated)
+              - button "Manage Sidebar Test WS (updated)" [ref=e231] [cursor=pointer]:
+                - img [ref=e232]
+            - generic [ref=e236]:
+              - link "E E2E Test Workspace (edited)" [ref=e237] [cursor=pointer]:
+                - /url: /workspaces/1a552235-f784-40f4-814a-6f91687e12ea/projects
+                - generic [ref=e238]: E
+                - generic [ref=e239]: E2E Test Workspace (edited)
+              - button "Manage E2E Test Workspace (edited)" [ref=e241] [cursor=pointer]:
+                - img [ref=e242]
+      - main [ref=e56]:
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - navigation "Breadcrumb" [ref=e59]:
+              - link "Projects" [ref=e60] [cursor=pointer]:
+                - /url: /workspaces/dfe42c69-7742-47af-bde4-574b1e4320b0/projects
+              - generic [ref=e61]: /
+              - generic [ref=e62]: Project
+            - tablist [ref=e63]:
+              - tab "Overview" [ref=e64] [cursor=pointer]
+              - tab "Invitations" [ref=e65] [cursor=pointer]
+              - tab "Responses" [ref=e66] [cursor=pointer]
+              - tab "Comments" [ref=e67] [cursor=pointer]
+          - main [ref=e68]:
+            - generic [ref=e70]:
+              - generic [ref=e71]:
+                - button "How to read this Overview — when is the hypothesis confirmed?" [ref=e73] [cursor=pointer]:
+                  - img [ref=e75]
+                  - generic [ref=e78]: How to read this Overview — when is the hypothesis confirmed?
+                  - img [ref=e80]
+                - generic [ref=e83]:
+                  - generic [ref=e85]:
+                    - generic [ref=e86]:
+                      - heading "Executive Summary" [level=3] [ref=e87]
+                      - paragraph [ref=e88]: AI-powered research insights
+                    - button "Details" [ref=e246] [cursor=pointer]:
+                      - img [ref=e248]
+                      - generic [ref=e250]: Details
+                  - paragraph [ref=e252]: The product idea for PII Guardian for SMB HR Agencies has potential, but requires more data to validate the hypothesis. The market is growing rapidly, with a high CAGR of 13.8%, and companies are actively looking for ways to prevent leaks and fines. However, user insights are not available yet, and early signals are also lacking. The comments on r/cybersecurity suggest that data loss and personal cell phone numbers are concerns, but the context is unclear. To move forward, we recommend conducting user research and gathering more data to support or refute the hypothesis.
+                - generic [ref=e92]:
+                  - generic [ref=e93]:
+                    - generic [ref=e94]:
+                      - img [ref=e95]
+                      - generic [ref=e97]:
+                        - heading "Comment Pattern Analysis" [level=3] [ref=e98]
+                        - paragraph [ref=e99]: Based on 6 collected comments
+                        - paragraph [ref=e100]:
+                          - text: Content shown under Fair Use for research purposes.
+                          - link "Learn more" [ref=e101] [cursor=pointer]:
+                            - /url: "#"
+                    - generic [ref=e102]: Early Stage (20%)
+                  - generic [ref=e103]:
+                    - generic [ref=e104]:
+                      - generic [ref=e106]:
+                        - generic [ref=e108]: Startup Myths
+                        - generic [ref=e109]: "2"
+                        - generic [ref=e110]: 33%
+                      - paragraph [ref=e113]: 2 comments (33%) mention common startup myths or false beliefs.
+                      - button "Show 2 examples" [ref=e114] [cursor=pointer]:
+                        - text: Show 2 examples
+                        - img [ref=e115]
+                    - generic [ref=e117]:
+                      - generic [ref=e119]:
+                        - generic [ref=e121]: Advice & Lessons
+                        - generic [ref=e122]: "1"
+                        - generic [ref=e123]: 17%
+                      - paragraph [ref=e126]: 1 comments (17%) offer actionable advice or lessons learned.
+                      - button "Show 1 example" [ref=e127] [cursor=pointer]:
+                        - text: Show 1 example
+                        - img [ref=e128]
+                  - generic [ref=e130]:
+                    - img [ref=e131]
+                    - text: Analyzed 6 real comments from community sources
+                - generic [ref=e133]:
+                  - generic [ref=e135]:
+                    - heading "Research Context" [level=3] [ref=e136]
+                    - button "AI Format" [ref=e137] [cursor=pointer]:
+                      - img [ref=e138]
+                      - text: AI Format
+                  - generic [ref=e141]:
+                    - generic [ref=e142]:
+                      - paragraph [ref=e143]: Target Segment
+                      - generic [ref=e144]: Not specified
+                    - generic [ref=e145]:
+                      - paragraph [ref=e146]: Hypothesis
+                      - generic [ref=e147]: Not specified
+                - heading "Decision Pathway" [level=3] [ref=e150]
+              - generic [ref=e151]:
+                - generic [ref=e152]:
+                  - generic [ref=e154]:
+                    - img [ref=e155]
+                    - generic [ref=e158]:
+                      - generic [ref=e159]: Research Cooldown Active
+                      - generic [ref=e160]: 22:12:14
+                  - button "Cooldown Active" [disabled] [ref=e161]:
+                    - img [ref=e163]
+                    - text: Cooldown Active
+                - generic [ref=e166]:
+                  - generic [ref=e167]:
+                    - img [ref=e169]
+                    - generic [ref=e172]:
+                      - heading "Top Pain Points" [level=3] [ref=e173]
+                      - paragraph [ref=e174]: Key challenges identified from user feedback
+                  - generic [ref=e253]:
+                    - img [ref=e255]
+                    - paragraph [ref=e258]: No pain points identified yet
+                    - paragraph [ref=e259]: Collect more responses to identify key user challenges.
+                    - link "View Responses" [ref=e260] [cursor=pointer]:
+                      - /url: /projects/e42b2f67-9502-428a-b97f-d1b14b30d366/responses
+                - generic [ref=e182]:
+                  - generic [ref=e183]:
+                    - img [ref=e185]
+                    - generic [ref=e188]:
+                      - heading "Response Pace" [level=3] [ref=e189]
+                      - paragraph [ref=e190]: Monitor response rate and trends
+                  - generic [ref=e261]:
+                    - generic [ref=e262]:
+                      - generic [ref=e263]:
+                        - generic [ref=e264]:
+                          - img [ref=e266]
+                          - heading "Daily Response Rate" [level=4] [ref=e269]
+                        - generic [ref=e270]:
+                          - paragraph [ref=e271]: 0/day
+                          - paragraph [ref=e272]: 7-day average
+                      - generic [ref=e273]:
+                        - generic [ref=e274]:
+                          - img [ref=e276]
+                          - heading "Target Pace" [level=4] [ref=e280]
+                        - generic [ref=e281]:
+                          - paragraph [ref=e282]: 5/day
+                          - paragraph [ref=e283]: Goal
+                    - generic [ref=e285]:
+                      - generic [ref=e286]: Progress to target
+                      - generic [ref=e287]: 0%
+                    - generic [ref=e289]:
+                      - heading "Response Trend" [level=4] [ref=e290]
+                      - generic [ref=e291]:
+                        - generic [ref=e292]:
+                          - generic [ref=e293]: "0"
+                          - generic [ref=e294]: Yesterday
+                        - generic [ref=e295]:
+                          - generic [ref=e296]: "0"
+                          - generic [ref=e297]: 7-day avg
+                        - generic [ref=e298]:
+                          - generic [ref=e299]: "0"
+                          - generic [ref=e300]: This week
+                    - generic [ref=e301]:
+                      - heading "Insights" [level=4] [ref=e302]
+                      - generic [ref=e304]:
+                        - img [ref=e306]
+                        - paragraph [ref=e308]: Response pace is below 50% of target. Consider sending reminders or extending the survey period.
+                - generic [ref=e198]:
+                  - generic [ref=e199]:
+                    - img [ref=e201]
+                    - generic [ref=e206]:
+                      - heading "Comments Overview" [level=3] [ref=e207]
+                      - paragraph [ref=e208]: Collected comments from all sources
+                  - generic [ref=e310]:
+                    - heading "By Source" [level=4] [ref=e311]
+                    - generic [ref=e313]:
+                      - generic [ref=e314]:
+                        - img "Reddit" [ref=e315]
+                        - generic [ref=e316]: Reddit
+                      - generic [ref=e317]: "6"
+                - generic [ref=e215]:
+                  - heading "Learning Journey" [level=3] [ref=e216]
+                  - paragraph [ref=e217]: Rounds help you track each iteration of your validation. Start a round to collect insights systematically.
+                  - button "+ Start New Round" [ref=e218]
+  - button "Share feedback" [ref=e220] [cursor=pointer]:
+    - img [ref=e222]
+    - generic [ref=e224]: Share feedback

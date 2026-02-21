@@ -59,16 +59,16 @@ export class CommentSourceValueObject {
 
     // Assume it's a subreddit name
     const subredditName = trimmed.startsWith('r/') ? trimmed : `r/${trimmed}`;
-      return new CommentSourceValueObject(
-        'reddit',
-        subredditName,
-        subredditName,
+    return new CommentSourceValueObject(
+      'reddit',
+      subredditName,
+      subredditName,
         undefined,
         undefined,
         undefined,
         undefined,
-        undefined
-      );
+      undefined
+    );
   }
 
   /** Create Hacker News source */

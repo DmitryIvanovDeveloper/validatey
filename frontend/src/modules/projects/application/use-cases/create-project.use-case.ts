@@ -20,7 +20,7 @@ export class CreateProjectUseCase {
 
   async execute(input: CreateProjectUseCaseRequest): Promise<Result<CreateProjectUseCaseResponse, InvalidProjectDataError>> {
     try {
-      // Не создаем domain entity с пустым ID, используем DTO напрямую
+      // Don't create domain entity with empty ID, use DTO directly
       const result = await this._repository.create({
         name: input.name,
         workspaceId: input.workspaceId ?? null,
@@ -35,7 +35,7 @@ export class CreateProjectUseCase {
 
       const createdProject = result.data;
 
-      // Публикация события
+      // Publish event
       this._eventBus.publish(new ProjectCreatedEvent(createdProject.id));
 
       const createdAt = createdProject.createdAt != null && typeof createdProject.createdAt.toISOString === 'function'

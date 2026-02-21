@@ -9,6 +9,7 @@ export const TYPES = {
   DeleteProjectUseCase: Symbol.for('DeleteProjectUseCase'),
   AssessProjectRiskUseCase: Symbol.for('AssessProjectRiskUseCase'),
   GetMarketContextSuggestionUseCase: Symbol.for('GetMarketContextSuggestionUseCase'),
+  SuggestSurveyPlatformsUseCase: Symbol.for('SuggestSurveyPlatformsUseCase'),
   ProjectPresenter: Symbol.for('ProjectPresenter'),
   ProjectListPresenter: Symbol.for('ProjectListPresenter'),
 } as const;

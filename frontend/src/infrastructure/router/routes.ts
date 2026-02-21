@@ -16,8 +16,14 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    component: () => import('@/shared/components/RootRedirectView.vue'),
-    meta: { skipAuthGuard: true },
+    component: () => import('@/modules/auth/interface-adapters/views/LoginView.vue'),
+    meta: { requiresAuth: false, layout: 'empty' },
+  },
+  {
+    path: '/landing',
+    name: 'landing',
+    component: () => import('@/modules/landing/interface-adapters/views/LandingPageView.vue'),
+    meta: { requiresAuth: false, layout: 'empty' },
   },
   {
     path: '/workspaces',

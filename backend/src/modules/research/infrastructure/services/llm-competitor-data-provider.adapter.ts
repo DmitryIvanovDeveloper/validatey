@@ -12,6 +12,23 @@ const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 const SERPER_URL = 'https://google.serper.dev/search';
 const MAX_SNIPPETS = 15;
 const MAX_SNIPPET_LENGTH = 400;
+/** Serper allows max 2048 characters for the search query. */
+const SERPER_QUERY_MAX_LENGTH = 2000;
+/** Max length for LLM-generated search query (keeps under Serper limit with suffix). */
+const LLM_QUERY_MAX_LENGTH = 1800;
+
+const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a product name and one-sentence description, generate ONE precise Google search query to find direct competitors and market alternatives.
+
+Rules:
+- Output ONLY the search query. No quotes, no explanation, no punctuation at the end.
+- 4-8 words maximum. Focus on the product category, not the company name.
+- Name the product TYPE (e.g. "idea validation tool", "landing page builder", "survey platform"), not the brand.
+- Append "alternatives" or "competitors" at the end.
+- Example outputs:
+  - "startup idea validation tool alternatives"
+  - "pre-launch feedback platform for founders competitors"
+  - "B2B lead generation software alternatives"
+- Maximum 120 characters.`;
 
 interface SerperOrganicItem {
   title?: string;
@@ -68,6 +85,49 @@ export class LlmCompetitorDataProviderAdapter implements CompetitorDataProviderP
     }
   }
 
+  /**
+   * Extracts first sentence (≤200 chars) from a longer text — gives LLM focused context
+   * without flooding it with the full hypothesis.
+   */
+  private extractFirstSentence(text: string, maxLen = 200): string {
+    const match = text.match(/^[^.!?\n]+[.!?]?/);
+    const sentence = (match ? match[0] : text).trim();
+    return sentence.length > maxLen ? sentence.slice(0, maxLen) : sentence;
+  }
+
+  private async buildSearchQueryForSerper(intent: ResearchIntent): Promise<string> {
+    // Use hypothesis description only — project name confuses LLM (e.g. "Showcase" → demo platforms)
+    const description = intent.productDescription?.trim() || intent.topic?.trim();
+    if (!description) {
+      throw new ResearchDataCollectionError('Competitor data collection failed: no topic');
+    }
+
+    const firstSentence = this.extractFirstSentence(description);
+    const geoNote = intent.geography ? ` (${intent.geography})` : '';
+    const context = `Product description: ${firstSentence}${geoNote}`;
+
+    try {
+      const prompt = `${SEARCH_QUERY_PROMPT}\n\nInput:\n${context}`;
+      const response = await this._http.post<{ response?: string }>(
+        AI_PROXY_URL,
+        { prompt },
+        { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)' }
+      );
+      const q = (response?.response ?? '').trim().replace(/^["']|["']$/g, '').slice(0, LLM_QUERY_MAX_LENGTH);
+      if (q.length >= 10) {
+        this._logger.info('llm-competitor-data-provider.search-query-llm', { query: q });
+        return q;
+      }
+    } catch (err) {
+      this._logger.warn('llm-competitor-data-provider.search-query-llm-fallback', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    // Fallback: first sentence of hypothesis + suffix (no project name)
+    return `${firstSentence.slice(0, 150)} competitors alternatives`.slice(0, SERPER_QUERY_MAX_LENGTH);
+  }
+
   private async fetchSearchSnippets(intent: ResearchIntent): Promise<string[]> {
     const apiKey = process.env.SERPER_API_KEY?.trim();
     if (!apiKey) {
@@ -75,14 +135,16 @@ export class LlmCompetitorDataProviderAdapter implements CompetitorDataProviderP
         'Competitor data collection not configured: SERPER_API_KEY is missing'
       );
     }
-    const query = [intent.topic, intent.geography, intent.segment].filter(Boolean).join(' ');
-    if (!query.trim()) {
-      throw new ResearchDataCollectionError('Competitor data collection failed: no topic');
-    }
+
+    const query = await this.buildSearchQueryForSerper(intent);
+    const q = query.length <= SERPER_QUERY_MAX_LENGTH ? query : query.slice(0, SERPER_QUERY_MAX_LENGTH);
+
     try {
+      const needsSuffix = !q.toLowerCase().includes('competitor') && !q.toLowerCase().includes('alternative');
+      const finalQ = (needsSuffix ? `${q} competitors alternatives` : q).slice(0, SERPER_QUERY_MAX_LENGTH);
       const response = await this._http.post<SerperResponse>(
         SERPER_URL,
-        { q: `${query} competitors alternatives products`, num: 10 },
+        { q: finalQ, num: 10 },
         { 'Content-Type': 'application/json', 'X-Api-Key': apiKey }
       );
       const organic = response?.organic ?? [];
