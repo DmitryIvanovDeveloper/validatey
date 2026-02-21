@@ -210,6 +210,113 @@
         </div>
         </Card>
 
+        <!-- LinkedIn Card -->
+        <Card class="source-card linkedin-card">
+          <template #header>
+            <div class="section-card-header">
+              <span aria-hidden="true" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <svg class="source-icon linkedin-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0077B5" style="width: 100%; height: 100%;">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+              </span>
+              <div>
+                <h4 class="section-title">LinkedIn</h4>
+                <p class="section-subtitle">Collect comments from LinkedIn posts</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- LinkedIn Input -->
+          <div class="input-section">
+          <div class="url-input-header">
+            <label class="input-label">LinkedIn Sources</label>
+          </div>
+
+          <!-- List of LinkedIn URLs -->
+          <div class="url-list" v-if="viewModel.linkedinSources && viewModel.linkedinSources.length > 0">
+            <div
+              v-for="(source, index) in viewModel.linkedinSources"
+              :key="source.id"
+              class="url-item"
+              :class="{ 'url-item-error': !isValidLinkedInUrl(source.url) }"
+            >
+
+              <div class="url-input-wrapper">
+                <input
+                  type="text"
+                  :value="source.url"
+                  readonly="true"
+                  class="url-input-item"
+                  :placeholder="getLinkedInPlaceholderForIndex(index)"
+                />
+                <div class="url-validation" v-if="!isValidLinkedInUrl(source.url)">
+                  <svg viewBox="0 0 24 24" class="validation-icon">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="url-actions">
+                <button
+                  @click="openCommentsSidebarForSource(source.id)"
+                  class="url-action-btn url-comments-btn"
+                  type="button"
+                  :aria-label="`View comments for ${source.url}`"
+                  :title="`View comments for ${source.url}`"
+                >
+                  <svg viewBox="0 0 24 24" class="action-icon">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    <circle cx="9" cy="10" r="1"/>
+                    <circle cx="12" cy="10" r="1"/>
+                    <circle cx="15" cy="10" r="1"/>
+                  </svg>
+                </button>
+                <button
+                  @click="removeLinkedInUrl(index)"
+                  class="url-action-btn url-remove-btn"
+                  type="button"
+                  aria-label="Remove URL"
+                  title="Remove URL"
+                >
+                  <svg viewBox="0 0 24 24" class="action-icon">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Add LinkedIn URL input -->
+          <div class="add-url-section">
+            <div class="add-url-input-group">
+              <input
+                ref="newLinkedInUrlInput"
+                type="text"
+                v-model="newLinkedInUrl"
+                @keyup.enter="addLinkedInUrl"
+                @paste="handleLinkedInBulkPaste"
+                placeholder="Paste LinkedIn post URLs here..."
+                class="url-input"
+              />
+              <button
+                @click="addLinkedInUrl"
+                class="add-url-btn"
+                type="button"
+                :disabled="!newLinkedInUrl.trim()"
+              >
+                <svg viewBox="0 0 24 24" class="add-icon">
+                  <path d="M12 4v16m8-8H4"/>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+        </div>
+        </Card>
+
     <!-- Actions Section -->
     <div class="actions-container">
         <!-- Fetch Button -->
@@ -390,7 +497,8 @@ const isFetchDisabled = computed(() => {
   // Check if there are any valid URLs in either source
   const hasRedditUrls = viewModel.redditUrls.length > 0 && viewModel.redditUrls.every(url => url.trim());
   const hasHnUrls = viewModel.hnUrls.length > 0 && viewModel.hnUrls.every(url => url.trim());
-  return !hasRedditUrls && !hasHnUrls;
+  const hasLinkedInUrls = viewModel.linkedinUrls && viewModel.linkedinUrls.length > 0 && viewModel.linkedinUrls.every(url => url.trim());
+  return !hasRedditUrls && !hasHnUrls && !hasLinkedInUrls;
 });
 
 const getSourceStats = computed(() => {
@@ -520,6 +628,8 @@ const newUrl = ref('');
 const newUrlInput = ref<HTMLInputElement>();
 const newHnUrl = ref('');
 const newHnUrlInput = ref<HTMLInputElement>();
+const newLinkedInUrl = ref('');
+const newLinkedInUrlInput = ref<HTMLInputElement>();
 const showCommentsSidebar = ref(false);
 const commentsFilterUrl = ref<string | null>(null);
 
@@ -713,7 +823,87 @@ const updateHnUrl = async (index: number, url: string) => {
   }
 };
 
+const isValidLinkedInUrl = (url: string): boolean => {
+  if (!url.trim()) return true; // Empty is ok for now
+  const trimmed = url.trim();
+  // Check for LinkedIn post URL pattern
+  return /^https?:\/\/(www\.)?linkedin\.com\/(posts|feed\/update|activity-)/.test(trimmed);
+};
 
+const getLinkedInPlaceholderForIndex = (index: number): string => {
+  const placeholders = [
+    'https://www.linkedin.com/posts/activity-1234567890',
+    'https://www.linkedin.com/feed/update/1234567890',
+    'https://www.linkedin.com/posts/activity-0987654321'
+  ];
+  return placeholders[index % placeholders.length];
+};
+
+const addLinkedInUrl = async () => {
+  if (newLinkedInUrl.value.trim()) {
+    try {
+      await presenter.addLinkedInUrl(newLinkedInUrl.value.trim(), props.projectId);
+      newLinkedInUrl.value = '';
+      newLinkedInUrlInput.value?.focus();
+    } catch (error) {
+      console.error('Failed to add LinkedIn URL:', error);
+      // Error will be handled by presenter and shown in UI
+    }
+  }
+};
+
+const removeLinkedInUrl = async (index: number) => {
+  const url = viewModel.linkedinSources[index]?.url ?? viewModel.linkedinUrls[index];
+  if (url) {
+    const message = `
+      <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+        <AlertTriangle class="warning-icon" size="20" />
+        <strong>Delete LinkedIn Source</strong>
+      </div>
+
+      <p style="margin-bottom: 1rem;">Are you sure you want to remove this LinkedIn source? This action cannot be undone.</p>
+
+      <div class="url-text" style="background: rgba(0, 119, 181, 0.1); border-left: 3px solid #0077B5; padding-left: 0.75rem;">
+        <ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />
+        ${url}
+      </div>
+
+      <div class="warning-box danger" style="background: #fef2f2; border-color: #ef4444;">
+        <Trash2 size="20" style="color: #ef4444; flex-shrink: 0;" />
+        <div>
+          <div class="warning-title" style="color: #dc2626;">⚠️ Data Loss Warning</div>
+          <div class="warning-text" style="color: #dc2626;">
+            All comments collected from this LinkedIn source will be permanently deleted and cannot be recovered.
+          </div>
+        </div>
+      </div>
+    `;
+    showConfirmation('Delete LinkedIn Source', message, async () => {
+      await presenter.deleteSourceByUrl(props.projectId, url);
+    });
+  }
+};
+
+const handleLinkedInBulkPaste = async (event: ClipboardEvent) => {
+  const pastedText = event.clipboardData?.getData('text') || '';
+  if (pastedText.includes('\n') || pastedText.includes('\t') || pastedText.includes(' ')) {
+    event.preventDefault();
+    const urls = pastedText
+      .split(/[\n\t ]+/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && line.includes('linkedin.com'));
+    for (const url of urls) {
+      if (url.trim()) {
+        try {
+          await presenter.addLinkedInUrl(url.trim(), props.projectId);
+        } catch (error) {
+          console.error('Failed to add LinkedIn URL from bulk paste:', error);
+        }
+      }
+    }
+    newLinkedInUrl.value = '';
+  }
+};
 
 const handleHnBulkPaste = async (event: ClipboardEvent) => {
   const pastedText = event.clipboardData?.getData('text') || '';
@@ -851,13 +1041,19 @@ onMounted(async () => {
   background: linear-gradient(135deg, #ff6600, #ff8533);
 }
 
+.linkedin-card .section-icon-linkedin {
+  background: linear-gradient(135deg, #0077B5, #00A0DC);
+}
+
 .reddit-card .section-icon-reddit,
-.hn-card .section-icon-hn {
+.hn-card .section-icon-hn,
+.linkedin-card .section-icon-linkedin {
   color: white;
 }
 
 .reddit-card h4,
-.hn-card h4 {
+.hn-card h4,
+.linkedin-card h4 {
   margin: 0 0 0.25rem 0;
   font-size: 1rem;
   font-weight: 600;
@@ -865,7 +1061,8 @@ onMounted(async () => {
 }
 
 .reddit-card .section-subtitle,
-.hn-card .section-subtitle {
+.hn-card .section-subtitle,
+.linkedin-card .section-subtitle {
   margin: 0;
   font-size: 0.875rem;
   color: var(--color-text-muted);

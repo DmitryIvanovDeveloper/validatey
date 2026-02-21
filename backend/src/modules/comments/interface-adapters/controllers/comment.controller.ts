@@ -288,10 +288,10 @@ export class CommentController {
         return;
       }
 
-      const { sourceType, redditUrl, hnUrl, hnFeedType } = req.body;
+      const { sourceType, redditUrl, hnUrl, hnFeedType, linkedinUrl } = req.body;
 
-      if (!sourceType || !['reddit', 'hackernews'].includes(sourceType)) {
-        res.status(400).json({ error: 'Valid sourceType (reddit or hackernews) is required' });
+      if (!sourceType || !['reddit', 'hackernews', 'linkedin'].includes(sourceType)) {
+        res.status(400).json({ error: 'Valid sourceType (reddit, hackernews, or linkedin) is required' });
         return;
       }
 
@@ -306,17 +306,24 @@ export class CommentController {
         return;
       }
 
+      if (sourceType === 'linkedin' && !linkedinUrl) {
+        res.status(400).json({ error: 'linkedinUrl is required for linkedin sources' });
+        return;
+      }
+
       // Create value object to parse URL and extract additional fields
       let sourceValueObject;
       try {
         if (sourceType === 'reddit') {
           sourceValueObject = CommentSourceValueObject.createReddit(redditUrl);
-        } else {
+        } else if (sourceType === 'hackernews') {
           if (hnUrl) {
             sourceValueObject = CommentSourceValueObject.createHackerNews(hnUrl);
           } else {
             sourceValueObject = CommentSourceValueObject.createHackerNews(hnFeedType);
           }
+        } else {
+          sourceValueObject = CommentSourceValueObject.createLinkedIn(linkedinUrl);
         }
       } catch (error) {
         res.status(400).json({ error: error instanceof Error ? error.message : 'Invalid URL format' });
@@ -333,6 +340,8 @@ export class CommentController {
         hnFeedType: sourceType === 'hackernews' ? hnFeedType : undefined,
         hnUrl: sourceType === 'hackernews' ? hnUrl : undefined,
         hnItemId: sourceType === 'hackernews' ? sourceValueObject.hnItemId : undefined,
+        linkedinUrl: sourceType === 'linkedin' ? linkedinUrl : undefined,
+        linkedinPostId: sourceType === 'linkedin' ? sourceValueObject.linkedinPostId : undefined,
       });
 
       if (!createResult.isSuccess) {

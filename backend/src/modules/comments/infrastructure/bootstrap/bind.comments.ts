@@ -20,6 +20,7 @@ import { InMemoryFetchStatusReadModel } from '../repositories/in-memory-fetch-st
 import { CommentFetcherRouter } from '../fetchers/comment-fetcher.router';
 import { RedditFetcher } from '../fetchers/reddit-fetcher';
 import { HackerNewsFetcher } from '../fetchers/hacker-news-fetcher';
+import { LinkedInFetcher } from '../fetchers/linkedin-fetcher';
 import { FetchStatusProjection } from '../projections/fetch-status.projection';
 
 // Pattern Analysis
@@ -56,6 +57,7 @@ export function bindComments(container: Container): void {
   container.bind(COMMENT_TYPES.CommentFetcher).to(CommentFetcherRouter);
   container.bind(COMMENT_TYPES.RedditFetcher).to(RedditFetcher);
   container.bind(COMMENT_TYPES.HackerNewsFetcher).to(HackerNewsFetcher);
+  container.bind(COMMENT_TYPES.LinkedInFetcher).to(LinkedInFetcher);
 
   // Projections
   container.bind(COMMENT_TYPES.FetchStatusProjection).to(FetchStatusProjection);

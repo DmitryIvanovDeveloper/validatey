@@ -25,6 +25,7 @@ export const COMMENT_TYPES = {
   CommentFetcher: Symbol.for('CommentFetcher'), // Router
   RedditFetcher: Symbol.for('RedditFetcher'),
   HackerNewsFetcher: Symbol.for('HackerNewsFetcher'),
+  LinkedInFetcher: Symbol.for('LinkedInFetcher'),
 
   // Projections
   FetchStatusProjection: Symbol.for('FetchStatusProjection'),

@@ -1,4 +1,5 @@
 import { injectable } from 'inversify';
+import puppeteer from 'puppeteer';
 import {
   CommentFetcherPort,
   FetchCommentsInput,
@@ -10,10 +11,19 @@ import { CommentFetchError } from '../../domain/errors/comment.error';
 import ResultEx from '../../../../infrastructure/result/result';
 
 const REDDIT_BASE = 'https://www.reddit.com';
+const OLD_REDDIT_BASE = 'https://old.reddit.com';
+const PUPPETEER_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 const REDDIT_OAUTH_TOKEN_URL = 'https://www.reddit.com/api/v1/access_token';
 // Reddit requires a unique descriptive User-Agent in format: <platform>:<appId>:<version> (by /u/<username>)
 // See: https://github.com/reddit-archive/reddit/wiki/API
 const USER_AGENT = 'web:com.validatey.comments:v1.0.0 (by /u/validatey_bot)';
+
+/** Reddit can return replies as empty string or as a Listing with children */
+interface RedditRepliesListing {
+  kind?: string;
+  data?: { children?: RedditListingChild[] };
+}
 
 interface RedditListingChild {
   kind: string;
@@ -29,6 +39,7 @@ interface RedditListingChild {
     link_url?: string;
     url?: string;
     title?: string;
+    replies?: string | RedditRepliesListing;
   };
 }
 
@@ -76,15 +87,40 @@ export class RedditFetcher implements CommentFetcherPort {
 
       console.log(`[RedditFetcher] Using auth: ${authHeader ? 'yes' : 'no'}, userAgent: ${userAgent}`);
 
+      let comments: FetchedCommentRaw[] = [];
+      let apiError: string | undefined;
       try {
-        const comments = await this._fetchCommentsFromPost(name, redditInput.postId, authHeader, userAgent, redditInput.sinceDate);
+        comments = await this._fetchCommentsFromPost(name, redditInput.postId, authHeader, userAgent, redditInput.sinceDate);
         console.log(`[RedditFetcher] Fetched ${comments.length} comments from Reddit API`);
-        return ResultEx.success({ comments, errors: undefined });
       } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        console.log(`[RedditFetcher] Reddit API failed for post ${redditInput.postId}:`, msg);
-        return ResultEx.success({ comments: [], errors: [`Failed to fetch post ${redditInput.postId}: ${msg}`] });
+        apiError = error instanceof Error ? error.message : String(error);
+        console.log(`[RedditFetcher] Reddit API failed for post ${redditInput.postId}:`, apiError);
       }
+
+      if (comments.length === 0 && apiError) {
+        console.log(`[RedditFetcher] Falling back to Puppeteer scrape for post ${redditInput.postId}`);
+        try {
+          const postUrl = `${REDDIT_BASE}/r/${name}/comments/${redditInput.postId}`;
+          comments = await this._fetchCommentsWithPuppeteer(name, redditInput.postId, postUrl, redditInput.sinceDate);
+          if (comments.length > 0) {
+            console.log(`[RedditFetcher] Puppeteer fallback: scraped ${comments.length} comments`);
+            return ResultEx.success({
+              comments,
+              errors: [`Reddit API failed (${apiError}); used browser scrape.`],
+            });
+          }
+        } catch (puppeteerErr) {
+          console.warn(`[RedditFetcher] Puppeteer fallback failed:`, puppeteerErr);
+        }
+      }
+
+      if (comments.length > 0) {
+        return ResultEx.success({ comments, errors: undefined });
+      }
+      return ResultEx.success({
+        comments: [],
+        errors: [apiError ?? `Failed to fetch post ${redditInput.postId}`],
+      });
     }
 
     // Default strategy: direct fetch (backward compatibility)
@@ -229,14 +265,20 @@ export class RedditFetcher implements CommentFetcherPort {
       });
 
       if (!response.ok) {
-        console.warn(`[RedditFetcher] Failed to fetch comments from post ${postId}: HTTP ${response.status}`);
-        return [];
+        const body = await response.text();
+        console.warn(`[RedditFetcher] Failed to fetch comments from post ${postId}: HTTP ${response.status}`, body.slice(0, 200));
+        const msg =
+          response.status === 403
+            ? 'Reddit API returned 403 (blocked). Set REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET in .env for OAuth.'
+            : `HTTP ${response.status}`;
+        throw new Error(msg);
       }
 
       const contentType = response.headers.get('content-type') ?? '';
       if (!contentType.includes('application/json')) {
-        console.warn(`[RedditFetcher] Response is not JSON for post ${postId}: ${contentType}`);
-        return [];
+        const body = await response.text();
+        console.warn(`[RedditFetcher] Response is not JSON for post ${postId}: ${contentType}`, body.slice(0, 200));
+        throw new Error('Reddit response is not JSON (often 403 block). Set REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET for OAuth.');
       }
 
       const json = (await response.json()) as [RedditListingResponse, RedditListingResponse];
@@ -248,7 +290,8 @@ export class RedditFetcher implements CommentFetcherPort {
       }
 
       const children = commentsData.data.children;
-      let comments = this._mapChildrenToRaw(children, {
+      const flatChildren = this._flattenCommentTree(children);
+      let comments = this._mapChildrenToRaw(flatChildren, {
         sourceType: 'reddit',
         subredditNames: [subreddit],
         postId,
@@ -277,7 +320,88 @@ export class RedditFetcher implements CommentFetcherPort {
       return comments;
     } catch (err) {
       console.warn(`[RedditFetcher] Error fetching comments from post ${postId}:`, err);
-      return [];
+      throw err;
+    }
+  }
+
+  /**
+   * Reddit returns comments as a tree (each node has optional replies).
+   * Flatten to a single array of all t1 (comment) nodes for mapping.
+   */
+  private _flattenCommentTree(children: RedditListingChild[]): RedditListingChild[] {
+    const out: RedditListingChild[] = [];
+    for (const child of children) {
+      if (child.kind === 't1') {
+        out.push(child);
+        const replies = child.data?.replies;
+        if (replies && typeof replies === 'object' && replies.data?.children?.length) {
+          out.push(...this._flattenCommentTree(replies.data.children));
+        }
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Fallback: scrape comments from old.reddit.com with Puppeteer when API returns 403 or fails.
+   */
+  private async _fetchCommentsWithPuppeteer(
+    subreddit: string,
+    postId: string,
+    postContextUrl: string,
+    sinceDate?: Date
+  ): Promise<FetchedCommentRaw[]> {
+    const url = `${OLD_REDDIT_BASE}/r/${subreddit}/comments/${postId}/`;
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
+    try {
+      const page = await browser.newPage();
+      await page.setUserAgent(PUPPETEER_USER_AGENT);
+      await page.setDefaultNavigationTimeout(30000);
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      await new Promise((r) => setTimeout(r, 2000));
+
+      const scraped = await page.evaluate(() => {
+        const result: { externalId: string; content: string; author: string | null; permalink: string; createdAt: string }[] = [];
+        // @ts-ignore - document is available in browser context
+        const things = document.querySelectorAll('div.thing[data-fullname^="t1_"]');
+        // @ts-ignore - Element type is available in browser context
+        things.forEach((el: any) => {
+          const fullname = el.getAttribute('data-fullname') || '';
+          const externalId = fullname.replace(/^t1_/, '');
+          const authorEl = el.querySelector('a.author');
+          const author = authorEl?.textContent?.trim() || null;
+          const usertextBody = el.querySelector('.usertext-body');
+          const content = usertextBody?.querySelector('.md')?.textContent?.trim() || usertextBody?.textContent?.trim() || '';
+          const timeEl = el.querySelector('time');
+          const createdAt = timeEl?.getAttribute('datetime') || new Date().toISOString();
+          const permalinkEl = el.querySelector('a.bylink');
+          let permalink = permalinkEl?.getAttribute('href') || '';
+          if (permalink && !permalink.startsWith('http')) permalink = 'https://old.reddit.com' + permalink;
+          if (!content && el.querySelector('.deleted')) return;
+          result.push({ externalId, content: content.slice(0, 10000), author, permalink, createdAt });
+        });
+        return result;
+      });
+
+      const comments: FetchedCommentRaw[] = scraped.map((c) => ({
+        externalId: c.externalId,
+        content: c.content || '[empty]',
+        author: c.author,
+        url: c.permalink,
+        contextTitle: null,
+        contextUrl: postContextUrl,
+        createdAt: new Date(c.createdAt),
+      }));
+
+      if (sinceDate) {
+        return comments.filter((c) => c.createdAt >= sinceDate);
+      }
+      return comments;
+    } finally {
+      await browser.close();
     }
   }
 

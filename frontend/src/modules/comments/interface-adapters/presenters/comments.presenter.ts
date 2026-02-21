@@ -25,6 +25,8 @@ export interface CommentsViewModel {
   hnFeedType: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
   hnUrls: string[];
   hnSources: SourceItem[];
+  linkedinUrls: string[];
+  linkedinSources: SourceItem[];
 }
 
 export interface CommentsOverviewData {
@@ -49,6 +51,8 @@ export class CommentsPresenter {
     hnFeedType: 'top',
     hnUrls: [],
     hnSources: [],
+    linkedinUrls: [],
+    linkedinSources: [],
   };
 
   constructor(
@@ -150,7 +154,7 @@ export class CommentsPresenter {
 
       // Find source by URL
       const source = sourcesResult.data.find(s =>
-        s.redditUrl === url || s.hnUrl === url
+        s.redditUrl === url || s.hnUrl === url || s.linkedinUrl === url
       );
 
       if (!source) {
@@ -177,6 +181,11 @@ export class CommentsPresenter {
         if (index !== -1) {
           this.viewModel.hnUrls.splice(index, 1);
         }
+      } else if (url.includes('linkedin.com')) {
+        const index = this.viewModel.linkedinUrls?.indexOf(url);
+        if (index !== undefined && index !== -1) {
+          this.viewModel.linkedinUrls.splice(index, 1);
+        }
       }
 
       // Reload comments to reflect the changes
@@ -197,12 +206,15 @@ export class CommentsPresenter {
       this.viewModel.fetchProgress = null;
 
       const hasReddit = this.viewModel.redditUrls.length > 0;
+      const hasLinkedIn = this.viewModel.linkedinUrls && this.viewModel.linkedinUrls.length > 0;
+      const sourceType: 'reddit' | 'hackernews' | 'linkedin' = hasReddit ? 'reddit' : (hasLinkedIn ? 'linkedin' : 'hackernews');
       const input = {
         projectId,
-        sourceType: hasReddit ? ('reddit' as const) : ('hackernews' as const),
+        sourceType,
         redditUrls: hasReddit ? this.viewModel.redditUrls : undefined,
-        hnFeedType: !hasReddit && this.viewModel.hnUrls.length === 0 ? this.viewModel.hnFeedType : undefined,
+        hnFeedType: !hasReddit && !hasLinkedIn && this.viewModel.hnUrls.length === 0 ? this.viewModel.hnFeedType : undefined,
         hnUrls: this.viewModel.hnUrls.length > 0 ? this.viewModel.hnUrls : undefined,
+        linkedinUrls: hasLinkedIn ? this.viewModel.linkedinUrls : undefined,
         periodDays: 30,
       };
 
@@ -236,6 +248,7 @@ export class CommentsPresenter {
       if (sourcesResult.isSuccess) {
         const redditRaw = sourcesResult.data.filter(s => s.sourceType === 'reddit' && s.redditUrl);
         const hnRaw = sourcesResult.data.filter(s => s.sourceType === 'hackernews' && s.hnUrl);
+        const linkedinRaw = sourcesResult.data.filter(s => s.sourceType === 'linkedin' && s.linkedinUrl);
 
         this.viewModel.redditSources = redditRaw.map(s => ({ id: s.id, url: s.redditUrl! }));
         this.viewModel.redditUrls = this.viewModel.redditSources.map(s => s.url);
@@ -243,10 +256,14 @@ export class CommentsPresenter {
         this.viewModel.hnSources = hnRaw.map(s => ({ id: s.id, url: s.hnUrl! }));
         this.viewModel.hnUrls = this.viewModel.hnSources.map(s => s.url);
 
+        this.viewModel.linkedinSources = linkedinRaw.map(s => ({ id: s.id, url: s.linkedinUrl! }));
+        this.viewModel.linkedinUrls = this.viewModel.linkedinSources.map(s => s.url);
+
         this._logger.info('Loaded sources from backend', {
           projectId,
           redditSourcesCount: this.viewModel.redditSources.length,
           hnSourcesCount: this.viewModel.hnSources.length,
+          linkedinSourcesCount: this.viewModel.linkedinSources.length,
         });
       } else {
         this._logger.error('Failed to load sources from backend', {
@@ -472,6 +489,114 @@ export class CommentsPresenter {
     }
   }
 
+  async addLinkedInUrl(url: string, projectId: string): Promise<void> {
+    if (!url.trim() || (this.viewModel.linkedinUrls && this.viewModel.linkedinUrls.includes(url.trim()))) {
+      return;
+    }
+
+    try {
+      const createInput: CreateSourceInput = {
+        sourceType: 'linkedin',
+        linkedinUrl: url.trim()
+      };
+
+      const createResult = await this._httpRepository.createSource(projectId, createInput);
+      if (createResult.isSuccess) {
+        const newUrl = url.trim();
+        if (!this.viewModel.linkedinUrls) {
+          this.viewModel.linkedinUrls = [];
+        }
+        if (!this.viewModel.linkedinSources) {
+          this.viewModel.linkedinSources = [];
+        }
+        this.viewModel.linkedinUrls.push(newUrl);
+        this.viewModel.linkedinSources.push({ id: createResult.data.id, url: newUrl });
+        this._logger.info('Created LinkedIn source', { projectId, url: newUrl });
+      } else {
+        this._logger.error('Failed to create LinkedIn source', {
+          projectId,
+          url: url.trim(),
+          error: createResult.error
+        });
+        throw createResult.error;
+      }
+    } catch (error) {
+      this._logger.error('Exception creating LinkedIn source', {
+        projectId,
+        url: url.trim(),
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  async removeLinkedInUrl(index: number, projectId: string): Promise<void> {
+    if (!this.viewModel.linkedinUrls || !this.viewModel.linkedinSources) {
+      return;
+    }
+    const url = this.viewModel.linkedinUrls[index];
+    if (!url) return;
+
+    try {
+      // Find source by URL and delete it
+      const sourcesResult = await this._getCommentsUseCase.getCommentSources(projectId);
+      if (sourcesResult.isSuccess) {
+        const source = sourcesResult.data.find(s =>
+          s.sourceType === 'linkedin' && s.linkedinUrl === url
+        );
+
+        if (source) {
+          const deleteResult = await this._deleteSourceUseCase.execute(projectId, source.id);
+          if (deleteResult.isSuccess) {
+            this.viewModel.linkedinUrls.splice(index, 1);
+            const srcIdx = this.viewModel.linkedinSources.findIndex(s => s.id === source.id);
+            if (srcIdx !== -1) this.viewModel.linkedinSources.splice(srcIdx, 1);
+            this._logger.info('Deleted LinkedIn source', { projectId, url });
+          } else {
+            this._logger.error('Failed to delete LinkedIn source', {
+              projectId,
+              url,
+              error: deleteResult.error
+            });
+            throw deleteResult.error;
+          }
+        } else {
+          this.viewModel.linkedinUrls.splice(index, 1);
+          this.viewModel.linkedinSources.splice(index, 1);
+          this._logger.warn('LinkedIn source not found in backend, removed from UI', { projectId, url });
+        }
+      }
+    } catch (error) {
+      this._logger.error('Exception removing LinkedIn URL', {
+        projectId,
+        url,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  async updateLinkedInUrl(index: number, url: string, projectId: string): Promise<void> {
+    if (!this.viewModel.linkedinUrls) {
+      return;
+    }
+    const oldUrl = this.viewModel.linkedinUrls[index];
+    if (!oldUrl || oldUrl === url.trim()) return;
+
+    try {
+      // First, remove the old source
+      await this.removeLinkedInUrl(index, projectId);
+
+      // Then add the new one
+      await this.addLinkedInUrl(url, projectId);
+    } catch (error) {
+      // Restore the old URL on failure
+      if (this.viewModel.linkedinUrls) {
+        this.viewModel.linkedinUrls[index] = oldUrl;
+      }
+      throw error;
+    }
+  }
 
   async getCommentsOverview(projectId: string): Promise<{
     data: CommentsOverviewData;

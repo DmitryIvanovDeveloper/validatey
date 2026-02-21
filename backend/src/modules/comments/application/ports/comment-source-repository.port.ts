@@ -4,26 +4,30 @@ import { CommentSourceError } from '../../domain/errors/comment.error';
 export interface CommentSource {
   id: string;
   projectId: string;
-  sourceType: 'reddit' | 'hackernews';
+  sourceType: 'reddit' | 'hackernews' | 'linkedin';
   redditUrl?: string;
   subredditName?: string;
   postId?: string;
   hnFeedType?: string;
   hnUrl?: string;
   hnItemId?: string;
+  linkedinUrl?: string;
+  linkedinPostId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateCommentSourceInput {
   projectId: string;
-  sourceType: 'reddit' | 'hackernews';
+  sourceType: 'reddit' | 'hackernews' | 'linkedin';
   redditUrl?: string;
   subredditName?: string;
   postId?: string;
   hnFeedType?: string;
   hnUrl?: string;
   hnItemId?: string;
+  linkedinUrl?: string;
+  linkedinPostId?: string;
 }
 
 export interface CommentSourceRepositoryPort {

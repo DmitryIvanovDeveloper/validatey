@@ -1,5 +1,5 @@
 /** Supported source types for comment fetching */
-export type CommentSourceType = 'reddit' | 'hackernews';
+export type CommentSourceType = 'reddit' | 'hackernews' | 'linkedin';
 
 /** Reddit-specific configuration */
 export interface RedditSource {
@@ -17,11 +17,18 @@ export interface HackerNewsSource {
   readonly itemId?: string; // HN item ID
 }
 
+/** LinkedIn-specific configuration */
+export interface LinkedInSource {
+  readonly type: 'linkedin';
+  readonly url: string; // Full post URL
+  readonly postId?: string; // Extracted post ID
+}
+
 /** Supported Hacker News feed types */
 export type HackerNewsFeedType = 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
 
 /** Union type for all comment source configurations */
-export type CommentSource = RedditSource | HackerNewsSource;
+export type CommentSource = RedditSource | HackerNewsSource | LinkedInSource;
 
 /** Value Object: Comment Source Configuration */
 export class CommentSourceValueObject {
@@ -32,7 +39,9 @@ export class CommentSourceValueObject {
     public readonly postId?: string,
     public readonly hnFeedType?: HackerNewsFeedType,
     public readonly hnUrl?: string,
-    public readonly hnItemId?: string
+    public readonly hnItemId?: string,
+    public readonly linkedinUrl?: string,
+    public readonly linkedinPostId?: string
   ) {}
 
   /** Create Reddit source from URL or subreddit name */
@@ -50,12 +59,16 @@ export class CommentSourceValueObject {
 
     // Assume it's a subreddit name
     const subredditName = trimmed.startsWith('r/') ? trimmed : `r/${trimmed}`;
-    return new CommentSourceValueObject(
-      'reddit',
-      subredditName,
-      subredditName,
-      undefined
-    );
+      return new CommentSourceValueObject(
+        'reddit',
+        subredditName,
+        subredditName,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
   }
 
   /** Create Hacker News source */
@@ -73,8 +86,25 @@ export class CommentSourceValueObject {
       undefined,
       feedTypeOrUrl as HackerNewsFeedType,
       undefined,
+      undefined,
       undefined
     );
+  }
+
+  /** Create LinkedIn source from URL */
+  static createLinkedIn(url: string): CommentSourceValueObject {
+    if (!url || url.trim().length === 0) {
+      throw new Error('LinkedIn URL is required');
+    }
+
+    const trimmed = url.trim();
+
+    // Check if it's a LinkedIn URL
+    if (!trimmed.includes('linkedin.com')) {
+      throw new Error('Invalid LinkedIn URL format');
+    }
+
+    return this.parseLinkedInUrl(trimmed);
   }
 
   /** Parse Hacker News URL to extract item ID */
@@ -99,7 +129,8 @@ export class CommentSourceValueObject {
         undefined,
         undefined,
         url,
-        itemId
+        itemId,
+        undefined
       );
     } catch (error) {
       throw new Error(`Failed to parse Hacker News URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -109,8 +140,8 @@ export class CommentSourceValueObject {
   /** Parse Reddit URL to extract subreddit and post ID */
   private static parseRedditUrl(url: string): CommentSourceValueObject {
     try {
-      // Remove protocol and www if present
-      let cleanUrl = url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+      // Remove protocol and normalize host (old.reddit.com -> reddit.com)
+      let cleanUrl = url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/^old\.reddit\.com/, 'reddit.com');
 
       // Expected format: reddit.com/r/subreddit/comments/postId/title/
       const redditMatch = cleanUrl.match(/^reddit\.com\/r\/([^\/]+)\/comments\/([^\/]+)/);
@@ -126,10 +157,46 @@ export class CommentSourceValueObject {
         'reddit',
         url,
         subredditName,
-        postId
+        postId,
+        undefined,
+        undefined,
+        undefined,
+        undefined
       );
     } catch (error) {
       throw new Error(`Failed to parse Reddit URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /** Parse LinkedIn URL to extract post ID */
+  private static parseLinkedInUrl(url: string): CommentSourceValueObject {
+    try {
+      // Remove protocol if present
+      let cleanUrl = url.replace(/^https?:\/\//, '').replace(/^www\./, '');
+
+      // LinkedIn post URL formats:
+      // - linkedin.com/feed/update/urn:li:activity:{postId}
+      // - linkedin.com/feed/update/urn:li:groupPost:{groupId}-{postId}
+      // - linkedin.com/posts/activity-{postId}
+      // - linkedin.com/feed/update/{postId}
+      const urnMatch = cleanUrl.match(/linkedin\.com\/feed\/update\/urn:li:(?:activity|groupPost):([^?]+)/);
+      const simpleMatch = cleanUrl.match(/linkedin\.com\/(?:posts\/activity-|feed\/update\/|posts\/)([a-zA-Z0-9_-]+)/);
+
+      const postId = urnMatch ? urnMatch[1] : (simpleMatch ? simpleMatch[1] : undefined);
+
+      return new CommentSourceValueObject(
+        'linkedin',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        url,
+        postId
+      );
+    } catch (error) {
+      throw new Error(`Failed to parse LinkedIn URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -142,12 +209,18 @@ export class CommentSourceValueObject {
         subredditName: this.subredditName,
         postId: this.postId,
       };
-    } else {
+    } else if (this.type === 'hackernews') {
       return {
         type: 'hackernews',
         feedType: this.hnFeedType,
         url: this.hnUrl,
         itemId: this.hnItemId,
+      };
+    } else {
+      return {
+        type: 'linkedin',
+        url: this.linkedinUrl!,
+        postId: this.linkedinPostId,
       };
     }
   }
@@ -156,8 +229,10 @@ export class CommentSourceValueObject {
   getId(): string {
     if (this.type === 'reddit') {
       return `reddit:${this.redditUrl}`;
-    } else {
+    } else if (this.type === 'hackernews') {
       return this.hnUrl ? `hackernews:${this.hnUrl}` : `hackernews:${this.hnFeedType}`;
+    } else {
+      return `linkedin:${this.linkedinUrl}`;
     }
   }
 
@@ -170,7 +245,7 @@ export class CommentSourceValueObject {
   getDisplayName(): string {
     if (this.type === 'reddit') {
       return this.subredditName || this.redditUrl || 'Reddit';
-    } else {
+    } else if (this.type === 'hackernews') {
       if (this.hnUrl && this.hnItemId) {
         return `Hacker News Post #${this.hnItemId}`;
       }
@@ -183,6 +258,8 @@ export class CommentSourceValueObject {
         newcomments: 'New Comments',
       };
       return `Hacker News - ${feedNames[this.hnFeedType!]}`;
+    } else {
+      return this.postId ? `LinkedIn Post #${this.postId}` : (this.linkedinUrl || 'LinkedIn');
     }
   }
 }

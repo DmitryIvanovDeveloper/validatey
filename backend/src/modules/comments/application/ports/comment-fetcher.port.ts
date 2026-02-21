@@ -41,8 +41,17 @@ export interface FetchCommentsInputHackerNews {
   sinceDate?: Date;
 }
 
-/** Discriminated union: Reddit or Hacker News */
-export type FetchCommentsInput = FetchCommentsInputReddit | FetchCommentsInputHackerNews;
+/** LinkedIn-specific fetch input */
+export interface FetchCommentsInputLinkedIn {
+  sourceType: 'linkedin';
+  url: string; // LinkedIn post URL
+  postId?: string; // Extracted post ID
+  /** Only include comments created on or after this date (UTC) */
+  sinceDate?: Date;
+}
+
+/** Discriminated union: Reddit, Hacker News, or LinkedIn */
+export type FetchCommentsInput = FetchCommentsInputReddit | FetchCommentsInputHackerNews | FetchCommentsInputLinkedIn;
 
 export interface FetchCommentsResult {
   comments: FetchedCommentRaw[];

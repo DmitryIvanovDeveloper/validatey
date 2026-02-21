@@ -31,6 +31,8 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
           hn_feed_type: input.hnFeedType,
           hn_url: input.hnUrl,
           hn_item_id: input.hnItemId,
+          linkedin_url: input.linkedinUrl,
+          linkedin_post_id: input.linkedinPostId,
           created_at: now,
           updated_at: now,
         })
@@ -56,6 +58,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         hnFeedType: data.hn_feed_type,
         hnUrl: data.hn_url,
         hnItemId: data.hn_item_id,
+        linkedinUrl: data.linkedin_url,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       };
@@ -101,6 +104,8 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         hnFeedType: data.hn_feed_type,
         hnUrl: data.hn_url,
         hnItemId: data.hn_item_id,
+        linkedinUrl: data.linkedin_url,
+        linkedinPostId: data.linkedin_post_id,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       };
@@ -148,6 +153,8 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         hnFeedType: row.hn_feed_type,
         hnUrl: row.hn_url,
         hnItemId: row.hn_item_id,
+        linkedinUrl: row.linkedin_url,
+        linkedinPostId: row.linkedin_post_id,
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
       }));
@@ -191,6 +198,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         hnFeedType: row.hn_feed_type,
         hnUrl: row.hn_url,
         hnItemId: row.hn_item_id,
+        linkedinUrl: row.linkedin_url,
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
       }));

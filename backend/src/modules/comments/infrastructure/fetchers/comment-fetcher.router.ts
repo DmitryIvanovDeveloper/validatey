@@ -9,6 +9,7 @@ import ResultEx from '../../../../infrastructure/result/result';
 import { COMMENT_TYPES } from '../../types';
 import { RedditFetcher } from './reddit-fetcher';
 import { HackerNewsFetcher } from './hacker-news-fetcher';
+import { LinkedInFetcher } from './linkedin-fetcher';
 
 @injectable()
 export class CommentFetcherRouter implements CommentFetcherPort {
@@ -16,7 +17,9 @@ export class CommentFetcherRouter implements CommentFetcherPort {
     @inject(COMMENT_TYPES.RedditFetcher)
     private readonly _redditFetcher: RedditFetcher,
     @inject(COMMENT_TYPES.HackerNewsFetcher)
-    private readonly _hackerNewsFetcher: HackerNewsFetcher
+    private readonly _hackerNewsFetcher: HackerNewsFetcher,
+    @inject(COMMENT_TYPES.LinkedInFetcher)
+    private readonly _linkedInFetcher: LinkedInFetcher
   ) {}
 
   public async fetch(input: FetchCommentsInput): Promise<ResultEx<FetchCommentsResult, CommentFetchError>> {
@@ -25,6 +28,9 @@ export class CommentFetcherRouter implements CommentFetcherPort {
     }
     if (input.sourceType === 'hackernews') {
       return this._hackerNewsFetcher.fetch(input);
+    }
+    if (input.sourceType === 'linkedin') {
+      return this._linkedInFetcher.fetch(input);
     }
     return ResultEx.success({ comments: [], errors: [] });
   }
