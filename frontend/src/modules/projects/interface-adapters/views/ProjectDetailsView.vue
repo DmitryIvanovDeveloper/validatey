@@ -94,12 +94,7 @@
             </div>
 
             <div v-if="getHypothesisAssumptions().length > 0" class="key-assumptions-section mb-4" role="region" aria-label="Key Assumptions: status and evidence per assumption">
-              <div class="key-assumptions-header">
-                <p class="section-subtitle key-assumptions-title">Key Assumptions</p>
-                <p v-if="!researchData?.assumptionAssessments?.length" class="key-assumptions-hint">
-                  Run research and generate synthesis to see status and evidence for each assumption.
-                </p>
-              </div>
+              <p class="section-subtitle key-assumptions-title">Key Assumptions</p>
               <ul class="key-assumptions-list">
                 <li
                   v-for="(assumption, index) in getHypothesisAssumptions()"
@@ -109,43 +104,29 @@
                 >
                   <div class="assumption-card-inner">
                     <div class="assumption-card-header">
-                      <span class="assumption-index" :class="getAssumptionStatus(assumption.id) ? `assumption-index--${getAssumptionStatus(assumption.id)}` : ''" aria-hidden="true">
-                        <CheckCircle v-if="getAssumptionStatus(assumption.id) === 'confirmed'" class="assumption-status-icon" />
-                        <HelpCircle v-else-if="getAssumptionStatus(assumption.id) === 'need_more'" class="assumption-status-icon" />
-                        <XCircle v-else-if="getAssumptionStatus(assumption.id) === 'not_supported'" class="assumption-status-icon" />
-                        <span v-else class="assumption-number">{{ index + 1 }}</span>
-                      </span>
                       <p class="assumption-label" v-html="formatMarkdown(assumption.text)"></p>
-                    </div>
-                    <div v-if="getAssumptionStatus(assumption.id)" class="assumption-card-status">
                       <span
+                        v-if="getAssumptionStatus(assumption.id)"
                         :class="['assumption-badge', `assumption-badge--${getAssumptionStatus(assumption.id)}`]"
-                        :aria-label="`Status: ${getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more data' : 'Not supported'}`"
                       >
-                        {{ getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more data' : 'Not supported' }}
+                        {{ getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more' : 'Not supported' }}
                       </span>
                     </div>
                     <div
                       v-if="getAssumptionEvidence(assumption.id)"
                       class="assumption-evidence-wrap"
-                      :aria-label="`Evidence: ${getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more data' : 'Not supported'}`"
                     >
                       <button
                         type="button"
                         class="assumption-evidence-toggle"
                         :aria-expanded="expandedEvidenceIds.has(assumption.id)"
-                        :aria-controls="'evidence-content-' + assumption.id"
-                        :id="'evidence-toggle-' + assumption.id"
                         @click="toggleEvidence(assumption.id)"
                       >
                         {{ getEvidenceLabel(assumption.id) }}
                       </button>
                       <div
-                        :id="'evidence-content-' + assumption.id"
+                        v-if="expandedEvidenceIds.has(assumption.id)"
                         class="assumption-evidence-content"
-                        :class="{ 'assumption-evidence-content--open': expandedEvidenceIds.has(assumption.id) }"
-                        role="region"
-                        :aria-labelledby="'evidence-toggle-' + assumption.id"
                       >
                         <p class="assumption-evidence-text formatted-text" v-html="formatMarkdown(getAssumptionEvidence(assumption.id)!)"></p>
                       </div>
@@ -2011,15 +1992,9 @@ watch(project, (p) => {
   transform: translateY(-1px);
 }
 
-/* Key Assumptions — improved UI */
+/* Key Assumptions — simplified UI */
 .key-assumptions-section { }
-.key-assumptions-header { margin-bottom: 0.75rem; }
-.key-assumptions-title { margin-bottom: 0.25rem; }
-.key-assumptions-hint {
-  font-size: 0.8125rem;
-  color: #64748b;
-  margin: 0;
-}
+.key-assumptions-title { margin-bottom: 0.5rem; }
 
 .key-assumptions-list {
   list-style: none;
@@ -2027,75 +2002,46 @@ watch(project, (p) => {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
 .assumption-card {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-bg);
-  transition: border-color 0.15s ease;
-}
-.assumption-card:hover {
-  border-color: var(--color-accent);
 }
 .assumption-card--confirmed {
-  border-left: 3px solid var(--color-success);
+  border-left: 2px solid var(--color-success);
 }
 .assumption-card--need_more {
-  border-left: 3px solid var(--color-warning);
+  border-left: 2px solid var(--color-warning);
 }
 .assumption-card--not_supported {
-  border-left: 3px solid var(--color-error);
+  border-left: 2px solid var(--color-error);
 }
 .assumption-card--pending {
-  border-left: 3px solid var(--color-border);
+  border-left: 2px solid var(--color-border);
 }
 
 .assumption-card-inner {
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
 .assumption-card-header {
   display: flex;
   align-items: flex-start;
-  gap: 0.625rem;
+  justify-content: space-between;
+  gap: 0.5rem;
   min-width: 0;
-}
-
-.assumption-index {
-  flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  background: var(--color-bg-subtle);
-}
-.assumption-index--confirmed { background: var(--color-success-bg); color: var(--color-success); }
-.assumption-index--need_more { background: var(--color-warning-bg); color: var(--color-warning); }
-.assumption-index--not_supported { background: var(--color-error-bg); color: var(--color-error); }
-
-.assumption-status-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
-.assumption-number {
-  line-height: 1;
 }
 
 .assumption-label {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 0.8125rem;
+  font-weight: 400;
   color: var(--color-text);
   line-height: 1.5;
   word-break: break-word;
@@ -2104,22 +2050,21 @@ watch(project, (p) => {
   flex: 1;
 }
 
-.assumption-card-status { flex-shrink: 0; }
-
 .assumption-badge {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 500;
-  padding: 0.25rem 0.5rem;
+  padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .assumption-badge--confirmed { background: var(--color-success-bg); color: var(--color-success); }
 .assumption-badge--need_more { background: var(--color-warning-bg); color: var(--color-warning); }
 .assumption-badge--not_supported { background: var(--color-error-bg); color: var(--color-error); }
 
 .assumption-evidence-wrap {
-  margin-top: 0.25rem;
+  margin-top: 0.125rem;
   word-break: break-word;
   overflow-wrap: break-word;
 }
@@ -2132,11 +2077,10 @@ watch(project, (p) => {
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-accent);
   text-align: left;
-  width: 100%;
 }
 
 .assumption-evidence-toggle:hover {
@@ -2144,18 +2088,13 @@ watch(project, (p) => {
 }
 
 .assumption-evidence-content {
-  display: none;
-  margin-top: 0.375rem;
-}
-
-.assumption-evidence-content--open {
-  display: block;
+  margin-top: 0.25rem;
 }
 
 .assumption-evidence-text {
   margin: 0;
-  font-size: 0.8125rem;
-  color: var(--color-text);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
   line-height: 1.5;
   word-break: break-word;
   overflow-wrap: break-word;
