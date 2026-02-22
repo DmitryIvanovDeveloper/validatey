@@ -238,3 +238,8 @@ backend/ab-test-output/*.json
 *~
 .vercel
 .env*.local
+
+# Playwright test results
+test-results/
+playwright-report/
+playwright/.cache/
