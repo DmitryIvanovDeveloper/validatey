@@ -2027,40 +2027,36 @@ watch(project, (p) => {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .assumption-card {
-  border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
-  background: #fafafa;
-  overflow: hidden;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  transition: border-color 0.15s ease;
 }
 .assumption-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-accent);
 }
 .assumption-card--confirmed {
-  border-left: 4px solid #16a34a;
-  background: linear-gradient(to right, rgba(22, 163, 74, 0.04) 0%, #fafafa 1rem);
+  border-left: 3px solid var(--color-success);
 }
 .assumption-card--need_more {
-  border-left: 4px solid #ca8a04;
-  background: linear-gradient(to right, rgba(202, 138, 4, 0.06) 0%, #fafafa 1rem);
+  border-left: 3px solid var(--color-warning);
 }
 .assumption-card--not_supported {
-  border-left: 4px solid #dc2626;
-  background: linear-gradient(to right, rgba(220, 38, 38, 0.04) 0%, #fafafa 1rem);
+  border-left: 3px solid var(--color-error);
 }
 .assumption-card--pending {
-  border-left: 4px solid #94a3b8;
+  border-left: 3px solid var(--color-border);
 }
 
 .assumption-card-inner {
-  padding: 0.875rem 1rem;
+  padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.5rem;
 }
 
 .assumption-card-header {
@@ -2072,24 +2068,24 @@ watch(project, (p) => {
 
 .assumption-index {
   flex-shrink: 0;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: #64748b;
-  background: #e2e8f0;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
 }
-.assumption-index--confirmed { background: #dcfce7; color: #166534; }
-.assumption-index--need_more { background: #fef9c3; color: #854d0e; }
-.assumption-index--not_supported { background: #fee2e2; color: #991b1b; }
+.assumption-index--confirmed { background: var(--color-success-bg); color: var(--color-success); }
+.assumption-index--need_more { background: var(--color-warning-bg); color: var(--color-warning); }
+.assumption-index--not_supported { background: var(--color-error-bg); color: var(--color-error); }
 
 .assumption-status-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .assumption-number {
@@ -2098,10 +2094,10 @@ watch(project, (p) => {
 
 .assumption-label {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: #1e293b;
-  line-height: 1.45;
+  color: var(--color-text);
+  line-height: 1.5;
   word-break: break-word;
   overflow-wrap: break-word;
   min-width: 0;
@@ -2112,17 +2108,15 @@ watch(project, (p) => {
 
 .assumption-badge {
   display: inline-block;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  font-weight: 500;
   padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
-.assumption-badge--confirmed { background: #dcfce7; color: #166534; }
-.assumption-badge--need_more { background: #fef9c3; color: #854d0e; }
-.assumption-badge--not_supported { background: #fee2e2; color: #991b1b; }
+.assumption-badge--confirmed { background: var(--color-success-bg); color: var(--color-success); }
+.assumption-badge--need_more { background: var(--color-warning-bg); color: var(--color-warning); }
+.assumption-badge--not_supported { background: var(--color-error-bg); color: var(--color-error); }
 
 .assumption-evidence-wrap {
   margin-top: 0.25rem;
@@ -2140,13 +2134,12 @@ watch(project, (p) => {
   cursor: pointer;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #64748b;
+  color: var(--color-accent);
   text-align: left;
   width: 100%;
 }
 
 .assumption-evidence-toggle:hover {
-  color: #0d9488;
   text-decoration: underline;
 }
 
@@ -2162,7 +2155,7 @@ watch(project, (p) => {
 .assumption-evidence-text {
   margin: 0;
   font-size: 0.8125rem;
-  color: #475569;
+  color: var(--color-text);
   line-height: 1.5;
   word-break: break-word;
   overflow-wrap: break-word;
