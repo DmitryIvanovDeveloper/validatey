@@ -2,30 +2,22 @@
   <div class="comment-patterns-widget">
     <!-- Header -->
     <div class="cpw-header">
-      <div class="cpw-header-left">
-        <svg class="cpw-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.671 1.09-.085 2.17-.207 3.238-.364 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-        </svg>
-        <div>
-          <h3 class="cpw-title">Comment Pattern Analysis</h3>
-          <p v-if="analysis" class="cpw-subtitle">Based on {{ analysis.totalComments }} collected comments</p>
-          <p class="cpw-disclaimer">
-            Content shown under Fair Use for research purposes.
-            <a href="#" @click.prevent="showFairUseInfo" class="cpw-disclaimer-link">Learn more</a>
-          </p>
+      <h3 class="cpw-title">Comment Pattern Analysis</h3>
+      <div v-if="analysis" class="cpw-score-info">
+        <span class="cpw-score-label">{{ scoreLabel }}</span>
+        <div class="cpw-progress-bar">
+          <div class="cpw-progress-fill" :class="scoreBadgeClass" :style="{ width: (analysis.validationScore || 0) + '%' }"></div>
         </div>
-      </div>
-      <div v-if="analysis" class="cpw-score-badge" :class="scoreBadgeClass">
-        {{ scoreLabel }}
+        <p class="cpw-score-explanation">{{ scoreExplanation }}</p>
       </div>
     </div>
 
     <!-- Loading -->
     <div v-if="loading" class="cpw-loading">
-      <div class="cpw-loading-dots">
-        <span></span><span></span><span></span>
+      <div class="cpw-progress-bar">
+        <div class="cpw-progress-fill cpw-progress-loading"></div>
       </div>
-      <span>Analyzing comment patterns…</span>
+      <span>Analyzing {{ analysis?.totalComments || 0 }} comments…</span>
     </div>
 
     <!-- Error -->
@@ -48,7 +40,6 @@
         v-for="pattern in analysis.patterns"
         :key="pattern.type"
         class="cpw-pattern-card"
-        :class="`cpw-pattern-card--${pattern.type}`"
       >
         <div class="cpw-pattern-header">
           <div class="cpw-pattern-label-row">
@@ -57,77 +48,11 @@
             <span class="cpw-pattern-count">{{ pattern.count }}</span>
             <span class="cpw-pattern-pct">{{ pattern.percentage }}%</span>
           </div>
-          <div class="cpw-pattern-bar-wrap">
-            <div class="cpw-pattern-bar" :class="`cpw-bar--${pattern.type}`" :style="{ width: pattern.percentage + '%' }"></div>
-          </div>
         </div>
-
+        <div class="cpw-pattern-bar-wrap">
+          <div class="cpw-pattern-bar" :class="`cpw-bar--${pattern.type}`" :style="{ width: pattern.percentage + '%' }"></div>
+        </div>
         <p class="cpw-pattern-insight">{{ pattern.insight }}</p>
-
-        <!-- Examples (collapsible) -->
-        <div v-if="expandedPattern === pattern.type" class="cpw-examples">
-          <div v-for="(ex, idx) in pattern.examples" :key="idx" class="cpw-example">
-            <blockquote class="cpw-example-content" :cite="ex.url">
-              "{{ ex.content }}"
-            </blockquote>
-            <div class="cpw-example-meta">
-              <span class="cpw-example-author">by {{ ex.author }}</span>
-              <span class="cpw-example-source">{{ ex.source }}</span>
-              <a v-if="ex.url" :href="ex.url" target="_blank" rel="noopener noreferrer" class="cpw-example-link">
-                View Original
-                <svg viewBox="0 0 24 24" class="cpw-external-icon">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                  <polyline points="15,3 21,3 21,9"/>
-                  <line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <button
-          v-if="pattern.examples.length > 0"
-          class="cpw-toggle-btn"
-          @click="togglePattern(pattern.type)"
-          type="button"
-        >
-          {{ expandedPattern === pattern.type ? 'Hide examples' : `Show ${pattern.examples.length} example${pattern.examples.length > 1 ? 's' : ''}` }}
-          <svg class="cpw-toggle-icon" :class="{ 'cpw-toggle-icon--open': expandedPattern === pattern.type }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Footer hint -->
-    <div v-if="analysis && analysis.totalComments > 0" class="cpw-footer">
-      <svg class="cpw-footer-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-      </svg>
-      Analyzed {{ analysis.totalComments }} real comments from community sources
-    </div>
-
-    <!-- Fair Use Modal -->
-    <div v-if="showFairUseModal" class="cpw-modal-overlay" @click="closeFairUseModal">
-      <div class="cpw-modal" @click.stop>
-        <div class="cpw-modal-header">
-          <h4>Fair Use & Attribution</h4>
-          <button @click="closeFairUseModal" class="cpw-modal-close">
-            <svg viewBox="0 0 24 24" class="cpw-close-icon">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-        <div class="cpw-modal-body">
-          <p><strong>Fair Use Policy:</strong> Comment excerpts shown here are limited to 200 characters and used solely for research and analysis purposes under U.S. Fair Use guidelines (17 U.S.C. § 107).</p>
-
-          <p><strong>Attribution:</strong> All comments are properly attributed to their original authors with links to the source material.</p>
-
-          <p><strong>Rights:</strong> We respect intellectual property rights. If you are the author of any comment shown here and wish it removed, please contact us.</p>
-
-          <p><strong>Sources:</strong> Comments are collected from public Reddit and HackerNews posts with permission from their respective APIs.</p>
-        </div>
       </div>
     </div>
   </div>
@@ -138,7 +63,7 @@ import { ref, computed, onMounted } from 'vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { COMMENT_TYPES } from '../../types';
 import type { GetCommentPatternsUseCase } from '../../application/use-cases/get-comment-patterns.use-case';
-import type { CommentPatternAnalysis, PatternType } from '../../domain/entities/comment-pattern-analysis.entity';
+import type { CommentPatternAnalysis } from '../../domain/entities/comment-pattern-analysis.entity';
 
 interface Props {
   projectId: string;
@@ -149,8 +74,6 @@ const props = defineProps<Props>();
 const loading = ref(false);
 const error = ref<string | null>(null);
 const analysis = ref<CommentPatternAnalysis | null>(null);
-const expandedPattern = ref<PatternType | null>(null);
-const showFairUseModal = ref(false);
 
 const scoreBadgeClass = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
@@ -166,17 +89,12 @@ const scoreLabel = computed(() => {
   return `Early Stage (${score}%)`;
 });
 
-function togglePattern(type: PatternType): void {
-  expandedPattern.value = expandedPattern.value === type ? null : type;
-}
-
-function showFairUseInfo(): void {
-  showFairUseModal.value = true;
-}
-
-function closeFairUseModal(): void {
-  showFairUseModal.value = false;
-}
+const scoreExplanation = computed(() => {
+  const score = analysis.value?.validationScore ?? 0;
+  if (score >= 60) return 'Hypothesis supported by data. Strong validation signals from comments.';
+  if (score >= 30) return 'Mixed signals. More data needed for clear validation.';
+  return 'Too little data or weak support. Collect more comments for analysis.';
+});
 
 async function loadPatterns(): Promise<void> {
   if (!props.projectId) return;
@@ -206,134 +124,128 @@ onMounted(() => {
 
 <style scoped>
 .comment-patterns-widget {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
   overflow: hidden;
 }
 
 .cpw-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f3f4f6;
-  background: #fafafa;
-}
-
-.cpw-header-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.cpw-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #6366f1;
-  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .cpw-title {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: #111827;
-  margin: 0;
+  color: var(--color-text);
+  margin: 0 0 0.75rem 0;
 }
 
-.cpw-subtitle {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  margin: 0.125rem 0 0;
-}
-
-.cpw-score-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 100px;
-}
-
-.cpw-score--high { background: #d1fae5; color: #065f46; }
-.cpw-score--medium { background: #fef9c3; color: #854d0e; }
-.cpw-score--low { background: #f3f4f6; color: #6b7280; }
-
-.cpw-loading {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1.5rem 1.25rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.cpw-loading-dots {
-  display: flex;
-  gap: 3px;
-}
-
-.cpw-loading-dots span {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #6366f1;
-  animation: cpw-pulse 1.2s ease-in-out infinite;
-}
-
-.cpw-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.cpw-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes cpw-pulse {
-  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-  40% { opacity: 1; transform: scale(1); }
-}
-
-.cpw-empty {
-  padding: 2rem 1.25rem;
-  text-align: center;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.cpw-empty-icon {
-  width: 2rem;
-  height: 2rem;
-  margin: 0 auto 0.5rem;
-  color: #d1d5db;
-}
-
-.cpw-empty-hint {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  margin-top: 0.25rem;
-}
-
-.cpw-patterns {
-  padding: 0.75rem;
+.cpw-score-info {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
+.cpw-score-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cpw-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--color-bg-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cpw-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.cpw-progress-fill.cpw-score--high {
+  background: var(--color-success);
+}
+
+.cpw-progress-fill.cpw-score--medium {
+  background: var(--color-warning);
+}
+
+.cpw-progress-fill.cpw-score--low {
+  background: var(--color-text-muted);
+}
+
+.cpw-progress-loading {
+  background: var(--color-accent);
+  animation: cpw-progress-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes cpw-progress-loading {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+.cpw-score-explanation {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cpw-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.cpw-empty {
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.cpw-empty-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0 auto 0.5rem;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.cpw-empty-hint {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-top: 0.5rem;
+}
+
+.cpw-patterns {
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .cpw-pattern-card {
-  border: 1px solid #f3f4f6;
-  border-radius: 8px;
-  padding: 0.875rem 1rem;
-  background: #fafafa;
-  transition: border-color 0.15s;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.cpw-pattern-card:hover {
-  border-color: #e5e7eb;
+.cpw-pattern-card:last-child {
+  border-bottom: none;
 }
-
-.cpw-pattern-card--myth { border-left: 3px solid #f59e0b; }
-.cpw-pattern-card--failure { border-left: 3px solid #ef4444; }
-.cpw-pattern-card--advice { border-left: 3px solid #10b981; }
-.cpw-pattern-card--validation { border-left: 3px solid #6366f1; }
 
 .cpw-pattern-header {
-  margin-bottom: 0.375rem;
+  margin-bottom: 0.5rem;
 }
 
 .cpw-pattern-label-row {
@@ -344,40 +256,40 @@ onMounted(() => {
 }
 
 .cpw-pattern-type-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.cpw-dot--myth { background: #f59e0b; }
-.cpw-dot--failure { background: #ef4444; }
-.cpw-dot--advice { background: #10b981; }
-.cpw-dot--validation { background: #6366f1; }
+.cpw-dot--myth { background: var(--color-warning); }
+.cpw-dot--failure { background: var(--color-error); }
+.cpw-dot--advice { background: var(--color-success); }
+.cpw-dot--validation { background: var(--color-accent); }
 
 .cpw-pattern-label {
   font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 500;
+  color: var(--color-text);
   flex: 1;
 }
 
 .cpw-pattern-count {
   font-size: 0.875rem;
-  font-weight: 700;
-  color: #374151;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .cpw-pattern-pct {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   min-width: 2.5rem;
   text-align: right;
 }
 
 .cpw-pattern-bar-wrap {
   height: 4px;
-  background: #f3f4f6;
+  background: var(--color-bg-subtle);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -385,256 +297,19 @@ onMounted(() => {
 .cpw-pattern-bar {
   height: 100%;
   border-radius: 2px;
-  transition: width 0.4s ease;
+  transition: width 0.3s ease;
 }
 
-.cpw-bar--myth { background: #f59e0b; }
-.cpw-bar--failure { background: #ef4444; }
-.cpw-bar--advice { background: #10b981; }
-.cpw-bar--validation { background: #6366f1; }
+.cpw-bar--myth { background: var(--color-warning); }
+.cpw-bar--failure { background: var(--color-error); }
+.cpw-bar--advice { background: var(--color-success); }
+.cpw-bar--validation { background: var(--color-accent); }
 
 .cpw-pattern-insight {
   font-size: 0.8125rem;
-  color: #4b5563;
-  margin: 0.5rem 0 0;
+  color: var(--color-text-muted);
+  margin: 0.375rem 0 0;
   line-height: 1.5;
 }
 
-.cpw-examples {
-  margin-top: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 0.75rem;
-}
-
-.cpw-example {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 0.625rem 0.75rem;
-}
-
-.cpw-example-content {
-  font-size: 0.8125rem;
-  color: #374151;
-  margin: 0 0 0.25rem;
-  line-height: 1.5;
-  font-style: italic;
-}
-
-.cpw-example-meta {
-  font-size: 0.6875rem;
-  color: #9ca3af;
-  margin: 0;
-}
-
-.cpw-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #6366f1;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-weight: 500;
-}
-
-.cpw-toggle-btn:hover {
-  color: #4f46e5;
-}
-
-.cpw-toggle-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  transition: transform 0.2s;
-}
-
-.cpw-toggle-icon--open {
-  transform: rotate(180deg);
-}
-
-.cpw-footer {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.625rem 1rem;
-  border-top: 1px solid #f3f4f6;
-  font-size: 0.75rem;
-  color: #9ca3af;
-  background: #fafafa;
-}
-
-.cpw-footer-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  flex-shrink: 0;
-}
-
-/* Fair Use Disclaimer */
-.cpw-disclaimer {
-  font-size: 0.6875rem;
-  color: #9ca3af;
-  margin: 0.25rem 0 0 0;
-  line-height: 1.4;
-}
-
-.cpw-disclaimer-link {
-  color: #6366f1;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.cpw-disclaimer-link:hover {
-  text-decoration: underline;
-}
-
-/* Enhanced Example Attribution */
-.cpw-example-content {
-  font-size: 0.8125rem;
-  color: #374151;
-  margin: 0 0 0.5rem;
-  line-height: 1.5;
-  font-style: italic;
-  position: relative;
-  padding-left: 1rem;
-}
-
-.cpw-example-content::before {
-  content: '"';
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 1.2em;
-  color: #d1d5db;
-}
-
-.cpw-example-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.6875rem;
-  color: #9ca3af;
-  margin: 0;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.cpw-example-author {
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.cpw-example-source {
-  color: #9ca3af;
-}
-
-.cpw-example-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: #6366f1;
-  text-decoration: none;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  padding: 0.125rem 0.375rem;
-  border-radius: 3px;
-  transition: all 0.2s ease;
-}
-
-.cpw-example-link:hover {
-  background: #eef2ff;
-  color: #4f46e5;
-}
-
-.cpw-external-icon {
-  width: 0.625rem;
-  height: 0.625rem;
-  stroke: currentColor;
-  stroke-width: 2;
-}
-
-/* Fair Use Modal */
-.cpw-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.cpw-modal {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  width: 100%;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.cpw-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem 1.5rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.cpw-modal-header h4 {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.cpw-modal-close {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.cpw-modal-close:hover {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.cpw-close-icon {
-  width: 1rem;
-  height: 1rem;
-  stroke: currentColor;
-  stroke-width: 2;
-}
-
-.cpw-modal-body {
-  padding: 1.5rem;
-}
-
-.cpw-modal-body p {
-  margin: 0 0 1rem 0;
-  color: #374151;
-  line-height: 1.6;
-}
-
-.cpw-modal-body p:last-child {
-  margin-bottom: 0;
-}
-
-.cpw-modal-body strong {
-  color: #111827;
-}
 </style>
