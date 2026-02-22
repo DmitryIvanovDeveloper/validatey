@@ -1,5 +1,6 @@
 import { Container } from 'inversify';
 import { COMMENT_TYPES } from '../../types';
+import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootstrap/types';
 
 // Application
 import { FetchCommentsUseCase } from '../../application/use-cases/fetch-comments.usecase';

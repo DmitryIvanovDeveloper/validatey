@@ -91,6 +91,7 @@ export class CollectResearchDataUseCase {
         autocompleteInsights: autocompleteInsights ?? existing?.autocompleteInsights ?? null,
         synthesisReport: existing?.synthesisReport ?? null,
         assumptionAssessments: existing?.assumptionAssessments ?? null,
+        commentPatternAnalysis: existing?.commentPatternAnalysis ?? null,
         lastResearchRunAt: now,
         updatedAt: now,
       };

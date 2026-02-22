@@ -58,8 +58,53 @@
           @show-details="handleShowDetails"
         />
 
-        <!-- Comment Pattern Analysis -->
-        <CommentPatternsWidget :project-id="projectId" />
+        <!-- Key Assumptions -->
+        <SectionCard v-if="getHypothesisAssumptions().length > 0">
+          <template #header>
+            <h3 class="section-title">Key Assumptions</h3>
+          </template>
+          <div class="key-assumptions-section" role="region" aria-label="Key Assumptions: status and evidence per assumption">
+            <ul class="key-assumptions-list">
+              <li
+                v-for="(assumption, index) in getHypothesisAssumptions()"
+                :key="assumption.id"
+                class="assumption-card"
+                :class="getAssumptionStatus(assumption.id) ? `assumption-card--${getAssumptionStatus(assumption.id)}` : 'assumption-card--pending'"
+              >
+                <div class="assumption-card-inner">
+                  <div class="assumption-card-header">
+                    <p class="assumption-label" v-html="formatMarkdown(assumption.text)"></p>
+                    <span
+                      v-if="getAssumptionStatus(assumption.id)"
+                      :class="['assumption-badge', `assumption-badge--${getAssumptionStatus(assumption.id)}`]"
+                    >
+                      {{ getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more' : 'Not supported' }}
+                    </span>
+                  </div>
+                  <div
+                    v-if="getAssumptionEvidence(assumption.id)"
+                    class="assumption-evidence-wrap"
+                  >
+                    <button
+                      type="button"
+                      class="assumption-evidence-toggle"
+                      :aria-expanded="expandedEvidenceIds.has(assumption.id)"
+                      @click="toggleEvidence(assumption.id)"
+                    >
+                      {{ getEvidenceLabel(assumption.id) }}
+                    </button>
+                    <div
+                      v-if="expandedEvidenceIds.has(assumption.id)"
+                      class="assumption-evidence-content"
+                    >
+                      <p class="assumption-evidence-text formatted-text" v-html="formatMarkdown(getAssumptionEvidence(assumption.id)!)"></p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </SectionCard>
 
         <!-- Research Context -->
         <SectionCard>
@@ -93,49 +138,6 @@
               <div class="text-gray-900 formatted-text" v-html="formatMarkdown(getHypothesisText())"></div>
             </div>
 
-            <div v-if="getHypothesisAssumptions().length > 0" class="key-assumptions-section mb-4" role="region" aria-label="Key Assumptions: status and evidence per assumption">
-              <p class="section-subtitle key-assumptions-title">Key Assumptions</p>
-              <ul class="key-assumptions-list">
-                <li
-                  v-for="(assumption, index) in getHypothesisAssumptions()"
-                  :key="assumption.id"
-                  class="assumption-card"
-                  :class="getAssumptionStatus(assumption.id) ? `assumption-card--${getAssumptionStatus(assumption.id)}` : 'assumption-card--pending'"
-                >
-                  <div class="assumption-card-inner">
-                    <div class="assumption-card-header">
-                      <p class="assumption-label" v-html="formatMarkdown(assumption.text)"></p>
-                      <span
-                        v-if="getAssumptionStatus(assumption.id)"
-                        :class="['assumption-badge', `assumption-badge--${getAssumptionStatus(assumption.id)}`]"
-                      >
-                        {{ getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more' : 'Not supported' }}
-                      </span>
-                    </div>
-                    <div
-                      v-if="getAssumptionEvidence(assumption.id)"
-                      class="assumption-evidence-wrap"
-                    >
-                      <button
-                        type="button"
-                        class="assumption-evidence-toggle"
-                        :aria-expanded="expandedEvidenceIds.has(assumption.id)"
-                        @click="toggleEvidence(assumption.id)"
-                      >
-                        {{ getEvidenceLabel(assumption.id) }}
-                      </button>
-                      <div
-                        v-if="expandedEvidenceIds.has(assumption.id)"
-                        class="assumption-evidence-content"
-                      >
-                        <p class="assumption-evidence-text formatted-text" v-html="formatMarkdown(getAssumptionEvidence(assumption.id)!)"></p>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
             <div v-if="project?.marketContext" class="mb-4">
               <p class="section-subtitle">Market Context</p>
               <div class="space-y-3">
@@ -155,6 +157,9 @@
             </div>
           </div>
         </SectionCard>
+
+        <!-- Comment Pattern Analysis -->
+        <CommentPatternsWidget :project-id="projectId" />
 
         <!-- Decision Pathway -->
         <SectionCard>

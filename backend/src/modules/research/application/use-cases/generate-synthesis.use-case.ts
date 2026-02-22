@@ -113,6 +113,7 @@ export class GenerateSynthesisUseCase {
         autocompleteInsights: stored?.autocompleteInsights ?? null,
         synthesisReport: report,
         assumptionAssessments: stored?.assumptionAssessments ?? null,
+        commentPatternAnalysis: stored?.commentPatternAnalysis ?? null, // Preserve existing analysis
         lastResearchRunAt: stored?.lastResearchRunAt ?? null,
         updatedAt: new Date(),
       };
@@ -123,6 +124,7 @@ export class GenerateSynthesisUseCase {
         const withAssessments: StoredResearchData = {
           ...updatedStored,
           assumptionAssessments: assessmentsResult.data,
+          commentPatternAnalysis: stored?.commentPatternAnalysis ?? null, // Preserve existing analysis
           updatedAt: new Date(),
         };
         await this._researchDataRepository.save(withAssessments);

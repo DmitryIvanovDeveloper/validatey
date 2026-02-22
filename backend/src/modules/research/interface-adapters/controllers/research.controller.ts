@@ -1,5 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import { COMMENT_TYPES } from '../../../comments/types';
 import { ResearchCooldownError, ResearchNotFoundError } from '../../domain/errors/research.error';
 import { GetResearchCanvasUseCase } from '../../application/use-cases/get-research-canvas.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
@@ -11,6 +13,10 @@ import type { CollectResearchDataRequest, CollectResearchDataResponse } from '..
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
 import type { ResearchAssistantRequest, ResearchAssistantResponse } from '../../application/use-cases/input-output/research-assistant.io';
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
+import { AnalyzeCommentPatternsUseCase } from '../../../comments/application/use-cases/analyze-comment-patterns.use-case';
+import type { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
+import type { StoredResearchData } from '../../domain/value-objects/stored-research-data.vo';
+import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 
 @injectable()
@@ -25,7 +31,13 @@ export class ResearchController {
 		@inject(TYPES.CollectResearchDataUseCase)
 		private readonly _collectResearchDataUseCase: CollectResearchDataUseCase,
 		@inject(TYPES.ResearchAssistantUseCase)
-		private readonly _researchAssistantUseCase: ResearchAssistantUseCase
+		private readonly _researchAssistantUseCase: ResearchAssistantUseCase,
+		@inject(COMMENT_TYPES.AnalyzeCommentPatternsUseCase)
+		private readonly _analyzeCommentPatternsUseCase: AnalyzeCommentPatternsUseCase,
+		@inject(TYPES.ResearchDataRepository)
+		private readonly _researchDataRepository: ResearchDataRepositoryPort,
+		@inject(ROOT_TYPES.Logger)
+		private readonly _logger: LoggerPort
 	) {}
 
 	public async getCanvas(request: GetResearchCanvasRequest): Promise<ResultEx<GetResearchCanvasResponse, Error>> {
@@ -33,7 +45,48 @@ export class ResearchController {
 	}
 
 	public async generateSynthesis(request: GenerateSynthesisRequest): Promise<ResultEx<GenerateSynthesisResponse, Error>> {
-		return this._generateSynthesisUseCase.execute(request);
+		// Execute synthesis
+		const synthesisResult = await this._generateSynthesisUseCase.execute(request);
+		if (!synthesisResult.isSuccess) {
+			return synthesisResult;
+		}
+
+		// After successful synthesis, analyze comment patterns and save to research_data
+		try {
+			this._logger.info('research-controller.analyzing-patterns', { projectId: request.projectId });
+			const patternAnalysisResult = await this._analyzeCommentPatternsUseCase.execute(request.projectId);
+			
+			if (patternAnalysisResult.isSuccess) {
+				// Load current research data
+				const storedResult = await this._researchDataRepository.findByProjectId(request.projectId);
+				if (storedResult.isSuccess && storedResult.data) {
+					const updated: StoredResearchData = {
+						...storedResult.data,
+						commentPatternAnalysis: patternAnalysisResult.data,
+						updatedAt: new Date(),
+					};
+					await this._researchDataRepository.save(updated);
+					this._logger.info('research-controller.patterns-saved', { 
+						projectId: request.projectId,
+						patternsCount: patternAnalysisResult.data.patterns.length 
+					});
+				}
+			} else {
+				// Log error but don't fail the synthesis response
+				this._logger.warn('research-controller.pattern-analysis-failed', { 
+					projectId: request.projectId,
+					error: patternAnalysisResult.error 
+				});
+			}
+		} catch (error) {
+			// Log error but don't fail the synthesis response
+			this._logger.warn('research-controller.pattern-analysis-exception', { 
+				projectId: request.projectId,
+				error 
+			});
+		}
+
+		return synthesisResult;
 	}
 
 	public async checkAvailability(request: CheckResearchAvailabilityRequest): Promise<ResultEx<CheckResearchAvailabilityResponse, ResearchNotFoundError | Error>> {
