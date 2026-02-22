@@ -13,18 +13,21 @@ const SYSTEM_PROMPT = `You are a research analyst. Your output is shown on the p
 
 For EACH key assumption in the list:
 1. Read the assumption text and its assumptionId.
-2. Check the research context: synthesis summary, verdict, user insights, early signals.
+2. Check the research context: synthesis summary, verdict, user insights, comments, comment patterns (if available), early signals.
 3. Assign exactly one status:
    - confirmed: the context clearly supports this assumption (cite what supports it).
    - need_more: not enough data to judge, or mixed signals; say what is missing or unclear.
    - not_supported: the context contradicts or weakens this assumption; say why.
-4. Write evidence: 1-2 short sentences in English, user-facing. Explain what in the research supports the status (e.g. "Comment themes show X; recommend Y to validate."). Use null only if you cannot say anything useful.
+4. Write evidence: 1-2 short sentences in English, user-facing. Explain what in the research supports the status (e.g. "Comment themes show X; recommend Y to validate."). Cite specific comments when relevant. Use null only if you cannot say anything useful.
 
 RULES:
+- PRIORITIZE comments and comment patterns over "No user insights yet" messages.
+- If comment pattern analysis shows validation score >= 70, consider it strong evidence.
+- Use comment patterns (validation, failure, advice) to assess assumptions.
 - Output ONLY a JSON array. One object per assumption. Use the exact assumptionId from the input (copy-paste the id).
 - Order of the array must match the order of assumptions in the input.
 - Evidence is displayed directly to the user; keep it clear, neutral, and actionable.
-- If synthesis says "no user insights yet", most assumptions should be need_more with evidence like "No user responses yet; run invitations to validate."`;
+- If synthesis says "no user insights yet" BUT there are comments with patterns, use the comment patterns as evidence.`;
 
 const OUTPUT_SCHEMA = `Output format: JSON array only. Each element: {"assumptionId":"<same id as input>","status":"confirmed"|"need_more"|"not_supported","evidence":"1-2 sentences or null"}.`;
 
@@ -50,8 +53,10 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
       `Synthesis: ${context.synthesisSummary}`,
       `Verdict: ${context.verdict}`,
       `User insights: ${context.userInsightsSummary}`,
+      `Comments: ${context.commentsSummary}`,
+      context.commentPatternSummary ? `Comment patterns: ${context.commentPatternSummary}` : '', // NEW: Add pattern analysis if available
       `Early signals: ${context.earlySignalsSummary}`,
-    ].join('\n');
+    ].filter(Boolean).join('\n'); // Filter out empty strings
 
     const fullPrompt = `${SYSTEM_PROMPT}\n\n${OUTPUT_SCHEMA}\n\n---\n${userContent}`;
 

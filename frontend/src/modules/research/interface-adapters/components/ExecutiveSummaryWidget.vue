@@ -3,16 +3,8 @@
     <div class="section-card signals-card">
       <div class="section-card-header">
         <div class="header-content">
-          <div>
-            <h3 class="section-title">Executive Summary</h3>
-            <p class="section-subtitle">AI-powered research insights</p>
-          </div>
+          <h3 class="section-title">Executive Summary</h3>
           <button v-if="summary?.trim()" @click="handleShowDetails" class="show-details-btn">
-            <span class="btn-icon">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </span>
             <span class="btn-text">Details</span>
           </button>
         </div>
@@ -87,7 +79,7 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .header-content {
@@ -127,29 +119,20 @@ const emit = defineEmits<{
 .show-details-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-accent);
-  color: white;
-  border: none;
+  padding: 0.375rem 0.75rem;
+  background: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
 }
 
 .show-details-btn:hover {
-  background: var(--color-accent-hover);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: var(--color-bg-subtle);
+  border-color: var(--color-accent);
 }
 
 .btn-text {
@@ -179,8 +162,8 @@ const emit = defineEmits<{
 }
 
 .summary-text {
-  font-size: var(--text-base);
-  line-height: var(--leading-relaxed);
+  font-size: 0.9375rem;
+  line-height: 1.5;
   font-weight: var(--font-weight-normal);
   color: var(--color-text);
   margin: 0;

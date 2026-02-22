@@ -2,7 +2,7 @@
   <div class="comment-patterns-widget">
     <!-- Header -->
     <div class="cpw-header">
-      <h3 class="cpw-title">Comment Pattern Analysis</h3>
+          <h3 class="cpw-title">Comment Pattern Analysis</h3>
       <div v-if="analysis" class="cpw-score-badge" :class="scoreBadgeClass">
         {{ scoreLabel }}
       </div>

@@ -38,6 +38,11 @@
           {{ formattedDate }}
         </span>
       </div>
+      <div class="project-card__stats">
+        <AssumptionsWidget :project-id="project.id" />
+        <CommentsWidgetCompact :project-id="project.id" />
+        <ResponsesWidget :project-id="project.id" />
+      </div>
       <footer v-if="$slots.footer" class="project-card__footer">
         <slot name="footer">
           <router-link :to="`/projects/${project.id}`" class="project-card__link" @click.stop>
@@ -55,6 +60,9 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import type { Project, ProjectStatus } from '../../../domain/entities/project.entity';
+import AssumptionsWidget from '../../../../research/interface-adapters/components/AssumptionsWidget.vue';
+import CommentsWidgetCompact from '../../../../comments/interface-adapters/components/CommentsWidgetCompact.vue';
+import ResponsesWidget from '../../../../overview/interface-adapters/components/ResponsesWidget.vue';
 
 const props = defineProps<{
   project: Project;
@@ -110,21 +118,23 @@ const formattedDate = computed(() => {
 .project-card {
   position: relative;
   background: var(--color-bg);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid var(--color-border-light);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   cursor: pointer;
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .project-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.12), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
-  border-color: rgba(13, 148, 136, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.1), 0 2px 6px -2px rgba(15, 23, 42, 0.06);
+  border-color: var(--color-accent-muted);
+  background: var(--color-bg-elevated, var(--color-bg));
 }
 
 .project-card__accent {
@@ -132,6 +142,11 @@ const formattedDate = computed(() => {
   top: 0;
   left: 0;
   right: 0;
+  height: 3px;
+  transition: height 0.2s ease;
+}
+
+.project-card:hover .project-card__accent {
   height: 4px;
 }
 
@@ -152,7 +167,10 @@ const formattedDate = computed(() => {
 }
 
 .project-card__inner {
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .project-card__header {
@@ -160,14 +178,13 @@ const formattedDate = computed(() => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
 }
 
 .project-card__title {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--color-text);
-  line-height: 1.35;
+  line-height: 1.4;
   margin: 0;
   flex: 1;
   min-width: 0;
@@ -175,7 +192,9 @@ const formattedDate = computed(() => {
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
+  letter-spacing: -0.01em;
 }
 
 .project-card__status {
@@ -209,22 +228,44 @@ const formattedDate = computed(() => {
 }
 
 .project-card__meta {
-  margin-bottom: 1rem;
+  margin: 0;
+}
+
+.project-card__stats {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border-light);
+  margin: 0;
+  flex-wrap: wrap;
+  background: var(--color-bg-subtle, rgba(0, 0, 0, 0.015));
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  border-radius: 0 0 12px 12px;
+  transition: background-color 0.2s ease;
+}
+
+.project-card:hover .project-card__stats {
+  background: var(--color-bg-subtle, rgba(0, 0, 0, 0.025));
 }
 
 .project-card__date {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
+  gap: 0.375rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .project-card__date-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .project-card__footer {
@@ -232,7 +273,8 @@ const formattedDate = computed(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
+  margin-top: 0;
   border-top: 1px solid var(--color-border-light);
 }
 

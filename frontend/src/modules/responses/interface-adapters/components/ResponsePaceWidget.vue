@@ -2,7 +2,7 @@
   <div class="response-pace-widget">
     <div class="section-card signals-card">
       <div class="section-card-header">
-        <h3 class="section-title">Response Pace</h3>
+          <h3 class="section-title">Response Pace</h3>
       </div>
 
       <!-- Loading state -->
@@ -69,12 +69,12 @@
 
         <!-- Insights -->
         <div v-if="insights.length > 0" class="pace-insights">
-          <div
-            v-for="insight in insights"
-            :key="insight.id"
-            class="insight-item"
-          >
-            <p class="insight-text">{{ insight.message }}</p>
+            <div
+              v-for="insight in insights"
+              :key="insight.id"
+              class="insight-item"
+            >
+              <p class="insight-text">{{ insight.message }}</p>
           </div>
         </div>
       </div>

@@ -25,6 +25,7 @@ import type {
 } from './input-output/generate-synthesis.io';
 import type { Response } from '../../../responses/domain/entities/response.entity';
 import { CommentEntity } from '../../../comments/domain/entities/comment.entity';
+import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 
 @injectable()
 export class GenerateSynthesisUseCase {
@@ -84,6 +85,15 @@ export class GenerateSynthesisUseCase {
       const comments = commentsResult.isSuccess ? commentsResult.data : [];
       const commentsSummary = this.summarizeComments(comments);
 
+      // Get comment pattern analysis from stored research data (через порт)
+      const commentPatternAnalysis = stored?.commentPatternAnalysis ?? null;
+      const commentPatternSummary = this.summarizeCommentPatternAnalysis(commentPatternAnalysis);
+
+      // Extract pain points from both responses and comments (using pattern analysis if available)
+      const painPointsFromResponses = this.extractPainPointsFromResponses(responses);
+      const painPointsFromComments = this.extractPainPointsFromComments(comments, commentPatternAnalysis);
+      const allPainPoints = [...new Set([...painPointsFromResponses, ...painPointsFromComments])].slice(0, 5);
+
       const earlySignalsSummary =
         signals.length > 0
           ? signals.map((s) => `[${s.type}] ${s.title}: ${s.description}`).join('. ')
@@ -97,6 +107,7 @@ export class GenerateSynthesisUseCase {
         autocompleteSummary,
         userInsightsSummary,
         commentsSummary,
+        commentPatternSummary, // NEW: Pass pattern analysis summary
         earlySignalsSummary,
       });
 
@@ -105,13 +116,24 @@ export class GenerateSynthesisUseCase {
       }
 
       const report: SynthesisReport = llmResult.data;
+
+      // Adjust verdict based on comment pattern validation score (Domain логика)
+      const adjustedReport = this.adjustVerdictByCommentPatterns(report, commentPatternAnalysis, comments.length);
+      
+      // Build user insights with pain points from both responses and comments
+      const userInsights = {
+        topPains: allPainPoints.length > 0 ? allPainPoints : stored?.userInsights?.topPains ?? undefined,
+        wtp: stored?.userInsights?.wtp,
+        retentionHint: stored?.userInsights?.retentionHint,
+      };
+
       const updatedStored: StoredResearchData = {
         projectId,
         marketData: stored?.marketData ?? null,
         competitorData: stored?.competitorData ?? null,
-        userInsights: stored?.userInsights ?? null,
+        userInsights: userInsights.topPains || userInsights.wtp || userInsights.retentionHint ? userInsights : null,
         autocompleteInsights: stored?.autocompleteInsights ?? null,
-        synthesisReport: report,
+        synthesisReport: adjustedReport, // Use adjusted report
         assumptionAssessments: stored?.assumptionAssessments ?? null,
         commentPatternAnalysis: stored?.commentPatternAnalysis ?? null, // Preserve existing analysis
         lastResearchRunAt: stored?.lastResearchRunAt ?? null,
@@ -308,6 +330,148 @@ export class GenerateSynthesisUseCase {
     }
 
     return parts.length > 0 ? parts.join('. ') : 'Comments collected but no clear themes identified';
+  }
+
+  /**
+   * Extract pain points from survey responses.
+   * Looks for responses with themes related to pain, problems, annoyances, or frustration.
+   */
+  private extractPainPointsFromResponses(responses: Response[]): string[] {
+    if (!responses || responses.length === 0) {
+      return [];
+    }
+
+    const painPoints: string[] = [];
+    const painKeywords = ['pain', 'problem', 'annoying', 'frustrat', 'difficult', 'issue', 'challenge', 'struggle', 'hate', 'bad'];
+
+    for (const response of responses) {
+      for (const [questionId, answer] of Object.entries(response.answers)) {
+        if (typeof answer === 'string' && answer.trim().length > 0) {
+          const answerLower = answer.toLowerCase();
+          const hasPainKeyword = painKeywords.some(keyword => answerLower.includes(keyword));
+          
+          if (hasPainKeyword) {
+            // Extract a concise pain point (first 150 chars)
+            const painPoint = answer.trim().substring(0, 150);
+            if (painPoint && !painPoints.includes(painPoint)) {
+              painPoints.push(painPoint);
+            }
+          }
+        }
+      }
+    }
+
+    return painPoints;
+  }
+
+  /**
+   * Extract pain points from comments.
+   * Uses pattern analysis if available, otherwise falls back to keyword matching.
+   */
+  private extractPainPointsFromComments(
+    comments: CommentEntity[],
+    patternAnalysis: CommentPatternAnalysis | null
+  ): string[] {
+    if (!comments || comments.length === 0) {
+      return [];
+    }
+
+    const extractedPains: string[] = [];
+
+    // PRIORITY: Use pattern analysis to extract pain points from "failure" and "validation" patterns
+    if (patternAnalysis) {
+      const failurePatterns = patternAnalysis.patterns.filter(p => p.type === 'failure');
+      const validationPatterns = patternAnalysis.patterns.filter(p => p.type === 'validation');
+
+      // Extract from pattern examples (более качественные примеры)
+      for (const pattern of [...failurePatterns, ...validationPatterns]) {
+        for (const example of pattern.examples.slice(0, 2)) {
+          if (example.content.length > 20 && example.content.length < 200) {
+            extractedPains.push(example.content);
+          }
+        }
+      }
+    }
+
+    // FALLBACK: Use keyword matching if no pattern analysis or not enough pain points found
+    if (extractedPains.length === 0) {
+      const painKeywords = ['pain', 'problem', 'annoying', 'frustrat', 'difficult', 'issue', 'challenge', 'struggle', 'hate', 'bad', 'sucks', 'terrible', 'awful', 'worst'];
+
+      for (const comment of comments) {
+        if (!comment.content || comment.content.trim().length === 0) {
+          continue;
+        }
+
+        const contentLower = comment.content.toLowerCase();
+        const hasPainKeyword = painKeywords.some(keyword => contentLower.includes(keyword));
+        
+        if (hasPainKeyword) {
+          // Extract a concise pain point (first 150 chars)
+          const painPoint = comment.content.trim().substring(0, 150);
+          if (painPoint && !extractedPains.includes(painPoint)) {
+            extractedPains.push(painPoint);
+          }
+        }
+      }
+    }
+
+    return extractedPains.slice(0, 5); // Limit to 5
+  }
+
+  /**
+   * Summarize comment pattern analysis for LLM context.
+   * Converts CommentPatternAnalysis into a text summary.
+   */
+  private summarizeCommentPatternAnalysis(
+    analysis: CommentPatternAnalysis | null
+  ): string | undefined {
+    if (!analysis || analysis.patterns.length === 0) {
+      return undefined; // Optional field - не передаем, если нет данных
+    }
+
+    const parts: string[] = [];
+    parts.push(`Comment validation score: ${analysis.validationScore}/100 (${analysis.totalComments} comments analyzed)`);
+
+    // Group patterns by type for better context
+    const byType: Record<string, Array<typeof analysis.patterns[number]>> = {};
+    for (const pattern of analysis.patterns) {
+      if (!byType[pattern.type]) {
+        byType[pattern.type] = [];
+      }
+      byType[pattern.type].push(pattern);
+    }
+
+    // Add key insights from top patterns
+    for (const [type, patterns] of Object.entries(byType)) {
+      const topPattern = patterns[0]; // Most common pattern of this type
+      parts.push(
+        `${type}: ${topPattern.label} (${topPattern.count} comments, ${topPattern.percentage}%) - ${topPattern.insight}`
+      );
+    }
+
+    return parts.join('. ');
+  }
+
+  /**
+   * Adjust verdict based on comment pattern validation score.
+   * Domain logic: if validation score is high and comments are sufficient, upgrade verdict.
+   */
+  private adjustVerdictByCommentPatterns(
+    report: SynthesisReport,
+    patternAnalysis: CommentPatternAnalysis | null,
+    commentCount: number
+  ): SynthesisReport {
+    // Если validation score высокий и комментариев достаточно - повышаем уверенность
+    if (patternAnalysis && patternAnalysis.validationScore >= 70 && commentCount >= 50) {
+      if (report.verdict === 'needs-more-data') {
+        return {
+          ...report,
+          verdict: 'validated' as const,
+          summary: `${report.summary} Strong validation signals from ${commentCount} comments (validation score: ${patternAnalysis.validationScore}/100).`,
+        };
+      }
+    }
+    return report; // Без изменений
   }
 
   private summarizeMarket(

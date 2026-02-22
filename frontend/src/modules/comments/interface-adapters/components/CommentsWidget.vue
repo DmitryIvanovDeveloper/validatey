@@ -2,18 +2,7 @@
   <div class="comments-widget">
     <div class="section-card signals-card">
       <div class="section-card-header">
-        <span class="section-icon section-icon-signals" aria-hidden="true">
-          <svg viewBox="0 0 24 24" class="w-5 h-5">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            <circle cx="9" cy="10" r="1"/>
-            <circle cx="12" cy="10" r="1"/>
-            <circle cx="15" cy="10" r="1"/>
-          </svg>
-        </span>
-        <div>
-          <h3 class="section-title">Comments Overview</h3>
-          <p class="section-subtitle">Collected comments from all sources</p>
-        </div>
+        <h3 class="section-title">Comments Overview</h3>
       </div>
 
       <!-- Loading state -->
@@ -41,60 +30,38 @@
 
       <!-- Content -->
       <div v-else class="comments-content">
-
-        <!-- Source breakdown -->
-        <div v-if="sourceStats.length > 0" class="source-breakdown">
-          <h4 class="breakdown-title">By Source</h4>
-          <div class="source-stats">
+        <!-- Progress bars for each source -->
+        <div v-if="overviewData.totalComments > 0 && sourceStats.length > 0" class="comments-progress-section">
+          <div class="comments-progress-header">
+            <span class="comments-total">{{ overviewData.totalComments }}</span>
+            <span class="comments-label">comments</span>
+          </div>
+          <div class="comments-sources-list">
             <div
               v-for="stat in sourceStats"
               :key="stat.source"
-              class="source-stat"
-              :class="stat.source.toLowerCase()"
+              class="comments-source-item"
             >
-              <div class="source-info">
-                <img
-                  v-if="stat.source === 'reddit'"
-                  src="@/assets/icons/reddit-logo-2436.svg"
-                  alt="Reddit"
-                  class="source-icon reddit-icon"
-                />
-                <img
-                  v-else-if="stat.source === 'hackernews'"
-                  src="@/assets/icons/hacker-news.svg"
-                  alt="Hacker News"
-                  class="source-icon hn-icon"
-                />
-                <div
-                  v-else
-                  class="source-icon unknown-icon"
-                >
-                  <svg viewBox="0 0 24 24" class="w-5 h-5">
-                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <path d="M12 8v4M12 16h.01"/>
-                  </svg>
-                </div>
-                <span class="source-name">
+              <div class="comments-source-header">
+                <span class="comments-source-name">
                   {{ stat.source === 'reddit' ? 'Reddit' : stat.source === 'hackernews' ? 'Hacker News' : 'Unknown' }}
                 </span>
+                <span class="comments-source-count">{{ stat.count }}</span>
               </div>
-              <span class="source-count">{{ stat.count }}</span>
+              <div class="comments-progress-bar">
+                <div
+                  class="comments-progress-segment"
+                  :class="stat.source.toLowerCase()"
+                  :style="{ width: `${(stat.count / overviewData.totalComments) * 100}%` }"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Empty state -->
         <div v-else class="empty-state">
-          <div class="empty-icon">
-            <svg viewBox="0 0 24 24" class="w-8 h-8">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              <circle cx="9" cy="10" r="1"/>
-              <circle cx="12" cy="10" r="1"/>
-              <circle cx="15" cy="10" r="1"/>
-            </svg>
-          </div>
           <p class="empty-text">No comments collected yet</p>
-          <p class="empty-desc">Add sources and run comment collection to see data here</p>
         </div>
       </div>
     </div>
@@ -176,88 +143,83 @@ defineExpose({
   /* Content padding removed - now handled by section-card */
 }
 
-.comments-metrics {
-  margin-bottom: 1.5rem;
+.comments-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-
-.source-breakdown {
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  padding-top: 1.25rem;
+.comments-progress-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
-.breakdown-title {
-  font-size: 0.875rem;
+.comments-total {
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-text-secondary);
-  margin: 0 0 1rem 0;
+  color: var(--color-text);
 }
 
-.source-stats {
+.comments-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.comments-sources-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.source-stat {
+.comments-source-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.comments-source-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 0.5rem;
 }
 
-.source-stat.reddit {
-  border-color: rgba(255, 69, 0, 0.2);
-}
-
-.source-stat.hackernews {
-  border-color: rgba(255, 102, 0, 0.2);
-}
-
-.source-stat.unknown {
-  border-color: rgba(108, 117, 125, 0.2);
-}
-
-.unknown-icon {
-  background: var(--color-text-muted);
-  color: white;
-}
-
-.source-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.source-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-  max-width: 1.125rem;
-  max-height: 1.125rem;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.reddit-icon,
-.hn-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.source-name {
-  font-size: 0.875rem;
+.comments-source-name {
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--color-text);
 }
 
-.source-count {
-  font-size: 1rem;
+.comments-source-count {
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-accent);
+  color: var(--color-text-muted);
+}
+
+.comments-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-bg-subtle);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.comments-progress-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.comments-progress-segment.reddit {
+  background: #ff4500;
+}
+
+.comments-progress-segment.hackernews {
+  background: #ff6600;
+}
+
+.comments-progress-segment.unknown {
+  background: var(--color-text-muted);
 }
 
 .empty-state {
@@ -265,27 +227,15 @@ defineExpose({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem;
   text-align: center;
   color: var(--color-text-muted);
 }
 
-.empty-icon {
-  opacity: 0.6;
-  margin-bottom: 1rem;
-}
-
 .empty-text {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 0.5rem 0;
-}
-
-.empty-desc {
   font-size: 0.875rem;
+  color: var(--color-text-muted);
   margin: 0;
-  max-width: 250px;
 }
 
 /* Loading state styles */
@@ -374,7 +324,7 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   padding: 0;
 }
 

@@ -10,6 +10,7 @@ export interface SynthesisInput {
   autocompleteSummary: string;
   userInsightsSummary: string;
   commentsSummary: string;
+  commentPatternSummary?: string; // Optional: Comment pattern analysis summary
   earlySignalsSummary: string;
 }
 

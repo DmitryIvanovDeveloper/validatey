@@ -14,5 +14,7 @@ export interface GetResearchCanvasResponse {
     slug: string;
     description: string;
   };
+  readonly assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported')[] | null;
+  readonly assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
   readonly error?: string;
 }

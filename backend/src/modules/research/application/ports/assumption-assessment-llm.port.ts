@@ -10,6 +10,8 @@ export interface AssumptionAssessmentContext {
 	readonly synthesisSummary: string;
 	readonly verdict: string;
 	readonly userInsightsSummary: string;
+	readonly commentsSummary: string;
+	readonly commentPatternSummary?: string; // Optional: Comment pattern analysis summary
 	readonly earlySignalsSummary: string;
 }
 

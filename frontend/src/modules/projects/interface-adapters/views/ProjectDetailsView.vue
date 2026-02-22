@@ -28,11 +28,12 @@
         </div>
 
 
-        <!-- AI Suggestion Banner -->
+        <!-- AI Suggestion Banner (Hidden) -->
         <div
-          v-if="newRoundSuggestion && !showSuccessBanner"
+          v-if="false"
           class="new-round-banner"
           id="new-round"
+          style="display: none;"
         >
           <div class="new-round-banner-icon">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
@@ -41,7 +42,7 @@
           </div>
           <div class="new-round-banner-body">
             <p class="new-round-banner-title">AI suggests starting a new round</p>
-            <p class="new-round-banner-hint">{{ newRoundSuggestion.hint }}</p>
+            <p class="new-round-banner-hint">{{ newRoundSuggestion?.hint || '' }}</p>
           </div>
           <button class="new-round-banner-btn" @click="openNewRoundModal()">
             + New Round
@@ -64,6 +65,22 @@
           :loading="executiveSummaryLoading"
           @show-details="handleShowDetails"
         />
+
+        <!-- Hypothesis -->
+        <SectionCard v-if="getHypothesisText() && getHypothesisText() !== 'Not specified'">
+          <template #header>
+            <div class="hypothesis-header">
+              <h3 class="section-title">Hypothesis</h3>
+              <span
+                v-if="hypothesisOverallStatus"
+                :class="['hypothesis-status-badge', `hypothesis-status-badge--${hypothesisOverallStatus}`]"
+              >
+                {{ hypothesisOverallStatus === 'confirmed' ? 'Confirmed' : hypothesisOverallStatus === 'need_more' ? 'Need more' : 'Not supported' }}
+              </span>
+            </div>
+          </template>
+          <div class="hypothesis-content formatted-text" v-html="formatMarkdown(getHypothesisText())"></div>
+        </SectionCard>
 
         <!-- Key Assumptions -->
         <SectionCard v-if="getHypothesisAssumptions().length > 0">
@@ -113,8 +130,8 @@
           </div>
         </SectionCard>
 
-        <!-- Research Context -->
-        <SectionCard>
+        <!-- Research Context (Hidden) -->
+        <SectionCard v-if="false" style="display: none;">
           <template #header>
             <div class="flex items-center justify-between">
               <h3 class="section-title">Research Context</h3>
@@ -148,17 +165,17 @@
             <div v-if="project?.marketContext" class="mb-4">
               <p class="section-subtitle">Market Context</p>
               <div class="space-y-3">
-                <div v-if="project.marketContext.marketPicture" class="bg-blue-50 p-3 rounded-lg">
+                <div v-if="project?.marketContext?.marketPicture" class="bg-blue-50 p-3 rounded-lg">
                   <div class="text-sm font-medium text-blue-800 mb-1">Market Picture</div>
-                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project.marketContext.marketPicture)"></div>
+                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project?.marketContext?.marketPicture || '')"></div>
                 </div>
-                <div v-if="project.marketContext.marketFit" class="bg-green-50 p-3 rounded-lg">
+                <div v-if="project?.marketContext?.marketFit" class="bg-green-50 p-3 rounded-lg">
                   <div class="text-sm font-medium text-green-800 mb-1">Market Fit</div>
-                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project.marketContext.marketFit)"></div>
+                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project?.marketContext?.marketFit || '')"></div>
                 </div>
-                <div v-if="project.marketContext.differentiation" class="bg-purple-50 p-3 rounded-lg">
+                <div v-if="project?.marketContext?.differentiation" class="bg-purple-50 p-3 rounded-lg">
                   <div class="text-sm font-medium text-purple-800 mb-1">Differentiation</div>
-                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project.marketContext.differentiation)"></div>
+                  <div class="text-gray-700 formatted-text" v-html="formatMarkdown(project?.marketContext?.differentiation || '')"></div>
                 </div>
               </div>
             </div>
@@ -166,27 +183,20 @@
         </SectionCard>
 
         <!-- Decision Pathway -->
-        <SectionCard>
+        <SectionCard v-if="overviewData?.decisionPathway?.steps && overviewData.decisionPathway.steps.length > 0">
           <template #header>
             <h3 class="section-title">Decision Pathway</h3>
           </template>
-          <div class="space-y-3">
-            <div v-for="step in overviewData?.decisionPathway?.steps" :key="step.id" class="flex items-start gap-3">
-              <div :class="['w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border-2', step.status === 'done' ? 'bg-green-600 border-green-600' : step.status === 'in_progress' ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300']">
-                <CheckCircle v-if="step.status === 'done'" class="w-4 h-4 text-white" />
-                <div v-else-if="step.status === 'in_progress'" class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                <div v-else class="w-3 h-3 bg-gray-600 rounded-full"></div>
-              </div>
-              <div>
-                <div :class="['font-medium', step.status === 'done' ? 'text-gray-900' : 'text-gray-600']">
+          <div class="decision-pathway-list">
+            <div v-for="step in overviewData.decisionPathway.steps" :key="step.id" class="decision-pathway-step">
+              <div :class="['decision-pathway-indicator', `decision-pathway-indicator--${step.status}`]"></div>
+              <div class="decision-pathway-content">
+                <span :class="['decision-pathway-label', `decision-pathway-label--${step.status}`]">
                   {{ step.label }}
-                </div>
-                <div class="text-sm text-gray-500 flex items-center gap-2">
-                  <span>{{ step.progress }}</span>
-                  <router-link v-if="step.actionHref" :to="step.actionHref" class="text-blue-600 hover:text-blue-800 text-xs">
-                    {{ step.status === 'pending' ? 'Start' : step.status === 'in_progress' ? 'Continue' : 'View' }}
-                  </router-link>
-                </div>
+                </span>
+                <router-link v-if="step.actionHref" :to="step.actionHref" class="decision-pathway-link">
+                  {{ step.status === 'pending' ? 'Start' : step.status === 'in_progress' ? 'Continue' : 'View' }}
+                </router-link>
               </div>
             </div>
           </div>
@@ -804,6 +814,9 @@ async function formatResearchContext() {
       formattedData.differentiation = response.formatted;
     }
 
+    // Get current assumptions to preserve them
+    const currentAssumptions = getHypothesisAssumptions().map(a => a.text);
+    
     // Update project data with formatted texts
     await presenter.updateProject(
       projectId,
@@ -811,7 +824,7 @@ async function formatResearchContext() {
       formattedData.segmentDescription,
       undefined, // segmentDemographics
       formattedData.hypothesisDescription,
-      undefined, // hypothesisAssumptions
+      currentAssumptions.length > 0 ? currentAssumptions : undefined, // hypothesisAssumptions - preserve existing
       undefined, // status
       formattedData.marketPicture || formattedData.marketFit || formattedData.differentiation ? {
         marketPicture: formattedData.marketPicture,
@@ -2712,7 +2725,120 @@ watch(project, (p) => {
   margin-bottom: 1rem;
 }
 
+/* Hypothesis */
+.hypothesis-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hypothesis-content {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.hypothesis-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.hypothesis-status-badge--confirmed {
+  background: var(--color-success-bg, #d1fae5);
+  color: var(--color-success, #059669);
+}
+
+.hypothesis-status-badge--need_more {
+  background: var(--color-warning-bg, #fef3c7);
+  color: var(--color-warning, #d97706);
+}
+
+.hypothesis-status-badge--not_supported {
+  background: var(--color-error-bg, #fee2e2);
+  color: var(--color-error, #dc2626);
+}
+
 /* Decision Pathway */
+.decision-pathway-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.decision-pathway-step {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.decision-pathway-indicator {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: none;
+}
+
+.decision-pathway-indicator--done {
+  background: #059669;
+}
+
+.decision-pathway-indicator--in_progress {
+  background: #2563eb;
+}
+
+.decision-pathway-indicator--pending {
+  background: #d1d5db;
+}
+
+.decision-pathway-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.decision-pathway-label {
+  font-size: 0.875rem;
+  font-weight: 400;
+  flex: 1;
+  min-width: 0;
+}
+
+.decision-pathway-label--done {
+  color: var(--color-text);
+}
+
+.decision-pathway-label--in_progress {
+  color: var(--color-text);
+}
+
+.decision-pathway-label--pending {
+  color: var(--color-text-muted);
+}
+
+.decision-pathway-link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.decision-pathway-link:hover {
+  text-decoration: underline;
+}
+
+/* Legacy Decision Pathway styles (kept for compatibility) */
 .decision-steps {
   display: flex;
   flex-direction: column;

@@ -18,6 +18,7 @@ import type {
   CompetitorInfoBlock,
   UserInsightsBlock,
   StoredResearchData,
+  AssumptionAssessment,
 } from '../../domain/value-objects';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
 import type {
@@ -81,12 +82,13 @@ export class GetResearchCanvasUseCase {
       const synthesisReport = stored?.synthesisReport ?? null;
       const recommendedTemplate = this.getRecommendedTemplate(project.scenarioTemplateSlug ?? 'wtp');
       const projectHypothesis = project.hypothesis?.description ?? undefined;
+      const assumptionAssessments = stored?.assumptionAssessments ?? null;
+      
       const assumptionStatuses = this.buildAssumptionStatuses(
         project.hypothesis?.assumptions ?? [],
+        assumptionAssessments,
         synthesisReport?.verdict
       );
-
-      const assumptionAssessments = stored?.assumptionAssessments ?? null;
 
       return ResultEx.success({
         canvas,
@@ -124,15 +126,79 @@ export class GetResearchCanvasUseCase {
 
   /**
    * Build per-assumption status list. Same order as project.hypothesis.assumptions.
-   * For now uses overall synthesis verdict for all; later can be replaced by LLM/rules per assumption.
+   * Uses individual assumptionAssessments if available, otherwise uses overall verdict for all.
+   * If assumptions array is empty but assessments exist, returns statuses from assessments.
    */
   private buildAssumptionStatuses(
     assumptions: ReadonlyArray<{ id: string; text: string }>,
+    assessments: AssumptionAssessment[] | null,
     verdict: string | undefined
   ): AssumptionStatus[] | null {
-    if (assumptions.length === 0) return null;
+    // Если есть assessments, но нет assumptions - используем assessments напрямую
+    if (assumptions.length === 0) {
+      if (assessments && assessments.length > 0) {
+        this._logger.debug('buildAssumptionStatuses: No assumptions in project, using assessments directly', {
+          assessmentsCount: assessments.length,
+        });
+        // Возвращаем статусы из assessments в порядке их появления
+        return assessments.map(a => a.status);
+      }
+      return null;
+    }
+    
+    // Если есть индивидуальные assessments, используем их
+    if (assessments && assessments.length > 0) {
+      // Создаем map для быстрого поиска по assumptionId
+      const assessmentMap = new Map(
+        assessments.map(a => [a.assumptionId, a.status])
+      );
+      
+      // Возвращаем статусы в том же порядке, что и assumptions
+      const statuses = assumptions.map(assumption => {
+        const status = assessmentMap.get(assumption.id);
+        return status || null;
+      });
+      
+      // Если все статусы найдены, возвращаем массив
+      if (statuses.every(s => s !== null)) {
+        this._logger.debug('buildAssumptionStatuses: Using assessments', {
+          assumptionsCount: assumptions.length,
+          assessmentsCount: assessments.length,
+          statuses: statuses,
+        });
+        return statuses as AssumptionStatus[];
+      }
+      
+      // Если не все найдены, логируем предупреждение и используем fallback
+      this._logger.warn('buildAssumptionStatuses: Not all assumptions have assessments, using verdict fallback', {
+        assumptionsCount: assumptions.length,
+        assessmentsCount: assessments.length,
+        missingIds: assumptions
+          .filter(a => !assessmentMap.has(a.id))
+          .map(a => a.id),
+      });
+    } else {
+      this._logger.debug('buildAssumptionStatuses: No assessments available, using verdict fallback', {
+        assumptionsCount: assumptions.length,
+        hasAssessments: !!assessments,
+        verdict: verdict,
+      });
+    }
+    
+    // Fallback: используем общий verdict для всех assumptions
     const status = this.verdictToAssumptionStatus(verdict);
-    if (!status) return null;
+    if (!status) {
+      this._logger.debug('buildAssumptionStatuses: No verdict available, returning null', {
+        assumptionsCount: assumptions.length,
+      });
+      return null;
+    }
+    
+    this._logger.debug('buildAssumptionStatuses: Using verdict fallback', {
+      assumptionsCount: assumptions.length,
+      status: status,
+    });
+    
     return assumptions.map(() => status);
   }
 
