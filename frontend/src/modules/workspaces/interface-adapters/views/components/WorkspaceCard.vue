@@ -44,6 +44,9 @@
     </div>
 
     <div class="workspace-card__footer">
+      <div class="workspace-card__footer-actions">
+        <slot name="footer-actions" />
+      </div>
       <Button
         type="button"
         variant="primary"
@@ -309,6 +312,44 @@ const formatDate = (date: Date) => {
 .workspace-card__footer {
   border-top: 1px solid #e1e5e9;
   padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.workspace-card__footer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.workspace-card__footer-actions :deep(.workspace-create-project-btn) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0d9488;
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s;
+  flex: 1;
+  cursor: pointer;
+}
+
+.workspace-card__footer-actions :deep(.workspace-create-project-btn:hover) {
+  background: #ccfbf1;
+  border-color: #5eead4;
+  color: #0f766e;
+}
+
+.workspace-card__footer-actions :deep(.workspace-create-project-btn svg) {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
 }
 
 .workspace-card__select-btn {

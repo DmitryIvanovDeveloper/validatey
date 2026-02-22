@@ -42,6 +42,7 @@
               {{ showPassword ? 'Hide' : 'Show' }}
             </button>
           </div>
+          <p v-if="isRegister" class="field-hint">Minimum 8 characters</p>
         </label>
         <button
           type="submit"
@@ -280,6 +281,13 @@ async function handleGoogleSignIn() {
 
 .field-password-toggle:hover {
   color: #111;
+}
+
+.field-hint {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0;
 }
 
 .btn-primary {

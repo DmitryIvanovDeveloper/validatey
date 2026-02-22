@@ -112,7 +112,12 @@ interface Props {
   externalLoading?: boolean;
 }
 
+interface Emits {
+  (e: 'comments-loaded', count: number): void;
+}
+
 const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
 
 // Reactive data
 const loading = ref(false);
@@ -142,6 +147,7 @@ const loadComments = async () => {
       error.value = result.error;
     } else {
       overviewData.value = result.data;
+      emit('comments-loaded', result.data.totalComments || 0);
     }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to load comments overview';

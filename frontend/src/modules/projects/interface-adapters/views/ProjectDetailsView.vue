@@ -48,6 +48,13 @@
           </button>
         </div>
 
+        <!-- Getting Started Guide -->
+        <GettingStartedWidget
+          :project-id="projectId"
+          :has-research="!!researchData?.synthesisReport"
+          :has-comments="hasCommentsData"
+        />
+
         <!-- How to read Overview (for beginners) -->
         <OverviewGuideWidget />
 
@@ -158,9 +165,6 @@
           </div>
         </SectionCard>
 
-        <!-- Comment Pattern Analysis -->
-        <CommentPatternsWidget :project-id="projectId" />
-
         <!-- Decision Pathway -->
         <SectionCard>
           <template #header>
@@ -215,7 +219,14 @@
         <ResponsePaceWidget ref="responsePaceRef" :project-id="projectId" :target-pace="5" :external-loading="widgetsLoading" />
 
         <!-- Comments Overview -->
-        <CommentsWidget :project-id="projectId" :external-loading="widgetsLoading" />
+        <CommentsWidget
+          :project-id="projectId"
+          :external-loading="widgetsLoading"
+          @comments-loaded="handleCommentsLoaded"
+        />
+
+        <!-- Comment Pattern Analysis -->
+        <CommentPatternsWidget :project-id="projectId" />
 
         <!-- Learning Journey -->
         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
@@ -406,6 +417,10 @@ const executiveSummaryLoading = ref(false);
 const widgetsLoading = ref(false); // External loading state for Pain Points and Response Pace widgets
 const isShowDetailsModalOpen = ref(false);
 const researchContextFormatting = ref(false);
+const commentsCount = ref<number>(0);
+
+// Check if project has comments data
+const hasCommentsData = computed(() => commentsCount.value > 0);
 
 /** Overall hypothesis status from research synthesis (fallback when no per-assumption data). */
 type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | null;
@@ -825,6 +840,10 @@ function handleResearchCompleted() {
   widgetsLoading.value = false; // Hide loading in Pain Points and Response Pace widgets
   // Reload research data to get updated summary
   loadResearchData();
+}
+
+function handleCommentsLoaded(count: number) {
+  commentsCount.value = count;
 }
 
 function handleShowDetails() {
