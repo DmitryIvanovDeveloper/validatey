@@ -346,24 +346,10 @@
             <div v-if="showCommentsSidebar" class="detail-overlay" @click.self="closeCommentsSidebar">
               <div class="detail-panel comments-panel">
                 <div class="detail-header">
-                  <div class="detail-header-content">
-                    <div class="header-info">
-                      <h3>{{ commentsFilterUrl ? 'Comments for URL' : 'All Comments' }}</h3>
-                      <div class="comment-count-badge">
-                        {{ filteredComments.length }}
-                      </div>
-                    </div>
-                    <div class="fair-use-notice">
-                      <small>Content shown under Fair Use for research purposes. Full comments available via "View Source" links.</small>
-                    </div>
-                    <div v-if="commentsFilterUrl" class="header-actions">
-                      <button @click="openCommentsSidebar" class="btn-outline btn-sm">
-                        <svg viewBox="0 0 24 24" class="btn-icon">
-                          <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
-                          <line x1="8" y1="5" x2="8" y2="5"/>
-                        </svg>
-                        Show All Comments
-                      </button>
+                  <div class="header-info">
+                    <h3>{{ commentsFilterUrl ? 'Comments' : 'All Comments' }}</h3>
+                    <div class="comment-count-badge">
+                      {{ filteredComments.length }}
                     </div>
                   </div>
                   <button type="button" class="btn-close" aria-label="Close" @click="closeCommentsSidebar">
@@ -381,55 +367,35 @@
                   </div>
                   <div v-else class="comments-list-sidebar">
                     <div
-                      v-for="(comment, index) in filteredComments"
+                      v-for="comment in filteredComments"
                       :key="comment.id"
                       class="comment-item-sidebar"
-                      :style="{ animationDelay: `${index * 0.1}s` }"
                     >
-                      <!-- Comment Header with improved layout -->
+                      <!-- Comment Header -->
                       <div class="comment-header-sidebar">
-                        <div class="comment-meta">
-                          <div class="comment-author-section">
-                            <span class="source-badge" :class="comment.sourceType">
-                              <span class="source-icon">{{ comment.sourceType === 'reddit' ? 'R' : 'Y' }}</span>
-                            </span>
-                            <span class="author-name">{{ comment.author || 'Anonymous' }}</span>
-                            <span class="comment-separator">•</span>
-                            <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
-                          </div>
+                        <div class="comment-author-section">
+                          <span class="source-badge" :class="comment.sourceType">
+                            {{ comment.sourceType === 'reddit' ? 'R' : 'HN' }}
+                          </span>
+                          <span class="author-name">{{ comment.author || 'Anonymous' }}</span>
+                          <span class="comment-separator">•</span>
+                          <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
                         </div>
                       </div>
 
-                      <!-- Comment Content with better typography -->
+                      <!-- Comment Content -->
                       <div class="comment-content-sidebar">
                         {{ truncateForFairUse(comment.content) }}
-                        <span v-if="comment.content.length > 500" class="fair-use-indicator">
-                          [Content truncated for Fair Use - click "View Source" for full text]
-                        </span>
-                      </div>
-
-                      <!-- Context information -->
-                      <div v-if="comment.contextTitle" class="comment-context-sidebar">
-                        <div class="context-icon">📄</div>
-                        <span class="context-text">{{ comment.contextTitle }}</span>
                       </div>
 
                       <!-- Comment Actions -->
                       <div class="comment-actions-sidebar">
-                        <div class="comment-stats">
-                          <span class="comment-source-type">{{ comment.sourceType === 'reddit' ? 'Reddit' : 'Hacker News' }}</span>
-                        </div>
                         <a
                           :href="comment.url"
                           target="_blank"
                           rel="noopener noreferrer"
                           class="view-source-link"
                         >
-                          <svg viewBox="0 0 24 24" class="external-link-icon">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                            <polyline points="15,3 21,3 21,9"/>
-                            <line x1="10" y1="14" x2="21" y2="3"/>
-                          </svg>
                           View Source
                         </a>
                       </div>
@@ -1789,48 +1755,28 @@ onMounted(async () => {
 }
 
 .detail-panel {
-  background: white;
+  background: var(--color-bg);
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   height: 100%;
-  border-radius: var(--radius-lg);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .comments-panel {
-  max-width: 700px;
+  max-width: 500px;
 }
 
 .detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 1.5rem 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border-light);
-  background: linear-gradient(135deg, var(--color-bg-subtle), rgba(255, 255, 255, 0.8));
-  backdrop-filter: blur(8px);
-}
-
-.detail-header-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  gap: 0.5rem;
-}
-
-.fair-use-notice {
-  color: #9ca3af;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  margin-top: 0.25rem;
-}
-
-.fair-use-notice small {
-  font-weight: 400;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
 }
 
 .header-info {
@@ -1841,28 +1787,23 @@ onMounted(async () => {
 
 .detail-header h3 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--color-text);
-  background: linear-gradient(135deg, var(--color-text), var(--color-text-secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .comment-count-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+  min-width: 24px;
+  height: 24px;
+  background: var(--color-accent);
   color: white;
-  border-radius: 14px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
   padding: 0 0.5rem;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.2);
 }
 
 .header-actions {
@@ -1945,69 +1886,36 @@ onMounted(async () => {
 .detail-body {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .comments-list-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
 }
 
 .comment-item-sidebar {
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
-  position: relative;
-  overflow: hidden;
-  animation: commentSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-.comment-item-sidebar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-light));
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  transition: border-color 0.2s ease;
 }
 
 .comment-item-sidebar:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
-  border-color: rgba(13, 148, 136, 0.4);
-  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.1);
-  transform: translateY(-2px);
-}
-
-.comment-item-sidebar:hover::before {
-  opacity: 1;
+  border-color: var(--color-accent);
 }
 
 .comment-header-sidebar {
-  margin-bottom: 1.25rem;
-}
-
-.comment-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .comment-author-section {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--color-text-muted);
 }
 
@@ -2015,149 +1923,71 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
   color: white;
-  text-transform: uppercase;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .source-badge.reddit {
-  background: linear-gradient(135deg, #FF4500, #FF6B35);
+  background: #FF4500;
 }
 
 .source-badge.hackernews {
-  background: linear-gradient(135deg, #ff6600, #ff8533);
-}
-
-.source-icon {
-  line-height: 1;
+  background: #ff6600;
 }
 
 .author-name {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--color-text);
-  transition: color 0.2s ease;
-}
-
-.comment-item-sidebar:hover .author-name {
-  color: var(--color-accent);
 }
 
 .comment-separator {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
 }
 
 .comment-time {
   font-size: 0.8rem;
-  color: var(--color-text-secondary);
-  background: rgba(0, 0, 0, 0.05);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  color: var(--color-text-muted);
 }
 
 .comment-content-sidebar {
   color: var(--color-text);
-  line-height: 1.7;
-  margin-bottom: 1.25rem;
-  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
   white-space: pre-wrap;
-  font-family: var(--font-sans);
-  position: relative;
-}
-
-.comment-content-sidebar::first-letter {
-  font-size: 1.1em;
-  font-weight: 500;
-}
-
-.comment-context-sidebar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.05), rgba(13, 148, 136, 0.02));
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border-left: 4px solid var(--color-accent);
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 1.25rem;
-  transition: all 0.2s ease;
-}
-
-.comment-context-sidebar:hover {
-  background: linear-gradient(135deg, rgba(13, 148, 136, 0.08), rgba(13, 148, 136, 0.04));
-}
-
-.context-icon {
-  font-size: 1rem;
-  opacity: 0.7;
-}
-
-.context-text {
-  font-weight: 500;
 }
 
 .comment-actions-sidebar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.comment-stats {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.comment-source-type {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  background: rgba(0, 0, 0, 0.05);
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
 }
 
 
 .view-source-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.6rem 0.9rem;
-  background: linear-gradient(135deg, var(--color-bg-secondary), rgba(255, 255, 255, 0.8));
-  color: var(--color-text);
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  color: var(--color-accent);
   border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
   text-decoration: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease;
 }
 
 .view-source-link:hover {
-  background: linear-gradient(135deg, var(--color-accent-light), var(--color-accent));
   border-color: var(--color-accent);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 12px rgba(13, 148, 136, 0.2);
-}
-
-.external-link-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  stroke: currentColor;
-  stroke-width: 2;
+  color: var(--color-accent);
 }
 
 .comments-empty-state {
@@ -2165,27 +1995,27 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
+  padding: 2rem 1rem;
   text-align: center;
   color: var(--color-text-muted);
 }
 
 .empty-comments-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  opacity: 0.6;
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
 }
 
 .comments-empty-state h4 {
   margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .comments-empty-state p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   max-width: 300px;
   line-height: 1.5;
 }
