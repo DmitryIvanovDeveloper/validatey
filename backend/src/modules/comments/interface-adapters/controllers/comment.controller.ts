@@ -12,6 +12,9 @@ import type { CommentSourceRepositoryPort } from '../../application/ports/commen
 import type { FetchCommentsUseCase } from '../../application/use-cases/fetch-comments.usecase';
 import type { AnalyzeCommentPatternsUseCase } from '../../application/use-cases/analyze-comment-patterns.use-case';
 import { CommentSourceValueObject } from '../../domain/value-objects/comment-source.vo';
+import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
+import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
+import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 
 @injectable()
 export class CommentController {
@@ -31,14 +34,61 @@ export class CommentController {
     @inject(COMMENT_TYPES.FetchCommentsUseCase)
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
     @inject(COMMENT_TYPES.AnalyzeCommentPatternsUseCase)
-    private readonly _analyzeCommentPatternsUseCase: AnalyzeCommentPatternsUseCase
+    private readonly _analyzeCommentPatternsUseCase: AnalyzeCommentPatternsUseCase,
+    @inject(PROJECT_TYPES.ProjectRepository)
+    private readonly _projectRepository: ProjectRepositoryPort
   ) {}
+
+  /**
+   * Resolves projectId (which can be UUID or slug) to UUID
+   */
+  private async resolveProjectId(projectIdOrSlug: string): Promise<string | null> {
+    // Check if it's already a UUID (format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(projectIdOrSlug)) {
+      return projectIdOrSlug;
+    }
+
+    // It's a slug, try to find project by slug
+    // First try to find by public_slug
+    const supabase = getSupabaseClient();
+    const { data: projectBySlug, error: slugError } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('public_slug', projectIdOrSlug)
+      .single();
+
+    if (!slugError && projectBySlug) {
+      return projectBySlug.id;
+    }
+
+    // If not found by public_slug, try to find by name (slug might be derived from name)
+    // This is a fallback - ideally projects should have proper slugs
+    const { data: projectByName, error: nameError } = await supabase
+      .from('projects')
+      .select('id')
+      .ilike('name', projectIdOrSlug.replace(/-/g, ' '))
+      .single();
+
+    if (!nameError && projectByName) {
+      return projectByName.id;
+    }
+
+    // If still not found, return null (project not found)
+    return null;
+  }
 
   public   async fetchComments(req: Request, res: Response): Promise<void> {
     try {
-      const projectId = req.params.projectId;
-      if (!projectId) {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
         res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
         return;
       }
 
@@ -132,11 +182,17 @@ export class CommentController {
   // Test endpoint for direct fetch without job system
   public async testFetch(req: Request, res: Response): Promise<void> {
     try {
-      const projectId = req.params.projectId;
+      const projectIdOrSlug = req.params.projectId;
       const hnUrl = req.query.hnUrl as string;
 
-      if (!projectId || !hnUrl) {
+      if (!projectIdOrSlug || !hnUrl) {
         res.status(400).json({ error: 'projectId and hnUrl required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
         return;
       }
 
@@ -186,9 +242,15 @@ export class CommentController {
 
   public async getComments(req: Request, res: Response): Promise<void> {
     try {
-      const projectId = req.params.projectId;
-      if (!projectId) {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
         res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
         return;
       }
 
@@ -248,9 +310,15 @@ export class CommentController {
 
   public async deleteSource(req: Request, res: Response): Promise<void> {
     try {
-      const projectId = req.params.projectId;
-      if (!projectId) {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
         res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
         return;
       }
 
@@ -282,9 +350,15 @@ export class CommentController {
 
   public async createSource(req: Request, res: Response): Promise<void> {
     try {
-      const projectId = req.params.projectId;
-      if (!projectId) {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
         res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
         return;
       }
 
@@ -371,9 +445,15 @@ export class CommentController {
 
   public async analyzePatterns(req: Request, res: Response): Promise<void> {
     try {
-      const projectId = req.params.projectId;
-      if (!projectId) {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
         res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
         return;
       }
 
@@ -394,9 +474,15 @@ export class CommentController {
 
   public async getSources(req: Request, res: Response): Promise<void> {
     try {
-      const projectId = req.params.projectId;
-      if (!projectId) {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
         res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
         return;
       }
 

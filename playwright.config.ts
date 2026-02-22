@@ -33,17 +33,21 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: [
-    {
-      command: 'npm run dev',
-      port: 5173,
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: 'npm run dev',
-      port: 3000,
-      cwd: 'backend',
-      reuseExistingServer: !process.env.CI,
-    },
-  ],
+  // Temporarily disabled - servers should be started manually
+  // webServer: [
+  //   {
+  //     command: 'npm run dev',
+  //     port: 5173,
+  //     cwd: 'frontend',
+  //     reuseExistingServer: true,
+  //     timeout: 120000,
+  //   },
+  //   {
+  //     command: 'npm run dev',
+  //     port: 3000,
+  //     cwd: 'backend',
+  //     reuseExistingServer: true,
+  //     timeout: 120000,
+  //   },
+  // ],
 });
