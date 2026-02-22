@@ -3,21 +3,17 @@
     <!-- Header -->
     <div class="cpw-header">
       <h3 class="cpw-title">Comment Pattern Analysis</h3>
-      <div v-if="analysis" class="cpw-score-info">
-        <span class="cpw-score-label">{{ scoreLabel }}</span>
-        <div class="cpw-progress-bar">
-          <div class="cpw-progress-fill" :class="scoreBadgeClass" :style="{ width: (analysis.validationScore || 0) + '%' }"></div>
-        </div>
-        <p class="cpw-score-explanation">{{ scoreExplanation }}</p>
+      <div v-if="analysis" class="cpw-score-badge" :class="scoreBadgeClass">
+        {{ scoreLabel }}
       </div>
     </div>
 
     <!-- Loading -->
     <div v-if="loading" class="cpw-loading">
-      <div class="cpw-progress-bar">
-        <div class="cpw-progress-fill cpw-progress-loading"></div>
+      <div class="cpw-loading-dots">
+        <span></span><span></span><span></span>
       </div>
-      <span>Analyzing {{ analysis?.totalComments || 0 }} comments…</span>
+      <span>Analyzing comment patterns…</span>
     </div>
 
     <!-- Error -->
@@ -43,18 +39,45 @@
       >
         <div class="cpw-pattern-header">
           <div class="cpw-pattern-label-row">
-            <span class="cpw-pattern-type-dot" :class="`cpw-dot--${pattern.type}`"></span>
             <span class="cpw-pattern-label">{{ pattern.label }}</span>
             <span class="cpw-pattern-count">{{ pattern.count }}</span>
             <span class="cpw-pattern-pct">{{ pattern.percentage }}%</span>
           </div>
+          <div class="cpw-pattern-bar-wrap">
+            <div class="cpw-pattern-bar" :class="`cpw-bar--${pattern.type}`" :style="{ width: pattern.percentage + '%' }"></div>
+          </div>
         </div>
-        <div class="cpw-pattern-bar-wrap">
-          <div class="cpw-pattern-bar" :class="`cpw-bar--${pattern.type}`" :style="{ width: pattern.percentage + '%' }"></div>
+
+        <!-- Examples (collapsible) -->
+        <div v-if="expandedPattern === pattern.type" class="cpw-examples">
+          <div v-for="(ex, idx) in pattern.examples" :key="idx" class="cpw-example">
+            <blockquote class="cpw-example-content" :cite="ex.url">
+              {{ ex.content }}
+            </blockquote>
+            <div class="cpw-example-meta">
+              <span class="cpw-example-author">{{ ex.author }}</span>
+              <span class="cpw-example-source">{{ ex.source }}</span>
+              <a v-if="ex.url" :href="ex.url" target="_blank" rel="noopener noreferrer" class="cpw-example-link">
+                View
+              </a>
+            </div>
+          </div>
         </div>
-        <p class="cpw-pattern-insight">{{ pattern.insight }}</p>
+
+        <button
+          v-if="pattern.examples.length > 0"
+          class="cpw-toggle-btn"
+          @click="togglePattern(pattern.type)"
+          type="button"
+        >
+          {{ expandedPattern === pattern.type ? 'Hide' : `Show ${pattern.examples.length}` }}
+          <svg class="cpw-toggle-icon" :class="{ 'cpw-toggle-icon--open': expandedPattern === pattern.type }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -63,7 +86,7 @@ import { ref, computed, onMounted } from 'vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { COMMENT_TYPES } from '../../types';
 import type { GetCommentPatternsUseCase } from '../../application/use-cases/get-comment-patterns.use-case';
-import type { CommentPatternAnalysis } from '../../domain/entities/comment-pattern-analysis.entity';
+import type { CommentPatternAnalysis, PatternType } from '../../domain/entities/comment-pattern-analysis.entity';
 
 interface Props {
   projectId: string;
@@ -74,6 +97,7 @@ const props = defineProps<Props>();
 const loading = ref(false);
 const error = ref<string | null>(null);
 const analysis = ref<CommentPatternAnalysis | null>(null);
+const expandedPattern = ref<PatternType | null>(null);
 
 const scoreBadgeClass = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
@@ -89,12 +113,9 @@ const scoreLabel = computed(() => {
   return `Early Stage (${score}%)`;
 });
 
-const scoreExplanation = computed(() => {
-  const score = analysis.value?.validationScore ?? 0;
-  if (score >= 60) return 'Hypothesis supported by data. Strong validation signals from comments.';
-  if (score >= 30) return 'Mixed signals. More data needed for clear validation.';
-  return 'Too little data or weak support. Collect more comments for analysis.';
-});
+function togglePattern(type: PatternType): void {
+  expandedPattern.value = expandedPattern.value === type ? null : type;
+}
 
 async function loadPatterns(): Promise<void> {
   if (!props.projectId) return;
@@ -131,6 +152,9 @@ onMounted(() => {
 }
 
 .cpw-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--color-border);
 }
@@ -139,109 +163,82 @@ onMounted(() => {
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-text);
-  margin: 0 0 0.75rem 0;
-}
-
-.cpw-score-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.cpw-score-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.cpw-progress-bar {
-  width: 100%;
-  height: 8px;
-  background: var(--color-bg-subtle);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.cpw-progress-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.cpw-progress-fill.cpw-score--high {
-  background: var(--color-success);
-}
-
-.cpw-progress-fill.cpw-score--medium {
-  background: var(--color-warning);
-}
-
-.cpw-progress-fill.cpw-score--low {
-  background: var(--color-text-muted);
-}
-
-.cpw-progress-loading {
-  background: var(--color-accent);
-  animation: cpw-progress-loading 1.5s ease-in-out infinite;
-}
-
-@keyframes cpw-progress-loading {
-  0% { width: 0%; }
-  50% { width: 70%; }
-  100% { width: 100%; }
-}
-
-.cpw-score-explanation {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
   margin: 0;
-  line-height: 1.5;
 }
+
+.cpw-score-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.cpw-score--high { background: var(--color-success-bg); color: var(--color-success); }
+.cpw-score--medium { background: var(--color-warning-bg); color: var(--color-warning); }
+.cpw-score--low { background: var(--color-bg-subtle); color: var(--color-text-muted); }
 
 .cpw-loading {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
-  padding: 1rem 1.25rem;
-  color: var(--color-text-muted);
+  padding: 1.5rem 1.25rem;
+  color: #6b7280;
   font-size: 0.875rem;
 }
 
+.cpw-loading-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.cpw-loading-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6366f1;
+  animation: cpw-pulse 1.2s ease-in-out infinite;
+}
+
+.cpw-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.cpw-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes cpw-pulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
 .cpw-empty {
-  padding: 1.5rem 1.25rem;
+  padding: 2rem 1.25rem;
   text-align: center;
-  color: var(--color-text-muted);
+  color: #6b7280;
   font-size: 0.875rem;
 }
 
 .cpw-empty-icon {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
   margin: 0 auto 0.5rem;
-  color: var(--color-text-muted);
-  opacity: 0.5;
+  color: #d1d5db;
 }
 
 .cpw-empty-hint {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
 }
 
 .cpw-patterns {
-  padding: 0.75rem 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
 .cpw-pattern-card {
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.cpw-pattern-card:last-child {
-  border-bottom: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  background: var(--color-bg);
 }
 
 .cpw-pattern-header {
@@ -252,20 +249,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.375rem;
+  margin-bottom: 0.5rem;
 }
-
-.cpw-pattern-type-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.cpw-dot--myth { background: var(--color-warning); }
-.cpw-dot--failure { background: var(--color-error); }
-.cpw-dot--advice { background: var(--color-success); }
-.cpw-dot--validation { background: var(--color-accent); }
 
 .cpw-pattern-label {
   font-size: 0.875rem;
@@ -288,15 +273,15 @@ onMounted(() => {
 }
 
 .cpw-pattern-bar-wrap {
-  height: 4px;
+  height: 6px;
   background: var(--color-bg-subtle);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .cpw-pattern-bar {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 3px;
   transition: width 0.3s ease;
 }
 
@@ -305,11 +290,82 @@ onMounted(() => {
 .cpw-bar--advice { background: var(--color-success); }
 .cpw-bar--validation { background: var(--color-accent); }
 
-.cpw-pattern-insight {
+.cpw-examples {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+
+.cpw-example {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.625rem 0.75rem;
+}
+
+.cpw-example-content {
   font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  margin: 0.375rem 0 0;
+  color: var(--color-text);
+  margin: 0 0 0.5rem;
   line-height: 1.5;
 }
 
+.cpw-example-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+}
+
+.cpw-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 500;
+}
+
+.cpw-toggle-btn:hover {
+  text-decoration: underline;
+}
+
+.cpw-toggle-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: transform 0.2s;
+}
+
+.cpw-toggle-icon--open {
+  transform: rotate(180deg);
+}
+
+.cpw-example-author {
+  font-weight: 500;
+}
+
+.cpw-example-source {
+  color: var(--color-text-muted);
+}
+
+.cpw-example-link {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.cpw-example-link:hover {
+  text-decoration: underline;
+}
 </style>
