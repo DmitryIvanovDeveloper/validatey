@@ -2,28 +2,13 @@
   <div class="survey-platforms-widget">
     <!-- Header -->
     <div class="spw-header">
-      <div class="spw-header-left">
-        <svg class="spw-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-        </svg>
-        <div>
-          <h3 class="spw-title">Survey Distribution Platforms</h3>
-          <p class="spw-subtitle">AI-powered platform recommendations</p>
-        </div>
-      </div>
+      <h3 class="spw-title">Survey Distribution Platforms</h3>
       <button
         class="spw-generate-btn"
         @click="generatePlatforms"
         :disabled="loading"
       >
-        <svg v-if="loading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <svg v-else class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-        </svg>
-        {{ loading ? 'Generating...' : 'Generate Platforms' }}
+        {{ loading ? 'Generating...' : 'Generate' }}
       </button>
     </div>
 
@@ -62,84 +47,52 @@
         <div class="spw-platform-header">
           <div class="spw-platform-main">
             <div class="spw-platform-name-row">
-              <div class="spw-platform-icon-wrapper">
-                <svg class="spw-platform-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-                </svg>
-              </div>
-              <div class="spw-platform-title-group">
-                <a 
-                  :href="getPlatformUrl(platform.platform, platform.subplatform)" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  class="spw-platform-name spw-platform-link"
-                >
-                  {{ platform.platform }}
-                </a>
-                <template v-if="platform.subplatform">
-                  <template v-if="getSubplatformLinks(platform.platform, platform.subplatform).length > 0">
-                    <a
-                      v-for="(link, index) in getSubplatformLinks(platform.platform, platform.subplatform)"
-                      :key="index"
-                      :href="link.url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="spw-platform-sub spw-platform-sub-link"
-                    >
-                      {{ link.text }}
-                    </a>
-                  </template>
-                  <span v-else class="spw-platform-sub">{{ platform.subplatform }}</span>
+              <a 
+                :href="getPlatformUrl(platform.platform, platform.subplatform)" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="spw-platform-name spw-platform-link"
+              >
+                {{ platform.platform }}
+              </a>
+              <template v-if="platform.subplatform">
+                <template v-if="getSubplatformLinks(platform.platform, platform.subplatform).length > 0">
+                  <a
+                    v-for="(link, index) in getSubplatformLinks(platform.platform, platform.subplatform)"
+                    :key="index"
+                    :href="link.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="spw-platform-sub spw-platform-sub-link"
+                  >
+                    {{ link.text }}
+                  </a>
                 </template>
-              </div>
+                <span v-else class="spw-platform-sub">{{ platform.subplatform }}</span>
+              </template>
             </div>
             <div class="spw-platform-meta">
-              <div class="spw-platform-reach-badge">
-                <svg class="spw-reach-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                </svg>
-                <span>{{ platform.expectedReach }}</span>
-              </div>
+              <span class="spw-platform-reach">{{ platform.expectedReach }}</span>
+              <span class="spw-platform-strategy">{{ platform.postingStrategy }}</span>
             </div>
-          </div>
-          <div class="spw-platform-strategy">
-            <svg class="spw-strategy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-            </svg>
-            <span>{{ platform.postingStrategy }}</span>
           </div>
         </div>
 
         <div class="spw-platform-reason">
-          <svg class="spw-reason-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-          </svg>
           <p>{{ platform.reason }}</p>
         </div>
 
         <!-- Post content -->
         <div class="spw-platform-post">
           <div class="spw-post-header">
-            <div class="spw-post-label-wrapper">
-              <svg class="spw-post-label-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-              </svg>
-              <span class="spw-post-label">Ready-to-post message</span>
-            </div>
+            <span class="spw-post-label">Ready-to-post message</span>
             <button
               type="button"
               class="spw-copy-btn"
               :class="{ 'copied': copiedPostIndex === platforms.indexOf(platform) }"
               @click="copyPost(platform.post, $event)"
-              :aria-label="copiedPostIndex === platforms.indexOf(platform) ? 'Copied' : 'Copy post'"
             >
-              <svg v-if="copiedPostIndex === platforms.indexOf(platform)" class="spw-copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-              <svg v-else class="spw-copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
-              </svg>
-              <span>{{ copiedPostIndex === platforms.indexOf(platform) ? 'Copied!' : 'Copy' }}</span>
+              {{ copiedPostIndex === platforms.indexOf(platform) ? 'Copied' : 'Copy' }}
             </button>
           </div>
           <div class="spw-post-content">{{ platform.post }}</div>
@@ -147,13 +100,6 @@
       </div>
     </div>
 
-    <!-- Footer hint -->
-    <div v-if="platforms && platforms.length > 0" class="spw-footer">
-      <svg class="spw-footer-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-      </svg>
-      AI-generated recommendations based on your project details
-    </div>
   </div>
 </template>
 
@@ -343,82 +289,46 @@ function copyPost(post: string, event: Event): void {
 
 <style scoped>
 .survey-platforms-widget {
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
   overflow: hidden;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
 }
 
 .spw-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f3f4f6;
-  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
-}
-
-.spw-header-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.spw-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: #6366f1;
-  flex-shrink: 0;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .spw-title {
   font-size: 1rem;
-  font-weight: 700;
-  color: #111827;
+  font-weight: 600;
+  color: var(--color-text);
   margin: 0;
-  letter-spacing: -0.01em;
-}
-
-.spw-subtitle {
-  font-size: 0.8125rem;
-  color: #6b7280;
-  margin: 0.25rem 0 0;
-  font-weight: 400;
 }
 
 .spw-generate-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  padding: 0.5rem 0.75rem;
+  background: var(--color-accent);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px 0 rgba(99, 102, 241, 0.2);
-  white-space: nowrap;
+  transition: background-color 0.2s ease;
 }
 
 .spw-generate-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5855eb 0%, #7c3aed 100%);
-  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
-  transform: translateY(-1px);
-}
-
-.spw-generate-btn:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px 0 rgba(99, 102, 241, 0.2);
+  background: var(--color-accent-hover);
 }
 
 .spw-generate-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 .spw-loading {
@@ -426,7 +336,7 @@ function copyPost(post: string, event: Event): void {
   align-items: center;
   gap: 0.5rem;
   padding: 1.5rem 1.25rem;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 0.875rem;
 }
 
@@ -439,7 +349,7 @@ function copyPost(post: string, event: Event): void {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #6366f1;
+  background: var(--color-accent);
   animation: spw-pulse 1.2s ease-in-out infinite;
 }
 
@@ -447,30 +357,29 @@ function copyPost(post: string, event: Event): void {
 .spw-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 
 @keyframes spw-pulse {
-  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-  40% { opacity: 1; transform: scale(1); }
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
 }
 
 .spw-empty {
-  padding: 3rem 1.5rem;
+  padding: 2rem 1.25rem;
   text-align: center;
-  color: #6b7280;
-  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
 }
 
 .spw-empty-icon {
-  width: 3rem;
-  height: 3rem;
-  margin: 0 auto 1.25rem;
-  color: #d1d5db;
-  opacity: 0.6;
+  width: 2rem;
+  height: 2rem;
+  margin: 0 auto 0.75rem;
+  color: var(--color-text-muted);
+  opacity: 0.5;
 }
 
 .spw-empty-hint {
-  margin-top: 0.75rem;
-  color: #9ca3af;
-  font-size: 0.875rem;
-  font-weight: 400;
+  margin-top: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
 }
 
 .spw-platforms {
@@ -478,31 +387,8 @@ function copyPost(post: string, event: Event): void {
 }
 
 .spw-platform-card {
-  border-bottom: 1px solid #f3f4f6;
-  padding: 1.5rem;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.spw-platform-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.spw-platform-card:hover {
-  background: linear-gradient(90deg, #fafafa 0%, #ffffff 100%);
-  padding-left: 1.75rem;
-}
-
-.spw-platform-card:hover::before {
-  opacity: 1;
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 1.25rem;
 }
 
 .spw-platform-card:last-child {
@@ -510,12 +396,7 @@ function copyPost(post: string, event: Event): void {
 }
 
 .spw-platform-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   margin-bottom: 0.75rem;
-  gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .spw-platform-main {
@@ -525,338 +406,144 @@ function copyPost(post: string, event: Event): void {
 .spw-platform-name-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
   margin-bottom: 0.5rem;
 }
 
-.spw-platform-icon-wrapper {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-  border-radius: 10px;
-  flex-shrink: 0;
-}
-
-.spw-platform-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #6366f1;
-}
-
-.spw-platform-title-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  flex: 1;
-}
-
 .spw-platform-name {
-  font-weight: 700;
-  color: #111827;
-  font-size: 1.0625rem;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 1rem;
 }
 
 .spw-platform-link {
-  color: #6366f1;
+  color: var(--color-accent);
   text-decoration: none;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.spw-platform-link::after {
-  content: '↗';
-  font-size: 0.75rem;
-  opacity: 0;
-  transition: opacity 0.2s ease;
 }
 
 .spw-platform-link:hover {
-  color: #5855eb;
   text-decoration: underline;
-}
-
-.spw-platform-link:hover::after {
-  opacity: 1;
 }
 
 .spw-platform-sub {
   display: inline-block;
-  background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%);
-  color: #3730a3;
-  padding: 0.25rem 0.625rem;
-  border-radius: 6px;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
-  font-weight: 600;
-  border: 1px solid rgba(99, 102, 241, 0.1);
   margin-right: 0.375rem;
-  margin-bottom: 0.25rem;
 }
 
 .spw-platform-sub-link {
   display: inline-block;
   text-decoration: none;
-  transition: all 0.2s ease;
   margin-right: 0.375rem;
-  margin-bottom: 0.25rem;
-}
-
-.spw-platform-sub-link:hover {
-  background: linear-gradient(135deg, #c7d2fe 0%, #c4b5fd 100%);
-  color: #312e81;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
 }
 
 .spw-platform-meta {
-  margin-top: 0.5rem;
-}
-
-.spw-platform-reach-badge {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.375rem;
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  color: #166534;
-  padding: 0.375rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
 }
 
-.spw-reach-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  flex-shrink: 0;
+.spw-platform-reach {
+  font-weight: 500;
 }
 
 .spw-platform-strategy {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #92400e;
-  padding: 0.625rem 1rem;
-  border-radius: 10px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  max-width: 320px;
-  white-space: normal;
-  flex-shrink: 0;
-}
-
-.spw-platform-strategy span {
-  display: inline;
-  line-height: 1.4;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.spw-strategy-icon {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
+  font-weight: 500;
 }
 
 .spw-platform-reason {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  color: #4b5563;
+  color: var(--color-text);
   font-size: 0.875rem;
   line-height: 1.6;
-  margin: 1rem 0;
-  padding: 0.75rem;
-  background: #f9fafb;
-  border-radius: 8px;
-  border-left: 3px solid #e5e7eb;
-}
-
-.spw-reason-icon {
-  width: 1rem;
-  height: 1rem;
-  color: #6366f1;
-  flex-shrink: 0;
-  margin-top: 0.125rem;
+  margin: 0.75rem 0;
 }
 
 .spw-platform-reason p {
   margin: 0;
-  flex: 1;
 }
 
 .spw-platform-post {
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 2px solid #f3f4f6;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .spw-post-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.875rem;
+  margin-bottom: 0.75rem;
   gap: 0.75rem;
 }
 
-.spw-post-label-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.spw-post-label-icon {
-  width: 1rem;
-  height: 1rem;
-  color: #6366f1;
-  flex-shrink: 0;
-}
-
 .spw-post-label {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .spw-copy-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #374151;
+  padding: 0.375rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
 }
 
 .spw-copy-btn:hover {
-  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
-  border-color: #9ca3af;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.spw-copy-btn:active {
-  transform: translateY(0);
+  background: var(--color-bg-subtle);
 }
 
 .spw-copy-btn.copied {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  border-color: #86efac;
-  color: #166534;
-}
-
-.spw-copy-icon {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
+  background: var(--color-success-bg);
+  border-color: var(--color-success);
+  color: var(--color-success);
 }
 
 .spw-post-content {
-  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1.25rem;
-  color: #111827;
-  font-size: 0.9375rem;
-  line-height: 1.7;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  line-height: 1.6;
   white-space: pre-wrap;
   word-wrap: break-word;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
-  transition: all 0.2s ease;
-}
-
-.spw-post-content:hover {
-  border-color: #d1d5db;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.04);
-}
-
-.spw-footer {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #fafafa 0%, #f3f4f6 100%);
-  border-top: 1px solid #e5e7eb;
-  color: #6b7280;
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-.spw-footer-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-  color: #6366f1;
-  flex-shrink: 0;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .survey-platforms-widget {
-    border-radius: 12px;
-  }
-
   .spw-header {
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: flex-start;
-    padding: 1rem 1.25rem;
   }
 
   .spw-generate-btn {
-    align-self: stretch;
-    justify-content: center;
+    width: 100%;
   }
 
   .spw-platform-card {
-    padding: 1.25rem;
-  }
-
-  .spw-platform-card:hover {
-    padding-left: 1.25rem;
-  }
-
-  .spw-platform-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .spw-platform-strategy {
-    white-space: normal;
-    align-self: stretch;
-    max-width: 100%;
-  }
-
-  .spw-platform-name-row {
-    flex-wrap: wrap;
+    padding: 1rem;
   }
 
   .spw-post-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .spw-copy-btn {
-    align-self: stretch;
-    justify-content: center;
+    gap: 0.5rem;
   }
 }
 </style>
