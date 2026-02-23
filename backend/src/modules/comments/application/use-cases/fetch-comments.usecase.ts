@@ -246,11 +246,29 @@ export class FetchCommentsUseCase {
     };
 
     if (input.sourceType === 'reddit') {
+      // If postId/subredditName are not in source, try to extract from URL
+      let postId = source.postId;
+      let subredditName = source.subredditName;
+      
+      if (!postId || !subredditName) {
+        console.log(`[PrepareFetchInput] postId or subredditName missing, extracting from URL: ${source.redditUrl}`);
+        try {
+          const sourceFromUrl = CommentSourceValueObject.createReddit(source.redditUrl);
+          postId = sourceFromUrl.postId || postId;
+          subredditName = sourceFromUrl.subredditName || subredditName;
+          console.log(`[PrepareFetchInput] Extracted from URL: postId=${postId}, subredditName=${subredditName}`);
+        } catch (err) {
+          console.warn(`[PrepareFetchInput] Failed to extract from URL:`, err);
+        }
+      }
+      
+      console.log(`[PrepareFetchInput] Final Reddit input: postId=${postId}, subredditName=${subredditName}`);
+      
       return {
         ...baseInput,
         sourceType: 'reddit',
-        subredditNames: source.subredditName ? [source.subredditName] : [],
-        postId: source.postId,
+        subredditNames: subredditName ? [subredditName] : [],
+        postId: postId,
         limitPerSubreddit: 100,
         apiCredentials: {
           clientId: process.env.REDDIT_CLIENT_ID,
