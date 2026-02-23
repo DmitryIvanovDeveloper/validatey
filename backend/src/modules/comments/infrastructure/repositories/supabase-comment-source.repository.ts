@@ -206,14 +206,23 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
           redditUrl: row.reddit_url,
           subredditName: row.subreddit_name,
           postId: row.post_id,
-        hnFeedType: row.hn_feed_type,
-        hnUrl: row.hn_url,
-        hnItemId: row.hn_item_id,
-        linkedinUrl: row.linkedin_url,
-        linkedinPostId: row.linkedin_post_id,
-        createdAt: new Date(row.created_at),
-        updatedAt: new Date(row.updated_at),
-      }));
+          hnFeedType: row.hn_feed_type,
+          hnUrl: row.hn_url,
+          hnItemId: row.hn_item_id,
+          linkedinUrl: row.linkedin_url,
+          linkedinPostId: row.linkedin_post_id,
+          createdAt: new Date(row.created_at),
+          updatedAt: new Date(row.updated_at),
+        };
+        console.log(`[CommentSource Repository] Mapped source:`, {
+          id: mapped.id,
+          postId: mapped.postId,
+          subredditName: mapped.subredditName,
+          'row.post_id': row.post_id,
+          'row.subreddit_name': row.subreddit_name
+        });
+        return mapped;
+      });
 
       console.log(`[CommentSource Repository] Successfully mapped ${sources.length} sources`);
       return ResultEx.success(sources);
