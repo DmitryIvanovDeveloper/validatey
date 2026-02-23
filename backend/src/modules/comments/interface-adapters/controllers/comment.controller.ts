@@ -80,6 +80,7 @@ export class CommentController {
 
   public   async fetchComments(req: Request, res: Response): Promise<void> {
     try {
+      console.log(`[CommentController.fetchComments] Starting fetch request`);
       const projectIdOrSlug = req.params.projectId;
       if (!projectIdOrSlug) {
         res.status(400).json({ error: 'Project ID is required' });
@@ -92,10 +93,18 @@ export class CommentController {
         return;
       }
 
+      console.log(`[CommentController.fetchComments] Resolved projectId: ${projectId}`);
       const redditUrls = req.body?.redditUrls as string[] | undefined;
       const hnUrls = req.body?.hnUrls as string[] | undefined;
       const hnFeedType = req.body?.hnFeedType as 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
       const periodDays = req.body?.periodDays ? parseInt(String(req.body.periodDays), 10) : undefined;
+      
+      console.log(`[CommentController.fetchComments] Request body:`, {
+        redditUrls: redditUrls?.length || 0,
+        hnUrls: hnUrls?.length || 0,
+        hnFeedType,
+        periodDays
+      });
 
       // Validate arrays if provided
       if (redditUrls && !Array.isArray(redditUrls)) {
@@ -119,6 +128,7 @@ export class CommentController {
 
       // Process Reddit URLs if provided
       if (hasRedditData) {
+        console.log(`[CommentController.fetchComments] Processing Reddit URLs:`, redditUrls);
         const redditCommand: StartFetchCommand = {
           projectId,
           sourceType: 'reddit',
@@ -128,7 +138,12 @@ export class CommentController {
           periodDays: Number.isFinite(periodDays) && periodDays! > 0 ? periodDays : undefined,
         };
 
+        console.log(`[CommentController.fetchComments] Executing Reddit fetch command`);
         const redditResult = await this._startFetchCommandHandler.execute(redditCommand);
+        console.log(`[CommentController.fetchComments] Reddit fetch result:`, {
+          success: redditResult.isSuccess,
+          error: redditResult.isSuccess ? null : redditResult.error.message
+        });
         if (!redditResult.isSuccess) {
           res.status(500).json({ error: `Reddit fetch failed: ${redditResult.error.message}` });
           return;
@@ -153,8 +168,10 @@ export class CommentController {
         }
       }
 
+      console.log(`[CommentController.fetchComments] Fetch started successfully, returning 202`);
       res.status(202).json({ status: 'started' });
     } catch (error) {
+      console.error(`[CommentController.fetchComments] Error:`, error);
       res.status(500).json({
         error: error instanceof Error ? error.message : 'Internal server error',
       });
