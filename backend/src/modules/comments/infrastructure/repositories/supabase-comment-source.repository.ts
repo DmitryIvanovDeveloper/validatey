@@ -20,22 +20,30 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
 
       const now = new Date().toISOString();
 
-      const insertData = {
+      const insertData: Record<string, any> = {
         project_id: input.projectId,
         source_type: input.sourceType,
-        reddit_url: input.redditUrl,
-        subreddit_name: input.subredditName,
-        post_id: input.postId,
-        hn_feed_type: input.hnFeedType,
-        hn_url: input.hnUrl,
-        hn_item_id: input.hnItemId,
-        linkedin_url: input.linkedinUrl,
-        linkedin_post_id: input.linkedinPostId,
         created_at: now,
         updated_at: now,
       };
       
+      // Only include fields that are defined (not undefined)
+      if (input.redditUrl !== undefined) insertData.reddit_url = input.redditUrl;
+      if (input.subredditName !== undefined) insertData.subreddit_name = input.subredditName;
+      if (input.postId !== undefined) insertData.post_id = input.postId;
+      if (input.hnFeedType !== undefined) insertData.hn_feed_type = input.hnFeedType;
+      if (input.hnUrl !== undefined) insertData.hn_url = input.hnUrl;
+      if (input.hnItemId !== undefined) insertData.hn_item_id = input.hnItemId;
+      if (input.linkedinUrl !== undefined) insertData.linkedin_url = input.linkedinUrl;
+      if (input.linkedinPostId !== undefined) insertData.linkedin_post_id = input.linkedinPostId;
+      
       console.log(`[CommentSource Create] Inserting data:`, JSON.stringify(insertData, null, 2));
+      console.log(`[CommentSource Create] Input values:`, {
+        postId: input.postId,
+        subredditName: input.subredditName,
+        postIdType: typeof input.postId,
+        subredditNameType: typeof input.subredditName
+      });
 
       const { data, error } = await supabase
         .from('comment_sources')
