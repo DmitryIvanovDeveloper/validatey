@@ -133,17 +133,29 @@ export class FetchCommentsUseCase {
       // Create value object from DB source
       let sourceValueObject: CommentSourceValueObject;
       if (dbSource.sourceType === 'reddit') {
-        sourceValueObject = CommentSourceValueObject.createReddit(dbSource.redditUrl!);
-        
-        // If source in DB is missing postId/subredditName, update it
-        if ((!dbSource.postId || !dbSource.subredditName) && sourceValueObject.postId && sourceValueObject.subredditName) {
-          console.log(`[EnsureCommentSource] Updating source ${dbSource.id} with missing postId/subredditName`);
-          const updateResult = await this._sourceRepository.update(dbSource.id, {
-            postId: sourceValueObject.postId,
-            subredditName: sourceValueObject.subredditName,
-          });
-          if (!updateResult.isSuccess) {
-            console.warn(`[EnsureCommentSource] Failed to update source: ${updateResult.error.message}`);
+        // Use postId and subredditName from DB if available, otherwise parse from URL
+        if (dbSource.postId && dbSource.subredditName) {
+          console.log(`[EnsureCommentSource] Using postId and subredditName from DB: postId=${dbSource.postId}, subredditName=${dbSource.subredditName}`);
+          // Create value object with DB values
+          sourceValueObject = CommentSourceValueObject.createRedditWithIds(
+            dbSource.redditUrl!,
+            dbSource.postId,
+            dbSource.subredditName
+          );
+        } else {
+          console.log(`[EnsureCommentSource] postId or subredditName missing in DB, parsing from URL: ${dbSource.redditUrl}`);
+          sourceValueObject = CommentSourceValueObject.createReddit(dbSource.redditUrl!);
+          
+          // Update DB with extracted values
+          if (sourceValueObject.postId && sourceValueObject.subredditName) {
+            console.log(`[EnsureCommentSource] Updating source ${dbSource.id} with extracted postId/subredditName`);
+            const updateResult = await this._sourceRepository.update(dbSource.id, {
+              postId: sourceValueObject.postId,
+              subredditName: sourceValueObject.subredditName,
+            });
+            if (!updateResult.isSuccess) {
+              console.warn(`[EnsureCommentSource] Failed to update source: ${updateResult.error.message}`);
+            }
           }
         }
       } else {

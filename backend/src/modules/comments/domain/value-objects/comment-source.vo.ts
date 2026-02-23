@@ -71,6 +71,20 @@ export class CommentSourceValueObject {
     );
   }
 
+  /** Create Reddit source with explicit postId and subredditName */
+  static createRedditWithIds(redditUrl: string, postId: string, subredditName: string): CommentSourceValueObject {
+    return new CommentSourceValueObject(
+      'reddit',
+      redditUrl,
+      subredditName,
+      postId,
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    );
+  }
+
   /** Create Hacker News source */
   static createHackerNews(feedTypeOrUrl: HackerNewsFeedType | string): CommentSourceValueObject {
     // Check if it's a URL
