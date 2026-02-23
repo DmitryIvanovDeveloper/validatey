@@ -52,11 +52,13 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         .single();
 
       if (error) {
+        console.error(`[CommentSource Create] Supabase error:`, JSON.stringify(error, null, 2));
         this._logger.error('commentSource.create.error', { error, input });
         return ResultEx.failure(new CommentSourceError(`Failed to create comment source: ${error.message}`));
       }
 
       if (!data) {
+        console.error(`[CommentSource Create] No data returned from Supabase insert`);
         return ResultEx.failure(new CommentSourceError('No data returned from create operation'));
       }
 
@@ -71,6 +73,24 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         'data.subreddit_name === null': data.subreddit_name === null,
         'data.subreddit_name === undefined': data.subreddit_name === undefined
       });
+      
+      // Immediately verify by fetching the record back
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('comment_sources')
+        .select('*')
+        .eq('id', data.id)
+        .single();
+      
+      if (verifyError) {
+        console.error(`[CommentSource Create] Verification fetch error:`, JSON.stringify(verifyError, null, 2));
+      } else {
+        console.log(`[CommentSource Create] Verification fetch result:`, {
+          'verifyData.post_id': verifyData?.post_id,
+          'verifyData.subreddit_name': verifyData?.subreddit_name,
+          'verifyData.post_id === data.post_id': verifyData?.post_id === data.post_id,
+          'verifyData.subreddit_name === data.subreddit_name': verifyData?.subreddit_name === data.subreddit_name
+        });
+      }
 
       const source: CommentSource = {
         id: data.id,
