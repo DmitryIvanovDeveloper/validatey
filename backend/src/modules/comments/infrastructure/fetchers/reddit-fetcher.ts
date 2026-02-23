@@ -104,9 +104,14 @@ export class RedditFetcher implements CommentFetcherPort {
       // 2. API succeeded but returned 0 comments (likely blocked or empty response)
       if (comments.length === 0 && (apiError || !apiSucceeded || !redditInput.apiCredentials?.clientId)) {
         console.log(`[RedditFetcher] Falling back to Puppeteer scrape for post ${redditInput.postId} (API: ${apiError ? 'failed' : 'returned 0 comments'})`);
+        console.log(`[RedditFetcher] Environment check: VERCEL=${process.env.VERCEL}, AWS_LAMBDA=${process.env.AWS_LAMBDA_FUNCTION_NAME}`);
         try {
           const postUrl = `${REDDIT_BASE}/r/${name}/comments/${redditInput.postId}`;
+          console.log(`[RedditFetcher] Starting Puppeteer scrape for: ${postUrl}`);
+          const puppeteerStartTime = Date.now();
           comments = await this._fetchCommentsWithPuppeteer(name, redditInput.postId, postUrl, redditInput.sinceDate);
+          const puppeteerDuration = Date.now() - puppeteerStartTime;
+          console.log(`[RedditFetcher] Puppeteer scrape completed in ${Math.round(puppeteerDuration / 1000)}s, found ${comments.length} comments`);
           if (comments.length > 0) {
             console.log(`[RedditFetcher] Puppeteer fallback: scraped ${comments.length} comments`);
             return ResultEx.success({
@@ -117,7 +122,9 @@ export class RedditFetcher implements CommentFetcherPort {
             console.warn(`[RedditFetcher] Puppeteer fallback also returned 0 comments`);
           }
         } catch (puppeteerErr) {
-          console.warn(`[RedditFetcher] Puppeteer fallback failed:`, puppeteerErr);
+          const errorMsg = puppeteerErr instanceof Error ? puppeteerErr.message : String(puppeteerErr);
+          const errorStack = puppeteerErr instanceof Error ? puppeteerErr.stack : undefined;
+          console.error(`[RedditFetcher] Puppeteer fallback failed: ${errorMsg}`, errorStack ? `\nStack: ${errorStack}` : '');
         }
       }
 
