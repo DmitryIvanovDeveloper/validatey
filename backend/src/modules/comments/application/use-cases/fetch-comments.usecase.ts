@@ -177,7 +177,13 @@ export class FetchCommentsUseCase {
       }
 
       const redditUrl = input.redditUrls[0]; // Use first URL for single source creation
+      console.log(`[EnsureCommentSource] Creating source value object from URL: ${redditUrl}`);
       const sourceValueObject = CommentSourceValueObject.createReddit(redditUrl);
+      console.log(`[EnsureCommentSource] Source value object created:`, {
+        postId: sourceValueObject.postId,
+        subredditName: sourceValueObject.subredditName,
+        redditUrl: sourceValueObject.redditUrl
+      });
 
       // Check if source already exists
       const existingSources = await this._sourceRepository.findByProjectId(input.projectId);
