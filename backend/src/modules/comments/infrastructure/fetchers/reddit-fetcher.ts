@@ -89,16 +89,21 @@ export class RedditFetcher implements CommentFetcherPort {
 
       let comments: FetchedCommentRaw[] = [];
       let apiError: string | undefined;
+      let apiSucceeded = false;
       try {
         comments = await this._fetchCommentsFromPost(name, redditInput.postId, authHeader, userAgent, redditInput.sinceDate);
+        apiSucceeded = true;
         console.log(`[RedditFetcher] Fetched ${comments.length} comments from Reddit API`);
       } catch (error) {
         apiError = error instanceof Error ? error.message : String(error);
         console.log(`[RedditFetcher] Reddit API failed for post ${redditInput.postId}:`, apiError);
       }
 
-      if (comments.length === 0 && apiError) {
-        console.log(`[RedditFetcher] Falling back to Puppeteer scrape for post ${redditInput.postId}`);
+      // Fallback to Puppeteer if:
+      // 1. API failed (apiError exists), OR
+      // 2. API succeeded but returned 0 comments (likely blocked or empty response)
+      if (comments.length === 0 && (apiError || !apiSucceeded || !redditInput.apiCredentials?.clientId)) {
+        console.log(`[RedditFetcher] Falling back to Puppeteer scrape for post ${redditInput.postId} (API: ${apiError ? 'failed' : 'returned 0 comments'})`);
         try {
           const postUrl = `${REDDIT_BASE}/r/${name}/comments/${redditInput.postId}`;
           comments = await this._fetchCommentsWithPuppeteer(name, redditInput.postId, postUrl, redditInput.sinceDate);
@@ -106,8 +111,10 @@ export class RedditFetcher implements CommentFetcherPort {
             console.log(`[RedditFetcher] Puppeteer fallback: scraped ${comments.length} comments`);
             return ResultEx.success({
               comments,
-              errors: [`Reddit API failed (${apiError}); used browser scrape.`],
+              errors: apiError ? [`Reddit API failed (${apiError}); used browser scrape.`] : ['Reddit API returned 0 comments; used browser scrape.'],
             });
+          } else {
+            console.warn(`[RedditFetcher] Puppeteer fallback also returned 0 comments`);
           }
         } catch (puppeteerErr) {
           console.warn(`[RedditFetcher] Puppeteer fallback failed:`, puppeteerErr);
