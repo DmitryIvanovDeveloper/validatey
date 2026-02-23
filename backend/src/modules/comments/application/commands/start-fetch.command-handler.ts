@@ -360,19 +360,33 @@ export class StartFetchCommandHandler {
 
   private async _createOrGetSourceForUrl(projectId: string, sourceType: 'reddit', redditUrl: string): Promise<ResultEx<{ id: string; projectId: string; sourceType: string; redditUrls?: string[]; hnFeedType?: string }, Error>> {
     try {
+      console.log(`[CreateOrGetSourceForUrl] Creating/getting source for URL: ${redditUrl}, projectId: ${projectId}`);
       const sourceValueObject = CommentSourceValueObject.createReddit(redditUrl);
+      console.log(`[CreateOrGetSourceForUrl] Parsed source value object:`, {
+        postId: sourceValueObject.postId,
+        subredditName: sourceValueObject.subredditName,
+        redditUrl: sourceValueObject.redditUrl
+      });
 
       // Check if source already exists
+      console.log(`[CreateOrGetSourceForUrl] Checking for existing sources in project`);
       const existingSources = await this._sourceRepository.findByProjectId(projectId);
       if (!existingSources.isSuccess) {
+        console.error(`[CreateOrGetSourceForUrl] Failed to check existing sources:`, existingSources.error);
         return ResultEx.failure(new Error('Failed to check existing sources'));
       }
 
+      console.log(`[CreateOrGetSourceForUrl] Found ${existingSources.data.length} existing sources`);
       const existingSource = existingSources.data.find(s =>
         s.redditUrl === redditUrl && s.sourceType === 'reddit'
       );
 
       if (existingSource) {
+        console.log(`[CreateOrGetSourceForUrl] Found existing source:`, {
+          id: existingSource.id,
+          postId: existingSource.postId,
+          subredditName: existingSource.subredditName
+        });
         return ResultEx.success({
           id: existingSource.id,
           projectId: existingSource.projectId,
@@ -383,12 +397,26 @@ export class StartFetchCommandHandler {
       }
 
       // Create new source
+      console.log(`[CreateOrGetSourceForUrl] Creating new source with:`, {
+        projectId,
+        sourceType: 'reddit',
+        redditUrl,
+        postId: sourceValueObject.postId,
+        subredditName: sourceValueObject.subredditName
+      });
       const createResult = await this._sourceRepository.create({
         projectId,
         sourceType: 'reddit',
         redditUrl,
         subredditName: sourceValueObject.subredditName,
         postId: sourceValueObject.postId,
+      });
+      
+      console.log(`[CreateOrGetSourceForUrl] Create result:`, {
+        success: createResult.isSuccess,
+        id: createResult.isSuccess ? createResult.data.id : null,
+        postId: createResult.isSuccess ? createResult.data.postId : null,
+        subredditName: createResult.isSuccess ? createResult.data.subredditName : null
       });
 
       if (!createResult.isSuccess) {
