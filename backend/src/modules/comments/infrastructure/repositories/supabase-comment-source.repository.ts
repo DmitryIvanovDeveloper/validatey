@@ -61,6 +61,16 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
       }
 
       console.log(`[CommentSource Create] Data returned from DB:`, JSON.stringify(data, null, 2));
+      console.log(`[CommentSource Create] Raw DB values:`, {
+        'data.post_id': data.post_id,
+        'data.subreddit_name': data.subreddit_name,
+        'data.post_id type': typeof data.post_id,
+        'data.subreddit_name type': typeof data.subreddit_name,
+        'data.post_id === null': data.post_id === null,
+        'data.post_id === undefined': data.post_id === undefined,
+        'data.subreddit_name === null': data.subreddit_name === null,
+        'data.subreddit_name === undefined': data.subreddit_name === undefined
+      });
 
       const source: CommentSource = {
         id: data.id,
@@ -77,11 +87,13 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         updatedAt: new Date(data.updated_at),
       };
 
-      console.log(`[CommentSource Create] Created source:`, {
+      console.log(`[CommentSource Create] Created source object:`, {
         id: source.id,
         postId: source.postId,
         subredditName: source.subredditName,
-        redditUrl: source.redditUrl
+        redditUrl: source.redditUrl,
+        'source.postId type': typeof source.postId,
+        'source.subredditName type': typeof source.subredditName
       });
 
       return ResultEx.success(source);
