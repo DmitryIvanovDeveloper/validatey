@@ -134,6 +134,18 @@ export class FetchCommentsUseCase {
       let sourceValueObject: CommentSourceValueObject;
       if (dbSource.sourceType === 'reddit') {
         sourceValueObject = CommentSourceValueObject.createReddit(dbSource.redditUrl!);
+        
+        // If source in DB is missing postId/subredditName, update it
+        if ((!dbSource.postId || !dbSource.subredditName) && sourceValueObject.postId && sourceValueObject.subredditName) {
+          console.log(`[EnsureCommentSource] Updating source ${dbSource.id} with missing postId/subredditName`);
+          const updateResult = await this._sourceRepository.update(dbSource.id, {
+            postId: sourceValueObject.postId,
+            subredditName: sourceValueObject.subredditName,
+          });
+          if (!updateResult.isSuccess) {
+            console.warn(`[EnsureCommentSource] Failed to update source: ${updateResult.error.message}`);
+          }
+        }
       } else {
         console.log(`[EnsureCommentSource] Creating HN source value object from DB source`);
         if (dbSource.hnUrl) {
@@ -250,7 +262,7 @@ export class FetchCommentsUseCase {
       let postId = source.postId;
       let subredditName = source.subredditName;
       
-      if (!postId || !subredditName) {
+      if ((!postId || !subredditName) && source.redditUrl) {
         console.log(`[PrepareFetchInput] postId or subredditName missing, extracting from URL: ${source.redditUrl}`);
         try {
           const sourceFromUrl = CommentSourceValueObject.createReddit(source.redditUrl);
@@ -268,7 +280,7 @@ export class FetchCommentsUseCase {
         ...baseInput,
         sourceType: 'reddit',
         subredditNames: subredditName ? [subredditName] : [],
-        postId: postId,
+        postId: postId || undefined,
         limitPerSubreddit: 100,
         apiCredentials: {
           clientId: process.env.REDDIT_CLIENT_ID,

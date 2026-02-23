@@ -30,10 +30,21 @@ export interface CreateCommentSourceInput {
   linkedinPostId?: string;
 }
 
+export interface UpdateCommentSourceInput {
+  subredditName?: string;
+  postId?: string;
+  hnFeedType?: string;
+  hnUrl?: string;
+  hnItemId?: string;
+  linkedinUrl?: string;
+  linkedinPostId?: string;
+}
+
 export interface CommentSourceRepositoryPort {
   create(input: CreateCommentSourceInput): Promise<ResultEx<CommentSource, CommentSourceError>>;
   findById(id: string): Promise<ResultEx<CommentSource, CommentSourceError>>;
   findByProjectId(projectId: string): Promise<ResultEx<CommentSource[], CommentSourceError>>;
   findAll(): Promise<ResultEx<CommentSource[], CommentSourceError>>;
+  update(id: string, input: UpdateCommentSourceInput): Promise<ResultEx<CommentSource, CommentSourceError>>;
   delete(id: string): Promise<ResultEx<void, CommentSourceError>>;
 }

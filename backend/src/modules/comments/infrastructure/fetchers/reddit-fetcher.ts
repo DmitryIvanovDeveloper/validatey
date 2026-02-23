@@ -67,7 +67,18 @@ export class RedditFetcher implements CommentFetcherPort {
     });
 
     // If postId is provided, fetch comments from specific post
-    if (redditInput.postId && redditInput.subredditNames.length > 0) {
+    // Try to extract subreddit from postId URL pattern if subredditNames is empty
+    let subredditNames = redditInput.subredditNames;
+    if (redditInput.postId && subredditNames.length === 0) {
+      // Try to extract subreddit from a Reddit URL if available in input
+      // This is a fallback for cases where subredditName wasn't extracted from source
+      console.log(`[RedditFetcher] postId provided but subredditNames is empty, attempting to extract from postId pattern`);
+      // PostId format is usually just the ID, but we can't extract subreddit from it
+      // So we'll skip the post-specific fetch and use default strategy
+      console.log(`[RedditFetcher] Cannot extract subreddit from postId alone, will use default fetch strategy`);
+    }
+
+    if (redditInput.postId && subredditNames.length > 0) {
       console.log(`[RedditFetcher] Fetching comments for post ${redditInput.postId} in subreddit ${redditInput.subredditNames[0]}`);
 
       const subreddit = redditInput.subredditNames[0];

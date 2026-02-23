@@ -3,7 +3,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
-import { CommentSourceRepositoryPort, CommentSource, CreateCommentSourceInput } from '../../application/ports/comment-source-repository.port';
+import { CommentSourceRepositoryPort, CommentSource, CreateCommentSourceInput, UpdateCommentSourceInput } from '../../application/ports/comment-source-repository.port';
 import { CommentSourceError } from '../../domain/errors/comment.error';
 
 @injectable()
@@ -206,6 +206,63 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
       return ResultEx.success(sources);
     } catch (error) {
       this._logger.error('commentSource.findAll.exception', { error });
+      return ResultEx.failure(new CommentSourceError(
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      ));
+    }
+  }
+
+  async update(id: string, input: UpdateCommentSourceInput): Promise<ResultEx<CommentSource, CommentSourceError>> {
+    try {
+      console.log(`[CommentSource Update] Updating source ${id} with:`, input);
+      const supabase = getSupabaseClient();
+
+      const updateData: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (input.subredditName !== undefined) updateData.subreddit_name = input.subredditName;
+      if (input.postId !== undefined) updateData.post_id = input.postId;
+      if (input.hnFeedType !== undefined) updateData.hn_feed_type = input.hnFeedType;
+      if (input.hnUrl !== undefined) updateData.hn_url = input.hnUrl;
+      if (input.hnItemId !== undefined) updateData.hn_item_id = input.hnItemId;
+      if (input.linkedinUrl !== undefined) updateData.linkedin_url = input.linkedinUrl;
+      if (input.linkedinPostId !== undefined) updateData.linkedin_post_id = input.linkedinPostId;
+
+      const { data, error } = await supabase
+        .from('comment_sources')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        this._logger.error('commentSource.update.error', { error, id, input });
+        return ResultEx.failure(new CommentSourceError(`Failed to update comment source: ${error.message}`));
+      }
+
+      if (!data) {
+        return ResultEx.failure(new CommentSourceError(`Comment source with ID ${id} not found`));
+      }
+
+      const source: CommentSource = {
+        id: data.id,
+        projectId: data.project_id,
+        sourceType: data.source_type,
+        redditUrl: data.reddit_url,
+        subredditName: data.subreddit_name,
+        postId: data.post_id,
+        hnFeedType: data.hn_feed_type,
+        hnUrl: data.hn_url,
+        hnItemId: data.hn_item_id,
+        linkedinUrl: data.linkedin_url,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at),
+      };
+
+      return ResultEx.success(source);
+    } catch (error) {
+      this._logger.error('commentSource.update.exception', { error, id, input });
       return ResultEx.failure(new CommentSourceError(
         error instanceof Error ? error.message : 'Unknown error occurred'
       ));
