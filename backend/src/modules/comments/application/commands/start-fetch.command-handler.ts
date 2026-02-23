@@ -33,6 +33,12 @@ export class StartFetchCommandHandler {
   async execute(command: StartFetchCommand): Promise<ResultEx<void, Error>> {
     try {
       console.log(`[StartFetch Handler] Starting execution with command:`, JSON.stringify(command, null, 2));
+      
+      // Check if jobs are enabled via environment variable
+      // Default to true for backward compatibility
+      const useJobs = process.env.COMMENT_FETCH_USE_JOBS !== 'false';
+      console.log(`[StartFetch Handler] Using ${useJobs ? 'job-based' : 'direct'} execution mode`);
+      
       // If sourceId is provided, run job for that specific source
       if (command.sourceId) {
         const sourceResult = await this._sourceRepository.findById(command.sourceId);
@@ -41,12 +47,18 @@ export class StartFetchCommandHandler {
         }
 
         const source = sourceResult.data;
-        this._runJobForSource(source.id, source.projectId, {
+        const config = {
           sourceType: source.sourceType as 'reddit' | 'hackernews',
           redditUrls: source.redditUrl ? [source.redditUrl] : [],
           hnFeedType: source.hnFeedType as any,
           periodDays: command.periodDays,
-        });
+        };
+        
+        if (useJobs) {
+          this._runJobForSource(source.id, source.projectId, config);
+        } else {
+          await this._runDirectFetch(source.id, source.projectId, config);
+        }
         return ResultEx.success(undefined);
       }
 
@@ -65,11 +77,17 @@ export class StartFetchCommandHandler {
             }
 
             const source = sourceResult.data;
-            this._runJobForSource(source.id, source.projectId!, {
-              sourceType: 'reddit',
+            const config = {
+              sourceType: 'reddit' as const,
               redditUrls: [trimmedUrl],
               periodDays: command.periodDays,
-            });
+            };
+            
+            if (useJobs) {
+              this._runJobForSource(source.id, source.projectId!, config);
+            } else {
+              await this._runDirectFetch(source.id, source.projectId!, config);
+            }
           }
           return ResultEx.success(undefined);
         } else if (command.sourceType === 'hackernews') {
@@ -87,12 +105,20 @@ export class StartFetchCommandHandler {
 
               const source = sourceResult.data;
               console.log(`[StartFetch Handler] Created source ${source.id} for HN URL ${hnUrl}`);
-              this._runJobForSource(source.id, source.projectId, {
-                sourceType: 'hackernews',
+              
+              const config = {
+                sourceType: 'hackernews' as const,
                 hnUrl: hnUrl,
                 periodDays: command.periodDays,
-              });
-              console.log(`[StartFetch Handler] Started job for source ${source.id}`);
+              };
+              
+              if (useJobs) {
+                this._runJobForSource(source.id, source.projectId, config);
+                console.log(`[StartFetch Handler] Started job for source ${source.id}`);
+              } else {
+                await this._runDirectFetch(source.id, source.projectId, config);
+                console.log(`[StartFetch Handler] Completed direct fetch for source ${source.id}`);
+              }
             }
           } else if (command.hnFeedType) {
             // Create job for Hacker News feed
@@ -102,11 +128,17 @@ export class StartFetchCommandHandler {
             }
 
             const source = sourceResult.data;
-            this._runJobForSource(source.id, source.projectId, {
-              sourceType: 'hackernews',
+            const config = {
+              sourceType: 'hackernews' as const,
               hnFeedType: command.hnFeedType,
               periodDays: command.periodDays,
-            });
+            };
+            
+            if (useJobs) {
+              this._runJobForSource(source.id, source.projectId, config);
+            } else {
+              await this._runDirectFetch(source.id, source.projectId, config);
+            }
           } else {
             return ResultEx.failure(new Error('Hacker News feed type or URLs are required'));
           }
@@ -123,12 +155,18 @@ export class StartFetchCommandHandler {
 
         const sources = sourcesResult.data;
         for (const source of sources) {
-          this._runJobForSource(source.id, source.projectId, {
+          const config = {
             sourceType: source.sourceType as 'reddit' | 'hackernews',
             redditUrls: source.redditUrl ? [source.redditUrl] : [],
             hnFeedType: source.hnFeedType as any,
             periodDays: command.periodDays,
-          });
+          };
+          
+          if (useJobs) {
+            this._runJobForSource(source.id, source.projectId, config);
+          } else {
+            await this._runDirectFetch(source.id, source.projectId, config);
+          }
         }
         return ResultEx.success(undefined);
       }
@@ -141,12 +179,18 @@ export class StartFetchCommandHandler {
 
       const allSources = allSourcesResult.data;
       for (const source of allSources) {
-        this._runJobForSource(source.id, source.projectId, {
+        const config = {
           sourceType: source.sourceType as 'reddit' | 'hackernews',
           redditUrls: source.redditUrl ? [source.redditUrl] : [],
           hnFeedType: source.hnFeedType as any,
           periodDays: command.periodDays,
-        });
+        };
+        
+        if (useJobs) {
+          this._runJobForSource(source.id, source.projectId, config);
+        } else {
+          await this._runDirectFetch(source.id, source.projectId, config);
+        }
       }
 
       return ResultEx.success(undefined);
@@ -155,6 +199,50 @@ export class StartFetchCommandHandler {
     }
   }
 
+  /**
+   * Runs fetch directly without job system (for environments like Vercel where jobs don't work)
+   */
+  private async _runDirectFetch(
+    sourceId: string,
+    projectId: string,
+    config: {
+      sourceType: 'reddit' | 'hackernews';
+      redditUrls?: string[];
+      hnFeedType?: any;
+      hnUrl?: string;
+      periodDays?: number;
+    }
+  ): Promise<void> {
+    try {
+      console.log(`[RunDirectFetch] Starting direct fetch for source ${sourceId}, config:`, JSON.stringify(config, null, 2));
+      const startedAt = new Date();
+      
+      // Run the fetch directly (synchronously)
+      const result = await this._fetchCommentsUseCase.execute({
+        sourceId,
+        projectId,
+        sourceType: config.sourceType,
+        redditUrls: config.redditUrls,
+        hnFeedType: config.hnFeedType,
+        periodDays: config.periodDays,
+      });
+
+      const completedAt = new Date();
+
+      if (result.isSuccess) {
+        console.log(`[RunDirectFetch] Successfully fetched ${result.data.commentsCount} comments for source ${sourceId}`);
+      } else {
+        console.error(`[RunDirectFetch] Fetch failed for source ${sourceId}:`, result.error.message);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[RunDirectFetch] Exception during fetch for source ${sourceId}:`, errorMessage);
+    }
+  }
+
+  /**
+   * Runs fetch using job system (original behavior with job tracking and events)
+   */
   private _runJobForSource(
     sourceId: string,
     projectId: string,

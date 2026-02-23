@@ -20,7 +20,8 @@
   - `SUPABASE_URL` = ваш Supabase URL
   - `SUPABASE_ANON_KEY` = ваш Supabase anon key
   - `FRONTEND_ORIGIN` = `https://validatey.vercel.app` (для CORS и cookie)
-  - Остальные по необходимости: `CEREBRAS_API_KEY`, `PORT` и т.д. (см. backend/env.example)
+  - `COMMENT_FETCH_USE_JOBS` = `false` (для Vercel, где job система не работает; по умолчанию `true` для обратной совместимости)
+  - Остальные по необходимости: `CEREBRAS_API_KEY`, `PORT`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` и т.д. (см. backend/env.example)
 
 ## Домены
 
