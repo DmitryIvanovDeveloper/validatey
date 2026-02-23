@@ -214,8 +214,13 @@ export class StartFetchCommandHandler {
     }
   ): Promise<void> {
     try {
-      console.log(`[RunDirectFetch] Starting direct fetch for source ${sourceId}, config:`, JSON.stringify(config, null, 2));
+      console.log(`[RunDirectFetch] ==========================================`);
+      console.log(`[RunDirectFetch] Starting direct fetch for source ${sourceId}`);
+      console.log(`[RunDirectFetch] Project ID: ${projectId}`);
+      console.log(`[RunDirectFetch] Config:`, JSON.stringify(config, null, 2));
+      console.log(`[RunDirectFetch] Environment: VERCEL=${process.env.VERCEL}, COMMENT_FETCH_USE_JOBS=${process.env.COMMENT_FETCH_USE_JOBS}`);
       const startedAt = new Date();
+      console.log(`[RunDirectFetch] Started at: ${startedAt.toISOString()}`);
       
       // Run the fetch directly (synchronously)
       const result = await this._fetchCommentsUseCase.execute({
@@ -228,15 +233,27 @@ export class StartFetchCommandHandler {
       });
 
       const completedAt = new Date();
+      const duration = completedAt.getTime() - startedAt.getTime();
 
       if (result.isSuccess) {
-        console.log(`[RunDirectFetch] Successfully fetched ${result.data.commentsCount} comments for source ${sourceId}`);
+        console.log(`[RunDirectFetch] ✅ Successfully fetched ${result.data.commentsCount} comments for source ${sourceId}`);
+        console.log(`[RunDirectFetch] Duration: ${Math.round(duration / 1000)}s`);
+        console.log(`[RunDirectFetch] Completed at: ${completedAt.toISOString()}`);
       } else {
-        console.error(`[RunDirectFetch] Fetch failed for source ${sourceId}:`, result.error.message);
+        console.error(`[RunDirectFetch] ❌ Fetch failed for source ${sourceId}:`, result.error.message);
+        if (result.error.stack) {
+          console.error(`[RunDirectFetch] Stack trace:`, result.error.stack);
+        }
       }
+      console.log(`[RunDirectFetch] ==========================================`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`[RunDirectFetch] Exception during fetch for source ${sourceId}:`, errorMessage);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error(`[RunDirectFetch] ❌ Exception during fetch for source ${sourceId}:`, errorMessage);
+      if (errorStack) {
+        console.error(`[RunDirectFetch] Stack trace:`, errorStack);
+      }
+      console.log(`[RunDirectFetch] ==========================================`);
     }
   }
 
