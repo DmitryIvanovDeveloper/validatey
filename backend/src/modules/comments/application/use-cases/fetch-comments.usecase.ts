@@ -193,7 +193,8 @@ export class FetchCommentsUseCase {
         return ResultEx.success({ id: existingSource.id, source: sourceValueObject });
       }
 
-      // Create new source
+      // Create new source with extracted postId and subredditName
+      console.log(`[EnsureCommentSource] Creating new Reddit source with postId=${sourceValueObject.postId}, subredditName=${sourceValueObject.subredditName}`);
       const createResult = await this._sourceRepository.create({
         projectId: input.projectId,
         sourceType: 'reddit',
