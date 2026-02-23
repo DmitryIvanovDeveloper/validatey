@@ -23,6 +23,16 @@
   - `COMMENT_FETCH_USE_JOBS` = `false` (для Vercel, где job система не работает; по умолчанию `true` для обратной совместимости)
   - Остальные по необходимости: `CEREBRAS_API_KEY`, `PORT`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` и т.д. (см. backend/env.example)
 
+## Puppeteer на Vercel
+
+Приложение использует Puppeteer для скрапинга комментариев с Reddit (fallback при ошибках API). На Vercel используется **@sparticuz/chromium** — оптимизированная версия Chromium для serverless окружений.
+
+**Важно:**
+- На **Vercel Pro** план Puppeteer будет работать автоматически благодаря `@sparticuz/chromium`
+- На **Hobby** плане также работает, но есть ограничение времени выполнения (10 секунд vs 60 секунд на Pro)
+- Локально используется обычный Puppeteer с bundled Chromium
+- Переключение между режимами происходит автоматически на основе переменной окружения `VERCEL`
+
 ## Домены
 
 Домены уже привязаны при деплое: validatey.vercel.app и validatey-backend.vercel.app. При необходимости проверить/добавить: **Settings → Domains** в каждом проекте.

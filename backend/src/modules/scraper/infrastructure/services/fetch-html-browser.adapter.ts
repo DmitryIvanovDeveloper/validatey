@@ -1,8 +1,9 @@
 import { injectable, inject } from 'inversify';
-import puppeteer, { type Browser } from 'puppeteer';
+import { type Browser } from 'puppeteer-core';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import type { FetchHtmlPort } from '../../application/ports/fetch-html.port';
+import { launchPuppeteer } from '../../../../infrastructure/puppeteer/puppeteer-launcher';
 
 const NAVIGATION_TIMEOUT_MS = 30_000;
 /** Wait after load so JS-rendered pricing/content can appear (SPA). */
@@ -24,10 +25,7 @@ export class FetchHtmlBrowserAdapter implements FetchHtmlPort {
   async getHtml(url: string): Promise<string> {
     let browser: Browser | undefined;
     try {
-      browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      });
+      browser = await launchPuppeteer();
       const page = await browser.newPage();
       await page.setUserAgent(USER_AGENT);
       await page.setDefaultNavigationTimeout(NAVIGATION_TIMEOUT_MS);

@@ -1,5 +1,4 @@
 import { injectable } from 'inversify';
-import puppeteer from 'puppeteer';
 import {
   CommentFetcherPort,
   FetchCommentsInput,
@@ -9,6 +8,7 @@ import {
 } from '../../application/ports/comment-fetcher.port';
 import { CommentFetchError } from '../../domain/errors/comment.error';
 import ResultEx from '../../../../infrastructure/result/result';
+import { launchPuppeteer } from '../../../../infrastructure/puppeteer/puppeteer-launcher';
 
 const REDDIT_BASE = 'https://www.reddit.com';
 const OLD_REDDIT_BASE = 'https://old.reddit.com';
@@ -352,10 +352,7 @@ export class RedditFetcher implements CommentFetcherPort {
     sinceDate?: Date
   ): Promise<FetchedCommentRaw[]> {
     const url = `${OLD_REDDIT_BASE}/r/${subreddit}/comments/${postId}/`;
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    });
+    const browser = await launchPuppeteer();
     try {
       const page = await browser.newPage();
       await page.setUserAgent(PUPPETEER_USER_AGENT);
