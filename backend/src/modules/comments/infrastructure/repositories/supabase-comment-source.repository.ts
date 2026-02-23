@@ -28,9 +28,10 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
       };
       
       // Only include fields that are defined (not undefined)
-      if (input.redditUrl !== undefined) insertData.reddit_url = input.redditUrl;
-      if (input.subredditName !== undefined) insertData.subreddit_name = input.subredditName;
-      if (input.postId !== undefined) insertData.post_id = input.postId;
+      // IMPORTANT: Convert undefined to null for Supabase, as undefined might be ignored
+      insertData.reddit_url = input.redditUrl ?? null;
+      insertData.subreddit_name = input.subredditName ?? null;
+      insertData.post_id = input.postId ?? null;
       if (input.hnFeedType !== undefined) insertData.hn_feed_type = input.hnFeedType;
       if (input.hnUrl !== undefined) insertData.hn_url = input.hnUrl;
       if (input.hnItemId !== undefined) insertData.hn_item_id = input.hnItemId;
