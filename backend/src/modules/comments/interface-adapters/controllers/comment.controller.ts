@@ -451,6 +451,21 @@ export class CommentController {
         postId: createResult.isSuccess ? createResult.data.postId : 'N/A',
         subredditName: createResult.isSuccess ? createResult.data.subredditName : 'N/A'
       });
+      
+      // Immediately verify by fetching back from DB
+      if (createResult.isSuccess) {
+        console.log(`[CommentController.createSource] Verifying source in DB...`);
+        const verifyResult = await this._sourceRepository.findById(createResult.data.id);
+        if (verifyResult.isSuccess) {
+          console.log(`[CommentController.createSource] Verification result:`, {
+            postId: verifyResult.data.postId,
+            subredditName: verifyResult.data.subredditName,
+            'matches create result': verifyResult.data.postId === createResult.data.postId && verifyResult.data.subredditName === createResult.data.subredditName
+          });
+        } else {
+          console.error(`[CommentController.createSource] Verification failed:`, verifyResult.error);
+        }
+      }
 
       if (!createResult.isSuccess) {
         res.status(400).json({ error: createResult.error.message });
