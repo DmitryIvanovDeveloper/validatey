@@ -162,6 +162,7 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
     }
   ): Promise<ResultEx<CommentEntity[], CommentError>> {
     try {
+      console.log(`[SupabaseCommentRepository] findByProjectId: projectId=${projectId}, options=`, options);
       const supabase = getSupabaseClient();
       let query = supabase
         .from('comments')
@@ -183,17 +184,31 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
 
       let data, error;
       try {
-        const result = await query;
+        // Add timeout wrapper to prevent hanging requests
+        const queryPromise = query;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Query timeout after 30 seconds')), 30000);
+        });
+        
+        const result = await Promise.race([queryPromise, timeoutPromise]);
         data = result.data;
         error = result.error;
+        console.log(`[SupabaseCommentRepository] Query completed: data.length=${data?.length || 0}, error=${error ? error.message : 'none'}`);
       } catch (queryError) {
         const errorMessage = queryError instanceof Error ? queryError.message : String(queryError);
         const errorName = queryError instanceof Error ? queryError.name : 'UnknownError';
+        const errorStack = queryError instanceof Error ? queryError.stack : undefined;
         console.error(`[SupabaseCommentRepository] Query exception for projectId ${projectId}:`, {
           errorName,
           errorMessage,
+          errorStack,
           error: queryError
         });
+        // Check if it's a termination error
+        if (errorName === 'TypeError' && errorMessage.includes('terminated')) {
+          console.warn(`[SupabaseCommentRepository] Request was terminated, returning empty array instead of error`);
+          return ResultEx.success([]);
+        }
         return ResultEx.failure(new CommentError(`Failed to find comments: ${errorName}: ${errorMessage}`));
       }
 
@@ -268,17 +283,32 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
 
       let data, error;
       try {
-        const result = await query;
+        console.log(`[SupabaseCommentRepository] findBySourceId: sourceId=${sourceId}, options=`, options);
+        // Add timeout wrapper to prevent hanging requests
+        const queryPromise = query;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Query timeout after 30 seconds')), 30000);
+        });
+        
+        const result = await Promise.race([queryPromise, timeoutPromise]);
         data = result.data;
         error = result.error;
+        console.log(`[SupabaseCommentRepository] Query completed: data.length=${data?.length || 0}, error=${error ? error.message : 'none'}`);
       } catch (queryError) {
         const errorMessage = queryError instanceof Error ? queryError.message : String(queryError);
         const errorName = queryError instanceof Error ? queryError.name : 'UnknownError';
+        const errorStack = queryError instanceof Error ? queryError.stack : undefined;
         console.error(`[SupabaseCommentRepository] Query exception for sourceId ${sourceId}:`, {
           errorName,
           errorMessage,
+          errorStack,
           error: queryError
         });
+        // Check if it's a termination error
+        if (errorName === 'TypeError' && errorMessage.includes('terminated')) {
+          console.warn(`[SupabaseCommentRepository] Request was terminated, returning empty array instead of error`);
+          return ResultEx.success([]);
+        }
         return ResultEx.failure(new CommentError(`Failed to find comments: ${errorName}: ${errorMessage}`));
       }
 
