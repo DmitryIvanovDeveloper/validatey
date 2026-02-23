@@ -506,6 +506,7 @@ export class CommentController {
         redditUrl: source.redditUrl,
         hnUrl: source.hnUrl,
         subredditName: source.subredditName,
+        postId: source.postId,
         hnFeedType: source.hnFeedType,
         hnItemId: source.hnItemId,
         createdAt: source.createdAt,
