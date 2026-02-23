@@ -181,9 +181,29 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
         query = query.range(options.offset, (options.offset + (options.limit || 50)) - 1);
       }
 
-      const { data, error } = await query;
+      let data, error;
+      try {
+        const result = await query;
+        data = result.data;
+        error = result.error;
+      } catch (queryError) {
+        const errorMessage = queryError instanceof Error ? queryError.message : String(queryError);
+        const errorName = queryError instanceof Error ? queryError.name : 'UnknownError';
+        console.error(`[SupabaseCommentRepository] Query exception for projectId ${projectId}:`, {
+          errorName,
+          errorMessage,
+          error: queryError
+        });
+        return ResultEx.failure(new CommentError(`Failed to find comments: ${errorName}: ${errorMessage}`));
+      }
 
       if (error) {
+        console.error(`[SupabaseCommentRepository] Query error for projectId ${projectId}:`, {
+          errorCode: error.code,
+          errorMessage: error.message,
+          errorDetails: error.details,
+          errorHint: error.hint
+        });
         this._logger.error('comment.findByProjectId.error', { error, projectId, options });
         return ResultEx.failure(new CommentError(`Failed to find comments: ${error.message}`));
       }
@@ -246,9 +266,29 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
         query = query.range(options.offset, (options.offset + (options.limit || 50)) - 1);
       }
 
-      const { data, error } = await query;
+      let data, error;
+      try {
+        const result = await query;
+        data = result.data;
+        error = result.error;
+      } catch (queryError) {
+        const errorMessage = queryError instanceof Error ? queryError.message : String(queryError);
+        const errorName = queryError instanceof Error ? queryError.name : 'UnknownError';
+        console.error(`[SupabaseCommentRepository] Query exception for sourceId ${sourceId}:`, {
+          errorName,
+          errorMessage,
+          error: queryError
+        });
+        return ResultEx.failure(new CommentError(`Failed to find comments: ${errorName}: ${errorMessage}`));
+      }
 
       if (error) {
+        console.error(`[SupabaseCommentRepository] Query error for sourceId ${sourceId}:`, {
+          errorCode: error.code,
+          errorMessage: error.message,
+          errorDetails: error.details,
+          errorHint: error.hint
+        });
         this._logger.error('comment.findBySourceId.error', { error, sourceId, options });
         return ResultEx.failure(new CommentError(`Failed to find comments: ${error.message}`));
       }
