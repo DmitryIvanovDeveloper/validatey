@@ -196,14 +196,16 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
       }
 
       console.log(`[CommentSource Repository] Found ${data.length} sources, mapping...`);
+      console.log(`[CommentSource Repository] Sample raw data:`, JSON.stringify(data[0], null, 2));
 
-      const sources: CommentSource[] = data.map(row => ({
-        id: row.id,
-        projectId: row.project_id,
-        sourceType: row.source_type,
-        redditUrl: row.reddit_url,
-        subredditName: row.subreddit_name,
-        postId: row.post_id,
+      const sources: CommentSource[] = data.map(row => {
+        const mapped = {
+          id: row.id,
+          projectId: row.project_id,
+          sourceType: row.source_type,
+          redditUrl: row.reddit_url,
+          subredditName: row.subreddit_name,
+          postId: row.post_id,
         hnFeedType: row.hn_feed_type,
         hnUrl: row.hn_url,
         hnItemId: row.hn_item_id,
