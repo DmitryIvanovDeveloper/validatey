@@ -421,8 +421,19 @@ export class CommentController {
       };
       
       console.log(`[CommentController.createSource] Creating source with input:`, JSON.stringify(createInput, null, 2));
+      console.log(`[CommentController.createSource] SourceValueObject details:`, {
+        postId: sourceValueObject.postId,
+        subredditName: sourceValueObject.subredditName,
+        type: sourceValueObject.type
+      });
       
       const createResult = await this._sourceRepository.create(createInput);
+      
+      console.log(`[CommentController.createSource] Create result:`, {
+        success: createResult.isSuccess,
+        postId: createResult.isSuccess ? createResult.data.postId : 'N/A',
+        subredditName: createResult.isSuccess ? createResult.data.subredditName : 'N/A'
+      });
 
       if (!createResult.isSuccess) {
         res.status(400).json({ error: createResult.error.message });
