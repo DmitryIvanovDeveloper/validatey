@@ -15,27 +15,31 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
 
   async create(input: CreateCommentSourceInput): Promise<ResultEx<CommentSource, CommentSourceError>> {
     try {
-      console.log(`[CommentSource Create] Input:`, input);
+      console.log(`[CommentSource Create] Input:`, JSON.stringify(input, null, 2));
       const supabase = getSupabaseClient();
 
       const now = new Date().toISOString();
 
+      const insertData = {
+        project_id: input.projectId,
+        source_type: input.sourceType,
+        reddit_url: input.redditUrl,
+        subreddit_name: input.subredditName,
+        post_id: input.postId,
+        hn_feed_type: input.hnFeedType,
+        hn_url: input.hnUrl,
+        hn_item_id: input.hnItemId,
+        linkedin_url: input.linkedinUrl,
+        linkedin_post_id: input.linkedinPostId,
+        created_at: now,
+        updated_at: now,
+      };
+      
+      console.log(`[CommentSource Create] Inserting data:`, JSON.stringify(insertData, null, 2));
+
       const { data, error } = await supabase
         .from('comment_sources')
-        .insert({
-          project_id: input.projectId,
-          source_type: input.sourceType,
-          reddit_url: input.redditUrl,
-          subreddit_name: input.subredditName,
-          post_id: input.postId,
-          hn_feed_type: input.hnFeedType,
-          hn_url: input.hnUrl,
-          hn_item_id: input.hnItemId,
-          linkedin_url: input.linkedinUrl,
-          linkedin_post_id: input.linkedinPostId,
-          created_at: now,
-          updated_at: now,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -47,6 +51,8 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
       if (!data) {
         return ResultEx.failure(new CommentSourceError('No data returned from create operation'));
       }
+
+      console.log(`[CommentSource Create] Data returned from DB:`, JSON.stringify(data, null, 2));
 
       const source: CommentSource = {
         id: data.id,
@@ -62,6 +68,13 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       };
+
+      console.log(`[CommentSource Create] Created source:`, {
+        id: source.id,
+        postId: source.postId,
+        subredditName: source.subredditName,
+        redditUrl: source.redditUrl
+      });
 
       return ResultEx.success(source);
     } catch (error) {
