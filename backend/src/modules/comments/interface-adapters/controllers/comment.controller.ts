@@ -389,7 +389,9 @@ export class CommentController {
       let sourceValueObject;
       try {
         if (sourceType === 'reddit') {
+          console.log(`[CommentController.createSource] Creating Reddit source from URL: ${redditUrl}`);
           sourceValueObject = CommentSourceValueObject.createReddit(redditUrl);
+          console.log(`[CommentController.createSource] Extracted: postId=${sourceValueObject.postId}, subredditName=${sourceValueObject.subredditName}`);
         } else if (sourceType === 'hackernews') {
           if (hnUrl) {
             sourceValueObject = CommentSourceValueObject.createHackerNews(hnUrl);
@@ -405,7 +407,7 @@ export class CommentController {
       }
 
       // Create source in repository
-      const createResult = await this._sourceRepository.create({
+      const createInput = {
         projectId,
         sourceType,
         redditUrl: sourceType === 'reddit' ? redditUrl : undefined,
@@ -416,7 +418,11 @@ export class CommentController {
         hnItemId: sourceType === 'hackernews' ? sourceValueObject.hnItemId : undefined,
         linkedinUrl: sourceType === 'linkedin' ? linkedinUrl : undefined,
         linkedinPostId: sourceType === 'linkedin' ? sourceValueObject.linkedinPostId : undefined,
-      });
+      };
+      
+      console.log(`[CommentController.createSource] Creating source with input:`, JSON.stringify(createInput, null, 2));
+      
+      const createResult = await this._sourceRepository.create(createInput);
 
       if (!createResult.isSuccess) {
         res.status(400).json({ error: createResult.error.message });
