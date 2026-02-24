@@ -1,0 +1,1 @@
+export { default as ProjectSettingsWidget } from './components/ProjectSettingsWidget.vue';

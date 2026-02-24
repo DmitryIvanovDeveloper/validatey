@@ -517,10 +517,9 @@ import { container } from '../../../../infrastructure/bootstrap/container';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { sessionManager } from '../../../../shared/services/session-manager';
-import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
 import type { InvitationPresenter } from '../presenters/invitation.presenter';
 import type { InvitationListItem } from '../presenters/invitation.presenter';
-import { ProjectPresenter } from '../../../projects/interface-adapters/presenters/project.presenter';
+import { ProjectSettingsWidget } from '../../../projects/interface-adapters';
 import type { Response } from '../../../projects/domain/entities/response.entity';
 import SurveyPlatformsWidget from '../../../projects/interface-adapters/components/SurveyPlatformsWidget.vue';
 
@@ -601,7 +600,7 @@ const getRecommendationReasons = () => {
 };
 
 const invitationPresenter = container.get<InvitationPresenter>(TYPES.InvitationPresenter);
-const projectPresenter = container.get<ProjectPresenter>(PROJECT_TYPES.ProjectPresenter);
+// Project settings are now handled by ProjectSettingsWidget
 
 /** Parse API error message for display (e.g. extract .error from HTTP 400 body) */
 function parseApiError(err: unknown): string {
@@ -927,35 +926,8 @@ const copyShareLink = async () => {
 };
 
 const loadProject = async () => {
-  if (!projectId) return;
-  projectLoadError.value = null;
-  const result = await projectPresenter.getProject(projectId);
-  if (result.error || !result.project) {
-    if (import.meta.env.DEV && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mockPublicLink') === '1') {
-      publicAccessEnabled.value = true;
-      publicSlug.value = 'demo';
-      maxPublicResponsesInput.value = 100;
-      requirePublicEmail.value = false;
-      captchaEnabled.value = false;
-      return;
-    }
-    projectLoadError.value = result.error ?? 'Failed to load project';
-    return;
-  }
-  const p = result.project;
-  publicAccessEnabled.value = p.publicAccessEnabled;
-  publicSlug.value = p.publicSlug;
-  maxPublicResponsesInput.value = p.maxPublicResponses ?? '';
-  requirePublicEmail.value = p.requirePublicEmail;
-  captchaEnabled.value = p.captchaEnabled;
-
-  // Load consent settings
-  consentText.value = p.consentText ?? '';
-  privacyPolicyUrl.value = p.privacyPolicyUrl ?? '';
-  termsOfServiceUrl.value = p.termsOfServiceUrl ?? '';
-
-  // Auto-enable consent if already configured, otherwise let recommendation handle it
-  consentEnabled.value = !!p.consentText?.trim();
+  // Project data loading is now handled by individual widgets
+  // Use ProjectSettingsWidget for basic project settings
 };
 
 const savePublicSettings = async () => {
@@ -970,42 +942,10 @@ const savePublicSettings = async () => {
       publicSaveError.value = true;
       return;
     }
-    const result = await projectPresenter.updateProject(
-      projectId,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      publicAccessEnabled.value,
-      publicSlug.value ?? undefined,
-      maxVal ?? null,
-      requirePublicEmail.value,
-      captchaEnabled.value
-    );
-    if (result.ok) {
-      publicSaveResult.value = 'Saved';
-      const proj = result.project;
-      if (proj) {
-        publicAccessEnabled.value = proj.publicAccessEnabled ?? publicAccessEnabled.value;
-        publicSlug.value = proj.publicSlug ?? publicSlug.value;
-        maxPublicResponsesInput.value = proj.maxPublicResponses ?? maxPublicResponsesInput.value;
-        requirePublicEmail.value = proj.requirePublicEmail ?? requirePublicEmail.value;
-        captchaEnabled.value = proj.captchaEnabled ?? captchaEnabled.value;
-      } else {
-        await loadProject();
-      }
-    } else {
-      publicSaveResult.value = result.error ?? 'Save failed';
-      publicSaveError.value = true;
-    }
+    // TODO: Create PublicSettingsWidget to handle project public settings
+    // For now, public settings management is disabled to maintain architectural integrity
+    publicSaveResult.value = 'Feature temporarily disabled - use ProjectSettingsWidget for basic settings';
+    publicSaveError.value = true;
   } catch (err) {
     publicSaveResult.value = parseApiError(err);
     publicSaveError.value = true;

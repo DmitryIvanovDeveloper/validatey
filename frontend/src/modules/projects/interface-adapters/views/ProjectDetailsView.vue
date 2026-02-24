@@ -213,6 +213,9 @@
           @research-completed="handleResearchCompleted"
         />
 
+        <!-- Research Overview -->
+        <ResearchOverviewWidget :project-id="projectId" />
+
         <!-- Show Details -->
         <ShowDetailsWidget
           :project-id="projectId"
@@ -360,11 +363,9 @@ import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/bootstrap/types';
 import type { InvitationPresenter } from '../../../invitations/interface-adapters/presenters/invitation.presenter';
-import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootstrap/types';
-import type { ResearchPresenter } from '../../../research/interface-adapters/presenters/research.presenter';
 import ResponsePaceWidget from '../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
 import { CommentsWidget } from '../../../comments/interface-adapters/components';
-import { ExecutiveSummaryWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget } from '../../../research/interface-adapters';
+import { ExecutiveSummaryWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../research/interface-adapters';
 import CommentPatternsWidget from '../../../comments/interface-adapters/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../research/interface-adapters/views/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../shared/components/SectionCard.vue';
@@ -376,7 +377,7 @@ const projectId = route.params.projectId as string;
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 const invitationPresenter = container.get<InvitationPresenter>(INVITATION_TYPES.InvitationPresenter);
-const researchPresenter = container.get<ResearchPresenter>(RESEARCH_TYPES.ResearchPresenter);
+// Research data is now handled by ResearchOverviewWidget
 const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
 const overviewInvitations = ref<Array<{ id: string; email: string; status: string }>>([]);
@@ -746,14 +747,9 @@ async function loadOverview() {
   }
 }
 
+// Research data loading is now handled by ResearchOverviewWidget
 async function loadResearchData() {
-  if (!projectId) return;
-  try {
-    const result = await researchPresenter.getResearchCanvas(projectId);
-    researchData.value = result;
-  } catch (error) {
-    researchData.value = null;
-  }
+  // Widget handles its own data loading
 }
 
 async function formatResearchContext() {

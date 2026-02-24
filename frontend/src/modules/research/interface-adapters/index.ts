@@ -4,6 +4,7 @@ export { default as ShowDetailsWidget } from './components/ShowDetailsWidget.vue
 export { default as ExecutiveSummaryWidget } from './components/ExecutiveSummaryWidget.vue';
 export { default as OverviewGuideWidget } from './components/OverviewGuideWidget.vue';
 export { default as StartResearchWidget } from './components/StartResearchWidget.vue';
+export { default as ResearchOverviewWidget } from './components/ResearchOverviewWidget.vue';
 export { default as SynthesisWidget } from './components/details/SynthesisWidget.vue';
 export { default as UserSignalsWidget } from './components/details/UserSignalsWidget.vue';
 export { default as SearchSuggestionsWidget } from './components/details/SearchSuggestionsWidget.vue';

@@ -330,8 +330,8 @@ import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { ProjectPresenter } from '../presenters/project.presenter';
 import { ScenarioPresenter } from '../../../scenarios/interface-adapters/presenters/scenario.presenter';
-import { ScenarioViewModel } from '../../../scenarios/interface-adapters/view-models/scenario.view-model';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
+import { ScenarioViewModel } from '../../../scenarios/interface-adapters/view-models/scenario.view-model';
 import type { Project } from '../../domain/entities/project.entity';
 import type { ProjectRisk } from '../../domain/entities/project-risk.entity';
 
