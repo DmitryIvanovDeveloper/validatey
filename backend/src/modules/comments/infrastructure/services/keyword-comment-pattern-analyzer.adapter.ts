@@ -5,6 +5,7 @@ import type {
   CommentPattern,
   CommentPatternAnalysis,
   CommentPatternExample,
+  PatternType,
 } from '../../domain/value-objects/comment-pattern-analysis.vo';
 import type { PatternRule, ScoreWeight } from '../../domain/value-objects/pattern-rules.vo';
 
@@ -73,7 +74,15 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
     const total = comments.length;
 
     if (total === 0) {
-      return { totalComments: 0, patterns: [], validationScore: 0, analyzedAt: new Date() };
+      return {
+        totalComments: 0,
+        patterns: [],
+        validationScore: 0,
+        sentimentOverview: { overall: 0, distribution: { positive: 0, neutral: 100, negative: 0 } },
+        platformInsights: { dominantPlatform: 'None', platformDistribution: {}, platformSentiments: {} },
+        temporalTrends: { recentActivity: 0, trendDirection: 'stable' },
+        analyzedAt: new Date()
+      };
     }
 
     const patterns: CommentPattern[] = rules
@@ -93,6 +102,9 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
           insight: buildInsight(rule.insightTemplate, count, total),
           count,
           percentage: Math.round((count / total) * 100),
+          sentimentScore: this.estimateSentimentScore(rule.type), // Basic sentiment estimation
+          confidenceScore: Math.min(0.7, count / total + 0.3), // Basic confidence based on frequency
+          recencyScore: 0.5, // Default recency (can't determine from keywords)
           examples,
         });
 
@@ -102,6 +114,87 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
 
     const validationScore = computeValidationScore(patterns, total, weights);
 
-    return { totalComments: total, patterns, validationScore, analyzedAt: new Date() };
+    // Basic sentiment analysis from patterns
+    const sentimentOverview = this.computeSentimentOverview(patterns, total);
+
+    // Basic platform insights (simplified)
+    const platformInsights = {
+      dominantPlatform: 'Mixed',
+      platformDistribution: { Mixed: total },
+      platformSentiments: { Mixed: sentimentOverview.overall }
+    };
+
+    // Basic temporal trends (can't determine from keywords)
+    const temporalTrends = {
+      recentActivity: 0.5,
+      trendDirection: 'stable' as const
+    };
+
+    return {
+      totalComments: total,
+      patterns,
+      validationScore,
+      sentimentOverview,
+      platformInsights,
+      temporalTrends,
+      analyzedAt: new Date()
+    };
+  }
+
+  private estimateSentimentScore(type: PatternType): number {
+    // Basic sentiment mapping based on pattern type
+    switch (type) {
+      case 'failure':
+        return -0.6; // Negative
+      case 'myth':
+        return -0.3; // Mildly negative
+      case 'advice':
+        return 0.2; // Mildly positive
+      case 'validation':
+        return 0.5; // Positive
+      case 'feature_request':
+        return 0.1; // Neutral-positive
+      case 'comparison':
+        return 0.0; // Neutral
+      case 'workaround':
+        return -0.1; // Mildly negative
+      default:
+        return 0.0;
+    }
+  }
+
+  private computeSentimentOverview(patterns: CommentPattern[], totalComments: number) {
+    if (patterns.length === 0) {
+      return { overall: 0, distribution: { positive: 0, neutral: 100, negative: 0 } };
+    }
+
+    // Calculate weighted sentiment
+    let totalWeightedSentiment = 0;
+    let totalWeight = 0;
+
+    let positiveCount = 0;
+    let negativeCount = 0;
+    let neutralCount = 0;
+
+    for (const pattern of patterns) {
+      const weight = pattern.count;
+      totalWeightedSentiment += pattern.sentimentScore * weight;
+      totalWeight += weight;
+
+      if (pattern.sentimentScore > 0.1) positiveCount += pattern.count;
+      else if (pattern.sentimentScore < -0.1) negativeCount += pattern.count;
+      else neutralCount += pattern.count;
+    }
+
+    const overall = totalWeight > 0 ? totalWeightedSentiment / totalWeight : 0;
+
+    return {
+      overall: Math.max(-1, Math.min(1, overall)), // Clamp to -1..1
+      distribution: {
+        positive: Math.round((positiveCount / totalComments) * 100),
+        neutral: Math.round((neutralCount / totalComments) * 100),
+        negative: Math.round((negativeCount / totalComments) * 100),
+      }
+    };
   }
 }

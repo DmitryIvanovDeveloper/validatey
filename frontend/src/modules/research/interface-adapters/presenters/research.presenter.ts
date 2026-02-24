@@ -19,6 +19,8 @@ import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger
 import { ResearchRepositoryPort } from '../../application/ports/research-repository.port';
 import { ResearchCooldownError } from '../../domain/errors/research.error';
 
+type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | null;
+
 @injectable()
 export class ResearchPresenter {
   readonly labels = {
@@ -42,6 +44,9 @@ export class ResearchPresenter {
     tabSynthesis: 'Synthesis',
     tabAssistant: 'AI Assistant',
   };
+
+  // Кеш для статусов hypothesis
+  private statusCache = new Map<string, HypothesisStatus>();
 
   // View model for reactive UI updates
   viewModel = {
@@ -150,6 +155,45 @@ export class ResearchPresenter {
 
   async setResearchLoading(projectId: string, isLoading: boolean): Promise<void> {
     this.viewModel.researchLoading = isLoading;
+  }
+
+  async getHypothesisStatus(projectId: string): Promise<HypothesisStatus> {
+    // Проверяем кеш
+    if (this.statusCache.has(projectId)) {
+      return this.statusCache.get(projectId)!;
+    }
+
+    try {
+      const result = await this.getResearchCanvas(projectId);
+      let status: HypothesisStatus = null;
+
+      if (result.synthesisReport?.verdict) {
+        const v = String(result.synthesisReport.verdict).toLowerCase();
+        if (v === 'validated' || v === 'strong-validation' || v === 'strong_validation') {
+          status = 'confirmed';
+        } else if (v === 'rejected') {
+          status = 'not_supported';
+        } else if (v === 'needs-more-data' || v === 'needs_more_data') {
+          status = 'need_more';
+        }
+      }
+
+      // Сохраняем в кеш
+      this.statusCache.set(projectId, status);
+      return status;
+    } catch (error) {
+      this._logger.warn('Failed to get hypothesis status', { projectId, error });
+      this.statusCache.set(projectId, null);
+      return null;
+    }
+  }
+
+  clearHypothesisStatusCache(projectId?: string): void {
+    if (projectId) {
+      this.statusCache.delete(projectId);
+    } else {
+      this.statusCache.clear();
+    }
   }
 
   private createEmptyCanvas(projectId: string): ResearchCanvas {

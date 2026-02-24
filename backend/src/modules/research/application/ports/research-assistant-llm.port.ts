@@ -1,4 +1,5 @@
 import ResultEx from '../../../../infrastructure/result/result';
+import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 
 export interface ResearchAssistantContext {
   projectName: string;
@@ -9,6 +10,7 @@ export interface ResearchAssistantContext {
     contextTitle?: string;
     sourceType: string;
   }>;
+  commentPatternAnalysis?: CommentPatternAnalysis | null;
 }
 
 export interface AssistantReply {

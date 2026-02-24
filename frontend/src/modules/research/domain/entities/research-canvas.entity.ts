@@ -31,6 +31,7 @@ export interface ResearchCanvas {
 
 export interface SynthesisReport {
   readonly summary: string;
+  readonly verdict?: string; // Overall hypothesis validation status
   readonly key_findings?: Array<{
     pattern: string;
     frequency: string;

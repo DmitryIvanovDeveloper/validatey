@@ -71,12 +71,7 @@
           <template #header>
             <div class="hypothesis-header">
               <h3 class="section-title">Hypothesis</h3>
-              <span
-                v-if="hypothesisOverallStatus"
-                :class="['hypothesis-status-badge', `hypothesis-status-badge--${hypothesisOverallStatus}`]"
-              >
-                {{ hypothesisOverallStatus === 'confirmed' ? 'Confirmed' : hypothesisOverallStatus === 'need_more' ? 'Need more' : 'Not supported' }}
-              </span>
+              <HypothesisStatusWidget :status="hypothesisOverallStatus" />
             </div>
           </template>
           <div class="hypothesis-content formatted-text" v-html="formatMarkdown(getHypothesisText())"></div>
@@ -365,7 +360,7 @@ import { TYPES as INVITATION_TYPES } from '../../../invitations/infrastructure/b
 import type { InvitationPresenter } from '../../../invitations/interface-adapters/presenters/invitation.presenter';
 import ResponsePaceWidget from '../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
 import { CommentsWidget } from '../../../comments/interface-adapters/components';
-import { ExecutiveSummaryWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../research/interface-adapters';
+import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../research/interface-adapters';
 import CommentPatternsWidget from '../../../comments/interface-adapters/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../research/interface-adapters/views/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../shared/components/SectionCard.vue';
@@ -2708,30 +2703,6 @@ watch(project, (p) => {
   color: var(--color-text);
 }
 
-.hypothesis-status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.625rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.hypothesis-status-badge--confirmed {
-  background: var(--color-success-bg, #d1fae5);
-  color: var(--color-success, #059669);
-}
-
-.hypothesis-status-badge--need_more {
-  background: var(--color-warning-bg, #fef3c7);
-  color: var(--color-warning, #d97706);
-}
-
-.hypothesis-status-badge--not_supported {
-  background: var(--color-error-bg, #fee2e2);
-  color: var(--color-error, #dc2626);
-}
 
 /* Decision Pathway */
 .decision-pathway-list {
@@ -3659,5 +3630,10 @@ watch(project, (p) => {
 
 .learn-more-btn:hover::after {
   transform: translateX(2px);
+}
+
+/* Hide research content in OverviewTab */
+.research-content {
+  display: none !important;
 }
 </style>

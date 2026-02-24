@@ -13,7 +13,6 @@ import type { CollectResearchDataRequest, CollectResearchDataResponse } from '..
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
 import type { ResearchAssistantRequest, ResearchAssistantResponse } from '../../application/use-cases/input-output/research-assistant.io';
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
-import { AnalyzeCommentPatternsUseCase } from '../../../comments/application/use-cases/analyze-comment-patterns.use-case';
 import type { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
 import type { StoredResearchData } from '../../domain/value-objects/stored-research-data.vo';
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
@@ -32,8 +31,6 @@ export class ResearchController {
 		private readonly _collectResearchDataUseCase: CollectResearchDataUseCase,
 		@inject(TYPES.ResearchAssistantUseCase)
 		private readonly _researchAssistantUseCase: ResearchAssistantUseCase,
-		@inject(COMMENT_TYPES.AnalyzeCommentPatternsUseCase)
-		private readonly _analyzeCommentPatternsUseCase: AnalyzeCommentPatternsUseCase,
 		@inject(TYPES.ResearchDataRepository)
 		private readonly _researchDataRepository: ResearchDataRepositoryPort,
 		@inject(ROOT_TYPES.Logger)
@@ -45,46 +42,17 @@ export class ResearchController {
 	}
 
 	public async generateSynthesis(request: GenerateSynthesisRequest): Promise<ResultEx<GenerateSynthesisResponse, Error>> {
-		// Execute synthesis
+		// Execute synthesis (now includes comment pattern analysis)
 		const synthesisResult = await this._generateSynthesisUseCase.execute(request);
 		if (!synthesisResult.isSuccess) {
 			return synthesisResult;
 		}
 
-		// After successful synthesis, analyze comment patterns and save to research_data
-		try {
-			this._logger.info('research-controller.analyzing-patterns', { projectId: request.projectId });
-			const patternAnalysisResult = await this._analyzeCommentPatternsUseCase.execute(request.projectId);
-			
-			if (patternAnalysisResult.isSuccess) {
-				// Load current research data
-				const storedResult = await this._researchDataRepository.findByProjectId(request.projectId);
-				if (storedResult.isSuccess && storedResult.data) {
-					const updated: StoredResearchData = {
-						...storedResult.data,
-						commentPatternAnalysis: patternAnalysisResult.data,
-						updatedAt: new Date(),
-					};
-					await this._researchDataRepository.save(updated);
-					this._logger.info('research-controller.patterns-saved', { 
-						projectId: request.projectId,
-						patternsCount: patternAnalysisResult.data.patterns.length 
-					});
-				}
-			} else {
-				// Log error but don't fail the synthesis response
-				this._logger.warn('research-controller.pattern-analysis-failed', { 
-					projectId: request.projectId,
-					error: patternAnalysisResult.error 
-				});
-			}
-		} catch (error) {
-			// Log error but don't fail the synthesis response
-			this._logger.warn('research-controller.pattern-analysis-exception', { 
-				projectId: request.projectId,
-				error 
-			});
-		}
+		// Comment pattern analysis is now included in synthesis, no separate call needed
+		this._logger.info('research-controller.synthesis-completed', {
+			projectId: request.projectId,
+			hasCommentPatternAnalysis: !!synthesisResult.data.report?.commentPatternAnalysis
+		});
 
 		return synthesisResult;
 	}

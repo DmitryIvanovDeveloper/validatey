@@ -32,7 +32,6 @@ export const COMMENT_TYPES = {
 
   // Pattern Analysis
   CommentPatternAnalyzer: Symbol.for('CommentPatternAnalyzer'),
-  AnalyzeCommentPatternsUseCase: Symbol.for('AnalyzeCommentPatternsUseCase'),
   PatternRulesRepository: Symbol.for('PatternRulesRepository'),
 
   // Controllers

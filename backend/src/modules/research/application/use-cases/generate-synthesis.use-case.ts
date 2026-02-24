@@ -85,9 +85,8 @@ export class GenerateSynthesisUseCase {
       const comments = commentsResult.isSuccess ? commentsResult.data : [];
       const commentsSummary = this.summarizeComments(comments);
 
-      // Get comment pattern analysis from stored research data (через порт)
+      // Get comment pattern analysis from stored research data (for pain points extraction)
       const commentPatternAnalysis = stored?.commentPatternAnalysis ?? null;
-      const commentPatternSummary = this.summarizeCommentPatternAnalysis(commentPatternAnalysis);
 
       // Extract pain points from both responses and comments (using pattern analysis if available)
       const painPointsFromResponses = this.extractPainPointsFromResponses(responses);
@@ -96,8 +95,8 @@ export class GenerateSynthesisUseCase {
 
       const earlySignalsSummary =
         signals.length > 0
-          ? signals.map((s) => `[${s.type}] ${s.title}: ${s.description}`).join('. ')
-          : 'No early signals yet';
+        ? signals.map((s) => `[${s.type}] ${s.title}: ${s.description}`).join('. ')
+        : 'No early signals yet';
 
       const llmResult = await this._synthesisLlm.generateSynthesis({
         projectName: project.name,
@@ -106,8 +105,7 @@ export class GenerateSynthesisUseCase {
         competitorSummary,
         autocompleteSummary,
         userInsightsSummary,
-        commentsSummary,
-        commentPatternSummary, // NEW: Pass pattern analysis summary
+        commentsSummary, // Comments will be analyzed by synthesis LLM
         earlySignalsSummary,
       });
 
@@ -117,8 +115,11 @@ export class GenerateSynthesisUseCase {
 
       const report: SynthesisReport = llmResult.data;
 
+      // Use comment pattern analysis from synthesis report, or fall back to stored
+      const synthesisPatternAnalysis = report.commentPatternAnalysis ?? commentPatternAnalysis;
+
       // Adjust verdict based on comment pattern validation score (Domain логика)
-      const adjustedReport = this.adjustVerdictByCommentPatterns(report, commentPatternAnalysis, comments.length);
+      const adjustedReport = this.adjustVerdictByCommentPatterns(report, synthesisPatternAnalysis, comments.length);
       
       // Build user insights with pain points from both responses and comments
       const userInsights = {
@@ -135,7 +136,7 @@ export class GenerateSynthesisUseCase {
         autocompleteInsights: stored?.autocompleteInsights ?? null,
         synthesisReport: adjustedReport, // Use adjusted report
         assumptionAssessments: stored?.assumptionAssessments ?? null,
-        commentPatternAnalysis: stored?.commentPatternAnalysis ?? null, // Preserve existing analysis
+        commentPatternAnalysis: synthesisPatternAnalysis, // Use analysis from synthesis
         lastResearchRunAt: stored?.lastResearchRunAt ?? null,
         updatedAt: new Date(),
       };
@@ -383,8 +384,13 @@ export class GenerateSynthesisUseCase {
       const failurePatterns = patternAnalysis.patterns.filter(p => p.type === 'failure');
       const validationPatterns = patternAnalysis.patterns.filter(p => p.type === 'validation');
 
-      // Extract from pattern examples (более качественные примеры)
-      for (const pattern of [...failurePatterns, ...validationPatterns]) {
+      // Sort by confidence and sentiment (prioritize high-confidence negative patterns)
+      const prioritizedPatterns = [...failurePatterns, ...validationPatterns]
+        .filter(p => p.sentimentScore < -0.1) // Negative sentiment
+        .sort((a, b) => (b.confidenceScore * Math.abs(b.sentimentScore)) - (a.confidenceScore * Math.abs(a.sentimentScore)));
+
+      // Extract from highest priority pattern examples
+      for (const pattern of prioritizedPatterns.slice(0, 3)) { // Top 3 negative patterns
         for (const example of pattern.examples.slice(0, 2)) {
           if (example.content.length > 20 && example.content.length < 200) {
             extractedPains.push(example.content);
@@ -461,16 +467,37 @@ export class GenerateSynthesisUseCase {
     patternAnalysis: CommentPatternAnalysis | null,
     commentCount: number
   ): SynthesisReport {
-    // Если validation score высокий и комментариев достаточно - повышаем уверенность
-    if (patternAnalysis && patternAnalysis.validationScore >= 70 && commentCount >= 50) {
+    if (!patternAnalysis) return report;
+
+    const { validationScore, sentimentOverview, temporalTrends } = patternAnalysis;
+
+    // Enhanced verdict adjustment logic
+    const strongEvidence = validationScore >= 70 && commentCount >= 50;
+    const positiveSentiment = sentimentOverview.overall > 0.1;
+    const recentActivity = temporalTrends.recentActivity > 0.6;
+
+    // Auto-upgrade verdict based on multiple factors
+    if (strongEvidence && positiveSentiment && recentActivity) {
       if (report.verdict === 'needs-more-data') {
         return {
           ...report,
           verdict: 'validated' as const,
-          summary: `${report.summary} Strong validation signals from ${commentCount} comments (validation score: ${patternAnalysis.validationScore}/100).`,
+          summary: `${report.summary} Strong validation signals from ${commentCount} recent comments (validation score: ${validationScore}/100, sentiment: ${sentimentOverview.overall > 0 ? 'positive' : 'neutral'}).`,
         };
       }
     }
+
+    // Auto-downgrade if strong negative signals
+    if (validationScore < 30 && sentimentOverview.overall < -0.3 && commentCount >= 30) {
+      if (report.verdict === 'validated') {
+        return {
+          ...report,
+          verdict: 'needs-more-data' as const,
+          summary: `${report.summary} Mixed feedback with negative sentiment signals (validation score: ${validationScore}/100, sentiment: ${sentimentOverview.overall.toFixed(1)}).`,
+        };
+      }
+    }
+
     return report; // Без изменений
   }
 

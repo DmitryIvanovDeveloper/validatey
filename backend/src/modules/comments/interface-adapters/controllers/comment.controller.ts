@@ -10,7 +10,6 @@ import type { DeleteSourceCommandHandler } from '../../application/commands/dele
 import type { DeleteSourceCommand } from '../../application/commands/delete-source.command';
 import type { CommentSourceRepositoryPort } from '../../application/ports/comment-source-repository.port';
 import type { FetchCommentsUseCase } from '../../application/use-cases/fetch-comments.usecase';
-import type { AnalyzeCommentPatternsUseCase } from '../../application/use-cases/analyze-comment-patterns.use-case';
 import { CommentSourceValueObject } from '../../domain/value-objects/comment-source.vo';
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
@@ -33,8 +32,6 @@ export class CommentController {
     private readonly _sourceRepository: CommentSourceRepositoryPort,
     @inject(COMMENT_TYPES.FetchCommentsUseCase)
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
-    @inject(COMMENT_TYPES.AnalyzeCommentPatternsUseCase)
-    private readonly _analyzeCommentPatternsUseCase: AnalyzeCommentPatternsUseCase,
     @inject(PROJECT_TYPES.ProjectRepository)
     private readonly _projectRepository: ProjectRepositoryPort
   ) {}
@@ -507,14 +504,27 @@ export class CommentController {
         return;
       }
 
-      const result = await this._analyzeCommentPatternsUseCase.execute(projectId);
-
-      if (!result.isSuccess) {
-        res.status(500).json({ error: result.error?.message ?? 'Pattern analysis failed' });
+      // Get pattern analysis from stored research data (generated during synthesis)
+      const researchDataResult = await this._projectRepository.findById(projectId);
+      if (!researchDataResult.isSuccess) {
+        res.status(404).json({ error: 'Project not found' });
         return;
       }
 
-      res.json(result.data);
+      // Try to get analysis from research data first
+      const researchData = await getSupabaseClient()
+        .from('research_data')
+        .select('comment_pattern_analysis')
+        .eq('project_id', projectId)
+        .single();
+
+      if (researchData.data?.comment_pattern_analysis) {
+        res.json(researchData.data.comment_pattern_analysis);
+        return;
+      }
+
+      // Fallback: perform analysis if not found in research data
+      res.status(404).json({ error: 'Pattern analysis not available. Please run "Start Research" first.' });
     } catch (error) {
       res.status(500).json({
         error: error instanceof Error ? error.message : 'Internal server error',

@@ -26,7 +26,6 @@ import { FetchStatusProjection } from '../projections/fetch-status.projection';
 
 // Pattern Analysis
 import { KeywordCommentPatternAnalyzerAdapter } from '../services/keyword-comment-pattern-analyzer.adapter';
-import { AnalyzeCommentPatternsUseCase } from '../../application/use-cases/analyze-comment-patterns.use-case';
 import { SupabasePatternRulesRepository } from '../repositories/supabase-pattern-rules.repository';
 
 // Interface Adapters
@@ -65,7 +64,6 @@ export function bindComments(container: Container): void {
 
   // Pattern Analysis
   container.bind(COMMENT_TYPES.CommentPatternAnalyzer).to(KeywordCommentPatternAnalyzerAdapter);
-  container.bind(COMMENT_TYPES.AnalyzeCommentPatternsUseCase).to(AnalyzeCommentPatternsUseCase);
   container.bind(COMMENT_TYPES.PatternRulesRepository).to(SupabasePatternRulesRepository);
 
   // Controllers

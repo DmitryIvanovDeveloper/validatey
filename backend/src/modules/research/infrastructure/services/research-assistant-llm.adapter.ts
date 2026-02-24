@@ -12,9 +12,15 @@ const AI_PROXY_URL = 'https://cerebras-api.vercel.app/api/prompt';
 
 const SYSTEM_PROMPT = `You are an AI research assistant for product validation. The user is a PM doing research. You have access to recent comments from external sources (like HackerNews, Reddit) that may contain relevant insights, user feedback, or similar experiences.
 
+You may also have access to enhanced Comment Pattern Analysis - AI-powered analysis of user feedback patterns that identifies common themes, sentiment analysis, confidence scores, and platform-specific insights.
+
 When responding:
 - Consider the provided comments as real user feedback and incorporate relevant insights from them
-- Reference specific comments when they support your recommendations or provide context
+- Use Comment Pattern Analysis to identify patterns, sentiment trends, and platform differences
+- Pay attention to confidence scores (higher = more reliable) and recency scores (higher = more current)
+- Consider overall sentiment and platform distribution when making recommendations
+- Reference specific patterns and their sentiment scores when they support your recommendations
+- Use the validation score and temporal trends to assess hypothesis strength
 - Reply briefly and practically
 - If they ask for market analysis or methods, suggest 1-3 concrete methods (e.g. "conjoint analysis", "survey", "A/B test")
 - Optionally ask 1-2 clarifying questions (geography, segment, budget)
@@ -38,6 +44,37 @@ export class ResearchAssistantLlmAdapter implements ResearchAssistantLlmPort {
         userContent += `${index + 1}. "${comment.content}"`;
         if (comment.author) userContent += ` - ${comment.author}`;
         if (comment.contextTitle) userContent += ` (from: ${comment.contextTitle})`;
+        userContent += '\n';
+      });
+      userContent += '\n';
+    }
+
+    // Add comment pattern analysis if available
+    if (context.commentPatternAnalysis) {
+      const analysis = context.commentPatternAnalysis;
+      userContent += `Comment Pattern Analysis (from ${analysis.totalComments} comments, validation score: ${analysis.validationScore}/100):\n\n`;
+
+      // Overall sentiment and platform insights
+      userContent += `Overall Sentiment: ${analysis.sentimentOverview.overall > 0.1 ? 'Positive' : analysis.sentimentOverview.overall < -0.1 ? 'Negative' : 'Neutral'} (${analysis.sentimentOverview.distribution.positive}% positive, ${analysis.sentimentOverview.distribution.negative}% negative)\n`;
+      userContent += `Dominant Platform: ${analysis.platformInsights.dominantPlatform}\n`;
+      userContent += `Recent Activity: ${analysis.temporalTrends.recentActivity > 0.7 ? 'High' : analysis.temporalTrends.recentActivity > 0.3 ? 'Medium' : 'Low'} (${analysis.temporalTrends.trendDirection} trend)\n\n`;
+
+      // Individual patterns with enhanced metrics
+      userContent += `Key Patterns:\n`;
+      analysis.patterns.forEach((pattern, index) => {
+        const sentiment = pattern.sentimentScore > 0.2 ? '🔥' : pattern.sentimentScore < -0.2 ? '😞' : '😐';
+        const confidence = pattern.confidenceScore > 0.8 ? 'High' : pattern.confidenceScore > 0.6 ? 'Medium' : 'Low';
+        const recency = pattern.recencyScore > 0.8 ? 'Recent' : pattern.recencyScore > 0.5 ? 'Current' : 'Older';
+
+        userContent += `${index + 1}. ${pattern.label} (${pattern.count} mentions, ${pattern.percentage}%) ${sentiment}\n`;
+        userContent += `   Type: ${pattern.type} | Sentiment: ${pattern.sentimentScore.toFixed(1)} | Confidence: ${confidence} | Recency: ${recency}\n`;
+        userContent += `   Insight: ${pattern.insight}\n`;
+
+        if (pattern.examples && pattern.examples.length > 0) {
+          pattern.examples.slice(0, 2).forEach((example, exIndex) => {
+            userContent += `   Example ${exIndex + 1}: "${example.content}" - ${example.author} (${example.source})\n`;
+          });
+        }
         userContent += '\n';
       });
       userContent += '\n';

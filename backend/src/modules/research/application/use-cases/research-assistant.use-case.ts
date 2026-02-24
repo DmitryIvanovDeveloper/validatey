@@ -8,6 +8,7 @@ import { COMMENT_TYPES } from '../../../comments/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import type { ResearchAssistantLlmPort } from '../ports/research-assistant-llm.port';
 import type { CommentRepositoryPort } from '../../../comments/application/ports/comment-repository.port';
+import type { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
 import type {
   ResearchAssistantRequest,
@@ -24,7 +25,9 @@ export class ResearchAssistantUseCase {
     @inject(RESEARCH_TYPES.ResearchAssistantLlm)
     private readonly _assistantLlm: ResearchAssistantLlmPort,
     @inject(COMMENT_TYPES.CommentRepository)
-    private readonly _commentRepository: CommentRepositoryPort
+    private readonly _commentRepository: CommentRepositoryPort,
+    @inject(RESEARCH_TYPES.ResearchDataRepository)
+    private readonly _researchDataRepository: ResearchDataRepositoryPort
   ) {}
 
   async execute(
@@ -41,8 +44,12 @@ export class ResearchAssistantUseCase {
       const project = projectResult.data;
 
       // Get comments for additional context
-      const commentsResult = await this._commentRepository.findByProjectId(projectId, { limit: 10 });
+      const commentsResult = await this._commentRepository.findByProjectId(projectId);
       const comments = commentsResult.isSuccess ? commentsResult.data : [];
+
+      // Get comment pattern analysis from stored research data
+      const researchDataResult = await this._researchDataRepository.findByProjectId(projectId);
+      const commentPatternAnalysis = researchDataResult.isSuccess ? researchDataResult.data?.commentPatternAnalysis ?? null : null;
 
       const context = {
         projectName: project.name,
@@ -53,6 +60,7 @@ export class ResearchAssistantUseCase {
           contextTitle: comment.contextTitle || undefined,
           sourceType: comment.sourceId ? 'external' : 'unknown',
         })),
+        commentPatternAnalysis,
       };
 
       this._logger.info('research-assistant.context', {
@@ -60,7 +68,9 @@ export class ResearchAssistantUseCase {
         projectName: context.projectName,
         hypothesisSummary: context.hypothesisSummary,
         commentCount: context.comments?.length || 0,
-        hasComments: (context.comments?.length || 0) > 0
+        hasComments: (context.comments?.length || 0) > 0,
+        hasCommentPatternAnalysis: !!context.commentPatternAnalysis,
+        patternCount: context.commentPatternAnalysis?.patterns?.length || 0
       });
 
       const result = await this._assistantLlm.reply(message.trim(), context);

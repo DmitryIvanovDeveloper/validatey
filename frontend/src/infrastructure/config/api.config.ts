@@ -20,6 +20,7 @@ export const API_CONFIG = {
     // Projects
     PROJECTS: '/projects',
     PROJECT: (id: string) => `/projects/${id}`,
+    PROJECTS_OVERVIEW: '/projects/overview',
     PROJECTS_ASSESS_RISK: '/projects/assess-risk',
     
     // Scenarios

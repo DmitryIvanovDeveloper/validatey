@@ -2,6 +2,7 @@ export * from './presenters/research.presenter';
 export { default as EarlySignalsWidget } from './components/EarlySignalsWidget.vue';
 export { default as ShowDetailsWidget } from './components/ShowDetailsWidget.vue';
 export { default as ExecutiveSummaryWidget } from './components/ExecutiveSummaryWidget.vue';
+export { default as HypothesisStatusWidget } from './components/HypothesisStatusWidget.vue';
 export { default as OverviewGuideWidget } from './components/OverviewGuideWidget.vue';
 export { default as StartResearchWidget } from './components/StartResearchWidget.vue';
 export { default as ResearchOverviewWidget } from './components/ResearchOverviewWidget.vue';

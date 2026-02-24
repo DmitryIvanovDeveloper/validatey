@@ -1,12 +1,16 @@
 <template>
   <article
+    ref="cardRef"
     :class="['project-card', `project-card--${project.status}`]"
     @click="emit('click')"
   >
     <div class="project-card__accent" aria-hidden="true" />
     <div class="project-card__inner">
       <header class="project-card__header">
-        <h3 class="project-card__title">{{ project.name }}</h3>
+        <div class="project-card__title-row">
+          <h3 class="project-card__title">{{ project.name }}</h3>
+          <HypothesisStatusWidget v-if="isVisible" :project-id="project.id" />
+        </div>
         <div class="project-card__menu" @click.stop>
           <button
             type="button"
@@ -39,9 +43,14 @@
         </span>
       </div>
       <div class="project-card__stats">
-        <AssumptionsWidget :project-id="project.id" />
-        <CommentsWidgetCompact :project-id="project.id" />
-        <ResponsesWidget :project-id="project.id" />
+        <AssumptionsWidget v-if="isVisible" :project-id="project.id" />
+        <CommentsWidgetCompact v-if="isVisible" :project-id="project.id" />
+        <ResponsesWidget v-if="isVisible" :project-id="project.id" />
+        <div v-else class="widgets-loading-placeholder">
+          <div class="widget-loading">...</div>
+          <div class="widget-loading">...</div>
+          <div class="widget-loading">...</div>
+        </div>
       </div>
       <footer v-if="$slots.footer" class="project-card__footer">
         <slot name="footer">
@@ -58,11 +67,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
 import type { Project, ProjectStatus } from '../../../domain/entities/project.entity';
 import AssumptionsWidget from '../../../../research/interface-adapters/components/AssumptionsWidget.vue';
 import CommentsWidgetCompact from '../../../../comments/interface-adapters/components/CommentsWidgetCompact.vue';
 import ResponsesWidget from '../../../../overview/interface-adapters/components/ResponsesWidget.vue';
+import { HypothesisStatusWidget } from '../../../../research/interface-adapters';
 
 const props = defineProps<{
   project: Project;
@@ -73,6 +83,8 @@ const emit = defineEmits<{
 }>();
 
 const menuOpen = ref(false);
+const isVisible = ref(false);
+const cardRef = ref<HTMLElement>();
 
 function toggleMenu() {
   menuOpen.value = !menuOpen.value;
@@ -80,6 +92,30 @@ function toggleMenu() {
 
 function closeMenu() {
   menuOpen.value = false;
+}
+
+// Lazy loading for widgets
+let observer: IntersectionObserver | null = null;
+
+function setupIntersectionObserver() {
+  if (!cardRef.value) return;
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !isVisible.value) {
+          isVisible.value = true;
+          observer?.disconnect();
+        }
+      });
+    },
+    {
+      threshold: 0.1, // Trigger when 10% of the card is visible
+      rootMargin: '50px', // Start loading 50px before the card comes into view
+    }
+  );
+
+  observer.observe(cardRef.value);
 }
 
 // Close menu when clicking outside
@@ -91,10 +127,14 @@ function handleClickOutside(event: Event) {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
+  nextTick(() => {
+    setupIntersectionObserver();
+  });
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
+  observer?.disconnect();
 });
 
 const statusLabels: Record<ProjectStatus, string> = {
@@ -178,6 +218,14 @@ const formattedDate = computed(() => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.project-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .project-card__title {
@@ -404,5 +452,36 @@ const formattedDate = computed(() => {
 .project-card__menu-actions :deep(.btn-danger:hover) {
   background: var(--color-error-bg);
   color: var(--color-error-hover);
+}
+
+/* Lazy loading placeholder for widgets */
+.widgets-loading-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0;
+  margin: 0;
+}
+
+.widget-loading {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  background: var(--color-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>
