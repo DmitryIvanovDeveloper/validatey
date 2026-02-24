@@ -17,17 +17,20 @@ const SERPER_QUERY_MAX_LENGTH = 2000;
 /** Max length for LLM-generated search query (keeps under Serper limit with suffix). */
 const LLM_QUERY_MAX_LENGTH = 1800;
 
-const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a product name and one-sentence description, generate ONE precise Google search query to find direct competitors and market alternatives.
+const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a product description and target audience, generate ONE precise Google search query to find direct competitors and alternatives for THIS specific startup/founder tool.
 
 Rules:
 - Output ONLY the search query. No quotes, no explanation, no punctuation at the end.
-- 4-8 words maximum. Focus on the product category, not the company name.
-- Name the product TYPE (e.g. "idea validation tool", "landing page builder", "survey platform"), not the brand.
+- 4-8 words maximum. Focus on the product TYPE for founders, not the company name.
+- Name the product TYPE for entrepreneurs (e.g. "startup idea validation tool", "founder feedback platform", "customer discovery tool"), not the brand.
 - Append "alternatives" or "competitors" at the end.
+- IMPORTANT: This is a tool for FOUNDERS and ENTREPRENEURS — focus on startup ecosystem tools.
+  Do NOT search for: ML model validation tools, software testing tools, data validation tools.
+  DO search for: startup validation, founder feedback, idea validation, customer discovery, pre-launch tools.
 - Example outputs:
   - "startup idea validation tool alternatives"
-  - "pre-launch feedback platform for founders competitors"
-  - "B2B lead generation software alternatives"
+  - "pre-launch founder feedback platform competitors"
+  - "customer discovery tool for entrepreneurs alternatives"
 - Maximum 120 characters.`;
 
 interface SerperOrganicItem {
@@ -104,7 +107,11 @@ export class LlmCompetitorDataProviderAdapter implements CompetitorDataProviderP
 
     const firstSentence = this.extractFirstSentence(description);
     const geoNote = intent.geography ? ` (${intent.geography})` : '';
-    const context = `Product description: ${firstSentence}${geoNote}`;
+    // Include segment to help LLM identify the right competitor category
+    const segmentNote = intent.segment
+      ? `\nTarget audience: ${intent.segment.slice(0, 150)}`
+      : '';
+    const context = `Product description: ${firstSentence}${geoNote}${segmentNote}`;
 
     try {
       const prompt = `${SEARCH_QUERY_PROMPT}\n\nInput:\n${context}`;
@@ -176,17 +183,22 @@ export class LlmCompetitorDataProviderAdapter implements CompetitorDataProviderP
       .filter(Boolean)
       .join('\n');
 
-    return `You are a competitive intelligence analyst. Using ONLY the search snippets below, identify competitors and pricing.
+    return `You are a competitive intelligence analyst. Using ONLY the search snippets below, identify competitors and pricing for a STARTUP/FOUNDER TOOL.
 
 Respond with ONLY a valid JSON object (no markdown, no extra text):
 {"competitors":["Competitor A","Competitor B","Competitor C"],"priceRange":"e.g. $10-50/mo or Free - $100","rating":"e.g. 4.2/5 or N/A"}
 
 Rules:
 - Use only information from the snippets. If something is missing, use empty array or "Unknown".
-- competitors: 0-8 competitor names or product names.
+- competitors: 0-8 competitor names that are DIRECT alternatives for founders/entrepreneurs.
 - priceRange: one short summary of typical pricing.
 - rating: aggregate or typical rating if mentioned, else "N/A".
 - Use English.
+- RELEVANCE CHECK: Only include tools that serve founders, entrepreneurs, or early-stage startups.
+  Do NOT list: project management tools (Trello, Basecamp), design tools (Figma, Sketch),
+  code editors, e-commerce platforms (Shopify), or content agencies — unless the snippets
+  explicitly identify them as competitors to startup validation/feedback tools.
+  If no relevant competitors found in snippets, return {"competitors":[],"priceRange":"Unknown","rating":"N/A"}.
 
 Context:
 ${context}`;

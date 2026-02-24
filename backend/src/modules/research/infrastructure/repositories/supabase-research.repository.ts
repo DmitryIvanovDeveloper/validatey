@@ -5,6 +5,7 @@ import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 import type { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
 import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights, UserInsightsBlock, AssumptionAssessment } from '../../domain/value-objects';
+import type { ResearchStatus } from '../../domain/value-objects/research-status.vo';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 
 @injectable()
@@ -51,6 +52,8 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
         commentPatternAnalysis,
         lastResearchRunAt: data.last_research_run_at ? new Date(data.last_research_run_at) : null,
         updatedAt: new Date(data.updated_at),
+        researchStatus: (data.research_status as ResearchStatus) ?? 'idle',
+        researchStatusUpdatedAt: data.research_status_updated_at ? new Date(data.research_status_updated_at) : null,
       };
       return ResultEx.success(stored);
     } catch (error) {
@@ -70,6 +73,7 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
           }
         : null;
 
+      const nowIso = new Date().toISOString();
       const { error } = await supabase.from('research_data').upsert(
         {
           project_id: data.projectId,
@@ -80,7 +84,9 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
           assumption_assessments: data.assumptionAssessments ?? null,
           comment_pattern_analysis: commentPatternAnalysisJson,
           last_research_run_at: data.lastResearchRunAt?.toISOString(),
-          updated_at: new Date().toISOString(),
+          updated_at: nowIso,
+          research_status: data.researchStatus ?? 'idle',
+          research_status_updated_at: data.researchStatusUpdatedAt?.toISOString() ?? nowIso,
         },
         { onConflict: 'project_id' }
       );
@@ -92,6 +98,28 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
       return ResultEx.success(undefined);
     } catch (error) {
       this._logger.error('supabase-research-repository.save-exception', { projectId: data.projectId, error });
+      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async updateResearchStatus(projectId: string, status: ResearchStatus): Promise<ResultEx<void, Error>> {
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase
+        .from('research_data')
+        .update({
+          research_status: status,
+          research_status_updated_at: new Date().toISOString(),
+        })
+        .eq('project_id', projectId);
+
+      if (error) {
+        this._logger.error('supabase-research-repository.update-status-error', { projectId, status, error });
+        return ResultEx.failure(new Error(error.message));
+      }
+      return ResultEx.success(undefined);
+    } catch (error) {
+      this._logger.error('supabase-research-repository.update-status-exception', { projectId, status, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
     }
   }

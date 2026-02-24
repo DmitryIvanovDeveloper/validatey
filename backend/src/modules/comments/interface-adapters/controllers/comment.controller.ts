@@ -119,7 +119,15 @@ export class CommentController {
       const hasHnData = (hnUrls && hnUrls.length > 0) || hnFeedType;
 
       if (!hasRedditData && !hasHnData) {
-        res.status(400).json({ error: 'At least one source must have URLs or feed type specified' });
+        // No URLs provided — fetch all existing sources for this project
+        console.log(`[CommentController.fetchComments] No URLs provided, fetching all existing project sources`);
+        const command = { projectId, periodDays: Number.isFinite(periodDays) && periodDays! > 0 ? periodDays : undefined };
+        const result = await this._startFetchCommandHandler.execute(command);
+        if (!result.isSuccess) {
+          res.status(500).json({ error: result.error.message });
+          return;
+        }
+        res.status(202).json({ status: 'started' });
         return;
       }
 

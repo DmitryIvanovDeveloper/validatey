@@ -16,17 +16,20 @@ const MAX_SNIPPET_LENGTH = 400;
 const SERPER_QUERY_MAX_LENGTH = 2000;
 const LLM_QUERY_MAX_LENGTH = 1800;
 
-const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a product name and one-sentence description, generate ONE precise Google search query to find market size, growth rate and industry trends.
+const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a product description and target audience, generate ONE precise Google search query to find market size, growth rate and industry trends for THIS specific business/startup tool.
 
 Rules:
 - Output ONLY the search query. No quotes, no explanation, no punctuation at the end.
-- 4-8 words maximum. Name the MARKET CATEGORY, not the product brand.
-- Focus on the industry/niche the product belongs to (e.g. "idea validation software market", "pre-launch SaaS tools market size").
+- 4-8 words maximum. Name the MARKET CATEGORY for the target audience, not the product brand.
+- Focus on the business niche (e.g. "startup idea validation software market size", "founder feedback platform market growth").
 - Append "market size" or "industry trends" at the end.
+- IMPORTANT: This is a tool for FOUNDERS and ENTREPRENEURS — NOT ML/AI model validation, NOT software testing.
+  Do NOT generate queries about: machine learning validation, AI model testing, data validation, software QA.
+  DO generate queries about: startup tools, founder tools, customer discovery tools, idea validation for entrepreneurs.
 - Example outputs:
-  - "startup idea validation software market size"
-  - "indie founder feedback tools industry trends"
-  - "pre-launch product validation platform market growth"
+  - "startup idea validation tool market size"
+  - "indie founder customer discovery platform market growth"
+  - "pre-launch product feedback tool market size"
 - Maximum 120 characters.`;
 
 interface SerperOrganicItem {
@@ -97,7 +100,11 @@ export class LlmMarketDataProviderAdapter implements MarketDataProviderPort {
 
     const firstSentence = this.extractFirstSentence(description);
     const geoNote = intent.geography ? ` (${intent.geography})` : '';
-    const context = `Product description: ${firstSentence}${geoNote}`;
+    // Include segment to help LLM narrow down the right market category
+    const segmentNote = intent.segment
+      ? `\nTarget audience: ${intent.segment.slice(0, 150)}`
+      : '';
+    const context = `Product description: ${firstSentence}${geoNote}${segmentNote}`;
 
     try {
       const prompt = `${SEARCH_QUERY_PROMPT}\n\nInput:\n${context}`;
@@ -168,10 +175,10 @@ export class LlmMarketDataProviderAdapter implements MarketDataProviderPort {
       .filter(Boolean)
       .join('\n');
 
-    return `You are a market research analyst. Using ONLY the search snippets below, produce a short market data summary.
+    return `You are a market research analyst. Using ONLY the search snippets below, produce a short market data summary for a STARTUP TOOL for founders and entrepreneurs.
 
 Respond with ONLY a valid JSON object (no markdown, no extra text):
-{"size":"market size estimate (e.g. $Xbn, Y million users)","growth":"growth rate or trend (e.g. 15% CAGR)","trends":["trend 1","trend 2","trend 3"]}
+{"size":"<actual market size from snippets, e.g. $2.5 billion or 500K active users>","growth":"<actual growth rate from snippets, e.g. 18% CAGR 2024-2030>","trends":["trend 1","trend 2","trend 3"]}
 
 Rules:
 - Use only information from the snippets. If something is missing, use "Unknown" or an empty array.
@@ -179,6 +186,9 @@ Rules:
 - growth: one short sentence or percentage.
 - trends: 0-5 short trend phrases.
 - Use English.
+- RELEVANCE CHECK: If the snippets are about ML/AI model validation, software testing, data quality validation,
+  or any technical validation unrelated to startup/founder tools — output {"size":"Unknown","growth":"Unknown","trends":[]}.
+  Only summarize if snippets clearly describe the market for startup tools, customer discovery, or founder feedback platforms.
 
 Context:
 ${context}`;

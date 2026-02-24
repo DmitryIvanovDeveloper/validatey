@@ -15,6 +15,8 @@ export type RecommendedTemplate = {
 /** Per-assumption validation status (legacy; also derivable from assumptionAssessments). */
 export type AssumptionStatus = 'confirmed' | 'need_more' | 'not_supported';
 
+export type ResearchStatusDto = 'idle' | 'collecting' | 'synthesizing';
+
 export type GetResearchCanvasResponse = {
   canvas: ResearchCanvas;
   synthesisReport?: SynthesisReport | null;
@@ -25,4 +27,7 @@ export type GetResearchCanvasResponse = {
   assumptionStatuses?: AssumptionStatus[] | null;
   /** Per-assumption assessment (status + evidence), keyed by assumptionId. */
   assumptionAssessments?: AssumptionAssessment[] | null;
+  /** Current research phase (for "in progress" restore after reload). */
+  researchStatus?: ResearchStatusDto;
+  researchStatusUpdatedAt?: string | null;
 };

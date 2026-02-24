@@ -28,6 +28,8 @@ export class GetResearchCanvasUseCase {
       },
       assumptionStatuses: result.assumptionStatuses ?? null,
       assumptionAssessments: result.assumptionAssessments ?? null,
+      researchStatus: result.researchStatus ?? 'idle',
+      researchStatusUpdatedAt: result.researchStatusUpdatedAt ?? null,
     };
   }
 }

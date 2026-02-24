@@ -178,6 +178,7 @@ export class RedditFetcher implements CommentFetcherPort {
         const response = await fetch(url, {
           method: 'GET',
           headers,
+          signal: AbortSignal.timeout(20_000),
         });
 
         const text = await response.text();
@@ -254,6 +255,7 @@ export class RedditFetcher implements CommentFetcherPort {
           'Authorization': `Basic ${credentials}`,
         },
         body,
+        signal: AbortSignal.timeout(15_000),
       });
       if (!response.ok) {
         const text = await response.text();
@@ -286,6 +288,7 @@ export class RedditFetcher implements CommentFetcherPort {
       const response = await fetch(url, {
         method: 'GET',
         headers,
+        signal: AbortSignal.timeout(20_000),
       });
 
       if (!response.ok) {
@@ -380,8 +383,9 @@ export class RedditFetcher implements CommentFetcherPort {
     try {
       const page = await browser.newPage();
       await page.setUserAgent(PUPPETEER_USER_AGENT);
-      await page.setDefaultNavigationTimeout(30000);
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      await page.setDefaultNavigationTimeout(25000);
+      // Use 'domcontentloaded' instead of 'networkidle2' — Reddit never fully settles
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 });
       await new Promise((r) => setTimeout(r, 2000));
 
       const scraped = await page.evaluate(() => {

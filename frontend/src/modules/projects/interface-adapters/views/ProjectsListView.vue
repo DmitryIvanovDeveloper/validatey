@@ -87,7 +87,7 @@
         @click="goToProject(project.id)"
       >
         <template #footer>
-          <router-link :to="`/projects/${project.id}`" class="project-card__link" @click.stop>
+          <router-link :to="`/workspaces/${workspaceId}/projects/${project.id}`" class="project-card__link" @click.stop>
             {{ presenter.labels.viewProject }}
             <svg class="project-card__link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M12 5l7 7-7 7" />

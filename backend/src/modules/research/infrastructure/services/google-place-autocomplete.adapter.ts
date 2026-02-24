@@ -4,15 +4,13 @@ import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import type { AutocompleteApiPort } from '../../application/ports/autocomplete-api.port';
 
-const PLACES_AUTOCOMPLETE_URL = 'https://places.googleapis.com/v1/places:autocomplete';
+/**
+ * Uses Google Search Autocomplete (suggestqueries) — returns real search query suggestions,
+ * not physical places. No API key required.
+ * Response format: ["query", ["suggestion1", "suggestion2", ...], ...]
+ */
+const SEARCH_AUTOCOMPLETE_BASE_URL = 'https://suggestqueries.google.com/complete/search';
 const MAX_SUGGESTIONS_PER_PHRASE = 5;
-
-interface PlaceAutocompleteResponse {
-  suggestions?: Array<{
-    placePrediction?: { text?: { text?: string }; structuredFormat?: { mainText?: { text?: string }; secondaryText?: { text?: string } } };
-    queryPrediction?: { text?: { text?: string } };
-  }>;
-}
 
 @injectable()
 export class GooglePlaceAutocompleteAdapter implements AutocompleteApiPort {
@@ -27,52 +25,33 @@ export class GooglePlaceAutocompleteAdapter implements AutocompleteApiPort {
     const trimmed = (input ?? '').trim().slice(0, 100);
     if (!trimmed) return [];
 
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
-    if (!apiKey) {
-      return [];
-    }
-
     try {
-      const response = await this._http.post<PlaceAutocompleteResponse>(
-        PLACES_AUTOCOMPLETE_URL,
-        { input: trimmed },
-        {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': apiKey,
-        }
-      );
+      const encoded = encodeURIComponent(trimmed);
+      const url = `${SEARCH_AUTOCOMPLETE_BASE_URL}?client=firefox&output=json&hl=en&q=${encoded}`;
 
-      const suggestions = response?.suggestions ?? [];
+      // Response is a JSON array: ["query", ["sug1", "sug2", ...], [], {...}]
+      const response = await this._http.get<unknown[]>(url, {
+        'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)',
+      });
+
+      const suggestionsArray = Array.isArray(response) && Array.isArray(response[1]) ? response[1] : [];
       const texts: string[] = [];
 
-      for (const s of suggestions) {
-        if (s.queryPrediction?.text?.text) {
-          const t = s.queryPrediction.text.text.trim();
-          if (t && !texts.includes(t)) {
-            texts.push(t);
-            if (texts.length >= MAX_SUGGESTIONS_PER_PHRASE) break;
-          }
-        }
-        if (s.placePrediction?.text?.text) {
-          const t = s.placePrediction.text.text.trim();
-          if (t && !texts.includes(t)) {
+      for (const s of suggestionsArray) {
+        if (typeof s === 'string' && s.trim()) {
+          const t = s.trim();
+          if (!texts.includes(t)) {
             texts.push(t);
             if (texts.length >= MAX_SUGGESTIONS_PER_PHRASE) break;
           }
         }
       }
 
-      if (texts.length === 0 && suggestions.length > 0) {
-        this._logger.warn('google-place-autocomplete.unexpected-structure', {
-          input: trimmed,
-          responseKeys: Object.keys(response ?? {}),
-          firstSuggestionKeys: suggestions[0] ? Object.keys(suggestions[0]) : [],
-        });
-      }
+      this._logger.info('google-search-autocomplete.done', { input: trimmed, count: texts.length });
       return texts;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      this._logger.warn('google-place-autocomplete.error', { input: trimmed, error: msg });
+      this._logger.warn('google-search-autocomplete.error', { input: trimmed, error: msg });
       return [];
     }
   }

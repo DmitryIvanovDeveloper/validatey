@@ -56,6 +56,11 @@ export class GenerateSynthesisUseCase {
     const { projectId } = request;
     this._logger.info('generate-synthesis.start', { projectId });
 
+    const statusSet = await this._researchDataRepository.updateResearchStatus(projectId, 'synthesizing');
+    if (!statusSet.isSuccess) {
+      this._logger.warn('generate-synthesis.status-set-failed', { projectId, error: statusSet.error });
+    }
+
     try {
       const projectResult = await this._projectRepository.findById(projectId);
       if (!projectResult.isSuccess) {
@@ -128,6 +133,7 @@ export class GenerateSynthesisUseCase {
         retentionHint: stored?.userInsights?.retentionHint,
       };
 
+      const now = new Date();
       const updatedStored: StoredResearchData = {
         projectId,
         marketData: stored?.marketData ?? null,
@@ -138,7 +144,9 @@ export class GenerateSynthesisUseCase {
         assumptionAssessments: stored?.assumptionAssessments ?? null,
         commentPatternAnalysis: synthesisPatternAnalysis, // Use analysis from synthesis
         lastResearchRunAt: stored?.lastResearchRunAt ?? null,
-        updatedAt: new Date(),
+        updatedAt: now,
+        researchStatus: 'idle',
+        researchStatusUpdatedAt: now,
       };
       await this._researchDataRepository.save(updatedStored);
 
@@ -157,6 +165,8 @@ export class GenerateSynthesisUseCase {
     } catch (error) {
       this._logger.error('generate-synthesis.exception', { projectId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
+    } finally {
+      await this._researchDataRepository.updateResearchStatus(projectId, 'idle');
     }
   }
 
@@ -469,12 +479,15 @@ export class GenerateSynthesisUseCase {
   ): SynthesisReport {
     if (!patternAnalysis) return report;
 
-    const { validationScore, sentimentOverview, temporalTrends } = patternAnalysis;
+    const { validationScore } = patternAnalysis;
+    // Guard against legacy stored data that may not have these optional fields
+    const sentimentOverall: number = patternAnalysis.sentimentOverview?.overall ?? 0;
+    const recentActivityScore: number = patternAnalysis.temporalTrends?.recentActivity ?? 0.5;
 
     // Enhanced verdict adjustment logic
     const strongEvidence = validationScore >= 70 && commentCount >= 50;
-    const positiveSentiment = sentimentOverview.overall > 0.1;
-    const recentActivity = temporalTrends.recentActivity > 0.6;
+    const positiveSentiment = sentimentOverall > 0.1;
+    const recentActivity = recentActivityScore > 0.6;
 
     // Auto-upgrade verdict based on multiple factors
     if (strongEvidence && positiveSentiment && recentActivity) {
@@ -482,18 +495,18 @@ export class GenerateSynthesisUseCase {
         return {
           ...report,
           verdict: 'validated' as const,
-          summary: `${report.summary} Strong validation signals from ${commentCount} recent comments (validation score: ${validationScore}/100, sentiment: ${sentimentOverview.overall > 0 ? 'positive' : 'neutral'}).`,
+          summary: `${report.summary} Strong validation signals from ${commentCount} recent comments (validation score: ${validationScore}/100, sentiment: ${sentimentOverall > 0 ? 'positive' : 'neutral'}).`,
         };
       }
     }
 
     // Auto-downgrade if strong negative signals
-    if (validationScore < 30 && sentimentOverview.overall < -0.3 && commentCount >= 30) {
+    if (validationScore < 30 && sentimentOverall < -0.3 && commentCount >= 30) {
       if (report.verdict === 'validated') {
         return {
           ...report,
           verdict: 'needs-more-data' as const,
-          summary: `${report.summary} Mixed feedback with negative sentiment signals (validation score: ${validationScore}/100, sentiment: ${sentimentOverview.overall.toFixed(1)}).`,
+          summary: `${report.summary} Mixed feedback with negative sentiment signals (validation score: ${validationScore}/100, sentiment: ${sentimentOverall.toFixed(1)}).`,
         };
       }
     }

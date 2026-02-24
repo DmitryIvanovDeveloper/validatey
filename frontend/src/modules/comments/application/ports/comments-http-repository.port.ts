@@ -57,7 +57,7 @@ export interface CommentsHttpRepositoryPort {
   startFetch(
     projectId: string,
     options: {
-      sourceType: 'reddit' | 'hackernews';
+      sourceType?: 'reddit' | 'hackernews';
       redditUrls?: string[];
       hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
       hnUrls?: string[];

@@ -63,6 +63,12 @@ export class CollectResearchDataUseCase {
       }
       const project = projectResult.data;
 
+      // Persist "in progress" so reload can show same state
+      const statusSet = await this._researchDataRepository.updateResearchStatus(projectId, 'collecting');
+      if (!statusSet.isSuccess) {
+        this._logger.warn('collect-research-data.status-set-failed', { projectId, error: statusSet.error });
+      }
+
       const intent: ResearchIntent = this.buildResearchIntent(project, request);
 
       const autocompletePromise = request.skipAutocomplete
@@ -94,6 +100,8 @@ export class CollectResearchDataUseCase {
         commentPatternAnalysis: existing?.commentPatternAnalysis ?? null,
         lastResearchRunAt: now,
         updatedAt: now,
+        researchStatus: 'idle',
+        researchStatusUpdatedAt: now,
       };
       const saveResult = await this._researchDataRepository.save(updated);
       if (!saveResult.isSuccess) {
@@ -108,6 +116,7 @@ export class CollectResearchDataUseCase {
       });
     } catch (error) {
       this._logger.error('collect-research-data.exception', { projectId, error });
+      await this._researchDataRepository.updateResearchStatus(projectId, 'idle');
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
     }
   }

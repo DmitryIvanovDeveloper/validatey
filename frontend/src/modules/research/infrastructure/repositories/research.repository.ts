@@ -41,6 +41,8 @@ export class ResearchRepository implements ResearchRepositoryPort {
     };
     assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported')[] | null;
     assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
+    researchStatus?: 'idle' | 'collecting' | 'synthesizing';
+    researchStatusUpdatedAt?: string | null;
   }> {
     try {
       const response = await this._httpClient.get<{
@@ -55,6 +57,8 @@ export class ResearchRepository implements ResearchRepositoryPort {
         };
         assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported')[] | null;
         assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
+        researchStatus?: 'idle' | 'collecting' | 'synthesizing';
+        researchStatusUpdatedAt?: string | null;
       }>(
         API_CONFIG.ENDPOINTS.RESEARCH_CANVAS(projectId)
       );

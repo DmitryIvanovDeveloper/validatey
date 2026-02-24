@@ -35,7 +35,8 @@ COMMENT PATTERN ANALYSIS:
   - sentimentScore: -1 (very negative) to +1 (very positive), 0 = neutral
   - confidenceScore: 0-1 (AI confidence in pattern analysis)
   - recencyScore: 0-1 (how recent this pattern is)
-- Extract top 5-7 most significant patterns with specific examples
+- Extract top 5-7 most significant patterns
+- For each pattern include exactly ONE short example (max 120 chars). Do NOT include more than one example per pattern.
 - Focus on patterns that are relevant to the hypothesis validation
 
 ADDITIONAL ANALYTICS:
@@ -61,13 +62,7 @@ Respond with ONLY valid JSON, no markdown:
         "sentimentScore": 0.3,
         "confidenceScore": 0.85,
         "recencyScore": 0.7,
-        "examples": [
-          {
-            "content": "Example comment text",
-            "author": "Anonymous",
-            "source": "Reddit"
-          }
-        ]
+        "examples": [{"content": "one short quote max 120 chars", "author": "Anonymous", "source": "Reddit"}]
       }
     ],
     "validationScore": 75,
@@ -126,7 +121,8 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
         AI_PROXY_URL,
         {
           prompt: fullPrompt,
-          model: 'llama3.1-8b'
+          model: 'llama3.3-70b',
+          max_tokens: 8192,
         },
         { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)' }
       );
@@ -189,7 +185,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
               recentActivity: 0.5,
               trendDirection: 'stable' as const
             },
-            analyzedAt: patternObj.analyzedAt ? new Date(patternObj.analyzedAt) : new Date(),
+            analyzedAt: new Date(),
           };
         }
       }
@@ -200,7 +196,9 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
         verdict,
         commentPatternAnalysis
       };
-    } catch {
+    } catch (err) {
+      // Log parse failure for diagnostics but don't crash — return safe fallback
+      console.error('[synthesis-llm] JSON parse failed:', err instanceof Error ? err.message : String(err));
       return { summary: '', recommendations: [], verdict: 'needs-more-data' };
     }
   }

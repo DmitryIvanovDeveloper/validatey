@@ -13,7 +13,7 @@ function delay(ms: number): Promise<void> {
 
 export interface StartFetchAndWaitInput {
   projectId: string;
-  sourceType: 'reddit' | 'hackernews';
+  sourceType?: 'reddit' | 'hackernews';
   redditUrls?: string[];
   hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
   hnUrls?: string[];

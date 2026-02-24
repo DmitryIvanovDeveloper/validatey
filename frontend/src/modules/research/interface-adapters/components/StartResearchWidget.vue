@@ -14,11 +14,11 @@
     <!-- Research Button -->
     <button
       @click="handleStartResearch"
-      :disabled="loading || !availability.available"
+      :disabled="loading || researchInProgressFromServer || !availability.available"
       class="btn-research-primary"
-      :class="{ 'btn-disabled': !availability.available }"
+      :class="{ 'btn-disabled': !availability.available || researchInProgressFromServer }"
     >
-      <span class="btn-icon" v-if="loading" aria-hidden="true">
+      <span class="btn-icon" v-if="loading || researchInProgressFromServer" aria-hidden="true">
         <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -70,6 +70,8 @@ const researchPresenter = container.get<ResearchPresenter>(RESEARCH_TYPES.Resear
 
 const loading = ref<boolean>(false);
 const countdownInterval = ref<NodeJS.Timeout | null>(null);
+const researchInProgressFromServer = ref<boolean>(false);
+const pollInterval = ref<ReturnType<typeof setInterval> | null>(null);
 
 const availability = ref<ResearchAvailability>({
   available: true,
@@ -79,6 +81,9 @@ const availability = ref<ResearchAvailability>({
 });
 
 const getButtonText = computed(() => {
+  if (researchInProgressFromServer.value) {
+    return 'Research in progress...';
+  }
   if (researchPresenter.viewModel.commentsOnlyLoading) {
     return 'Collecting comments...';
   }
@@ -94,15 +99,51 @@ const getButtonText = computed(() => {
   return 'Start Research';
 });
 
-// Check availability on component mount
+const RESEARCH_POLL_MS = 5000;
+
+const checkResearchInProgress = async (): Promise<void> => {
+  try {
+    const result = await researchPresenter.getResearchCanvas(props.projectId);
+    const status = result.researchStatus ?? 'idle';
+    if (status === 'collecting' || status === 'synthesizing') {
+      researchInProgressFromServer.value = true;
+      pollInterval.value = setInterval(async () => {
+        try {
+          const pollResult = await researchPresenter.getResearchCanvas(props.projectId);
+          const pollStatus = pollResult.researchStatus ?? 'idle';
+          if (pollStatus === 'idle') {
+            if (pollInterval.value) {
+              clearInterval(pollInterval.value);
+              pollInterval.value = null;
+            }
+            researchInProgressFromServer.value = false;
+            emit('researchCompleted');
+            await checkAvailability();
+          }
+        } catch {
+          // keep polling on transient errors
+        }
+      }, RESEARCH_POLL_MS);
+    }
+  } catch {
+    // ignore - no "in progress" state to restore
+  }
+};
+
+// Check availability and restore "in progress" state on mount
 onMounted(async () => {
   await checkAvailability();
   startCountdown();
+  await checkResearchInProgress();
 });
 
 onUnmounted(() => {
   if (countdownInterval.value) {
     clearInterval(countdownInterval.value);
+  }
+  if (pollInterval.value) {
+    clearInterval(pollInterval.value);
+    pollInterval.value = null;
   }
 });
 

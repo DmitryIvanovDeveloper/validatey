@@ -1,5 +1,7 @@
 import type { ResearchCanvas, SynthesisReport } from '../entities/research-canvas.entity';
 
+export type ResearchStatusDto = 'idle' | 'collecting' | 'synthesizing';
+
 export interface GetResearchCanvasResponse {
   canvas: ResearchCanvas;
   synthesisReport?: SynthesisReport | null;
@@ -11,6 +13,8 @@ export interface GetResearchCanvasResponse {
     description: string;
   };
   error?: string;
+  researchStatus?: ResearchStatusDto;
+  researchStatusUpdatedAt?: string | null;
 }
 
 export interface CollectResearchDataResponse {

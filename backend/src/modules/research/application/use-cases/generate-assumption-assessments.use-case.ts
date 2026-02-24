@@ -88,19 +88,28 @@ export class GenerateAssumptionAssessmentsUseCase {
       // Prioritize comments over "No user insights yet"
       let enhancedUserInsightsSummary = userInsightsSummary;
       if (userInsightsSummary === 'No user insights yet' && comments.length > 0) {
-        enhancedUserInsightsSummary = `No survey responses yet, but ${comments.length} comments collected from social media. ${
+        enhancedUserInsightsSummary = `No survey responses yet, but ${comments.length} comments collected from online discussions. ${
           commentPatternSummary || 'Comments analyzed for patterns.'
         }`;
       }
+
+      // Build factual data sources metadata from actual comment metadata
+      const dataSourcesSummary = this.buildDataSourcesSummary(comments);
+
+      // Truncate hypothesis to keep only the audience-relevant part (first 600 chars)
+      const fullHypothesis = project.hypothesis?.description ?? project.name ?? '';
+      const hypothesisSummary = fullHypothesis.slice(0, 600) + (fullHypothesis.length > 600 ? '...' : '');
 
       const llmResult = await this._assessmentLlm.generate(
         assumptions.map((a) => ({ assumptionId: a.id, text: a.text })),
         {
           synthesisSummary: stored.synthesisReport.summary,
           verdict: String(stored.synthesisReport.verdict ?? ''),
-          userInsightsSummary: enhancedUserInsightsSummary, // Use enhanced summary
+          hypothesisSummary,
+          userInsightsSummary: enhancedUserInsightsSummary,
           commentsSummary,
-          commentPatternSummary, // NEW: Pass pattern analysis summary
+          commentPatternSummary,
+          dataSourcesSummary,
           earlySignalsSummary,
         }
       );
@@ -154,6 +163,108 @@ export class GenerateAssumptionAssessmentsUseCase {
     }
 
     return parts.length > 0 ? parts.join('. ') : 'Comments collected but no clear themes identified';
+  }
+
+  /**
+   * Maps a source name to a pre-classified audience label.
+   * Taxonomy is fixed (entrepreneurs, investors, potential users, other, unknown).
+   * For hypotheses with different audiences (e.g. teachers, B2B buyers), sources
+   * will fall into "other" or "unknown" — the LLM will still correctly report
+   * "no data for [that audience]" and ask for the right research.
+   */
+  private classifySourceAudience(source: string): string {
+    const s = source.toLowerCase();
+    // Entrepreneur/founder communities — label matches hypothesis term "entrepreneurs"
+    if (s.includes('entrepreneur') || s.includes('startup') || s.includes('indiehacker') ||
+        s.includes('indie_hacker') || s.includes('founderblock') || s.includes('imadethis') ||
+        s.includes('sideproject') || s.includes('smallbusiness') || s.includes('bootstrapped') ||
+        s.includes('yeswecode') || s.includes('buildinpublic') || s.includes('saas') ||
+        s.includes('founder') || s.includes('indiebiz') || s.includes('microsaas') ||
+        s.includes('micro_saas') || s.includes('solopreneur') || s.includes('productbuilder') ||
+        s.includes('makersupport') || s.includes('nocode') || s.includes('no_code')) {
+      return 'entrepreneurs';
+    }
+    // Investor communities — label matches hypothesis term "investors"
+    if (s.includes('investor') || s.includes('venturecapital') || s.includes('angelist') ||
+        s.includes('vc')) {
+      return 'investors';
+    }
+    // Consumer/user communities — label matches hypothesis term "potential users"
+    if (s.includes('productreview') || s.includes('appsumo') || s.includes('producthunt') ||
+        s.includes('consumer')) {
+      return 'potential users';
+    }
+    // Technical or marketing communities — NOT entrepreneurs, NOT investors, NOT users of products
+    if (s.includes('seo') || s.includes('marketing') || s.includes('webdev') ||
+        s.includes('programming') || s.includes('tech') || s.includes('learnprogramming')) {
+      return 'other (tech/marketing professionals — not entrepreneurs or product users)';
+    }
+    return 'unknown';
+  }
+
+  /**
+   * Build factual metadata about data sources from actual comment entities.
+   * Includes a COVERAGE SUMMARY at the top — pre-aggregated per audience group —
+   * so the LLM reads the answer directly instead of scanning per-source labels.
+   */
+  private buildDataSourcesSummary(comments: CommentEntity[]): string {
+    if (!comments || comments.length === 0) {
+      return 'No comments collected.';
+    }
+
+    const sourceMap = new Map<string, { count: number; titles: Set<string>; audience: string }>();
+    for (const comment of comments) {
+      const source = comment.subsourceName ?? '(unknown source)';
+      if (!sourceMap.has(source)) {
+        sourceMap.set(source, { count: 0, titles: new Set(), audience: this.classifySourceAudience(source) });
+      }
+      const entry = sourceMap.get(source)!;
+      entry.count += 1;
+      if (comment.contextTitle) {
+        entry.titles.add(comment.contextTitle.slice(0, 80));
+      }
+    }
+
+    // Build coverage summary per audience group — LLM reads this first
+    const coverageMap = new Map<string, { sources: string[]; total: number }>();
+    for (const [source, { count, audience }] of sourceMap.entries()) {
+      if (!coverageMap.has(audience)) {
+        coverageMap.set(audience, { sources: [], total: 0 });
+      }
+      const cov = coverageMap.get(audience)!;
+      cov.sources.push(`${source} (${count})`);
+      cov.total += count;
+    }
+
+    // Synonyms merged into the label itself (slash-separated) so the LLM can match by substring.
+    // e.g. "founders" is literally present in "[audience: entrepreneurs / founders / indie hackers]"
+    const AUDIENCE_LABEL_VARIANTS: Record<string, string> = {
+      entrepreneurs: 'entrepreneurs / founders / indie hackers / solopreneurs / bootstrappers / startup founders / builders',
+      investors: 'investors / VCs / angels / venture capitalists',
+      'potential users': 'potential users / end users / customers / consumers / buyers',
+    };
+
+    const coverageLines: string[] = [
+      'AUDIENCE COVERAGE (to match, find your ACTOR word anywhere in the [audience: ...] label):',
+    ];
+    for (const [audience, { sources, total }] of coverageMap.entries()) {
+      const covered = audience !== 'unknown' && !audience.startsWith('other');
+      const label = AUDIENCE_LABEL_VARIANTS[audience] ?? audience;
+      coverageLines.push(
+        `  ${covered ? '✓' : '–'} [audience: ${label}]: ${total} comments from ${sources.join(', ')}`
+      );
+    }
+    coverageLines.push('');
+
+    // Detailed source list
+    const detailLines: string[] = ['DETAILED SOURCES:'];
+    for (const [source, { count, titles, audience }] of sourceMap.entries()) {
+      const topTitles = [...titles].slice(0, 3);
+      const titlesStr = topTitles.length > 0 ? ` — topics: "${topTitles.join('"; "')}"` : '';
+      detailLines.push(`  • ${source} [audience: ${audience}]: ${count} comments${titlesStr}`);
+    }
+
+    return [...coverageLines, ...detailLines].join('\n');
   }
 
   /**

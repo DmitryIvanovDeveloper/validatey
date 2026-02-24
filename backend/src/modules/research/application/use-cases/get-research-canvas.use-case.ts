@@ -21,6 +21,7 @@ import type {
   AssumptionAssessment,
 } from '../../domain/value-objects';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
+import { RESEARCH_STATUS_STALE_MS } from '../../domain/value-objects/research-status.vo';
 import type {
   GetResearchCanvasRequest,
   GetResearchCanvasResponse,
@@ -90,6 +91,15 @@ export class GetResearchCanvasUseCase {
         synthesisReport?.verdict
       );
 
+      const rawStatus = stored?.researchStatus ?? 'idle';
+      const statusUpdatedAt = stored?.researchStatusUpdatedAt ?? null;
+      const isStale =
+        rawStatus !== 'idle' &&
+        statusUpdatedAt &&
+        Date.now() - statusUpdatedAt.getTime() > RESEARCH_STATUS_STALE_MS;
+      const researchStatus = isStale ? 'idle' : rawStatus;
+      const researchStatusUpdatedAt = statusUpdatedAt?.toISOString() ?? null;
+
       return ResultEx.success({
         canvas,
         synthesisReport,
@@ -98,6 +108,8 @@ export class GetResearchCanvasUseCase {
         recommendedTemplate,
         assumptionStatuses,
         assumptionAssessments,
+        researchStatus,
+        researchStatusUpdatedAt,
       });
     } catch (error) {
       this._logger.error('get-research-canvas.exception', { projectId, error });

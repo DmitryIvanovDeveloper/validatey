@@ -199,6 +199,36 @@ export class CommentsPresenter {
     }
   }
 
+  /**
+   * Fetch all existing sources for a project — called from "Start Research" flow.
+   * No URLs needed: the backend finds sources from its own storage by projectId.
+   */
+  async startFetchAllProjectSources(projectId: string): Promise<void> {
+    try {
+      this.viewModel.isFetching = true;
+      this.viewModel.error = null;
+      this.viewModel.fetchProgress = null;
+
+      const result = await this._startFetchAndWaitUseCase.execute(
+        { projectId, periodDays: 30 },
+        { onProgress: (progress) => { this.viewModel.fetchProgress = progress; } }
+      );
+
+      if (result.isSuccess) {
+        await this.loadComments(projectId);
+      } else {
+        this.viewModel.error = result.error.message;
+        this._logger.error('Failed to fetch comments (all sources)', { projectId, error: result.error });
+      }
+    } catch (error) {
+      this.viewModel.error = error instanceof Error ? error.message : 'Failed to fetch comments';
+      this._logger.error('Exception fetching comments (all sources)', { projectId, error });
+    } finally {
+      this.viewModel.isFetching = false;
+      this.viewModel.fetchProgress = null;
+    }
+  }
+
   async startFetch(projectId: string): Promise<void> {
     try {
       this.viewModel.isFetching = true;

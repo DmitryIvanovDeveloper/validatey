@@ -4,6 +4,8 @@ export interface GetResearchCanvasRequest {
   readonly projectId: string;
 }
 
+export type ResearchStatusDto = 'idle' | 'collecting' | 'synthesizing';
+
 export interface GetResearchCanvasResponse {
   readonly canvas: ResearchCanvas;
   readonly synthesisReport?: SynthesisReport | null;
@@ -17,4 +19,7 @@ export interface GetResearchCanvasResponse {
   readonly assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported')[] | null;
   readonly assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
   readonly error?: string;
+  /** Current research phase (for "in progress" restore after reload). */
+  readonly researchStatus?: ResearchStatusDto;
+  readonly researchStatusUpdatedAt?: string | null;
 }

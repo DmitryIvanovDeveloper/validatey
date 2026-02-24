@@ -24,12 +24,6 @@ export class AutocompleteDataProviderAdapter implements AutocompleteDataProvider
     projectId: string,
     intent: ResearchIntent
   ): Promise<ResultEx<AutocompleteInsights | null, Error>> {
-    const hasApiKey = !!process.env.GOOGLE_PLACES_API_KEY?.trim();
-    if (!hasApiKey) {
-      this._logger.info('autocomplete-data-provider.skipped', { projectId, reason: 'GOOGLE_PLACES_API_KEY not set' });
-      return ResultEx.success(null);
-    }
-
     this._logger.info('autocomplete-data-provider.start', { projectId, topic: intent.topic });
 
     const phrasesResult = await this._phrasesGenerator.generatePhrases(intent);

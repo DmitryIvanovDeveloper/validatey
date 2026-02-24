@@ -221,16 +221,21 @@ export class StartFetchCommandHandler {
       console.log(`[RunDirectFetch] Environment: VERCEL=${process.env.VERCEL}, COMMENT_FETCH_USE_JOBS=${process.env.COMMENT_FETCH_USE_JOBS}`);
       const startedAt = new Date();
       console.log(`[RunDirectFetch] Started at: ${startedAt.toISOString()}`);
-      
-      // Run the fetch directly (synchronously)
-      const result = await this._fetchCommentsUseCase.execute({
+
+      const DIRECT_FETCH_TIMEOUT_MS = 60_000;
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Direct fetch timed out after ${DIRECT_FETCH_TIMEOUT_MS / 1000}s`)), DIRECT_FETCH_TIMEOUT_MS)
+      );
+
+      // Run the fetch directly (synchronously) with a hard cap timeout
+      const result = await Promise.race([this._fetchCommentsUseCase.execute({
         sourceId,
         projectId,
         sourceType: config.sourceType,
         redditUrls: config.redditUrls,
         hnFeedType: config.hnFeedType,
         periodDays: config.periodDays,
-      });
+      }), timeoutPromise]);
 
       const completedAt = new Date();
       const duration = completedAt.getTime() - startedAt.getTime();
