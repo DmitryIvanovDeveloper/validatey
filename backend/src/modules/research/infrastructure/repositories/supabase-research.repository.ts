@@ -79,6 +79,7 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
           project_id: data.projectId,
           market_data: data.marketData,
           competitor_data: data.competitorData,
+          user_insights: data.userInsights ?? null,
           autocomplete_insights: data.autocompleteInsights,
           synthesis_report: data.synthesisReport,
           assumption_assessments: data.assumptionAssessments ?? null,

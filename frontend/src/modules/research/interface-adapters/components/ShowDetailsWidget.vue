@@ -27,32 +27,42 @@
           </div>
 
           <div class="tab-content">
+            <!-- Canvas loading indicator -->
+            <div v-if="canvasLoading && activeTab !== 'synthesis'" class="canvas-loading">
+              <div class="loading-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+              </div>
+              <p class="loading-text">Loading research data…</p>
+            </div>
+
             <!-- Early Signals -->
-            <div v-if="activeTab === 'signals'" class="tab-pane">
+            <div v-else-if="activeTab === 'signals'" class="tab-pane">
               <EarlySignalsWidget
                 :project-id="projectId"
-                :early-signals="researchDataRef?.canvas?.earlySignals || null"
+                :early-signals="mergedResearchData?.canvas?.earlySignals || null"
               />
             </div>
 
             <!-- Competitors -->
-            <div v-if="activeTab === 'competitors'" class="tab-pane">
+            <div v-else-if="activeTab === 'competitors'" class="tab-pane">
               <CompetitorsWidget
-                :competitor-info="researchDataRef?.canvas?.competitorInfo || null"
+                :competitor-info="mergedResearchData?.canvas?.competitorInfo || null"
               />
             </div>
 
             <!-- Search Suggestions -->
-            <div v-if="activeTab === 'search'" class="tab-pane">
+            <div v-else-if="activeTab === 'search'" class="tab-pane">
               <SearchSuggestionsWidget
-                :insights="researchDataRef?.canvas?.autocompleteInsights || null"
+                :insights="mergedResearchData?.canvas?.autocompleteInsights || null"
               />
             </div>
 
             <!-- User Signals -->
-            <div v-if="activeTab === 'user-signals'" class="tab-pane">
+            <div v-else-if="activeTab === 'user-signals'" class="tab-pane">
               <UserSignalsWidget
-                :insights="researchDataRef?.canvas?.userInsights || null"
+                :insights="mergedResearchData?.canvas?.userInsights || null"
                 :project-id="projectId"
               />
             </div>
@@ -60,7 +70,7 @@
             <!-- Synthesis -->
             <div v-if="activeTab === 'synthesis'" class="tab-pane">
               <SynthesisWidget
-                :report="researchDataRef?.synthesisReport || null"
+                :report="mergedResearchData?.synthesisReport || null"
               />
             </div>
           </div>
@@ -74,11 +84,18 @@
 import { ref, computed, watch } from 'vue';
 import { Zap, Users, Search, MapPin, FileText, X } from 'lucide-vue-next';
 import type { ResearchData, ResearchDataProp, TabItem } from '../../domain/types/research.types';
+import type { ResearchCanvas } from '../../domain/entities/research-canvas.entity';
 import EarlySignalsWidget from './EarlySignalsWidget.vue';
 import CompetitorsWidget from './details/CompetitorsWidget.vue';
 import SearchSuggestionsWidget from './details/SearchSuggestionsWidget.vue';
 import UserSignalsWidget from './details/UserSignalsWidget.vue';
 import SynthesisWidget from './details/SynthesisWidget.vue';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
+import { container } from '../../../../infrastructure/bootstrap/container';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
+
+const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
 interface Props {
   projectId: string;
@@ -89,13 +106,34 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// Reactive data from props (full ResearchData or partial from overview)
-const researchDataRef = ref<ResearchDataProp>(props.researchData);
+// Canvas loaded lazily when the modal first opens
+const loadedCanvas = ref<ResearchCanvas | null>(null);
+const canvasLoading = ref(false);
+const canvasLoaded = ref(false);
 
-// Watch for prop changes and update reactive ref
-watch(() => props.researchData, (newData) => {
-  researchDataRef.value = newData;
-}, { immediate: true, deep: true });
+async function loadCanvas() {
+  if (canvasLoaded.value || canvasLoading.value || !props.projectId) return;
+  canvasLoading.value = true;
+  try {
+    const url = API_CONFIG.ENDPOINTS.RESEARCH_CANVAS(props.projectId);
+    const data = await httpClient.get<{ canvas: ResearchCanvas }>(url);
+    if (data?.canvas) loadedCanvas.value = data.canvas;
+    canvasLoaded.value = true;
+  } catch {
+    canvasLoaded.value = true;
+  } finally {
+    canvasLoading.value = false;
+  }
+}
+
+// Merge prop synthesisReport with lazily-loaded canvas
+const mergedResearchData = computed(() => {
+  const base = props.researchData as (ResearchData | null | undefined);
+  if (loadedCanvas.value) {
+    return { ...(base ?? {}), canvas: loadedCanvas.value };
+  }
+  return base;
+});
 
 const activeTab = ref('signals');
 const internalModalOpen = ref(false);
@@ -108,11 +146,12 @@ const isModalOpen = computed({
   }
 });
 
-// Watch for external changes to isModalOpen prop
+// Load canvas on first open
 watch(() => props.isModalOpen, (newValue) => {
   if (newValue !== undefined) {
     internalModalOpen.value = newValue;
   }
+  if (newValue) loadCanvas();
 });
 
 const tabs: TabItem[] = [
@@ -273,6 +312,42 @@ const closeModal = () => {
 .tab-pane {
   min-height: 400px;
   animation: fadeIn 0.2s ease-in-out;
+}
+
+.canvas-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--space-3);
+}
+
+.loading-dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: loading-dots 1.4s ease-in-out infinite both;
+}
+
+.dot:nth-child(1) { animation-delay: -0.32s; }
+.dot:nth-child(2) { animation-delay: -0.16s; }
+
+.loading-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+@keyframes loading-dots {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes fadeIn {

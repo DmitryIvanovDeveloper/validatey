@@ -100,30 +100,41 @@ export class GenerateAssumptionAssessmentsUseCase {
       const fullHypothesis = project.hypothesis?.description ?? project.name ?? '';
       const hypothesisSummary = fullHypothesis.slice(0, 600) + (fullHypothesis.length > 600 ? '...' : '');
 
-      const llmResult = await this._assessmentLlm.generate(
-        assumptions.map((a) => ({ assumptionId: a.id, text: a.text })),
-        {
-          synthesisSummary: stored.synthesisReport.summary,
-          verdict: String(stored.synthesisReport.verdict ?? ''),
-          hypothesisSummary,
-          userInsightsSummary: enhancedUserInsightsSummary,
-          commentsSummary,
-          commentPatternSummary,
-          dataSourcesSummary,
-          earlySignalsSummary,
-        }
-      );
+      const context = {
+        synthesisSummary: stored.synthesisReport.summary,
+        verdict: String(stored.synthesisReport.verdict ?? ''),
+        hypothesisSummary,
+        userInsightsSummary: enhancedUserInsightsSummary,
+        commentsSummary,
+        commentPatternSummary,
+        dataSourcesSummary,
+        earlySignalsSummary,
+      };
 
-      if (!llmResult.isSuccess) {
-        this._logger.warn('generate-assumption-assessments.llm-failed', { projectId, error: llmResult.error });
-        return ResultEx.success(null);
+      // Batch assumptions: max 5 per LLM call to avoid token limit and JSON truncation issues
+      const BATCH_SIZE = 5;
+      const allInputs = assumptions.map((a) => ({ assumptionId: a.id, text: a.text }));
+      const batches: typeof allInputs[] = [];
+      for (let i = 0; i < allInputs.length; i += BATCH_SIZE) {
+        batches.push(allInputs.slice(i, i + BATCH_SIZE));
+      }
+
+      const allAssessments: import('../../domain/value-objects/assumption-assessment.vo').AssumptionAssessment[] = [];
+      for (const batch of batches) {
+        const batchResult = await this._assessmentLlm.generate(batch, context);
+        if (!batchResult.isSuccess) {
+          this._logger.warn('generate-assumption-assessments.llm-failed', { projectId, error: batchResult.error });
+          return ResultEx.success(null);
+        }
+        allAssessments.push(...batchResult.data);
       }
 
       this._logger.info('generate-assumption-assessments.success', {
         projectId,
-        count: llmResult.data.length,
+        count: allAssessments.length,
+        batches: batches.length,
       });
-      return ResultEx.success(llmResult.data);
+      return ResultEx.success(allAssessments);
     } catch (error) {
       this._logger.error('generate-assumption-assessments.exception', { projectId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));

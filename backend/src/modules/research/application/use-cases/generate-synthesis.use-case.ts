@@ -90,13 +90,12 @@ export class GenerateSynthesisUseCase {
       const comments = commentsResult.isSuccess ? commentsResult.data : [];
       const commentsSummary = this.summarizeComments(comments);
 
-      // Get comment pattern analysis from stored research data (for pain points extraction)
+      // Get comment pattern analysis from stored research data (used as fallback context only)
       const commentPatternAnalysis = stored?.commentPatternAnalysis ?? null;
 
-      // Extract pain points from both responses and comments (using pattern analysis if available)
+      // Pain points are extracted AFTER synthesis so we can use the freshly generated CPA.
+      // Pre-extract from responses now; comments will be re-extracted post-synthesis.
       const painPointsFromResponses = this.extractPainPointsFromResponses(responses);
-      const painPointsFromComments = this.extractPainPointsFromComments(comments, commentPatternAnalysis);
-      const allPainPoints = [...new Set([...painPointsFromResponses, ...painPointsFromComments])].slice(0, 5);
 
       const earlySignalsSummary =
         signals.length > 0
@@ -125,7 +124,12 @@ export class GenerateSynthesisUseCase {
 
       // Adjust verdict based on comment pattern validation score (Domain логика)
       const adjustedReport = this.adjustVerdictByCommentPatterns(report, synthesisPatternAnalysis, comments.length);
-      
+
+      // Now extract pain points using the FRESH CPA (synthesisPatternAnalysis) so even the first
+      // run gets meaningful pain points rather than falling back to keyword-matched raw quotes.
+      const painPointsFromComments = this.extractPainPointsFromComments(comments, synthesisPatternAnalysis);
+      const allPainPoints = [...new Set([...painPointsFromResponses, ...painPointsFromComments])].slice(0, 5);
+
       // Build user insights with pain points from both responses and comments
       const userInsights = {
         topPains: allPainPoints.length > 0 ? allPainPoints : stored?.userInsights?.topPains ?? undefined,
@@ -155,7 +159,7 @@ export class GenerateSynthesisUseCase {
         const withAssessments: StoredResearchData = {
           ...updatedStored,
           assumptionAssessments: assessmentsResult.data,
-          commentPatternAnalysis: stored?.commentPatternAnalysis ?? null, // Preserve existing analysis
+          commentPatternAnalysis: synthesisPatternAnalysis, // Keep the freshly generated analysis
           updatedAt: new Date(),
         };
         await this._researchDataRepository.save(withAssessments);
@@ -389,22 +393,27 @@ export class GenerateSynthesisUseCase {
 
     const extractedPains: string[] = [];
 
-    // PRIORITY: Use pattern analysis to extract pain points from "failure" and "validation" patterns
+    // PRIORITY: Use pattern analysis — prefer "failure" then "myth" then negative "validation" patterns.
+    // Use pattern.insight (LLM-synthesized text) as the pain point label — more meaningful than raw quotes.
     if (patternAnalysis) {
-      const failurePatterns = patternAnalysis.patterns.filter(p => p.type === 'failure');
-      const validationPatterns = patternAnalysis.patterns.filter(p => p.type === 'validation');
+      const allPatterns = patternAnalysis.patterns;
 
-      // Sort by confidence and sentiment (prioritize high-confidence negative patterns)
-      const prioritizedPatterns = [...failurePatterns, ...validationPatterns]
-        .filter(p => p.sentimentScore < -0.1) // Negative sentiment
-        .sort((a, b) => (b.confidenceScore * Math.abs(b.sentimentScore)) - (a.confidenceScore * Math.abs(a.sentimentScore)));
+      // Score: failure > myth > negative validation; tiebreak by confidenceScore
+      const scored = allPatterns
+        .map(p => {
+          let typeScore = 0;
+          if (p.type === 'failure') typeScore = 3;
+          else if (p.type === 'myth') typeScore = 2;
+          else if (p.type === 'validation' && p.sentimentScore < -0.1) typeScore = 1;
+          return { pattern: p, score: typeScore * (p.confidenceScore ?? 1) };
+        })
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score);
 
-      // Extract from highest priority pattern examples
-      for (const pattern of prioritizedPatterns.slice(0, 3)) { // Top 3 negative patterns
-        for (const example of pattern.examples.slice(0, 2)) {
-          if (example.content.length > 20 && example.content.length < 200) {
-            extractedPains.push(example.content);
-          }
+      for (const { pattern } of scored.slice(0, 5)) {
+        // Use insight (LLM-synthesized summary) as the pain point text
+        if (pattern.insight && pattern.insight.length > 20 && pattern.insight.length < 300) {
+          extractedPains.push(pattern.insight);
         }
       }
     }
