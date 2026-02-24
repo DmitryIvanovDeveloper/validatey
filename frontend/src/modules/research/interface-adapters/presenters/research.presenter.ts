@@ -21,6 +21,28 @@ import { ResearchCooldownError } from '../../domain/errors/research.error';
 
 @injectable()
 export class ResearchPresenter {
+  readonly labels = {
+    title: 'Research Canvas',
+    subtitle: 'AI-powered market and competitive research',
+    breadcrumbProjects: 'Projects',
+    breadcrumbProject: 'Project',
+    breadcrumbResearch: 'Research',
+    back: 'Back',
+    startResearch: 'Start Research',
+    researching: 'Researching...',
+    researchingComments: 'Researching... (Comments loading...)',
+    collectingComments: 'Collecting comments...',
+    researchSettings: 'Research Settings',
+    researchSettingsSubtitle: 'Configure research parameters (optional)',
+    geographyPlaceholder: 'Geography (e.g. US, EU)',
+    segmentPlaceholder: 'Segment (e.g. B2B SMB)',
+    tabCompetitors: 'Competitors',
+    tabSearch: 'Search Suggestions',
+    tabSignals: 'User Signals',
+    tabSynthesis: 'Synthesis',
+    tabAssistant: 'AI Assistant',
+  };
+
   // View model for reactive UI updates
   viewModel = {
     commentsFetching: false,

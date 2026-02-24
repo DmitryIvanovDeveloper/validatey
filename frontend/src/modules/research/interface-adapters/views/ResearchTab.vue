@@ -1,17 +1,17 @@
 <template>
   <div class="research-tab-view">
     <PageHeader
-      title="Research Canvas"
-      subtitle="AI-powered market and competitive research"
+      :title="presenter.labels.title"
+      :subtitle="presenter.labels.subtitle"
       :breadcrumbs="[
-        { label: 'Projects', path: '/projects' },
-        { label: 'Project', path: `/projects/${projectId}` },
-        { label: 'Research' }
+        { label: presenter.labels.breadcrumbProjects, path: '/projects' },
+        { label: presenter.labels.breadcrumbProject, path: `/projects/${projectId}` },
+        { label: presenter.labels.breadcrumbResearch }
       ]"
     >
       <template #actions>
         <router-link :to="`/projects/${projectId}`" class="btn btn-ghost">
-          <span class="btn-icon" aria-hidden="true">←</span> Back
+          <span class="btn-icon" aria-hidden="true">←</span> {{ presenter.labels.back }}
         </router-link>
         <button
           @click="handleStartResearch"
@@ -42,8 +42,8 @@
             <Target class="w-5 h-5" />
           </span>
           <div>
-            <h3 class="section-title">Research Settings</h3>
-            <p class="section-subtitle">Configure research parameters (optional)</p>
+            <h3 class="section-title">{{ presenter.labels.researchSettings }}</h3>
+            <p class="section-subtitle">{{ presenter.labels.researchSettingsSubtitle }}</p>
           </div>
         </div>
 
@@ -53,14 +53,14 @@
               v-model="researchGeography"
               type="text"
               class="input-field"
-              placeholder="Geography (e.g. US, EU)"
+              :placeholder="presenter.labels.geographyPlaceholder"
               :disabled="presenter.viewModel.researchLoading"
             />
             <input
               v-model="researchSegment"
               type="text"
               class="input-field"
-              placeholder="Segment (e.g. B2B SMB)"
+              :placeholder="presenter.labels.segmentPlaceholder"
               :disabled="presenter.viewModel.researchLoading"
             />
           </div>
@@ -69,11 +69,11 @@
     </div>
 
     <nav class="invitations-tabs" role="tablist">
-      <button type="button" role="tab" :class="{ active: activeTab === 'competitors' }" @click="activeTab = 'competitors'">Competitors</button>
-      <button type="button" role="tab" :class="{ active: activeTab === 'search' }" @click="activeTab = 'search'">Search Suggestions</button>
-      <button type="button" role="tab" :class="{ active: activeTab === 'signals' }" @click="activeTab = 'signals'">User Signals</button>
-      <button type="button" role="tab" :class="{ active: activeTab === 'synthesis' }" @click="activeTab = 'synthesis'">Synthesis</button>
-      <button type="button" role="tab" :class="{ active: activeTab === 'assistant' }" @click="activeTab = 'assistant'">AI Assistant</button>
+      <button type="button" role="tab" :class="{ active: activeTab === 'competitors' }" @click="activeTab = 'competitors'">{{ presenter.labels.tabCompetitors }}</button>
+      <button type="button" role="tab" :class="{ active: activeTab === 'search' }" @click="activeTab = 'search'">{{ presenter.labels.tabSearch }}</button>
+      <button type="button" role="tab" :class="{ active: activeTab === 'signals' }" @click="activeTab = 'signals'">{{ presenter.labels.tabSignals }}</button>
+      <button type="button" role="tab" :class="{ active: activeTab === 'synthesis' }" @click="activeTab = 'synthesis'">{{ presenter.labels.tabSynthesis }}</button>
+      <button type="button" role="tab" :class="{ active: activeTab === 'assistant' }" @click="activeTab = 'assistant'">{{ presenter.labels.tabAssistant }}</button>
     </nav>
 
     <div class="invitations-tab-panel">
@@ -128,15 +128,15 @@ const hasCompetitorData = computed(() => {
 
 const getButtonText = computed(() => {
   if (presenter.viewModel.commentsOnlyLoading && !presenter.viewModel.researchLoading) {
-    return 'Collecting comments...';
+    return presenter.labels.collectingComments;
   }
   if (presenter.viewModel.researchLoading) {
     if (presenter.viewModel.commentsFetching) {
-      return 'Researching... (Comments loading...)';
+      return presenter.labels.researchingComments;
     }
-    return 'Researching...';
+    return presenter.labels.researching;
   }
-  return 'Start Research';
+  return presenter.labels.startResearch;
 });
 
 const hasUserInsights = computed(() => {

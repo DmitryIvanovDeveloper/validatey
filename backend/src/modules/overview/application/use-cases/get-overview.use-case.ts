@@ -19,8 +19,12 @@ import type {
   LearningJourney,
   DecisionPathway,
   ValidationStatus,
+  OverviewAssumptionStatus,
 } from './input-output/get-overview.io';
-import type { OverviewRawData } from '../../application/ports/overview-data-provider.port';
+import type {
+  OverviewRawData,
+  OverviewAssumptionAssessment as RawAssumptionAssessment,
+} from '../../application/ports/overview-data-provider.port';
 
 const MIN_SIGNIFICANCE_TARGET = 8; // Minimum target when no template selected
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -66,6 +70,19 @@ export class GetOverviewUseCase {
     const learningJourney = this.buildLearningJourney(d, request.projectId);
     const decisionPathway = await this.buildDecisionPathway(d);
 
+    const assumptions = d.project.hypothesis?.assumptions ?? [];
+    const assumptionStatuses = this.buildAssumptionStatuses(
+      assumptions,
+      d.assumptionAssessments ?? null,
+      d.synthesisReport?.verdict
+    );
+
+    const synthesisReport = d.synthesisReport
+      ? { summary: d.synthesisReport.summary, recommendations: [...d.synthesisReport.recommendations], verdict: d.synthesisReport.verdict }
+      : null;
+    const assumptionAssessments = d.assumptionAssessments
+      ? d.assumptionAssessments.map((a: RawAssumptionAssessment) => ({ assumptionId: a.assumptionId, status: a.status, evidence: a.evidence }))
+      : null;
 
     return ResultEx.success({
       executiveSummary,
@@ -74,7 +91,56 @@ export class GetOverviewUseCase {
       researchContext,
       learningJourney,
       decisionPathway,
+      synthesisReport,
+      assumptionStatuses,
+      assumptionAssessments,
     });
+  }
+
+  /**
+   * Build per-assumption status list. Same order as project.hypothesis.assumptions.
+   * Uses individual assumptionAssessments if available, otherwise uses overall verdict for all.
+   */
+  private buildAssumptionStatuses(
+    assumptions: ReadonlyArray<{ id: string; text: string }>,
+    assessments: RawAssumptionAssessment[] | null,
+    verdict: string | undefined
+  ): OverviewAssumptionStatus[] | null {
+    if (assumptions.length === 0) {
+      if (assessments && assessments.length > 0) {
+        return assessments.map((a) => this.normalizeStatus(a.status));
+      }
+      return null;
+    }
+
+    if (assessments && assessments.length > 0) {
+      const assessmentMap = new Map(assessments.map((a) => [a.assumptionId, a.status]));
+      const statuses = assumptions.map((a) => assessmentMap.get(a.id) ?? null);
+      if (statuses.every((s) => s !== null)) {
+        return statuses.map((s) => this.normalizeStatus(s!));
+      }
+    }
+
+    const status = this.verdictToAssumptionStatus(verdict);
+    if (!status) return null;
+    return assumptions.map(() => status);
+  }
+
+  private normalizeStatus(s: string): OverviewAssumptionStatus {
+    const v = String(s).toLowerCase().replace(/-/g, '_');
+    if (v === 'confirmed') return 'confirmed';
+    if (v === 'not_supported' || v === 'rejected') return 'not_supported';
+    if (v === 'need_more' || v === 'needs_more_data') return 'need_more';
+    return 'need_more';
+  }
+
+  private verdictToAssumptionStatus(verdict: string | undefined): OverviewAssumptionStatus | null {
+    if (!verdict) return null;
+    const v = String(verdict).toLowerCase().replace(/-/g, '_');
+    if (v === 'validated' || v === 'strong_validation') return 'confirmed';
+    if (v === 'rejected') return 'not_supported';
+    if (v === 'needs_more_data') return 'need_more';
+    return null;
   }
 
   private async buildExecutiveSummary(d: OverviewRawData): Promise<ExecutiveSummary> {

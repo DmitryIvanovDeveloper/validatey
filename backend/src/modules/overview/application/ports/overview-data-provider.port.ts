@@ -2,6 +2,20 @@ import ResultEx from '../../../../infrastructure/result/result';
 
 type InvitationStatus = 'pending' | 'sent' | 'opened' | 'completed' | 'responded' | 'expired';
 
+/** Minimal synthesis report shape for overview (from research storage). */
+export interface OverviewSynthesisReport {
+  readonly summary: string;
+  readonly recommendations: readonly string[];
+  readonly verdict: string;
+}
+
+/** Minimal assumption assessment for overview (from research storage). */
+export interface OverviewAssumptionAssessment {
+  readonly assumptionId: string;
+  readonly status: string;
+  readonly evidence: string | null;
+}
+
 /** Raw data assembled from multiple sources for Overview use case (infrastructure implements this). */
 export interface OverviewRawData {
   project: {
@@ -11,7 +25,7 @@ export interface OverviewRawData {
     deadline: Date | null;
     createdAt: Date;
     segment: { description?: string } | null;
-    hypothesis: { description?: string } | null;
+    hypothesis: { description?: string; assumptions?: ReadonlyArray<{ id: string; text: string }> } | null;
     scenarioTemplateSlug: string | null;
   };
   invitations: Array<{ status: InvitationStatus }>;
@@ -20,6 +34,10 @@ export interface OverviewRawData {
   researchMarketSnippet: string | null;
   researchCompetitorsSnippet: string | null;
   synthesisVerdict: 'validated' | 'rejected' | 'needs-more-data' | null;
+  /** Full synthesis report for Key Assumptions / Executive Summary. */
+  synthesisReport?: OverviewSynthesisReport | null;
+  /** Per-assumption assessments (status + evidence) for Key Assumptions. */
+  assumptionAssessments?: OverviewAssumptionAssessment[] | null;
   rounds: Array<{
     id: string;
     title: string;

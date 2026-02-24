@@ -83,6 +83,8 @@ export class OverviewDataProviderAdapter implements OverviewDataProviderPort {
 
       const raw: OverviewRawData = {
         synthesisVerdict,
+        synthesisReport: stored?.synthesisReport ?? null,
+        assumptionAssessments: stored?.assumptionAssessments ?? null,
         project: {
           id: project.id,
           name: project.name,
@@ -90,7 +92,12 @@ export class OverviewDataProviderAdapter implements OverviewDataProviderPort {
           deadline: project.deadline ?? null,
           createdAt: project.createdAt,
           segment: project.segment,
-          hypothesis: project.hypothesis,
+          hypothesis: project.hypothesis
+            ? {
+                description: project.hypothesis.description,
+                assumptions: project.hypothesis.assumptions,
+              }
+            : null,
           scenarioTemplateSlug: project.scenarioTemplateSlug,
         },
         invitations: invitations.map((i) => ({ status: i.status })),

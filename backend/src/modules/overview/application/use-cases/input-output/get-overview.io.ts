@@ -83,6 +83,23 @@ export type DecisionPathway = {
   decisionDate: string | null;
 };
 
+/** Per-assumption status for Key Assumptions (same order as project.hypothesis.assumptions). */
+export type OverviewAssumptionStatus = 'confirmed' | 'need_more' | 'not_supported';
+
+/** Per-assumption assessment for Key Assumptions (status + evidence). */
+export type OverviewAssumptionAssessment = {
+  assumptionId: string;
+  status: string;
+  evidence: string | null;
+};
+
+/** Synthesis report slice for overview (verdict, summary, recommendations). */
+export type OverviewSynthesisReport = {
+  summary: string;
+  recommendations: string[];
+  verdict: string;
+};
+
 export type GetOverviewResponse = {
   executiveSummary: ExecutiveSummary;
   pulse: PulseMetric[];
@@ -90,4 +107,10 @@ export type GetOverviewResponse = {
   researchContext: ResearchContext;
   learningJourney: LearningJourney;
   decisionPathway: DecisionPathway;
+  /** Research synthesis (for Key Assumptions / Executive Summary). */
+  synthesisReport?: OverviewSynthesisReport | null;
+  /** Per-assumption statuses; length matches project.hypothesis.assumptions. */
+  assumptionStatuses?: OverviewAssumptionStatus[] | null;
+  /** Per-assumption assessments (status + evidence) for Key Assumptions. */
+  assumptionAssessments?: OverviewAssumptionAssessment[] | null;
 };

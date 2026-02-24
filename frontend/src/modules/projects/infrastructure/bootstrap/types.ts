@@ -1,9 +1,11 @@
 export const TYPES = {
   ProjectRepository: Symbol.for('ProjectRepository'),
+  ProjectOverviewRepository: Symbol.for('ProjectOverviewRepository'),
   ProjectRiskRepository: Symbol.for('ProjectRiskRepository'),
   MarketContextRepository: Symbol.for('MarketContextRepository'),
   CreateProjectUseCase: Symbol.for('CreateProjectUseCase'),
   GetProjectUseCase: Symbol.for('GetProjectUseCase'),
+  GetProjectOverviewUseCase: Symbol.for('GetProjectOverviewUseCase'),
   ListProjectsUseCase: Symbol.for('ListProjectsUseCase'),
   UpdateProjectUseCase: Symbol.for('UpdateProjectUseCase'),
   DeleteProjectUseCase: Symbol.for('DeleteProjectUseCase'),

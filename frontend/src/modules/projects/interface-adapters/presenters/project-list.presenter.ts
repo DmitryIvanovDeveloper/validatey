@@ -10,6 +10,29 @@ import { sessionManager } from '../../../../shared/services/session-manager';
 
 @injectable()
 export class ProjectListPresenter {
+  readonly labels = {
+    title: 'Validations',
+    subtitle: 'Manage and validate your product hypotheses',
+    breadcrumb: 'Validations',
+    viewCards: 'Cards',
+    viewTable: 'Table',
+    newValidation: '+ New Validation',
+    loading: 'Loading projects…',
+    onboardingTitle: "Let's validate your first hypothesis",
+    onboardingDescription: "Describe what you want to test in one sentence. We'll create a project and a shareable survey link.",
+    onboardingPlaceholder: 'e.g. Young professionals would pay for a gamified learning app',
+    createFirstProject: 'Create first project',
+    emptyTitle: 'No projects yet',
+    emptyDescription: 'Create your first project to validate a hypothesis and collect feedback.',
+    createProject: 'Create project',
+    viewProject: 'View project',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleting: 'Deleting...',
+    editAria: (name: string) => `Edit ${name}`,
+    deleteAria: (name: string) => `Delete ${name}`,
+  };
+
   constructor(
     @inject(TYPES.ListProjectsUseCase)
     private readonly _listProjectsUseCase: ListProjectsUseCase,

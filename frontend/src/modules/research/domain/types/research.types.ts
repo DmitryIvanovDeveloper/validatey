@@ -44,6 +44,13 @@ export interface AskAssistantResponse {
 
 export interface ResearchData extends GetResearchCanvasResponse {}
 
+/** Partial research data (e.g. from overview API). Allows passing only synthesisReport for modal. */
+export type ResearchDataProp =
+  | ResearchData
+  | { synthesisReport?: { summary?: string; recommendations?: string[]; verdict?: string } | null }
+  | null
+  | undefined;
+
 export interface TabItem {
   id: string;
   label: string;

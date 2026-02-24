@@ -1,11 +1,11 @@
 <template>
   <div class="create-project-wizard">
     <PageHeader
-      :title="isEditing ? 'Edit Project' : 'Create New Project'"
-      subtitle="Define segment, hypothesis, scenario, and audience"
+      :title="isEditing ? projectPresenter.labels.titleEdit : projectPresenter.labels.titleCreate"
+      :subtitle="projectPresenter.labels.subtitle"
       :breadcrumbs="[
-        { label: 'Projects', path: '/projects' },
-        { label: isEditing ? 'Edit Project' : 'New Project' }
+        { label: projectPresenter.labels.breadcrumbProjects, path: '/projects' },
+        { label: isEditing ? projectPresenter.labels.breadcrumbEdit : projectPresenter.labels.breadcrumbNew }
       ]"
     />
     <div class="wizard-container">
@@ -14,28 +14,28 @@
           <div class="step-content">
             <!-- Step 0: Who & what? (Segment + Hypothesis + optional context) -->
             <div v-if="step === 0" class="step-panel">
-              <h2>Step 1: Who & what?</h2>
-              <p class="step-description">Describe your audience and what you're testing</p>
+              <h2>{{ projectPresenter.labels.step1Title }}</h2>
+              <p class="step-description">{{ projectPresenter.labels.step1Description }}</p>
 
               <section class="wizard-section">
-                <h3 class="section-title">Who? (Segment)</h3>
+                <h3 class="section-title">{{ projectPresenter.labels.sectionWho }}</h3>
                 <div class="form-group" :class="{ error: fieldErrors.segmentDescription }">
-                  <label for="segment-description">Segment Description *</label>
+                  <label for="segment-description">{{ projectPresenter.labels.segmentDescription }}</label>
                   <textarea
                     id="segment-description"
                     v-model="formData.segmentDescription"
                     rows="3"
-                    placeholder="Example: Young professionals aged 25-35 working in IT..."
+                    :placeholder="projectPresenter.labels.segmentPlaceholder"
                     class="form-input"
                   ></textarea>
                 </div>
                 <div class="form-group" :class="{ error: fieldErrors.segmentDemographics }">
-                  <label for="segment-demographics">Demographics *</label>
+                  <label for="segment-demographics">{{ projectPresenter.labels.demographics }}</label>
                   <textarea
                     id="segment-demographics"
                     v-model="formData.segmentDemographics"
                     rows="2"
-                    placeholder="Example: Age: 25-35 | Location: Major cities | Profession: Software engineers"
+                    :placeholder="projectPresenter.labels.demographicsPlaceholder"
                     class="form-input"
                     @input="clearFieldError('segmentDemographics')"
                   ></textarea>
@@ -43,21 +43,21 @@
               </section>
 
               <section class="wizard-section">
-                <h3 class="section-title">What are we testing?</h3>
+                <h3 class="section-title">{{ projectPresenter.labels.sectionWhat }}</h3>
                 <div class="form-group" :class="{ error: fieldErrors.hypothesisDescription }">
-                  <label for="hypothesis-description">Hypothesis Description <span class="required">*</span></label>
+                  <label for="hypothesis-description">{{ projectPresenter.labels.hypothesisDescription }} <span class="required">*</span></label>
                   <textarea
                     id="hypothesis-description"
                     v-model="formData.hypothesisDescription"
                     rows="3"
-                    placeholder="Example: We believe that young IT professionals want to learn in a gamified format..."
+                    :placeholder="projectPresenter.labels.hypothesisPlaceholder"
                     class="form-input"
                     required
                     @input="clearFieldError('hypothesisDescription')"
                   ></textarea>
                 </div>
                 <div class="form-group" :class="{ error: fieldErrors.hypothesisAssumptions }">
-                  <label>Assumptions</label>
+                  <label>{{ projectPresenter.labels.assumptions }}</label>
                   <div class="assumptions-list">
                     <div
                       v-for="(assumption, index) in formData.hypothesisAssumptions"
@@ -67,7 +67,7 @@
                       <input
                         v-model="formData.hypothesisAssumptions[index]"
                         type="text"
-                        :placeholder="`Assumption ${index + 1}`"
+                        :placeholder="projectPresenter.labels.assumptionPlaceholder(index + 1)"
                         class="form-input"
                         @input="clearFieldError('hypothesisAssumptions')"
                       />
@@ -80,7 +80,7 @@
                         ×
                       </button>
                     </div>
-                    <button @click="addAssumption" class="btn-add" type="button">+ Add Assumption</button>
+                    <button @click="addAssumption" class="btn-add" type="button">{{ projectPresenter.labels.addAssumption }}</button>
                   </div>
                 </div>
 
@@ -92,43 +92,43 @@
                 />
 
                 <div class="form-group" :class="{ error: fieldErrors.marketPicture }">
-                  <label for="market-picture">Market Picture</label>
+                  <label for="market-picture">{{ projectPresenter.labels.marketPicture }}</label>
                   <textarea
                     id="market-picture"
                     v-model="formData.marketPicture"
                     rows="3"
-                    placeholder="Current market: main players, offerings..."
+                    :placeholder="projectPresenter.labels.marketPicturePlaceholder"
                     class="form-input"
                     @input="clearFieldError('marketPicture')"
                   ></textarea>
                 </div>
                 <div class="form-group" :class="{ error: fieldErrors.marketFit }">
-                  <label for="market-fit">Market Fit</label>
+                  <label for="market-fit">{{ projectPresenter.labels.marketFit }}</label>
                   <textarea
                     id="market-fit"
                     v-model="formData.marketFit"
                     rows="3"
-                    placeholder="How your product fits..."
+                    :placeholder="projectPresenter.labels.marketFitPlaceholder"
                     class="form-input"
                     @input="clearFieldError('marketFit')"
                   ></textarea>
                 </div>
                 <div class="form-group">
-                  <label for="differentiation">Differentiation</label>
+                  <label for="differentiation">{{ projectPresenter.labels.differentiation }}</label>
                   <textarea
                     id="differentiation"
                     v-model="formData.differentiation"
                     rows="3"
-                    placeholder="How your product differs..."
+                    :placeholder="projectPresenter.labels.differentiationPlaceholder"
                     class="form-input"
                   ></textarea>
                 </div>
                 <div class="context-accordion">
                   <div class="context-accordion-content">
                     <div class="market-context-ai-helper">
-                      <p v-if="!hasMarketContextInput" class="form-hint market-context-hint">Fill in segment or hypothesis above for a relevant suggestion.</p>
+                      <p v-if="!hasMarketContextInput" class="form-hint market-context-hint">{{ projectPresenter.labels.marketContextHint }}</p>
                       <button type="button" class="btn btn-secondary" :disabled="marketContextSuggestLoading || !hasMarketContextInput" @click="fetchMarketContextSuggestion">
-                        {{ marketContextSuggestLoading ? 'Loading...' : 'Suggest with AI' }}
+                        {{ marketContextSuggestLoading ? projectPresenter.labels.loading : projectPresenter.labels.suggestWithAI }}
                       </button>
                       <p v-if="marketContextSuggestError" class="market-context-ai-error">{{ marketContextSuggestError }}</p>
                     </div>
@@ -140,8 +140,8 @@
 
             <!-- Step 1: How will we ask? (validation type selection) -->
             <div v-if="step === 1" class="step-panel">
-              <h2>Step 2: What type of validation do you need?</h2>
-              <p class="step-description">Choose the validation approach that fits your current stage</p>
+              <h2>{{ projectPresenter.labels.step2Title }}</h2>
+              <p class="step-description">{{ projectPresenter.labels.step2Description }}</p>
 
               <div v-if="scenarioSource !== 'ai'" class="validation-types-grid">
                 <div
@@ -161,24 +161,14 @@
                   </div>
                   <div class="validation-type-header">
                     <h3 class="validation-type-title">{{ template.name }}</h3>
-                    <div class="validation-type-target">{{ template.significanceTarget }} respondents needed</div>
+                    <div class="validation-type-target">{{ projectPresenter.labels.respondentsNeeded(template.significanceTarget) }}</div>
                   </div>
                   <div class="validation-type-description">
-                    <div v-if="template.slug === 'problem-validation'">
-                      <strong>Deep interviews</strong> to understand user problems and willingness to pay
-                    </div>
-                    <div v-else-if="template.slug === 'solution-validation'">
-                      <strong>Interviews + prototype testing</strong> to validate solutions and features
-                    </div>
-                    <div v-else-if="template.slug === 'pricing-validation'">
-                      <strong>Interviews + surveys</strong> to test price sensitivity and willingness to pay
-                    </div>
-                    <div v-else-if="template.slug === 'survey'">
-                      <strong>Online surveys</strong> for statistical significance with larger samples
-                    </div>
-                    <div v-else-if="template.slug === 'statistical-analysis'">
-                      <strong>A/B tests and RCT</strong> for classic statistical analysis
-                    </div>
+                    <div v-if="template.slug === 'problem-validation'">{{ projectPresenter.labels.problemValidationDesc }}</div>
+                    <div v-else-if="template.slug === 'solution-validation'">{{ projectPresenter.labels.solutionValidationDesc }}</div>
+                    <div v-else-if="template.slug === 'pricing-validation'">{{ projectPresenter.labels.pricingValidationDesc }}</div>
+                    <div v-else-if="template.slug === 'survey'">{{ projectPresenter.labels.surveyDesc }}</div>
+                    <div v-else-if="template.slug === 'statistical-analysis'">{{ projectPresenter.labels.statisticalAnalysisDesc }}</div>
                   </div>
                 </div>
               </div>
@@ -189,8 +179,8 @@
                     <path d="M12 7v4"/>
                     <path d="M8 9h8"/>
                   </svg>
-                  Generate with AI
-                  <span class="beta-badge">Beta</span>
+                  {{ projectPresenter.labels.generateWithAI }}
+                  <span class="beta-badge">{{ projectPresenter.labels.betaBadge }}</span>
                 </button>
               </div>
 
@@ -207,88 +197,55 @@
                     <span></span><span></span><span></span>
                   </div>
                   <div class="generation-content">
-                    <h3>Generating AI Scenario</h3>
-                    <p>Creating customized questions for your {{ getValidationTypeName(selectedTemplateSlugs) }}...</p>
+                    <h3>{{ projectPresenter.labels.generatingScenario }}</h3>
+                    <p>{{ projectPresenter.labels.creatingFor(getValidationTypeName(selectedTemplateSlugs)) }}</p>
                     <div class="generation-progress">
                       <div class="progress-bar">
                         <div class="progress-fill" :style="{ width: generationProgress + '%' }"></div>
                       </div>
-                      <p class="progress-text">{{ generationProgress }}% complete</p>
+                      <p class="progress-text">{{ projectPresenter.labels.percentComplete(generationProgress) }}</p>
                     </div>
                   </div>
                 </div>
                 <div v-else-if="scenarioError" class="generation-error">
                   <div class="error-message">{{ scenarioError }}</div>
-                  <button @click="generateScenario" class="btn btn-secondary">Try Again</button>
+                  <button @click="generateScenario" class="btn btn-secondary">{{ projectPresenter.labels.tryAgain }}</button>
                 </div>
               </div>
             </div>
 
             <!-- Step 2: Who will we ask? (Public link first, then email, then panel) -->
             <div v-if="step === 2" class="step-panel">
-              <h2>Step 3: Who will we ask?</h2>
-              <p class="step-description">Project name, size, and how you will find respondents</p>
+              <h2>{{ projectPresenter.labels.step3Title }}</h2>
+              <p class="step-description">{{ projectPresenter.labels.step3Description }}</p>
 
               <div class="form-group" :class="{ error: fieldErrors.name }">
-                <label for="project-name">Project Name *</label>
+                <label for="project-name">{{ projectPresenter.labels.projectName }}</label>
                 <input
                   id="project-name"
                   v-model="formData.name"
                   type="text"
-                  placeholder="Example: Gamified Learning - IT Professionals"
+                  :placeholder="projectPresenter.labels.projectNamePlaceholder"
                   class="form-input"
                   @input="clearFieldError('name')"
                 />
               </div>
-              <!-- Hidden fields: Audience Size and Price per Response -->
-              <!--
-              <div class="form-row">
-                <div class="form-group" :class="{ error: fieldErrors.audienceSize }">
-                  <label for="audience-size">Audience Size *</label>
-                  <input id="audience-size" v-model.number="formData.audienceSize" type="number" min="1" placeholder="100" class="form-input" />
-                  <span class="form-hint">Recommended: 100-200 respondents</span>
-                </div>
-                <div class="form-group" :class="{ error: fieldErrors.pricePerResponse }">
-                  <label for="price-per-response">Price per Response *</label>
-                  <input id="price-per-response" v-model.number="formData.pricePerResponse" type="number" min="0" step="0.01" placeholder="5.00" class="form-input" />
-                  <span class="form-hint">Standard: $5-10 for 10-15 min</span>
-                </div>
-              </div>
-              -->
 
               <div class="form-group audience-source">
-                <label>How will you find respondents?</label>
+                <label>{{ projectPresenter.labels.howFindRespondents }}</label>
                 <div class="scenario-source-options">
                   <label class="radio-option">
                     <input v-model="audienceChoice" type="radio" value="share" />
-                    <span>Public link (I'll share in communities)</span>
+                    <span>{{ projectPresenter.labels.audienceShare }}</span>
                   </label>
                   <label class="radio-option">
                     <input v-model="audienceChoice" type="radio" value="email" />
-                    <span>I have a list of emails</span>
+                    <span>{{ projectPresenter.labels.audienceEmail }}</span>
                   </label>
-                  <p v-if="audienceChoice === 'email'" class="form-hint audience-hint">Import CSV or connect HubSpot on the Invitations page after creating the project.</p>
-                  <!-- Hidden option: Buy audience [Soon] -->
-                  <!--
-                  <label class="radio-option">
-                    <input v-model="audienceChoice" type="radio" value="panel" />
-                    <span>Buy audience [Soon]</span>
-                  </label>
-                  -->
+                  <p v-if="audienceChoice === 'email'" class="form-hint audience-hint">{{ projectPresenter.labels.audienceEmailHint }}</p>
                 </div>
-                <p class="form-hint audience-hint-general">You can enable a public link or share link on the Invitations page after creating the project.</p>
+                <p class="form-hint audience-hint-general">{{ projectPresenter.labels.audienceHintGeneral }}</p>
               </div>
-
-              <!-- Hidden block: Project Cost -->
-              <!--
-              <div class="price-summary">
-                <div class="price-row">
-                  <span>Project Cost:</span>
-                  <span class="price-amount">${{ totalPrice.toFixed(2) }}</span>
-                </div>
-                <div class="price-hint">{{ formData.audienceSize || 0 }} × ${{ formData.pricePerResponse || 0 }}</div>
-              </div>
-              -->
             </div>
           </div>
         </template>
@@ -301,14 +258,14 @@
       @dismiss="showToast = false"
     />
 
-    <Modal v-model="showValidationModal" title="Scenario structure warnings">
-      <p class="validation-intro">The scenario may not fully match the selected template. You can still save or go back to edit.</p>
+    <Modal v-model="showValidationModal" :title="projectPresenter.labels.scenarioWarningsTitle">
+      <p class="validation-intro">{{ projectPresenter.labels.scenarioWarningsIntro }}</p>
       <ul class="validation-warnings-list">
         <li v-for="(w, i) in validationWarnings" :key="i">{{ w }}</li>
       </ul>
       <template #footer>
-        <button @click="saveAnyway" class="btn btn-primary">Save anyway</button>
-        <button @click="closeValidationModal" class="btn btn-secondary">Back to scenario</button>
+        <button @click="saveAnyway" class="btn btn-primary">{{ projectPresenter.labels.saveAnyway }}</button>
+        <button @click="closeValidationModal" class="btn btn-secondary">{{ projectPresenter.labels.backToScenario }}</button>
       </template>
     </Modal>
   </div>
@@ -332,6 +289,7 @@ import { ProjectPresenter } from '../presenters/project.presenter';
 import { ScenarioPresenter } from '../../../scenarios/interface-adapters/presenters/scenario.presenter';
 import { TYPES as SCENARIO_TYPES } from '../../../scenarios/infrastructure/bootstrap/types';
 import { ScenarioViewModel } from '../../../scenarios/interface-adapters/view-models/scenario.view-model';
+import { ProjectViewModel } from '../view-models/project.view-model';
 import type { Project } from '../../domain/entities/project.entity';
 import type { ProjectRisk } from '../../domain/entities/project-risk.entity';
 
@@ -344,11 +302,11 @@ const ONBOARDING_STORAGE_KEY = 'validatey_onboarding_completed';
 const ONBOARDING_HYPOTHESIS_KEY = 'validatey_onboarding_hypothesis';
 const scenarioPresenter = container.get<ScenarioPresenter>(SCENARIO_TYPES.ScenarioPresenter);
 
-const wizardSteps = [
-  { label: 'Who & what?' },
-  { label: 'How?' },
-  { label: 'Who to ask?' },
-];
+const wizardSteps = computed(() => [
+  { label: projectPresenter.labels.wizardStepWho },
+  { label: projectPresenter.labels.wizardStepHow },
+  { label: projectPresenter.labels.wizardStepWhoAsk },
+]);
 
 const formData = ref({
   name: '',
@@ -566,7 +524,7 @@ const canProceedToNextStep = (): boolean => {
 const canCompleteWizard = (): boolean => {
   // Validate all steps before completing and highlight all errors
   let hasErrors = false;
-  for (let step = 0; step < wizardSteps.length; step++) {
+  for (let step = 0; step < wizardSteps.value.length; step++) {
     const validationError = validateStep(step);
     if (validationError) {
       hasErrors = true;
@@ -983,11 +941,7 @@ async function loadProjectForEditing(projectId: string) {
   loadingProject.value = true;
   try {
     // Create temporary viewModel for loading project
-    const tempViewModel = {
-      project: ref<Project | null>(null),
-      loading: ref(false),
-      error: ref<string | null>(null)
-    };
+    const tempViewModel = new ProjectViewModel();
 
     await projectPresenter.loadProject(projectId, tempViewModel);
 

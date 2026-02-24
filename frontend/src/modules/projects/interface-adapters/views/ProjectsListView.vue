@@ -1,9 +1,9 @@
 <template>
   <div class="projects-list-view">
     <PageHeader
-      title="Validations"
-      subtitle="Manage and validate your product hypotheses"
-      :breadcrumbs="[{ label: 'Validations' }]"
+      :title="presenter.labels.title"
+      :subtitle="presenter.labels.subtitle"
+      :breadcrumbs="[{ label: presenter.labels.breadcrumb }]"
     >
       <template #actions>
         <div class="header-actions-row">
@@ -20,7 +20,7 @@
                 <rect x="3" y="14" width="7" height="7" rx="1" />
                 <rect x="14" y="14" width="7" height="7" rx="1" />
               </svg>
-              Cards
+              {{ presenter.labels.viewCards }}
             </button>
             <button
               type="button"
@@ -36,10 +36,10 @@
                 <line x1="3" y1="12" x2="3.01" y2="12" />
                 <line x1="3" y1="18" x2="3.01" y2="18" />
               </svg>
-              Table
+              {{ presenter.labels.viewTable }}
             </button>
           </div>
-          <router-link :to="`/workspaces/${workspaceId}/projects/new`" class="btn btn-primary">+ New Validation</router-link>
+          <router-link :to="`/workspaces/${workspaceId}/projects/new`" class="btn btn-primary">{{ presenter.labels.newValidation }}</router-link>
         </div>
       </template>
     </PageHeader>
@@ -48,7 +48,7 @@
       <div class="loading-dots">
         <span></span><span></span><span></span>
       </div>
-      <p>Loading projects…</p>
+      <p>{{ presenter.labels.loading }}</p>
     </div>
     <div v-else-if="viewModel.error.value" class="error-state">
       <ErrorDisplay :error="viewModel.error.value" />
@@ -56,26 +56,26 @@
     <div v-else-if="!viewModel.loading.value && viewModel.projects.value.length === 0" class="empty-state">
       <!-- Guided onboarding for first-time users -->
       <div v-if="!onboardingCompleted" class="onboarding-block">
-        <h2 class="onboarding-title">Let's validate your first hypothesis</h2>
-        <p class="onboarding-description">Describe what you want to test in one sentence. We'll create a project and a shareable survey link.</p>
+        <h2 class="onboarding-title">{{ presenter.labels.onboardingTitle }}</h2>
+        <p class="onboarding-description">{{ presenter.labels.onboardingDescription }}</p>
         <form class="onboarding-form" @submit.prevent="startOnboarding">
           <input
             v-model="onboardingHypothesis"
             type="text"
             class="onboarding-input"
-            placeholder="e.g. Young professionals would pay for a gamified learning app"
+            :placeholder="presenter.labels.onboardingPlaceholder"
             required
           />
-          <button type="submit" class="btn btn-primary btn-large">Create first project</button>
+          <button type="submit" class="btn btn-primary btn-large">{{ presenter.labels.createFirstProject }}</button>
         </form>
       </div>
       <EmptyState
         v-else
-        title="No projects yet"
-        description="Create your first project to validate a hypothesis and collect feedback."
+        :title="presenter.labels.emptyTitle"
+        :description="presenter.labels.emptyDescription"
       >
         <template #action>
-          <router-link :to="`/workspaces/${workspaceId}/projects/new`" class="btn btn-primary btn-large">Create project</router-link>
+          <router-link :to="`/workspaces/${workspaceId}/projects/new`" class="btn btn-primary btn-large">{{ presenter.labels.createProject }}</router-link>
         </template>
       </EmptyState>
     </div>
@@ -88,7 +88,7 @@
       >
         <template #footer>
           <router-link :to="`/projects/${project.id}`" class="project-card__link" @click.stop>
-            View project
+            {{ presenter.labels.viewProject }}
             <svg class="project-card__link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
@@ -98,14 +98,14 @@
           <button
             type="button"
             class="project-card-edit"
-            :aria-label="`Edit ${project.name}`"
+            :aria-label="presenter.labels.editAria(project.name)"
             @click.stop="goToProjectEdit(project.id)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
-            Edit
+            {{ presenter.labels.edit }}
           </button>
           <Button
             type="button"
@@ -113,8 +113,8 @@
             size="sm"
             :loading="viewModel.deletingId.value === project.id"
             :show-spinner="true"
-            text="Delete"
-            :aria-label="`Delete ${project.name}`"
+            :text="presenter.labels.delete"
+            :aria-label="presenter.labels.deleteAria(project.name)"
             @click.stop="openDeleteModal(project)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -122,7 +122,7 @@
               <line x1="10" y1="11" x2="10" y2="17" />
               <line x1="14" y1="11" x2="14" y2="17" />
             </svg>
-            {{ viewModel.deletingId.value === project.id ? 'Deleting...' : 'Delete' }}
+            {{ viewModel.deletingId.value === project.id ? presenter.labels.deleting : presenter.labels.delete }}
           </Button>
         </template>
       </ProjectCard>
@@ -160,19 +160,19 @@
                 <button
                   type="button"
                   class="projects-table__action-text"
-                  :aria-label="`Edit ${project.name}`"
+                  :aria-label="presenter.labels.editAria(project.name)"
                   @click.stop="goToProjectEdit(project.id)"
                 >
-                  Edit
+                  {{ presenter.labels.edit }}
                 </button>
                 <button
                   type="button"
                   class="projects-table__action-text projects-table__action-text--delete"
                   :disabled="!!viewModel.deletingId.value"
-                  :aria-label="`Delete ${project.name}`"
+                  :aria-label="presenter.labels.deleteAria(project.name)"
                   @click.stop="openDeleteModal(project)"
                 >
-                  {{ viewModel.deletingId.value === project.id ? 'Deleting...' : 'Delete' }}
+                  {{ viewModel.deletingId.value === project.id ? presenter.labels.deleting : presenter.labels.delete }}
                 </button>
               </div>
             </td>

@@ -23,6 +23,7 @@ export type GetProjectUseCaseResponse = {
     maxPublicResponses?: number | null;
     requirePublicEmail?: boolean;
     captchaEnabled?: boolean;
+    scenarioTemplateSlug?: string | null;
   };
 };
 

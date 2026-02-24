@@ -13,9 +13,80 @@ import { Hypothesis, normalizeAssumptions } from '../../domain/value-objects/hyp
 import { Project, ProjectStatus, MarketContext } from '../../domain/entities/project.entity';
 import type { ProjectRisk, ProjectRiskAssessment } from '../../domain/entities/project-risk.entity';
 import type { GetMarketContextSuggestionRequest } from '../../application/use-cases/input-output/get-market-context-suggestion.io';
+import type { GetProjectUseCaseResponse } from '../../application/use-cases/input-output/get-project.io';
+import type { GetProjectOverviewUseCase } from '../../application/use-cases/get-project-overview.use-case';
 
 @injectable()
 export class ProjectPresenter {
+  readonly labels = {
+    // PageHeader
+    titleEdit: 'Edit Project',
+    titleCreate: 'Create New Project',
+    subtitle: 'Define segment, hypothesis, scenario, and audience',
+    breadcrumbProjects: 'Projects',
+    breadcrumbEdit: 'Edit Project',
+    breadcrumbNew: 'New Project',
+    // Step 0: Who & what?
+    step1Title: 'Step 1: Who & what?',
+    step1Description: "Describe your audience and what you're testing",
+    sectionWho: 'Who? (Segment)',
+    segmentDescription: 'Segment Description *',
+    segmentPlaceholder: 'Example: Young professionals aged 25-35 working in IT...',
+    demographics: 'Demographics *',
+    demographicsPlaceholder: 'Example: Age: 25-35 | Location: Major cities | Profession: Software engineers',
+    sectionWhat: 'What are we testing?',
+    hypothesisDescription: 'Hypothesis Description',
+    hypothesisPlaceholder: 'Example: We believe that young IT professionals want to learn in a gamified format...',
+    assumptions: 'Assumptions',
+    assumptionPlaceholder: (n: number) => `Assumption ${n}`,
+    addAssumption: '+ Add Assumption',
+    marketPicture: 'Market Picture',
+    marketPicturePlaceholder: 'Current market: main players, offerings...',
+    marketFit: 'Market Fit',
+    marketFitPlaceholder: 'How your product fits...',
+    differentiation: 'Differentiation',
+    differentiationPlaceholder: 'How your product differs...',
+    marketContextHint: 'Fill in segment or hypothesis above for a relevant suggestion.',
+    suggestWithAI: 'Suggest with AI',
+    loading: 'Loading...',
+    // Step 1: How?
+    step2Title: 'Step 2: What type of validation do you need?',
+    step2Description: 'Choose the validation approach that fits your current stage',
+    respondentsNeeded: (n: number) => `${n} respondents needed`,
+    generateWithAI: 'Generate with AI',
+    betaBadge: 'Beta',
+    // Validation type descriptions
+    problemValidationDesc: 'Deep interviews to understand user problems and willingness to pay',
+    solutionValidationDesc: 'Interviews + prototype testing to validate solutions and features',
+    pricingValidationDesc: 'Interviews + surveys to test price sensitivity and willingness to pay',
+    surveyDesc: 'Online surveys for statistical significance with larger samples',
+    statisticalAnalysisDesc: 'A/B tests and RCT for classic statistical analysis',
+    // Step 2: Who to ask?
+    step3Title: 'Step 3: Who will we ask?',
+    step3Description: 'Project name, size, and how you will find respondents',
+    projectName: 'Project Name *',
+    projectNamePlaceholder: 'Example: Gamified Learning - IT Professionals',
+    howFindRespondents: 'How will you find respondents?',
+    audienceShare: 'Public link (I\'ll share in communities)',
+    audienceEmail: 'I have a list of emails',
+    audienceEmailHint: 'Import CSV or connect HubSpot on the Invitations page after creating the project.',
+    audienceHintGeneral: 'You can enable a public link or share link on the Invitations page after creating the project.',
+    // AI generation
+    generatingScenario: 'Generating AI Scenario',
+    creatingFor: (name: string) => `Creating customized questions for your ${name}...`,
+    percentComplete: (n: number) => `${n}% complete`,
+    tryAgain: 'Try Again',
+    // Modal
+    scenarioWarningsTitle: 'Scenario structure warnings',
+    scenarioWarningsIntro: 'The scenario may not fully match the selected template. You can still save or go back to edit.',
+    saveAnyway: 'Save anyway',
+    backToScenario: 'Back to scenario',
+    // Wizard steps
+    wizardStepWho: 'Who & what?',
+    wizardStepHow: 'How?',
+    wizardStepWhoAsk: 'Who to ask?',
+  };
+
   constructor(
     @inject(TYPES.CreateProjectUseCase)
     private readonly _createProjectUseCase: CreateProjectUseCase,
@@ -27,6 +98,8 @@ export class ProjectPresenter {
     private readonly _getMarketContextSuggestionUseCase: GetMarketContextSuggestionUseCase,
     @inject(TYPES.AssessProjectRiskUseCase)
     private readonly _assessProjectRiskUseCase: AssessProjectRiskUseCase,
+    @inject(TYPES.GetProjectOverviewUseCase)
+    private readonly _getProjectOverviewUseCase: GetProjectOverviewUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort
   ) {}
@@ -184,7 +257,7 @@ export class ProjectPresenter {
     const result = await this._getProjectUseCase.execute({ projectId });
 
     if (result.isSuccess) {
-      const projectData = result.data.project;
+      const projectData = result.data.project as GetProjectUseCaseResponse['project'];
       
       // Map response to Project entity
       const segment = projectData.segment 
@@ -231,6 +304,18 @@ export class ProjectPresenter {
       viewModel.error.value = errorMessage;
       viewModel.loading.value = false;
       this._logger.error('Failed to load project', { projectId, error: result.error });
+    }
+  }
+
+  async loadOverview(projectId: string, viewModel: ProjectViewModel): Promise<void> {
+    const result = await this._getProjectOverviewUseCase.execute({ projectId });
+
+    if (result.isSuccess) {
+      viewModel.overview.value = result.data.overview;
+      this._logger.info('Project overview loaded', { projectId });
+    } else {
+      this._logger.error('Failed to load project overview', { projectId, error: result.error });
+      viewModel.overview.value = null;
     }
   }
 

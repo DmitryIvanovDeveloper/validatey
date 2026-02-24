@@ -26,5 +26,12 @@ export class ProjectListError extends ProjectError {
   }
 }
 
+export class OverviewLoadError extends ProjectError {
+  constructor(message: string) {
+    super(message);
+    this.name = 'OverviewLoadError';
+  }
+}
+
 
 

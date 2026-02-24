@@ -370,6 +370,7 @@ import CommentPatternsWidget from '../../../comments/interface-adapters/componen
 import TopPainPointsWidget from '../../../research/interface-adapters/views/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../shared/components/SectionCard.vue';
 import { normalizeAssumptions } from '../../domain/value-objects/hypothesis.vo';
+import type { OverviewPayload } from '../../application/use-cases/input-output/get-project-overview.io';
 
 const route = useRoute();
 const router = useRouter();
@@ -377,53 +378,32 @@ const projectId = route.params.projectId as string;
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 const invitationPresenter = container.get<InvitationPresenter>(INVITATION_TYPES.InvitationPresenter);
-// Research data is now handled by ResearchOverviewWidget
 const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);
 
 const overviewInvitations = ref<Array<{ id: string; email: string; status: string }>>([]);
-
 
 // Refs for widget components
 const painPointsRef = ref();
 const responsePaceRef = ref();
 
-/** Overview command center payload (executive summary, pulse, smart actions, research context, decision pathway). */
-type OverviewPayload = {
-  executiveSummary: {
-    projectName: string;
-    status: string;
-    validationStatus: string;
-    responded: number;
-    sent: number;
-    responseRatePct: number;
-    neededForSignificance: number | null;
-    keyInsight: string | null;
-    deadline: string | null;
-    daysRemaining: number | null;
-    paceResponsesPerDay: number;
-    aiVerdict: string | null;
-    createdAt: string;
+/** Overview data from presenter (viewModel.overview). Loaded via presenter.loadOverview(). */
+const overviewData = viewModel.overview;
+
+/** Research slice for Key Assumptions / Executive Summary. Derived from overview (backend-aggregated). */
+interface ResearchDataSlice {
+  synthesisReport: OverviewPayload['synthesisReport'];
+  assumptionStatuses: OverviewPayload['assumptionStatuses'];
+  assumptionAssessments: OverviewPayload['assumptionAssessments'];
+}
+const researchData = computed<ResearchDataSlice | null>(() => {
+  const o = viewModel.overview.value;
+  if (!o) return null;
+  return {
+    synthesisReport: o.synthesisReport ?? null,
+    assumptionStatuses: o.assumptionStatuses ?? null,
+    assumptionAssessments: o.assumptionAssessments ?? null,
   };
-  pulse: Array<{
-    id: string;
-    label: string;
-    value: string;
-    detail: string;
-    status: string;
-    actionLabel: string;
-    actionHref: string;
-  }>;
-  smartActions: Array<{ id: string; label: string; hint: string; href: string }>;
-  researchContext: { summary: string | null; marketSnippet: string | null; competitorsSnippet: string | null; hasData: boolean };
-  learningJourney: { rounds: Array<{ id: string; title: string; type: string; status: string; keyFinding: string | null; reportHref: string }>; extendSuggestions: string[] };
-  decisionPathway: {
-    steps: Array<{ id: string; label: string; progress: string; status: string; actionHref: string | null }>;
-    successCriteria: Array<{ label: string; current: string; target: string; met: boolean }>;
-    decisionDate: string | null;
-  };
-};
-const overviewData = ref<OverviewPayload | null>(null);
-const researchData = ref<any>(null);
+});
 const executiveSummaryLoading = ref(false);
 const widgetsLoading = ref(false); // External loading state for Pain Points and Response Pace widgets
 const isShowDetailsModalOpen = ref(false);
@@ -737,14 +717,7 @@ async function loadOverviewInvitations() {
 
 async function loadOverview() {
   if (!projectId) return;
-  try {
-    const url = API_CONFIG.ENDPOINTS.OVERVIEW(projectId);
-    const data = await httpClient.get<OverviewPayload>(url);
-    overviewData.value = data ?? null;
-  } catch (error) {
-    console.error('Failed to load overview:', error);
-    overviewData.value = null;
-  }
+  await presenter.loadOverview(projectId, viewModel);
 }
 
 // Research data loading is now handled by ResearchOverviewWidget

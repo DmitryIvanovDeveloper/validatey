@@ -73,7 +73,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { Zap, Users, Search, MapPin, FileText, X } from 'lucide-vue-next';
-import type { ResearchData, TabItem } from '../../domain/types/research.types';
+import type { ResearchData, ResearchDataProp, TabItem } from '../../domain/types/research.types';
 import EarlySignalsWidget from './EarlySignalsWidget.vue';
 import CompetitorsWidget from './details/CompetitorsWidget.vue';
 import SearchSuggestionsWidget from './details/SearchSuggestionsWidget.vue';
@@ -82,15 +82,15 @@ import SynthesisWidget from './details/SynthesisWidget.vue';
 
 interface Props {
   projectId: string;
-  researchData?: ResearchData;
+  researchData?: ResearchDataProp;
   isModalOpen?: boolean;
   responseCount?: number;
 }
 
 const props = defineProps<Props>();
 
-// Reactive data from props
-const researchDataRef = ref<ResearchData | undefined>(props.researchData);
+// Reactive data from props (full ResearchData or partial from overview)
+const researchDataRef = ref<ResearchDataProp>(props.researchData);
 
 // Watch for prop changes and update reactive ref
 watch(() => props.researchData, (newData) => {
