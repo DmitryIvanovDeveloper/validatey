@@ -131,10 +131,13 @@
       <table class="projects-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th class="projects-table__actions-col">Actions</th>
+            <th class="projects-table__th--project">Project</th>
+            <th class="projects-table__th--status">Status</th>
+            <th class="projects-table__th--responses">Responses</th>
+            <th class="projects-table__th--assumptions">Hypothesis</th>
+            <th class="projects-table__th--social">Comments</th>
+            <th class="projects-table__th--date">Created</th>
+            <th class="projects-table__th--actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -142,40 +145,14 @@
             v-for="project in viewModel.projects.value"
             :key="project.id"
             class="projects-table__row"
-            @click="goToProject(project.id)"
           >
-            <td>
-              <span class="projects-table__name">{{ project.name }}</span>
-            </td>
-            <td>
-              <span :class="['projects-table__status', `projects-table__status--${project.status}`]">
-                {{ statusLabels[project.status] ?? project.status }}
-              </span>
-            </td>
-            <td>
-              <span class="projects-table__date">{{ formatDate(project.createdAt) }}</span>
-            </td>
-            <td class="projects-table__actions-col" @click.stop>
-              <div class="projects-table__actions">
-                <button
-                  type="button"
-                  class="projects-table__action-text"
-                  :aria-label="presenter.labels.editAria(project.name)"
-                  @click.stop="goToProjectEdit(project.id)"
-                >
-                  {{ presenter.labels.edit }}
-                </button>
-                <button
-                  type="button"
-                  class="projects-table__action-text projects-table__action-text--delete"
-                  :disabled="!!viewModel.deletingId.value"
-                  :aria-label="presenter.labels.deleteAria(project.name)"
-                  @click.stop="openDeleteModal(project)"
-                >
-                  {{ viewModel.deletingId.value === project.id ? presenter.labels.deleting : presenter.labels.delete }}
-                </button>
-              </div>
-            </td>
+            <ProjectTableRow
+              :project="project"
+              :deleting="viewModel.deletingId.value === project.id"
+              @open="goToProject(project.id)"
+              @edit="goToProjectEdit(project.id)"
+              @delete="openDeleteModal(project)"
+            />
           </tr>
         </tbody>
       </table>
@@ -195,6 +172,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import PageHeader from '../../../../shared/components/PageHeader.vue';
 import ProjectCard from './components/ProjectCard.vue';
+import ProjectTableRow from './components/ProjectTableRow.vue';
 import EmptyState from '../../../../shared/components/EmptyState.vue';
 import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
 import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
@@ -400,131 +378,59 @@ onUnmounted(() => {
   box-shadow: var(--shadow-sm);
 }
 
-/* Projects table */
+/* ── Projects table ───────────────────────────────────────── */
 .projects-table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  background: var(--color-bg);
 }
 
 .projects-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9375rem;
+  table-layout: fixed;
 }
+
+/* Column widths — even distribution, Project gets more space for name+hypothesis */
+.projects-table__th--project     { width: 28%; }
+.projects-table__th--status      { width: 16%; }
+.projects-table__th--responses   { width: 12%; }
+.projects-table__th--assumptions { width: 14%; }
+.projects-table__th--social      { width: 8%; }
+.projects-table__th--date        { width: 10%; }
+.projects-table__th--actions     { width: 12%; }
 
 .projects-table th {
   text-align: left;
-  padding: 0.75rem 1rem;
-  font-weight: 600;
-  font-size: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-weight: 700;
+  font-size: 0.6875rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
   background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.projects-table th:first-child {
-  border-radius: var(--radius-md) 0 0 0;
-}
-
-.projects-table th:last-child {
-  border-radius: 0 var(--radius-md) 0 0;
-}
-
-.projects-table td {
-  padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--color-border-light);
 }
 
+.projects-table th:first-child { border-radius: 12px 0 0 0; padding-left: 1.25rem; }
+.projects-table th:last-child  { border-radius: 0 12px 0 0; }
+
+.projects-table td {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.projects-table td:first-child { padding-left: 1.25rem; }
+
 .projects-table__row {
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.12s ease;
 }
 
-.projects-table__row:hover {
-  background: var(--color-bg-subtle);
-}
+.projects-table__row:hover { background: var(--color-bg-elevated, #f8fafc); }
 
-.projects-table__row:last-child td {
-  border-bottom: none;
-}
-
-.projects-table__name {
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.projects-table__status {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  border-radius: 9999px;
-}
-
-.projects-table__status--draft {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-muted);
-}
-
-.projects-table__status--in-progress {
-  background: var(--color-accent-light);
-  color: var(--color-accent-hover);
-}
-
-.projects-table__status--completed {
-  background: var(--color-info-bg);
-  color: var(--color-info);
-}
-
-.projects-table__status--archived {
-  background: var(--color-bg-subtle);
-  color: var(--color-text-subtle);
-}
-
-.projects-table__date {
-  color: var(--color-text-muted);
-}
-
-.projects-table__actions-col {
-  width: 1%;
-  white-space: nowrap;
-}
-
-.projects-table__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.projects-table__action-text {
-  font-family: inherit;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  color: var(--color-text);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.projects-table__action-text:hover:not(:disabled) {
-  text-decoration: underline;
-}
-
-.projects-table__action-text--delete {
-  color: var(--color-error);
-}
-
-.projects-table__action-text:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.projects-table__row:last-child td { border-bottom: none; }
 
 .loading-dots {
   display: flex;

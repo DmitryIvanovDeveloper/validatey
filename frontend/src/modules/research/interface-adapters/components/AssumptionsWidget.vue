@@ -5,6 +5,45 @@
     <div v-else class="widget-content">
       <span class="widget-label">Assumptions</span>
       <span class="widget-value">{{ totalCount }}</span>
+
+      <!-- Horizontal status bar (shown in card chip context via :deep) -->
+      <div v-if="statusCounts && hasStatuses && totalCount > 0" class="widget-status-bar" :title="statusBarTitle">
+        <div
+          v-if="statusCounts.confirmed > 0"
+          class="widget-status-bar__segment widget-status-bar__segment--confirmed"
+          :style="{ flex: statusCounts.confirmed }"
+        />
+        <div
+          v-if="statusCounts.need_more > 0"
+          class="widget-status-bar__segment widget-status-bar__segment--need-more"
+          :style="{ flex: statusCounts.need_more }"
+        />
+        <div
+          v-if="statusCounts.not_supported > 0"
+          class="widget-status-bar__segment widget-status-bar__segment--not-supported"
+          :style="{ flex: statusCounts.not_supported }"
+        />
+        <div
+          v-if="unassessedCount > 0"
+          class="widget-status-bar__segment widget-status-bar__segment--unassessed"
+          :style="{ flex: unassessedCount }"
+        />
+      </div>
+
+      <!-- Status micro-badges (shown in card chip context via :deep) -->
+      <div v-if="statusCounts && hasStatuses" class="widget-status-counts">
+        <span v-if="statusCounts.confirmed > 0" class="widget-status-count widget-status-count--confirmed">
+          {{ statusCounts.confirmed }}✓
+        </span>
+        <span v-if="statusCounts.need_more > 0" class="widget-status-count widget-status-count--need-more">
+          {{ statusCounts.need_more }}?
+        </span>
+        <span v-if="statusCounts.not_supported > 0" class="widget-status-count widget-status-count--not-supported">
+          {{ statusCounts.not_supported }}✗
+        </span>
+      </div>
+
+      <!-- Donut chart (shown in full Research Canvas view) -->
       <div v-if="statusCounts && hasStatuses && chartSeries.length > 0" class="widget-chart-container">
         <apexchart
           type="donut"
@@ -43,6 +82,21 @@ const assumptionStatuses = ref<('confirmed' | 'need_more' | 'not_supported')[] |
 const researchPresenter = container.get<ResearchPresenter>(RESEARCH_TYPES.ResearchPresenter);
 
 const totalCount = computed(() => assumptionStatuses.value?.length ?? 0);
+
+const unassessedCount = computed(() => {
+  if (!statusCounts.value) return totalCount.value;
+  return Math.max(0, totalCount.value - statusCounts.value.confirmed - statusCounts.value.need_more - statusCounts.value.not_supported);
+});
+
+const statusBarTitle = computed(() => {
+  if (!statusCounts.value) return '';
+  const parts: string[] = [];
+  if (statusCounts.value.confirmed > 0) parts.push(`${statusCounts.value.confirmed} confirmed`);
+  if (statusCounts.value.need_more > 0) parts.push(`${statusCounts.value.need_more} need more data`);
+  if (statusCounts.value.not_supported > 0) parts.push(`${statusCounts.value.not_supported} not supported`);
+  if (unassessedCount.value > 0) parts.push(`${unassessedCount.value} not assessed`);
+  return parts.join(' · ');
+});
 
 const statusCounts = computed(() => {
   if (!assumptionStatuses.value || assumptionStatuses.value.length === 0) return null;
@@ -372,4 +426,45 @@ watch(assumptionStatuses, (newStatuses) => {
   background: var(--color-error-bg, #fee2e2);
   color: var(--color-error, #dc2626);
 }
+
+/* ─── Horizontal status bar ───────────────────────────────────── */
+.widget-status-bar {
+  display: none; /* hidden by default; shown via :deep in ProjectCard chip */
+  height: 4px;
+  border-radius: 9999px;
+  overflow: hidden;
+  gap: 1px;
+  background: var(--color-bg-subtle);
+}
+
+.widget-status-bar__segment {
+  display: flex;
+  height: 100%;
+  min-width: 4px;
+  border-radius: 9999px;
+  transition: flex 0.3s ease;
+}
+
+.widget-status-bar__segment--confirmed  { background: var(--color-success, #059669); }
+.widget-status-bar__segment--need-more  { background: var(--color-warning, #d97706); }
+.widget-status-bar__segment--not-supported { background: var(--color-error, #dc2626); }
+.widget-status-bar__segment--unassessed { background: var(--color-border, #cbd5e1); }
+
+/* ─── Status micro-counts ─────────────────────────────────────── */
+.widget-status-counts {
+  display: none; /* hidden by default; shown via :deep in ProjectCard chip */
+  gap: 0.3125rem;
+  align-items: center;
+}
+
+.widget-status-count {
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.widget-status-count--confirmed    { color: var(--color-success, #059669); }
+.widget-status-count--need-more    { color: var(--color-warning, #d97706); }
+.widget-status-count--not-supported { color: var(--color-error, #dc2626); }
 </style>
