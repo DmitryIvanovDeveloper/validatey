@@ -2,6 +2,10 @@ import { injectable, inject } from 'inversify';
 import type { CommentsHttpRepositoryPort, FetchJobStateDTO } from '../ports/comments-http-repository.port';
 import { COMMENT_TYPES } from '../../types';
 import Result from '../../../../infrastructure/result/result';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { EventBusPort } from '../../../../infrastructure/event-bus/ports/event-bus.port';
+import { CommentsFetchStartedEvent } from '../../domain/events/comments-fetch-started.event';
+import { CommentsFetchCompletedEvent } from '../../domain/events/comments-fetch-completed.event';
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -28,7 +32,9 @@ export class StartFetchAndWaitUseCase {
 
   constructor(
     @inject(COMMENT_TYPES.CommentsHttpRepository)
-    private readonly _repository: CommentsHttpRepositoryPort
+    private readonly _repository: CommentsHttpRepositoryPort,
+    @inject(ROOT_TYPES.EventBus)
+    private readonly _eventBus: EventBusPort
   ) {}
 
   public async execute(
@@ -38,6 +44,9 @@ export class StartFetchAndWaitUseCase {
     const pollIntervalMs = options?.pollIntervalMs ?? StartFetchAndWaitUseCase.DEFAULT_POLL_MS;
     const onProgress = options?.onProgress;
     const startTime = Date.now();
+
+    // Publish event to signal that comments fetch has started
+    await this._eventBus.publishAsync(new CommentsFetchStartedEvent(input.projectId));
 
     const startResult = await this._repository.startFetch(input.projectId, {
       sourceType: input.sourceType,
@@ -68,6 +77,8 @@ export class StartFetchAndWaitUseCase {
       onProgress?.(state);
 
       if (state.status === 'completed') {
+        // Publish completion event
+        await this._eventBus.publishAsync(new CommentsFetchCompletedEvent(input.projectId));
         return Result.success<FetchJobStateDTO>(state);
       }
 
@@ -83,9 +94,12 @@ export class StartFetchAndWaitUseCase {
     if (finalStatusResult.isSuccess) {
       const state = finalStatusResult.data;
       if (state.status === 'completed') {
+        // Publish completion event
+        await this._eventBus.publishAsync(new CommentsFetchCompletedEvent(input.projectId));
         return Result.success<FetchJobStateDTO>(state);
       }
       // Even if still running, return success so UI can reload comments
+      await this._eventBus.publishAsync(new CommentsFetchCompletedEvent(input.projectId));
       return Result.success<FetchJobStateDTO>({ ...state, status: 'completed' as const });
     }
 

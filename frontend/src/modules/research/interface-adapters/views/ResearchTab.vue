@@ -15,10 +15,10 @@
         </router-link>
         <button
           @click="handleStartResearch"
-          :disabled="collectLoading"
+          :disabled="presenter.viewModel.researchLoading"
           class="btn btn-research-primary"
         >
-          <span class="btn-icon" v-if="collectLoading" aria-hidden="true">
+          <span class="btn-icon" v-if="presenter.viewModel.researchLoading" aria-hidden="true">
             <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -29,7 +29,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
             </svg>
           </span>
-          {{ collectLoading ? 'Researching...' : 'Start Research' }}
+          {{ getButtonText }}
         </button>
       </template>
     </PageHeader>
@@ -54,14 +54,14 @@
               type="text"
               class="input-field"
               placeholder="Geography (e.g. US, EU)"
-              :disabled="collectLoading"
+              :disabled="presenter.viewModel.researchLoading"
             />
             <input
               v-model="researchSegment"
               type="text"
               class="input-field"
               placeholder="Segment (e.g. B2B SMB)"
-              :disabled="collectLoading"
+              :disabled="presenter.viewModel.researchLoading"
             />
           </div>
         </div>
@@ -114,7 +114,6 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const canvas = ref<ResearchCanvas | null>(null);
 const synthesisReport = ref<SynthesisReport | null>(null);
-const collectLoading = ref(false);
 const collectError = ref<string | null>(null);
 const synthesisLoading = ref(false);
 const synthesisError = ref<string | null>(null);
@@ -125,6 +124,19 @@ const projectHypothesis = ref<string | null>(null);
 const hasCompetitorData = computed(() => {
   const c = canvas.value?.competitorInfo;
   return !!(c && (c.competitors?.length || c.priceRange || c.rating));
+});
+
+const getButtonText = computed(() => {
+  if (presenter.viewModel.commentsOnlyLoading && !presenter.viewModel.researchLoading) {
+    return 'Collecting comments...';
+  }
+  if (presenter.viewModel.researchLoading) {
+    if (presenter.viewModel.commentsFetching) {
+      return 'Researching... (Comments loading...)';
+    }
+    return 'Researching...';
+  }
+  return 'Start Research';
 });
 
 const hasUserInsights = computed(() => {
@@ -180,7 +192,7 @@ async function loadCanvas() {
 async function collectData(geography?: string, segment?: string) {
   if (!projectId.value) return;
 
-  collectLoading.value = true;
+  // researchLoading will be set by event handlers
   collectError.value = null;
 
   try {
@@ -205,7 +217,13 @@ async function collectData(geography?: string, segment?: string) {
     const result = await presenter.collectResearchData(projectId.value, intent);
 
     if (result.error) {
-      collectError.value = result.error;
+      // Handle COOLDOWN error object
+      if (typeof result.error === 'object' && result.error && 'type' in result.error && result.error.type === 'COOLDOWN') {
+        collectError.value = `Research is on cooldown. ${result.error.formattedTimeRemaining}`;
+      } else {
+        // Handle string error
+        collectError.value = result.error as string;
+      }
     } else {
       // Reload canvas data after successful collection
       await loadCanvas();
@@ -215,7 +233,7 @@ async function collectData(geography?: string, segment?: string) {
   } catch (err) {
     collectError.value = err instanceof Error ? err.message : 'Failed to collect research data';
   } finally {
-    collectLoading.value = false;
+    // collectLoading is now managed by presenter.viewModel.researchLoading
   }
 }
 

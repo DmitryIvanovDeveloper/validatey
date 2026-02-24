@@ -6,6 +6,7 @@ import { StartFetchAndWaitUseCase } from '../../application/use-cases/start-fetc
 import { GetFetchStatusUseCase } from '../../application/use-cases/get-fetch-status.usecase';
 import { GetCommentsUseCase } from '../../application/use-cases/get-comments.usecase';
 import { DeleteSourceUseCase } from '../../application/use-cases/delete-source.usecase';
+import { ResearchStartedEventHandler } from '../../application/event-handlers/research-started-event.handler';
 
 // Interface Adapters
 import { CommentsPresenter } from '../../interface-adapters/presenters/comments.presenter';
@@ -16,6 +17,10 @@ import { CommentPatternHttpRepository } from '../repositories/comment-pattern.ht
 
 // Pattern Analysis
 import { GetCommentPatternsUseCase } from '../../application/use-cases/get-comment-patterns.use-case';
+
+// Event Bus
+import { IAsyncEventHandler } from '../../../../infrastructure/event-bus/ports/event-handler.port';
+import { ResearchStartedEvent } from '../../../research/domain/events/research-started.event';
 
 export function bindComments(container: Container): void {
   // Use Cases
@@ -31,4 +36,7 @@ export function bindComments(container: Container): void {
   // Repositories
   container.bind(COMMENT_TYPES.CommentsHttpRepository).to(CommentsHttpRepository);
   container.bind(COMMENT_TYPES.CommentPatternRepository).to(CommentPatternHttpRepository);
+
+  // Event Handlers
+  container.bind<IAsyncEventHandler<ResearchStartedEvent>>(COMMENT_TYPES.ResearchStartedEventHandler).to(ResearchStartedEventHandler);
 }

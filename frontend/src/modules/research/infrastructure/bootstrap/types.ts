@@ -7,4 +7,8 @@ export const TYPES = {
   CollectResearchDataUseCase: Symbol('CollectResearchDataUseCase'),
   GenerateSynthesisUseCase: Symbol('GenerateSynthesisUseCase'),
   ResearchAssistantUseCase: Symbol('ResearchAssistantUseCase'),
+  CheckResearchAvailabilityUseCase: Symbol('CheckResearchAvailabilityUseCase'),
+  CommentsFetchStartedEventHandler: Symbol.for('IAsyncEventHandler<CommentsFetchStartedEvent>'),
+  CommentsFetchCompletedEventHandler: Symbol.for('IAsyncEventHandler<CommentsFetchCompletedEvent>'),
+  ResearchDataCollectionStartedEventHandler: Symbol.for('IAsyncEventHandler<ResearchDataCollectionStartedEvent>'),
 } as const;

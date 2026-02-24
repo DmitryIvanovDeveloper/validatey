@@ -34,17 +34,13 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
       </span>
-      {{
-        loading ? 'Researching...' :
-        !availability.available ? 'Cooldown Active' :
-        'Start Research'
-      }}
+      {{ getButtonText }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, type Ref } from 'vue';
+import { ref, onMounted, onUnmounted, computed, type Ref } from 'vue';
 import { Clock } from 'lucide-vue-next';
 import { container } from '@infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../presenters/research.presenter';
@@ -80,6 +76,22 @@ const availability = ref<ResearchAvailability>({
   timeUntilNext: 0,
   nextAvailableAt: null,
   formattedTimeRemaining: '',
+});
+
+const getButtonText = computed(() => {
+  if (researchPresenter.viewModel.commentsOnlyLoading) {
+    return 'Collecting comments...';
+  }
+  if (loading.value) {
+    if (researchPresenter.viewModel.commentsFetching) {
+      return 'Researching... (Comments loading...)';
+    }
+    return 'Researching...';
+  }
+  if (!availability.value.available) {
+    return 'Cooldown Active';
+  }
+  return 'Start Research';
 });
 
 // Check availability on component mount

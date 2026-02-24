@@ -3,6 +3,7 @@ import { GetResearchCanvasUseCase } from '../../application/use-cases/get-resear
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
+import { CheckResearchAvailabilityUseCase } from '../../application/use-cases/check-research-availability.use-case';
 import type { ResearchCanvas, SynthesisReport } from '../../domain/entities/research-canvas.entity';
 import type { ResearchIntent } from '../../domain/value-objects/research-intent.vo';
 import type {
@@ -20,6 +21,13 @@ import { ResearchCooldownError } from '../../domain/errors/research.error';
 
 @injectable()
 export class ResearchPresenter {
+  // View model for reactive UI updates
+  viewModel = {
+    commentsFetching: false,
+    commentsOnlyLoading: false,
+    researchLoading: false,
+  };
+
   constructor(
     @inject(TYPES.GetResearchCanvasUseCase)
     private readonly _getResearchCanvasUseCase: GetResearchCanvasUseCase,
@@ -29,10 +37,10 @@ export class ResearchPresenter {
     private readonly _generateSynthesisUseCase: GenerateSynthesisUseCase,
     @inject(TYPES.ResearchAssistantUseCase)
     private readonly _researchAssistantUseCase: ResearchAssistantUseCase,
+    @inject(TYPES.CheckResearchAvailabilityUseCase)
+    private readonly _checkResearchAvailabilityUseCase: CheckResearchAvailabilityUseCase,
     @inject(ROOT_TYPES.Logger)
-    private readonly _logger: LoggerPort,
-    @inject(TYPES.ResearchRepositoryPort)
-    private readonly _researchRepository: ResearchRepositoryPort
+    private readonly _logger: LoggerPort
   ) {}
 
   async getResearchCanvas(projectId: string): Promise<GetResearchCanvasResponse> {
@@ -50,9 +58,8 @@ export class ResearchPresenter {
 
   async checkResearchAvailability(projectId: string): Promise<CheckResearchAvailabilityResponse> {
     try {
-      // NEW: Use repository to call new API endpoint
-      const response = await this._researchRepository.checkResearchAvailability(projectId);
-      return response;
+      const result = await this._checkResearchAvailabilityUseCase.execute({ projectId });
+      return result;
     } catch (error) {
       this._logger.error('Failed to check research availability', { projectId, error });
       return {
@@ -109,6 +116,18 @@ export class ResearchPresenter {
         error: error instanceof Error ? error.message : 'Failed to get assistant response',
       };
     }
+  }
+
+  async setCommentsFetchStatus(projectId: string, isFetching: boolean): Promise<void> {
+    this.viewModel.commentsFetching = isFetching;
+  }
+
+  async setCommentsOnlyLoading(projectId: string, isLoading: boolean): Promise<void> {
+    this.viewModel.commentsOnlyLoading = isLoading;
+  }
+
+  async setResearchLoading(projectId: string, isLoading: boolean): Promise<void> {
+    this.viewModel.researchLoading = isLoading;
   }
 
   private createEmptyCanvas(projectId: string): ResearchCanvas {
