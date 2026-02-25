@@ -1,6 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
 import { TYPES as RESEARCH_TYPES } from '../../infrastructure/bootstrap/types';
@@ -21,11 +22,33 @@ import type {
   ResearchIntent,
 } from './input-output/collect-research-data.io';
 
+const AI_PROXY_URL =
+  process.env.SYNTHESIS_LLM_URL ||
+  process.env.LLM_SERVICE_URL ||
+  'https://cerebras-api.vercel.app/api/prompt';
+
+const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a startup hypothesis, generate ONE short English search query to find relevant community discussions on Reddit and Hacker News.
+
+Rules:
+- Output ONLY the query string. No quotes, no explanation, no punctuation at the end.
+- 3-5 words ONLY.
+- Focus on the CORE PROBLEM or BEHAVIOR the hypothesis addresses — not the product or solution.
+- Use plain everyday language that real people use in forum discussions (not academic terms).
+- Do NOT use: hypothesis, startup, platform, app, product, validation, business, AI, ML, software, technology, digital, online, system.
+- Do NOT use the project name literally.
+- Examples for context:
+  - "founders need honest feedback" (for a peer-feedback platform)
+  - "reciprocal feedback community" (for give-to-get mechanic)
+  - "freelancer client trust" (for payment escrow app)
+  - "remote team async communication" (for async video tool)`;
+
 @injectable()
 export class CollectResearchDataUseCase {
   constructor(
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort,
+    @inject(ROOT_TYPES.HttpClient)
+    private readonly _http: HttpClientPort,
     @inject(PROJECT_TYPES.ProjectRepository)
     private readonly _projectRepository: ProjectRepositoryPort,
     @inject(RESEARCH_TYPES.ResearchDataRepository)
@@ -84,7 +107,7 @@ export class CollectResearchDataUseCase {
         ? Promise.resolve(ResultEx.success(null))
         : this._autocompleteDataProvider.fetchAutocompleteData(projectId, intent);
 
-      const searchQuery = this.buildSearchQuery(intent);
+      const searchQuery = await this.buildSearchQuery(intent);
 
       const [marketResult, competitorResult, autocompleteResult, academicPapersResult, hnSearchResult, redditSearchResult] =
         await Promise.all([
@@ -163,18 +186,50 @@ export class CollectResearchDataUseCase {
     };
   }
 
-  /** Build a short keyword query (3–5 meaningful words) for HN Algolia and Reddit search. */
-  private buildSearchQuery(intent: ResearchIntent): string | null {
-    const text = (intent.topic ?? intent.productDescription ?? '').trim();
+  /**
+   * Generate a short search query (3–5 words) via LLM for HN and Reddit search.
+   * Falls back to regex-based extraction if LLM fails.
+   */
+  private async buildSearchQuery(intent: ResearchIntent): Promise<string | null> {
+    const text = (intent.productDescription ?? intent.topic ?? '').trim();
     if (!text) return null;
 
+    const firstSentence = text.split(/[.!?\n]/)[0]?.trim() ?? text;
+    const input = firstSentence.slice(0, 400);
+
+    try {
+      const response = await this._http.post<{ response?: string }>(
+        AI_PROXY_URL,
+        {
+          prompt: `${SEARCH_QUERY_PROMPT}\n\nHypothesis: ${input}`,
+          model: 'llama3.3-70b',
+          max_tokens: 32,
+        },
+        {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)',
+        }
+      );
+
+      const q = (response?.response ?? '').trim().replace(/^["'`]|["'`]$/g, '').replace(/\.$/, '').trim();
+
+      if (q && q.split(/\s+/).length >= 2 && q.split(/\s+/).length <= 8) {
+        this._logger.info('collect-research-data.search-query-llm', { query: q });
+        return q;
+      }
+    } catch (err) {
+      this._logger.warn('collect-research-data.search-query-llm-failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    // Fallback: extract meaningful words via stop-word filter
     const STOP_WORDS = new Set([
       'a','an','the','and','or','but','if','we','our','their','its','is','are','was',
       'be','been','by','for','of','on','in','to','do','at','as','so','it','no','not',
       'with','that','this','from','then','than','when','who','how','all','any','will',
-      'can','may','has','have','had','offer','only','after','within','least','most',
+      'can','may','has','have','had','only','after','within','least','most',
       'first','more','also','just','about','into','out','up','what','which','they',
-      'them','him','her','he','she','my','your','give','get','each','other','both',
     ]);
 
     const words = text
