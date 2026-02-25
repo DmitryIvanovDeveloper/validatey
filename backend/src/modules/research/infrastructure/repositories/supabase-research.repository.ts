@@ -44,10 +44,10 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
       // Parse academic_papers with date conversion
       let academicPapers: AcademicPapersBlock | null = null;
       if (data.academic_papers) {
-        const raw = data.academic_papers as Record<string, unknown>;
+        const raw = data.academic_papers as unknown as AcademicPapersBlock & { fetchedAt: string | Date };
         academicPapers = {
-          ...(raw as AcademicPapersBlock),
-          fetchedAt: raw.fetchedAt ? new Date(raw.fetchedAt as string) : new Date(),
+          ...raw,
+          fetchedAt: raw.fetchedAt ? new Date(raw.fetchedAt) : new Date(),
         };
       }
 
