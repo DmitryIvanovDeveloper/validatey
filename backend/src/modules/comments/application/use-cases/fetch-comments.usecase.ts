@@ -226,35 +226,60 @@ export class FetchCommentsUseCase {
         : ResultEx.failure(new CommentFetchError('Failed to create comment source'));
     }
 
-    // For Hacker News
-    if (input.sourceType === 'hackernews') {
-      if (!input.hnFeedType) {
-        return ResultEx.failure(new CommentFetchError('Hacker News feed type is required'));
-      }
+    // For Hacker News (search by query via Algolia)
+    if (input.sourceType === 'hackernews' && input.hnSearchQuery?.trim()) {
+      const query = input.hnSearchQuery.trim();
+      const searchUrl = `search:${query}`;
+      const sourceValueObject = CommentSourceValueObject.createHackerNews(searchUrl);
 
-      const sourceValueObject = CommentSourceValueObject.createHackerNews(input.hnFeedType);
-
-      // Check if source already exists
       const existingSources = await this._sourceRepository.findByProjectId(input.projectId);
       if (!existingSources.isSuccess) {
         return ResultEx.failure(new CommentFetchError('Failed to check existing sources'));
       }
-
-      const existingSource = existingSources.data.find(s =>
-        s.hnFeedType === input.hnFeedType && s.sourceType === 'hackernews'
+      const existingSource = existingSources.data.find(
+        (s) => s.sourceType === 'hackernews' && s.hnUrl === searchUrl
       );
-
       if (existingSource) {
         return ResultEx.success({ id: existingSource.id, source: sourceValueObject });
       }
 
-      // Create new source
+      const createResult = await this._sourceRepository.create({
+        projectId: input.projectId,
+        sourceType: 'hackernews',
+        hnUrl: searchUrl,
+      });
+      return createResult.isSuccess
+        ? ResultEx.success({ id: createResult.data.id, source: sourceValueObject })
+        : ResultEx.failure(new CommentFetchError('Failed to create comment source'));
+    }
+
+    // For Hacker News (feed or specific URL)
+    if (input.sourceType === 'hackernews') {
+      if (!input.hnFeedType && !input.hnUrl) {
+        return ResultEx.failure(new CommentFetchError('Hacker News feed type or URL is required'));
+      }
+      const feedOrUrl = input.hnUrl ?? input.hnFeedType!;
+      const sourceValueObject = CommentSourceValueObject.createHackerNews(feedOrUrl);
+
+      const existingSources = await this._sourceRepository.findByProjectId(input.projectId);
+      if (!existingSources.isSuccess) {
+        return ResultEx.failure(new CommentFetchError('Failed to check existing sources'));
+      }
+      const existingSource = existingSources.data.find(
+        (s) =>
+          s.sourceType === 'hackernews' &&
+          (s.hnUrl === input.hnUrl || s.hnFeedType === input.hnFeedType)
+      );
+      if (existingSource) {
+        return ResultEx.success({ id: existingSource.id, source: sourceValueObject });
+      }
+
       const createResult = await this._sourceRepository.create({
         projectId: input.projectId,
         sourceType: 'hackernews',
         hnFeedType: input.hnFeedType,
+        hnUrl: input.hnUrl,
       });
-
       return createResult.isSuccess
         ? ResultEx.success({ id: createResult.data.id, source: sourceValueObject })
         : ResultEx.failure(new CommentFetchError('Failed to create comment source'));
@@ -308,12 +333,15 @@ export class FetchCommentsUseCase {
         },
       };
     } else {
-      console.log(`[PrepareFetchInput] Preparing HN input with itemId: ${source.hnItemId}`);
+      const isSearch = source.hnUrl?.startsWith('search:');
+      const searchQuery = isSearch ? source.hnUrl!.slice(7).trim() : undefined;
+      console.log(`[PrepareFetchInput] Preparing HN input; itemId=${source.hnItemId}, searchQuery=${searchQuery ?? 'none'}`);
       return {
         ...baseInput,
         sourceType: 'hackernews',
         feedType: source.hnFeedType,
         itemId: source.hnItemId,
+        searchQuery,
         limitStories: 50,
       };
     }

@@ -14,6 +14,7 @@ export const TYPES = {
   GenerateAssumptionAssessmentsUseCase: Symbol.for('GenerateAssumptionAssessmentsUseCase'),
   CheckResearchAvailabilityUseCase: Symbol.for('CheckResearchAvailabilityUseCase'),
   CollectResearchDataUseCase: Symbol.for('CollectResearchDataUseCase'),
+  HnSearchCommentsCollector: Symbol.for('HnSearchCommentsCollector'),
   ResearchAssistantUseCase: Symbol.for('ResearchAssistantUseCase'),
   ResearchController: Symbol.for('ResearchController'),
 } as const;

@@ -22,9 +22,12 @@ TASK:
 VALIDATION RULES:
 - User insights (responses, quotes, pain points, willingness to pay) are the PRIMARY source.
 - Comment pattern analysis should identify validation/failure patterns with concrete examples.
-- Only return "validated" when substantial direct user evidence supports the hypothesis.
+- The "Comment Metrics" block shows exact, factual counts — treat these as ground truth when deciding the verdict.
+  * If totalCount >= 50 and your own commentPatternAnalysis.validationScore >= 70 and sentimentOverview.overall > 0.1, this constitutes STRONG social validation evidence — you SHOULD return "validated" unless user insights strongly contradict.
+  * If totalCount < 10, treat comment data as insufficient and rely on other sources.
+- Only return "validated" when substantial direct evidence supports the hypothesis.
 - Only return "rejected" when evidence clearly contradicts or weakens the hypothesis.
-- "needs-more-data" = more user research or data collection needed before a decision.
+- "needs-more-data" = more research needed before a decision can be made.
 - Summary should cite specific evidence (e.g. comment themes, pain points, market signals) so that per-assumption assessment can refer to it.
 
 COMMENT PATTERN ANALYSIS:
@@ -103,6 +106,16 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
   ) {}
 
   async generateSynthesis(input: SynthesisInput): Promise<ResultEx<SynthesisReport, SynthesisGenerationError>> {
+    const commentMetricsSection = input.commentMetrics
+      ? [
+          `Comment Metrics (factual counts — use as ground truth for verdict):`,
+          `  Total comments analyzed: ${input.commentMetrics.totalCount}`,
+          ...Object.entries(input.commentMetrics.bySource).map(
+            ([src, cnt]) => `  ${src}: ${cnt}`
+          ),
+        ].join('\n')
+      : '';
+
     const userContent = [
       `Project: ${input.projectName}`,
       `Hypothesis: ${input.hypothesisSummary}`,
@@ -113,6 +126,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `Comments: ${input.commentsSummary}`,
       `Early signals: ${input.earlySignalsSummary}`,
       input.academicPapersSummary ? `Academic research:\n${input.academicPapersSummary}` : '',
+      commentMetricsSection,
     ].filter(Boolean).join('\n\n');
 
     const fullPrompt = `${SYSTEM_PROMPT}\n\n---\nContext:\n${userContent}`;

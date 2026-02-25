@@ -36,6 +36,8 @@ export interface FetchCommentsInputHackerNews {
   sourceType: 'hackernews';
   feedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
   itemId?: string; // For specific post fetching
+  /** When set, fetch comments via Algolia search (hn.algolia.com) instead of Firebase API */
+  searchQuery?: string;
   limitStories?: number;
   /** Only include comments/stories created on or after this date (UTC) */
   sinceDate?: Date;

@@ -85,20 +85,33 @@ export class CommentSourceValueObject {
     );
   }
 
-  /** Create Hacker News source */
+  /** Create Hacker News source (URL, feed type, or search query) */
   static createHackerNews(feedTypeOrUrl: HackerNewsFeedType | string): CommentSourceValueObject {
-    // Check if it's a URL
+    if (typeof feedTypeOrUrl === 'string' && feedTypeOrUrl.startsWith('search:')) {
+      const query = feedTypeOrUrl.slice(7).trim();
+      if (!query) throw new Error('HN search query is required');
+      return new CommentSourceValueObject(
+        'hackernews',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        `search:${query}`,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
     if (typeof feedTypeOrUrl === 'string' && feedTypeOrUrl.includes('news.ycombinator.com')) {
       return this.parseHackerNewsUrl(feedTypeOrUrl);
     }
-
-    // Assume it's a feed type
     return new CommentSourceValueObject(
       'hackernews',
       undefined,
       undefined,
       undefined,
       feedTypeOrUrl as HackerNewsFeedType,
+      undefined,
       undefined,
       undefined,
       undefined
@@ -260,6 +273,9 @@ export class CommentSourceValueObject {
     if (this.type === 'reddit') {
       return this.subredditName || this.redditUrl || 'Reddit';
     } else if (this.type === 'hackernews') {
+      if (this.hnUrl?.startsWith('search:')) {
+        return 'Hacker News Search';
+      }
       if (this.hnUrl && this.hnItemId) {
         return `Hacker News Post #${this.hnItemId}`;
       }

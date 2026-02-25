@@ -27,6 +27,7 @@ import type { Response } from '../../../responses/domain/entities/response.entit
 import { CommentEntity } from '../../../comments/domain/entities/comment.entity';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 import type { AcademicPapersBlock } from '../../domain/value-objects/academic-papers-block.vo';
+import type { CommentMetrics } from '../ports/synthesis-llm.port';
 
 @injectable()
 export class GenerateSynthesisUseCase {
@@ -105,6 +106,9 @@ export class GenerateSynthesisUseCase {
 
       const academicPapersSummary = this.summarizeAcademicPapers(stored?.academicPapers ?? null);
 
+      // Build hard factual comment metrics to ground LLM verdict decision
+      const commentMetrics = this.buildCommentMetrics(comments);
+
       const llmResult = await this._synthesisLlm.generateSynthesis({
         projectName: project.name,
         hypothesisSummary,
@@ -115,6 +119,7 @@ export class GenerateSynthesisUseCase {
         commentsSummary,
         earlySignalsSummary,
         academicPapersSummary: academicPapersSummary || undefined,
+        commentMetrics,
       });
 
       if (!llmResult.isSuccess) {
@@ -483,8 +488,8 @@ export class GenerateSynthesisUseCase {
   }
 
   /**
-   * Adjust verdict based on comment pattern validation score.
-   * Domain logic: if validation score is high and comments are sufficient, upgrade verdict.
+   * Protective guard only: downgrade `validated` when there is overwhelming negative signal.
+   * Auto-upgrade is intentionally removed — the LLM now receives hard metrics and decides itself.
    */
   private adjustVerdictByCommentPatterns(
     report: SynthesisReport,
@@ -494,38 +499,35 @@ export class GenerateSynthesisUseCase {
     if (!patternAnalysis) return report;
 
     const { validationScore } = patternAnalysis;
-    // Guard against legacy stored data that may not have these optional fields
     const sentimentOverall: number = patternAnalysis.sentimentOverview?.overall ?? 0;
-    const recentActivityScore: number = patternAnalysis.temporalTrends?.recentActivity ?? 0.5;
 
-    // Enhanced verdict adjustment logic
-    const strongEvidence = validationScore >= 70 && commentCount >= 50;
-    const positiveSentiment = sentimentOverall > 0.1;
-    const recentActivity = recentActivityScore > 0.6;
-
-    // Auto-upgrade verdict based on multiple factors
-    if (strongEvidence && positiveSentiment && recentActivity) {
-      if (report.verdict === 'needs-more-data') {
-        return {
-          ...report,
-          verdict: 'validated' as const,
-          summary: `${report.summary} Strong validation signals from ${commentCount} recent comments (validation score: ${validationScore}/100, sentiment: ${sentimentOverall > 0 ? 'positive' : 'neutral'}).`,
-        };
-      }
-    }
-
-    // Auto-downgrade if strong negative signals
+    // Protective downgrade: strong negative community signal overrides optimistic LLM verdict
     if (validationScore < 30 && sentimentOverall < -0.3 && commentCount >= 30) {
       if (report.verdict === 'validated') {
         return {
           ...report,
           verdict: 'needs-more-data' as const,
-          summary: `${report.summary} Mixed feedback with negative sentiment signals (validation score: ${validationScore}/100, sentiment: ${sentimentOverall.toFixed(1)}).`,
+          summary: `${report.summary} Warning: negative community signals detected (validation score: ${validationScore}/100, sentiment: ${sentimentOverall.toFixed(1)}).`,
         };
       }
     }
 
-    return report; // Без изменений
+    return report;
+  }
+
+  private buildCommentMetrics(comments: readonly CommentEntity[]): CommentMetrics {
+    const bySource: Record<string, number> = {};
+    for (const c of comments) {
+      const src = c.sourceId;
+      bySource[src] = (bySource[src] ?? 0) + 1;
+    }
+    // Replace UUID keys with ordinal labels for readability in LLM prompt
+    const labeled: Record<string, number> = {};
+    let idx = 1;
+    for (const [, cnt] of Object.entries(bySource)) {
+      labeled[`source_${idx++}`] = cnt;
+    }
+    return { totalCount: comments.length, bySource: labeled };
   }
 
   private summarizeMarket(
