@@ -13,15 +13,19 @@ import compression from 'compression';
 const app = express();
 
 // CORS: exact origin(s), never * (required when credentials: true from frontend).
-// On Vercel: set FRONTEND_ORIGIN or we allow https://validatey.vercel.app when VERCEL=1.
+// On Vercel: set FRONTEND_ORIGIN or we allow https://validatey.vercel.app + https://validatey.com.
 const envOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173,http://localhost:5174,http://localhost:5175').split(',').map((s) => s.trim());
-const vercelFallback = process.env.VERCEL ? ['https://validatey.vercel.app'] : [];
+const vercelFallback = process.env.VERCEL
+  ? ['https://validatey.vercel.app', 'https://validatey.com', 'https://www.validatey.com']
+  : [];
 const allowedOrigins = [...new Set([...envOrigins, ...vercelFallback])];
 app.use(
   cors({
     origin(origin, cb) {
       if (!origin) return cb(null, true);
       if (allowedOrigins.includes(origin)) return cb(null, origin);
+      // Allow any preview deployment on validatey.com subdomains
+      if (origin.endsWith('.validatey.com')) return cb(null, origin);
       return cb(null, false);
     },
     credentials: true,
