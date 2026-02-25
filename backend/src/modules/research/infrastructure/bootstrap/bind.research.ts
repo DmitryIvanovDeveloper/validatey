@@ -30,6 +30,7 @@ import { CompetitorDataProviderStubAdapter } from '../services/competitor-data-p
 import { StubAcademicPapersProviderAdapter } from '../services/stub-academic-papers-provider.adapter';
 import { SemanticScholarPapersProviderAdapter } from '../services/semantic-scholar-papers-provider.adapter';
 import { OpenAlexPapersProviderAdapter } from '../services/open-alex-papers-provider.adapter';
+import { CorePapersProviderAdapter } from '../services/core-papers-provider.adapter';
 import { LlmMarketDataProviderAdapter } from '../services/llm-market-data-provider.adapter';
 import { LlmCompetitorDataProviderAdapter } from '../services/llm-competitor-data-provider.adapter';
 import { LlmSearchPhrasesGeneratorAdapter } from '../services/llm-search-phrases-generator.adapter';
@@ -39,9 +40,11 @@ import { ResearchController } from '../../interface-adapters/controllers/researc
 
 // Enable real LLM providers for market and competitor research
 const useLlmResearchProviders = true;
-// Enable academic paper search (OpenAlex = free, no key required; Semantic Scholar = needs API key)
+// Academic paper search provider priority: Semantic Scholar > CORE > OpenAlex > Stub
+// SEMANTIC_SCHOLAR_ENABLED=true enables academic search. Provider selected by available API keys.
 const useAcademicPapers = process.env.SEMANTIC_SCHOLAR_ENABLED === 'true';
 const useSemanticScholar = useAcademicPapers && !!process.env.SEMANTIC_SCHOLAR_API_KEY?.trim();
+const useCoreApi = useAcademicPapers && !useSemanticScholar && !!process.env.CORE_API_KEY?.trim();
 
 export function bindResearch(container: Container): void {
   container.bind<ResearchDataRepositoryPort>(TYPES.ResearchDataRepository).to(SupabaseResearchRepository);
@@ -58,14 +61,17 @@ export function bindResearch(container: Container): void {
   container.bind<SearchPhrasesGeneratorPort>(TYPES.SearchPhrasesGenerator).to(LlmSearchPhrasesGeneratorAdapter);
   container.bind<AutocompleteApiPort>(TYPES.AutocompleteApi).to(GooglePlaceAutocompleteAdapter);
   container.bind<AutocompleteDataProviderPort>(TYPES.AutocompleteDataProvider).to(AutocompleteDataProviderAdapter);
+  // Priority: Semantic Scholar (best, needs key) > CORE (good, needs key) > OpenAlex (free) > Stub
   container
     .bind<AcademicPapersProviderPort>(TYPES.AcademicPapersProvider)
     .to(
       useSemanticScholar
         ? SemanticScholarPapersProviderAdapter
-        : useAcademicPapers
-          ? OpenAlexPapersProviderAdapter
-          : StubAcademicPapersProviderAdapter
+        : useCoreApi
+          ? CorePapersProviderAdapter
+          : useAcademicPapers
+            ? OpenAlexPapersProviderAdapter
+            : StubAcademicPapersProviderAdapter
     );
   container.bind<GetResearchCanvasUseCase>(TYPES.GetResearchCanvasUseCase).to(GetResearchCanvasUseCase);
   container.bind<GenerateSynthesisUseCase>(TYPES.GenerateSynthesisUseCase).to(GenerateSynthesisUseCase);

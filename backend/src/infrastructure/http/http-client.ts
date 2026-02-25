@@ -7,7 +7,7 @@ const DEFAULT_TIMEOUT_MS = 25_000;
 /** Extended timeout for LLM inference endpoints which are intentionally slow */
 const LLM_TIMEOUT_MS = 120_000;
 
-const LLM_URL_PATTERNS = ['cerebras', 'openai', 'anthropic', 'groq', 'llm', 'ai/prompt', 'api/prompt'];
+const LLM_URL_PATTERNS = ['cerebras', 'openai', 'anthropic', 'groq', 'llm', 'ai/prompt', 'api/prompt', 'core.ac.uk'];
 
 function resolveTimeout(url: string): number {
   const lower = url.toLowerCase();
