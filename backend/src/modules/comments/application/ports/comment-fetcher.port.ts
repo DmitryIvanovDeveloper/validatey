@@ -29,6 +29,8 @@ export interface FetchCommentsInputReddit {
   sinceDate?: Date;
   /** Pagination: Reddit fullname (e.g. t1_xxx) to fetch next page */
   after?: string;
+  /** When set, fetch comments via Reddit JSON search API instead of specific post/subreddit */
+  searchQuery?: string;
 }
 
 /** Hacker News-specific fetch input */

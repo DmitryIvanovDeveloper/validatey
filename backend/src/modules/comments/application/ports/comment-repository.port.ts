@@ -17,5 +17,6 @@ export interface CommentRepositoryPort {
   }): Promise<ResultEx<CommentEntity[], CommentError>>;
   countByProjectId(projectId: string): Promise<ResultEx<number, CommentError>>;
   countBySourceId(sourceId: string): Promise<ResultEx<number, CommentError>>;
+  deleteBySourceId(sourceId: string): Promise<ResultEx<number, CommentError>>;
   getCommentSourcesByProjectId(projectId: string): Promise<ResultEx<{ id: string; sourceType: 'reddit' | 'hackernews' }[], CommentError>>;
 }

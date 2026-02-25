@@ -11,6 +11,7 @@ import type { CompetitorDataProviderPort } from '../ports/competitor-data-provid
 import type { AutocompleteDataProviderPort } from '../ports/autocomplete-data-provider.port';
 import type { AcademicPapersProviderPort } from '../ports/academic-papers-provider.port';
 import type { HnSearchCommentsCollectorPort } from '../ports/hn-search-comments-collector.port';
+import type { RedditSearchCommentsCollectorPort } from '../ports/reddit-search-comments-collector.port';
 import { ResearchNotFoundError, ResearchCooldownError } from '../../domain/errors/research.error';
 import type { StoredResearchData } from '../../domain/value-objects/stored-research-data.vo';
 import { CheckResearchAvailabilityUseCase } from './check-research-availability.use-case';
@@ -40,7 +41,9 @@ export class CollectResearchDataUseCase {
     @inject(RESEARCH_TYPES.AcademicPapersProvider)
     private readonly _academicPapersProvider: AcademicPapersProviderPort,
     @inject(RESEARCH_TYPES.HnSearchCommentsCollector)
-    private readonly _hnSearchCollector: HnSearchCommentsCollectorPort
+    private readonly _hnSearchCollector: HnSearchCommentsCollectorPort,
+    @inject(RESEARCH_TYPES.RedditSearchCommentsCollector)
+    private readonly _redditSearchCollector: RedditSearchCommentsCollectorPort
   ) {}
 
   async execute(
@@ -81,16 +84,19 @@ export class CollectResearchDataUseCase {
         ? Promise.resolve(ResultEx.success(null))
         : this._autocompleteDataProvider.fetchAutocompleteData(projectId, intent);
 
-      const hnSearchQuery = this.buildHnSearchQuery(intent);
+      const searchQuery = this.buildSearchQuery(intent);
 
-      const [marketResult, competitorResult, autocompleteResult, academicPapersResult, hnSearchResult] =
+      const [marketResult, competitorResult, autocompleteResult, academicPapersResult, hnSearchResult, redditSearchResult] =
         await Promise.all([
           this._marketDataProvider.fetchMarketData(projectId, intent),
           this._competitorDataProvider.fetchCompetitorData(projectId, intent),
           autocompletePromise,
           this._academicPapersProvider.fetchAcademicPapers(projectId, intent),
-          hnSearchQuery
-            ? this._hnSearchCollector.collect(projectId, hnSearchQuery)
+          searchQuery
+            ? this._hnSearchCollector.collect(projectId, searchQuery)
+            : Promise.resolve(ResultEx.success({ count: 0 })),
+          searchQuery
+            ? this._redditSearchCollector.collect(projectId, searchQuery)
             : Promise.resolve(ResultEx.success({ count: 0 })),
         ]);
 
@@ -99,6 +105,7 @@ export class CollectResearchDataUseCase {
       const autocompleteInsights = autocompleteResult.isSuccess ? autocompleteResult.data : null;
       const academicPapers = academicPapersResult.isSuccess ? academicPapersResult.data : null;
       const hnSearchCount = hnSearchResult.isSuccess ? hnSearchResult.data.count : 0;
+      const redditSearchCount = redditSearchResult.isSuccess ? redditSearchResult.data.count : 0;
 
       const existingResult = await this._researchDataRepository.findByProjectId(projectId);
       const existing = existingResult.isSuccess ? existingResult.data : null;
@@ -131,6 +138,7 @@ export class CollectResearchDataUseCase {
         autocompleteDataCollected: autocompleteInsights != null,
         academicPapersCollected: academicPapers != null,
         hnSearchCommentsCollected: hnSearchCount > 0,
+        redditSearchCommentsCollected: redditSearchCount > 0,
       });
     } catch (error) {
       this._logger.error('collect-research-data.exception', { projectId, error });
@@ -155,17 +163,27 @@ export class CollectResearchDataUseCase {
     };
   }
 
-  /** Build a short search query for HN Algolia (3–5 keywords, no punctuation). */
-  private buildHnSearchQuery(intent: ResearchIntent): string | null {
+  /** Build a short keyword query (3–5 meaningful words) for HN Algolia and Reddit search. */
+  private buildSearchQuery(intent: ResearchIntent): string | null {
     const text = (intent.topic ?? intent.productDescription ?? '').trim();
     if (!text) return null;
+
+    const STOP_WORDS = new Set([
+      'a','an','the','and','or','but','if','we','our','their','its','is','are','was',
+      'be','been','by','for','of','on','in','to','do','at','as','so','it','no','not',
+      'with','that','this','from','then','than','when','who','how','all','any','will',
+      'can','may','has','have','had','offer','only','after','within','least','most',
+      'first','more','also','just','about','into','out','up','what','which','they',
+      'them','him','her','he','she','my','your','give','get','each','other','both',
+    ]);
+
     const words = text
-      .replace(/[.!?,;:()\-–—]/g, ' ')
+      .replace(/[.!?,;:()\-–—"'`]/g, ' ')
       .split(/\s+/)
-      .filter((w) => w.length > 1)
-      .slice(0, 5)
-      .join(' ')
-      .trim();
-    return words.length >= 3 ? words : null;
+      .map((w) => w.toLowerCase())
+      .filter((w) => w.length >= 4 && !STOP_WORDS.has(w))
+      .slice(0, 5);
+
+    return words.length >= 2 ? words.join(' ') : null;
   }
 }

@@ -31,6 +31,7 @@ export interface CreateCommentSourceInput {
 }
 
 export interface UpdateCommentSourceInput {
+  redditUrl?: string;
   subredditName?: string;
   postId?: string;
   hnFeedType?: string;

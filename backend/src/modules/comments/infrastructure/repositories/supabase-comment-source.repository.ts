@@ -286,6 +286,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         updated_at: new Date().toISOString(),
       };
 
+      if (input.redditUrl !== undefined) updateData.reddit_url = input.redditUrl;
       if (input.subredditName !== undefined) updateData.subreddit_name = input.subredditName;
       if (input.postId !== undefined) updateData.post_id = input.postId;
       if (input.hnFeedType !== undefined) updateData.hn_feed_type = input.hnFeedType;

@@ -15,6 +15,7 @@ export const TYPES = {
   CheckResearchAvailabilityUseCase: Symbol.for('CheckResearchAvailabilityUseCase'),
   CollectResearchDataUseCase: Symbol.for('CollectResearchDataUseCase'),
   HnSearchCommentsCollector: Symbol.for('HnSearchCommentsCollector'),
+  RedditSearchCommentsCollector: Symbol.for('RedditSearchCommentsCollector'),
   ResearchAssistantUseCase: Symbol.for('ResearchAssistantUseCase'),
   ResearchController: Symbol.for('ResearchController'),
 } as const;

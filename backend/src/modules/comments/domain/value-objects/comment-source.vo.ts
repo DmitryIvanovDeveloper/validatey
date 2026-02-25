@@ -71,6 +71,22 @@ export class CommentSourceValueObject {
     );
   }
 
+  /** Create Reddit search source (auto-search by query via Reddit JSON API) */
+  static createRedditSearch(query: string): CommentSourceValueObject {
+    if (!query?.trim()) throw new Error('Reddit search query is required');
+    return new CommentSourceValueObject(
+      'reddit',
+      `search:${query.trim()}`, // stored in redditUrl field
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined
+    );
+  }
+
   /** Create Reddit source with explicit postId and subredditName */
   static createRedditWithIds(redditUrl: string, postId: string, subredditName: string): CommentSourceValueObject {
     return new CommentSourceValueObject(
@@ -271,6 +287,7 @@ export class CommentSourceValueObject {
   /** Get display name for the source */
   getDisplayName(): string {
     if (this.type === 'reddit') {
+      if (this.redditUrl?.startsWith('search:')) return 'Reddit Search';
       return this.subredditName || this.redditUrl || 'Reddit';
     } else if (this.type === 'hackernews') {
       if (this.hnUrl?.startsWith('search:')) {

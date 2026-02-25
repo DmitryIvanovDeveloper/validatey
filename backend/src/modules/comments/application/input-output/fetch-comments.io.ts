@@ -5,6 +5,8 @@ export interface FetchCommentsUseCaseInput {
   projectId: string;
   sourceType: 'reddit' | 'hackernews';
   redditUrls?: string[];
+  /** When set with sourceType reddit, fetches comments via Reddit JSON search API (no URL needed). */
+  redditSearchQuery?: string;
   hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
   /** When set with sourceType hackernews, fetches comments via Algolia search (no feed/URL needed). */
   hnSearchQuery?: string;

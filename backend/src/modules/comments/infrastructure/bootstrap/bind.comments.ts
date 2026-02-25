@@ -20,6 +20,7 @@ import { SupabaseFetchJobRepository } from '../repositories/supabase-fetch-job.r
 import { InMemoryFetchStatusReadModel } from '../repositories/in-memory-fetch-status-read-model';
 import { CommentFetcherRouter } from '../fetchers/comment-fetcher.router';
 import { RedditFetcher } from '../fetchers/reddit-fetcher';
+import { RedditSearchFetcher } from '../fetchers/reddit-search-fetcher';
 import { HackerNewsFetcher } from '../fetchers/hacker-news-fetcher';
 import { HackerNewsAlgoliaFetcher } from '../fetchers/hacker-news-algolia-fetcher';
 import { LinkedInFetcher } from '../fetchers/linkedin-fetcher';
@@ -57,6 +58,7 @@ export function bindComments(container: Container): void {
   // Fetchers
   container.bind(COMMENT_TYPES.CommentFetcher).to(CommentFetcherRouter);
   container.bind(COMMENT_TYPES.RedditFetcher).to(RedditFetcher);
+  container.bind(COMMENT_TYPES.RedditSearchFetcher).to(RedditSearchFetcher);
   container.bind(COMMENT_TYPES.HackerNewsFetcher).to(HackerNewsFetcher);
   container.bind(COMMENT_TYPES.HackerNewsAlgoliaFetcher).to(HackerNewsAlgoliaFetcher);
   container.bind(COMMENT_TYPES.LinkedInFetcher).to(LinkedInFetcher);

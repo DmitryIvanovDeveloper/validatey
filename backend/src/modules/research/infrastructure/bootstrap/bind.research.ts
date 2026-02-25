@@ -10,6 +10,7 @@ import type { CompetitorDataProviderPort } from '../../application/ports/competi
 import type { AutocompleteDataProviderPort } from '../../application/ports/autocomplete-data-provider.port';
 import type { AcademicPapersProviderPort } from '../../application/ports/academic-papers-provider.port';
 import type { HnSearchCommentsCollectorPort } from '../../application/ports/hn-search-comments-collector.port';
+import type { RedditSearchCommentsCollectorPort } from '../../application/ports/reddit-search-comments-collector.port';
 import type { SearchPhrasesGeneratorPort } from '../../application/ports/search-phrases-generator.port';
 import type { AutocompleteApiPort } from '../../application/ports/autocomplete-api.port';
 import type { ResearchAssistantLlmPort } from '../../application/ports/research-assistant-llm.port';
@@ -39,6 +40,7 @@ import { GooglePlaceAutocompleteAdapter } from '../services/google-place-autocom
 import { AutocompleteDataProviderAdapter } from '../services/autocomplete-data-provider.adapter';
 import { ResearchController } from '../../interface-adapters/controllers/research.controller';
 import { HnSearchCommentsCollectorAdapter } from '../../../comments/infrastructure/adapters/hn-search-comments-collector.adapter';
+import { RedditSearchCommentsCollectorAdapter } from '../../../comments/infrastructure/adapters/reddit-search-comments-collector.adapter';
 
 // Enable real LLM providers for market and competitor research
 const useLlmResearchProviders = true;
@@ -80,6 +82,9 @@ export function bindResearch(container: Container): void {
   container
     .bind<HnSearchCommentsCollectorPort>(TYPES.HnSearchCommentsCollector)
     .to(HnSearchCommentsCollectorAdapter);
+  container
+    .bind<RedditSearchCommentsCollectorPort>(TYPES.RedditSearchCommentsCollector)
+    .to(RedditSearchCommentsCollectorAdapter);
   container.bind<GetResearchCanvasUseCase>(TYPES.GetResearchCanvasUseCase).to(GetResearchCanvasUseCase);
   container.bind<GenerateSynthesisUseCase>(TYPES.GenerateSynthesisUseCase).to(GenerateSynthesisUseCase);
   container.bind<GenerateAssumptionAssessmentsUseCase>(TYPES.GenerateAssumptionAssessmentsUseCase).to(GenerateAssumptionAssessmentsUseCase);

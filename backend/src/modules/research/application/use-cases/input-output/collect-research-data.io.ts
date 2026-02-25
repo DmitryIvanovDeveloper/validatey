@@ -24,4 +24,5 @@ export type CollectResearchDataResponse = {
   autocompleteDataCollected: boolean;
   academicPapersCollected: boolean;
   hnSearchCommentsCollected: boolean;
+  redditSearchCommentsCollected: boolean;
 };

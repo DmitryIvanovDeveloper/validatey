@@ -182,7 +182,43 @@ export class FetchCommentsUseCase {
       return ResultEx.success({ id: dbSource.id, source: sourceValueObject });
     }
 
-    // For Reddit
+    // For Reddit (auto-search by query via Reddit JSON search API)
+    if (input.sourceType === 'reddit' && input.redditSearchQuery?.trim()) {
+      const query = input.redditSearchQuery.trim();
+      const searchUrl = `search:${query}`;
+      const sourceValueObject = CommentSourceValueObject.createRedditSearch(query);
+
+      const existingSources = await this._sourceRepository.findByProjectId(input.projectId);
+      if (!existingSources.isSuccess) {
+        return ResultEx.failure(new CommentFetchError('Failed to check existing sources'));
+      }
+
+      // Find ANY existing Reddit search source (redditUrl starts with "search:")
+      const existingSearchSource = existingSources.data.find(
+        (s) => s.sourceType === 'reddit' && s.redditUrl?.startsWith('search:')
+      );
+
+      if (existingSearchSource) {
+        if (existingSearchSource.redditUrl !== searchUrl) {
+          // Query changed — delete stale comments and update the source URL
+          console.log(`[EnsureCommentSource] Reddit search query changed, clearing stale comments for source ${existingSearchSource.id}`);
+          await this._commentRepository.deleteBySourceId(existingSearchSource.id);
+          await this._sourceRepository.update(existingSearchSource.id, { redditUrl: searchUrl });
+        }
+        return ResultEx.success({ id: existingSearchSource.id, source: sourceValueObject });
+      }
+
+      const createResult = await this._sourceRepository.create({
+        projectId: input.projectId,
+        sourceType: 'reddit',
+        redditUrl: searchUrl,
+      });
+      return createResult.isSuccess
+        ? ResultEx.success({ id: createResult.data.id, source: sourceValueObject })
+        : ResultEx.failure(new CommentFetchError('Failed to create Reddit search source'));
+    }
+
+    // For Reddit (specific post or subreddit URL)
     if (input.sourceType === 'reddit') {
       if (!input.redditUrls || input.redditUrls.length === 0) {
         return ResultEx.failure(new CommentFetchError('Reddit URL is required'));
@@ -236,11 +272,20 @@ export class FetchCommentsUseCase {
       if (!existingSources.isSuccess) {
         return ResultEx.failure(new CommentFetchError('Failed to check existing sources'));
       }
-      const existingSource = existingSources.data.find(
-        (s) => s.sourceType === 'hackernews' && s.hnUrl === searchUrl
+
+      // Find ANY existing HN search source (hnUrl starts with "search:")
+      const existingSearchSource = existingSources.data.find(
+        (s) => s.sourceType === 'hackernews' && s.hnUrl?.startsWith('search:')
       );
-      if (existingSource) {
-        return ResultEx.success({ id: existingSource.id, source: sourceValueObject });
+
+      if (existingSearchSource) {
+        if (existingSearchSource.hnUrl !== searchUrl) {
+          // Query changed — delete stale comments and update the source URL
+          console.log(`[EnsureCommentSource] HN search query changed, clearing stale comments for source ${existingSearchSource.id}`);
+          await this._commentRepository.deleteBySourceId(existingSearchSource.id);
+          await this._sourceRepository.update(existingSearchSource.id, { hnUrl: searchUrl });
+        }
+        return ResultEx.success({ id: existingSearchSource.id, source: sourceValueObject });
       }
 
       const createResult = await this._sourceRepository.create({
@@ -302,6 +347,18 @@ export class FetchCommentsUseCase {
     };
 
     if (input.sourceType === 'reddit') {
+      // Reddit Search source: redditUrl stores "search:<query>"
+      if (source.redditUrl?.startsWith('search:')) {
+        const searchQuery = source.redditUrl.slice(7).trim();
+        console.log(`[PrepareFetchInput] Reddit Search input: query="${searchQuery}"`);
+        return {
+          ...baseInput,
+          sourceType: 'reddit',
+          subredditNames: [],
+          searchQuery,
+        };
+      }
+
       // If postId/subredditName are not in source, try to extract from URL
       let postId = source.postId;
       let subredditName = source.subredditName;

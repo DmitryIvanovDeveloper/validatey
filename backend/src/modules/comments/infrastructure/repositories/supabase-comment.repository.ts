@@ -84,7 +84,7 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
 
       const { error } = await supabase
         .from('comments')
-        .upsert(commentsData);
+        .upsert(commentsData, { onConflict: 'source_id,external_id', ignoreDuplicates: true });
 
       if (error) {
         this._logger.error('comment.bulkSave.error', { error, count: comments.length });
@@ -375,6 +375,27 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
       return ResultEx.success(count || 0);
     } catch (error) {
       this._logger.error('comment.countByProjectId.exception', { error, projectId });
+      return ResultEx.failure(new CommentError(
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      ));
+    }
+  }
+
+  async deleteBySourceId(sourceId: string): Promise<ResultEx<number, CommentError>> {
+    try {
+      const supabase = getSupabaseClient();
+      const { count, error } = await supabase
+        .from('comments')
+        .delete({ count: 'exact' })
+        .eq('source_id', sourceId);
+      if (error) {
+        this._logger.error('comment.deleteBySourceId.error', { error, sourceId });
+        return ResultEx.failure(new CommentError(`Failed to delete comments: ${error.message}`));
+      }
+      this._logger.info('comment.deleteBySourceId.success', { sourceId, deleted: count ?? 0 });
+      return ResultEx.success(count ?? 0);
+    } catch (error) {
+      this._logger.error('comment.deleteBySourceId.exception', { error, sourceId });
       return ResultEx.failure(new CommentError(
         error instanceof Error ? error.message : 'Unknown error occurred'
       ));
