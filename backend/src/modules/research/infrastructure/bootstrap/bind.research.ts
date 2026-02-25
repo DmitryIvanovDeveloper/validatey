@@ -40,11 +40,13 @@ import { ResearchController } from '../../interface-adapters/controllers/researc
 
 // Enable real LLM providers for market and competitor research
 const useLlmResearchProviders = true;
-// Academic paper search provider priority: Semantic Scholar > CORE > OpenAlex > Stub
-// SEMANTIC_SCHOLAR_ENABLED=true enables academic search. Provider selected by available API keys.
+// Academic paper search provider priority: Semantic Scholar > OpenAlex (free) > CORE > Stub
+// SEMANTIC_SCHOLAR_ENABLED=true activates academic search.
+// OpenAlex needs no key and has better relevance/citation data than CORE.
+// CORE is kept as a fallback only if OpenAlex is explicitly disabled.
 const useAcademicPapers = process.env.SEMANTIC_SCHOLAR_ENABLED === 'true';
 const useSemanticScholar = useAcademicPapers && !!process.env.SEMANTIC_SCHOLAR_API_KEY?.trim();
-const useCoreApi = useAcademicPapers && !useSemanticScholar && !!process.env.CORE_API_KEY?.trim();
+const useCoreOnly = useAcademicPapers && !useSemanticScholar && process.env.ACADEMIC_PROVIDER === 'core';
 
 export function bindResearch(container: Container): void {
   container.bind<ResearchDataRepositoryPort>(TYPES.ResearchDataRepository).to(SupabaseResearchRepository);
@@ -61,13 +63,13 @@ export function bindResearch(container: Container): void {
   container.bind<SearchPhrasesGeneratorPort>(TYPES.SearchPhrasesGenerator).to(LlmSearchPhrasesGeneratorAdapter);
   container.bind<AutocompleteApiPort>(TYPES.AutocompleteApi).to(GooglePlaceAutocompleteAdapter);
   container.bind<AutocompleteDataProviderPort>(TYPES.AutocompleteDataProvider).to(AutocompleteDataProviderAdapter);
-  // Priority: Semantic Scholar (best, needs key) > CORE (good, needs key) > OpenAlex (free) > Stub
+  // Priority: Semantic Scholar (best, needs key) > OpenAlex (free, best quality) > CORE (fallback) > Stub
   container
     .bind<AcademicPapersProviderPort>(TYPES.AcademicPapersProvider)
     .to(
       useSemanticScholar
         ? SemanticScholarPapersProviderAdapter
-        : useCoreApi
+        : useCoreOnly
           ? CorePapersProviderAdapter
           : useAcademicPapers
             ? OpenAlexPapersProviderAdapter
