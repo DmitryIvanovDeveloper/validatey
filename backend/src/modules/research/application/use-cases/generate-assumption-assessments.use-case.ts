@@ -14,6 +14,7 @@ import type { CommentRepositoryPort } from '../../../comments/application/ports/
 import type { AssumptionAssessment } from '../../domain/value-objects/assumption-assessment.vo';
 import { CommentEntity } from '../../../comments/domain/entities/comment.entity';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
+import type { AcademicPapersBlock } from '../../domain/value-objects/academic-papers-block.vo';
 
 export interface GenerateAssumptionAssessmentsRequest {
   projectId: string;
@@ -100,6 +101,8 @@ export class GenerateAssumptionAssessmentsUseCase {
       const fullHypothesis = project.hypothesis?.description ?? project.name ?? '';
       const hypothesisSummary = fullHypothesis.slice(0, 600) + (fullHypothesis.length > 600 ? '...' : '');
 
+      const academicPapersSummary = this.summarizeAcademicPapers(stored.academicPapers ?? null) || undefined;
+
       const context = {
         synthesisSummary: stored.synthesisReport.summary,
         verdict: String(stored.synthesisReport.verdict ?? ''),
@@ -109,6 +112,7 @@ export class GenerateAssumptionAssessmentsUseCase {
         commentPatternSummary,
         dataSourcesSummary,
         earlySignalsSummary,
+        academicPapersSummary,
       };
 
       // Batch assumptions: max 5 per LLM call to avoid token limit and JSON truncation issues
@@ -307,5 +311,13 @@ export class GenerateAssumptionAssessmentsUseCase {
     }
 
     return parts.length > 0 ? parts.join('. ') : undefined;
+  }
+
+  private summarizeAcademicPapers(block: AcademicPapersBlock | null): string {
+    if (!block || block.papers.length === 0) return '';
+    const lines = block.papers.map(
+      (p) => `"${p.title}" (${p.year ?? 'n/a'}, cited ${p.citationCount}x): ${p.abstractSnippet}`
+    );
+    return `Relevant academic research:\n${lines.join('\n')}`;
   }
 }

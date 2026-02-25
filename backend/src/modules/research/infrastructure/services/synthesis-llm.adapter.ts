@@ -112,7 +112,8 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `User insights: ${input.userInsightsSummary}`,
       `Comments: ${input.commentsSummary}`,
       `Early signals: ${input.earlySignalsSummary}`,
-    ].filter(Boolean).join('\n\n'); // Filter out empty strings
+      input.academicPapersSummary ? `Academic research:\n${input.academicPapersSummary}` : '',
+    ].filter(Boolean).join('\n\n');
 
     const fullPrompt = `${SYSTEM_PROMPT}\n\n---\nContext:\n${userContent}`;
 

@@ -6,3 +6,4 @@ export type { SynthesisReport } from './synthesis-report.vo';
 export type { ResearchCanvas, EarlySignal } from './research-canvas.vo';
 export type { StoredResearchData } from './stored-research-data.vo';
 export type { AssumptionAssessment, AssumptionStatus } from './assumption-assessment.vo';
+export type { AcademicPaper, AcademicPapersBlock } from './academic-papers-block.vo';

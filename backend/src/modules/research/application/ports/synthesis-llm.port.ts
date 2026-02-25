@@ -10,8 +10,10 @@ export interface SynthesisInput {
   autocompleteSummary: string;
   userInsightsSummary: string;
   commentsSummary: string;
-  commentPatternSummary?: string; // Optional: Comment pattern analysis summary
+  commentPatternSummary?: string;
   earlySignalsSummary: string;
+  /** Summaries of relevant academic research papers (optional; may be absent on first run). */
+  academicPapersSummary?: string;
 }
 
 export interface SynthesisLlmPort {

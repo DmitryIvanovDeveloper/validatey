@@ -8,6 +8,7 @@ import type { AssumptionAssessmentLlmPort } from '../../application/ports/assump
 import type { MarketDataProviderPort } from '../../application/ports/market-data-provider.port';
 import type { CompetitorDataProviderPort } from '../../application/ports/competitor-data-provider.port';
 import type { AutocompleteDataProviderPort } from '../../application/ports/autocomplete-data-provider.port';
+import type { AcademicPapersProviderPort } from '../../application/ports/academic-papers-provider.port';
 import type { SearchPhrasesGeneratorPort } from '../../application/ports/search-phrases-generator.port';
 import type { AutocompleteApiPort } from '../../application/ports/autocomplete-api.port';
 import type { ResearchAssistantLlmPort } from '../../application/ports/research-assistant-llm.port';
@@ -26,6 +27,9 @@ import { AssumptionAssessmentLlmAdapter } from '../services/assumption-assessmen
 import { ResearchAssistantLlmAdapter } from '../services/research-assistant-llm.adapter';
 import { MarketDataProviderStubAdapter } from '../services/market-data-provider-stub.adapter';
 import { CompetitorDataProviderStubAdapter } from '../services/competitor-data-provider-stub.adapter';
+import { StubAcademicPapersProviderAdapter } from '../services/stub-academic-papers-provider.adapter';
+import { SemanticScholarPapersProviderAdapter } from '../services/semantic-scholar-papers-provider.adapter';
+import { OpenAlexPapersProviderAdapter } from '../services/open-alex-papers-provider.adapter';
 import { LlmMarketDataProviderAdapter } from '../services/llm-market-data-provider.adapter';
 import { LlmCompetitorDataProviderAdapter } from '../services/llm-competitor-data-provider.adapter';
 import { LlmSearchPhrasesGeneratorAdapter } from '../services/llm-search-phrases-generator.adapter';
@@ -35,6 +39,9 @@ import { ResearchController } from '../../interface-adapters/controllers/researc
 
 // Enable real LLM providers for market and competitor research
 const useLlmResearchProviders = true;
+// Enable academic paper search (OpenAlex = free, no key required; Semantic Scholar = needs API key)
+const useAcademicPapers = process.env.SEMANTIC_SCHOLAR_ENABLED === 'true';
+const useSemanticScholar = useAcademicPapers && !!process.env.SEMANTIC_SCHOLAR_API_KEY?.trim();
 
 export function bindResearch(container: Container): void {
   container.bind<ResearchDataRepositoryPort>(TYPES.ResearchDataRepository).to(SupabaseResearchRepository);
@@ -51,6 +58,15 @@ export function bindResearch(container: Container): void {
   container.bind<SearchPhrasesGeneratorPort>(TYPES.SearchPhrasesGenerator).to(LlmSearchPhrasesGeneratorAdapter);
   container.bind<AutocompleteApiPort>(TYPES.AutocompleteApi).to(GooglePlaceAutocompleteAdapter);
   container.bind<AutocompleteDataProviderPort>(TYPES.AutocompleteDataProvider).to(AutocompleteDataProviderAdapter);
+  container
+    .bind<AcademicPapersProviderPort>(TYPES.AcademicPapersProvider)
+    .to(
+      useSemanticScholar
+        ? SemanticScholarPapersProviderAdapter
+        : useAcademicPapers
+          ? OpenAlexPapersProviderAdapter
+          : StubAcademicPapersProviderAdapter
+    );
   container.bind<GetResearchCanvasUseCase>(TYPES.GetResearchCanvasUseCase).to(GetResearchCanvasUseCase);
   container.bind<GenerateSynthesisUseCase>(TYPES.GenerateSynthesisUseCase).to(GenerateSynthesisUseCase);
   container.bind<GenerateAssumptionAssessmentsUseCase>(TYPES.GenerateAssumptionAssessmentsUseCase).to(GenerateAssumptionAssessmentsUseCase);

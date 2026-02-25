@@ -92,6 +92,7 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
       `Comments: ${context.commentsSummary}`,
       context.commentPatternSummary ? `Comment patterns: ${context.commentPatternSummary}` : '',
       `Early signals: ${context.earlySignalsSummary}`,
+      context.academicPapersSummary ? `Academic research:\n${context.academicPapersSummary}` : '',
     ].filter(Boolean).join('\n');
 
     const fullPrompt = `${SYSTEM_PROMPT}\n\n${OUTPUT_SCHEMA}\n\n---\n${userContent}`;

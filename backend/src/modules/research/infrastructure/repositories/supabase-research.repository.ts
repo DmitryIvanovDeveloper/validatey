@@ -4,7 +4,7 @@ import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 import type { ResearchDataRepositoryPort } from '../../application/ports/research-data-repository.port';
-import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights, UserInsightsBlock, AssumptionAssessment } from '../../domain/value-objects';
+import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights, UserInsightsBlock, AssumptionAssessment, AcademicPapersBlock } from '../../domain/value-objects';
 import type { ResearchStatus } from '../../domain/value-objects/research-status.vo';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 
@@ -41,6 +41,16 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
         } as CommentPatternAnalysis;
       }
 
+      // Parse academic_papers with date conversion
+      let academicPapers: AcademicPapersBlock | null = null;
+      if (data.academic_papers) {
+        const raw = data.academic_papers as Record<string, unknown>;
+        academicPapers = {
+          ...(raw as AcademicPapersBlock),
+          fetchedAt: raw.fetchedAt ? new Date(raw.fetchedAt as string) : new Date(),
+        };
+      }
+
       const stored: StoredResearchData = {
         projectId: data.project_id,
         marketData: (data.market_data as MarketDataBlock) ?? null,
@@ -50,6 +60,7 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
         synthesisReport: (data.synthesis_report as SynthesisReport) ?? null,
         assumptionAssessments: (data.assumption_assessments as AssumptionAssessment[] | null) ?? null,
         commentPatternAnalysis,
+        academicPapers,
         lastResearchRunAt: data.last_research_run_at ? new Date(data.last_research_run_at) : null,
         updatedAt: new Date(data.updated_at),
         researchStatus: (data.research_status as ResearchStatus) ?? 'idle',
@@ -73,6 +84,13 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
           }
         : null;
 
+      const academicPapersJson = data.academicPapers
+        ? {
+            ...data.academicPapers,
+            fetchedAt: data.academicPapers.fetchedAt.toISOString(),
+          }
+        : null;
+
       const nowIso = new Date().toISOString();
       const { error } = await supabase.from('research_data').upsert(
         {
@@ -84,6 +102,7 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
           synthesis_report: data.synthesisReport,
           assumption_assessments: data.assumptionAssessments ?? null,
           comment_pattern_analysis: commentPatternAnalysisJson,
+          academic_papers: academicPapersJson,
           last_research_run_at: data.lastResearchRunAt?.toISOString(),
           updated_at: nowIso,
           research_status: data.researchStatus ?? 'idle',

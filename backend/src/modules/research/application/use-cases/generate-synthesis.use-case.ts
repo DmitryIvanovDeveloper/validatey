@@ -26,6 +26,7 @@ import type {
 import type { Response } from '../../../responses/domain/entities/response.entity';
 import { CommentEntity } from '../../../comments/domain/entities/comment.entity';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
+import type { AcademicPapersBlock } from '../../domain/value-objects/academic-papers-block.vo';
 
 @injectable()
 export class GenerateSynthesisUseCase {
@@ -102,6 +103,8 @@ export class GenerateSynthesisUseCase {
         ? signals.map((s) => `[${s.type}] ${s.title}: ${s.description}`).join('. ')
         : 'No early signals yet';
 
+      const academicPapersSummary = this.summarizeAcademicPapers(stored?.academicPapers ?? null);
+
       const llmResult = await this._synthesisLlm.generateSynthesis({
         projectName: project.name,
         hypothesisSummary,
@@ -109,8 +112,9 @@ export class GenerateSynthesisUseCase {
         competitorSummary,
         autocompleteSummary,
         userInsightsSummary,
-        commentsSummary, // Comments will be analyzed by synthesis LLM
+        commentsSummary,
         earlySignalsSummary,
+        academicPapersSummary: academicPapersSummary || undefined,
       });
 
       if (!llmResult.isSuccess) {
@@ -147,6 +151,7 @@ export class GenerateSynthesisUseCase {
         synthesisReport: adjustedReport, // Use adjusted report
         assumptionAssessments: stored?.assumptionAssessments ?? null,
         commentPatternAnalysis: synthesisPatternAnalysis, // Use analysis from synthesis
+        academicPapers: stored?.academicPapers ?? null,
         lastResearchRunAt: stored?.lastResearchRunAt ?? null,
         updatedAt: now,
         researchStatus: 'idle',
@@ -555,6 +560,14 @@ export class GenerateSynthesisUseCase {
       competitorData.rating,
     ].filter(Boolean);
     return parts.length > 0 ? parts.join('. ') : 'No competitor data';
+  }
+
+  private summarizeAcademicPapers(block: AcademicPapersBlock | null): string {
+    if (!block || block.papers.length === 0) return '';
+    const lines = block.papers.map(
+      (p) => `"${p.title}" (${p.year ?? 'n/a'}, ${p.citationCount} citations): ${p.abstractSnippet}`
+    );
+    return `Academic research (query: "${block.searchQuery}"):\n${lines.join('\n')}`;
   }
 
 }

@@ -19,6 +19,8 @@ export interface AssumptionAssessmentContext {
 	 *  Helps LLM reason about commenter identity without hardcoding platform names. */
 	readonly dataSourcesSummary?: string;
 	readonly earlySignalsSummary: string;
+	/** Summaries of relevant academic research papers that may support or contradict assumptions. */
+	readonly academicPapersSummary?: string;
 }
 
 export interface AssumptionAssessmentLlmPort {

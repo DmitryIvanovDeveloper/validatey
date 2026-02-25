@@ -5,6 +5,7 @@ export const TYPES = {
   SearchPhrasesGenerator: Symbol.for('SearchPhrasesGenerator'),
   AutocompleteApi: Symbol.for('AutocompleteApi'),
   AutocompleteDataProvider: Symbol.for('AutocompleteDataProvider'),
+  AcademicPapersProvider: Symbol.for('AcademicPapersProvider'),
   ResearchAssistantLlm: Symbol.for('ResearchAssistantLlm'),
   SynthesisLlm: Symbol.for('SynthesisLlm'),
   AssumptionAssessmentLlm: Symbol.for('AssumptionAssessmentLlm'),

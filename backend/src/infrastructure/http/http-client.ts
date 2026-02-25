@@ -22,6 +22,10 @@ export class HttpClient implements HttpClientPort {
       headers,
       signal: AbortSignal.timeout(resolveTimeout(url)),
     });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
     return response.json() as Promise<T>;
   }
 
