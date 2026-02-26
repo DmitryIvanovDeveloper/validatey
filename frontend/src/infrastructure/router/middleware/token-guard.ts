@@ -2,7 +2,7 @@ import { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 import { TokenValidator } from '../../../shared/validation/token-validator';
 import { container } from '../../bootstrap/container';
 import { TYPES as AUTH_TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
-import type { AuthServicePort } from '../../../modules/auth/application/ports/auth-service.port';
+import type { AuthServicePort, AuthSession } from '../../../modules/auth/application/ports/auth-service.port';
 import { sessionManager } from '../../../shared/services/session-manager';
 
 /** Routes that are allowed without authentication (no redirect to login). */
@@ -42,7 +42,7 @@ export async function tokenGuard(
     return;
   }
 
-  let session: Awaited<ReturnType<AuthServicePort['getSession']>> = null;
+  let session: AuthSession | null = null;
 
   try {
     const authService = container.get<AuthServicePort>(AUTH_TYPES.AuthService);
@@ -51,8 +51,8 @@ export async function tokenGuard(
     // First, check sessionManager state (fast, no network call)
     if (sessionManager.isSessionReady) {
       console.log('🔐 SessionManager ready, checking local auth state');
-      if (sessionManager.isAuthenticated) {
-        session = { user: sessionManager.currentUser!, role: sessionManager.currentSession?.role ?? 'user' };
+      if (sessionManager.isAuthenticated && sessionManager.currentSession) {
+        session = sessionManager.currentSession;
         console.log('🔐 Local session found:', session.user.email);
       } else {
         console.log('🔐 No local session, will check API');
@@ -67,15 +67,15 @@ export async function tokenGuard(
         setTimeout(() => reject(new Error('Auth timeout')), 2000) // Reduced timeout
       );
 
-      session = await Promise.race([sessionPromise, timeoutPromise]).catch((error) => {
-        console.warn('🔐 Auth timeout or API unavailable:', error.message);
+      session = await Promise.race([sessionPromise, timeoutPromise]).catch((error: unknown) => {
+        console.warn('🔐 Auth timeout or API unavailable:', error instanceof Error ? error.message : String(error));
         return null; // Treat as not authenticated
       });
-      if (session) {
+      if (session !== null) {
         sessionManager.setSession({
           user: session.user,
-          accessToken: '',
-          expiresAt: 0,
+          accessToken: session.accessToken,
+          expiresAt: session.expiresAt,
           role: session.role ?? 'user'
         });
       }

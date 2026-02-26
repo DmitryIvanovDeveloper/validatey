@@ -31,7 +31,7 @@ export class CollectResearchDataUseCase {
       );
 
       return {
-        canvas: result.canvas || {},
+        canvas: result.canvas ?? this.createEmptyCanvas(request.projectId),
         error: undefined
       };
     } catch (error) {

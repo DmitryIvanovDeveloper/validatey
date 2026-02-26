@@ -29,10 +29,11 @@ export class ResponseRepository implements ResponseRepositoryPort {
           id: string;
           invitationId: string;
           projectId: string;
-          answers: Record<string, any>;
+          answers: Record<string, unknown>;
           audioUrl: string | null;
           transcript: string | null;
           moderationStatus: ModerationStatus | null;
+          questionLabels?: Record<string, string>;
           createdAt: string;
           updatedAt: string;
         }>;
@@ -47,7 +48,7 @@ export class ResponseRepository implements ResponseRepositoryPort {
         audioUrl: r.audioUrl,
         transcript: r.transcript,
         moderationStatus: r.moderationStatus,
-        questionLabels: r.questionLabels,
+        questionLabels: r.questionLabels ?? {},
         createdAt: new Date(r.createdAt),
         updatedAt: new Date(r.updatedAt),
       }));
@@ -73,10 +74,11 @@ export class ResponseRepository implements ResponseRepositoryPort {
           id: string;
           invitationId: string;
           projectId: string;
-          answers: Record<string, any>;
+          answers: Record<string, unknown>;
           audioUrl: string | null;
           transcript: string | null;
           moderationStatus: ModerationStatus | null;
+          questionLabels?: Record<string, string>;
           createdAt: string;
           updatedAt: string;
         };
@@ -92,6 +94,7 @@ export class ResponseRepository implements ResponseRepositoryPort {
           audioUrl: r.audioUrl,
           transcript: r.transcript,
           moderationStatus: r.moderationStatus,
+          questionLabels: r.questionLabels ?? {},
           createdAt: new Date(r.createdAt),
           updatedAt: new Date(r.updatedAt),
         },
@@ -130,10 +133,11 @@ export class ResponseRepository implements ResponseRepositoryPort {
           id: string;
           invitationId: string;
           projectId: string;
-          answers: Record<string, any>;
+          answers: Record<string, unknown>;
           audioUrl: string | null;
           transcript: string | null;
           moderationStatus: ModerationStatus | null;
+          questionLabels?: Record<string, string>;
           createdAt: string;
           updatedAt: string;
         }>;
@@ -147,7 +151,7 @@ export class ResponseRepository implements ResponseRepositoryPort {
         audioUrl: r.audioUrl,
         transcript: r.transcript,
         moderationStatus: r.moderationStatus,
-        questionLabels: r.questionLabels,
+        questionLabels: r.questionLabels ?? {},
         createdAt: new Date(r.createdAt),
         updatedAt: new Date(r.updatedAt),
       }));

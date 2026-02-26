@@ -20,24 +20,33 @@ TASK:
 4. Write a clear summary and actionable recommendations so that each Key Assumption can later be assessed against this synthesis.
 
 VALIDATION RULES:
-- User insights (responses, quotes, pain points, willingness to pay) are the PRIMARY source.
+- Hypothesis and comments are the MINIMUM sufficient input: you MUST always output a verdict and a short summary based on them, even when market/competitors/user insights are empty or "No ... yet".
+- User insights (responses, quotes, pain points, willingness to pay) are the PRIMARY source when available; when absent, use comments and hypothesis only.
 - Comment pattern analysis should identify validation/failure patterns with concrete examples.
 - The "Comment Metrics" block shows exact, factual counts — treat these as ground truth when deciding the verdict.
+  * When totalCount >= 10: comment data is sufficient — you MUST output a non-empty executive summary (2–4 sentences) and a verdict. Never leave summary empty when there are 10+ comments.
   * If totalCount >= 50 and your own commentPatternAnalysis.validationScore >= 70 and sentimentOverview.overall > 0.1, this constitutes STRONG social validation evidence — you SHOULD return "validated" unless user insights strongly contradict.
-  * If totalCount < 10, treat comment data as insufficient and rely on other sources.
+  * If totalCount < 10, treat comment data as insufficient and rely on other sources if present; if only hypothesis and comments are given, still produce verdict (often "needs-more-data") and a 1–2 sentence summary from the comments and hypothesis.
 - Only return "validated" when substantial direct evidence supports the hypothesis.
 - Only return "rejected" when evidence clearly contradicts or weakens the hypothesis.
 - "needs-more-data" = more research needed before a decision can be made.
-- Summary should cite specific evidence (e.g. comment themes, pain points, market signals) so that per-assumption assessment can refer to it.
+- Summary should cite specific evidence (e.g. comment themes, pain points, market signals) so that per-assumption assessment can refer to it. Never leave summary empty when comments or hypothesis are provided.
+
+CONCLUSION RULES (use when deciding verdict and assumptions):
+- If the problem is widely discussed (many comments and/or many unique authors mentioning it) — treat as support for the relevant assumption (e.g. A1 confirmed).
+- If people complain about lack of tools or solutions — that is evidence of unmet need / demand.
+- If they actively respond to others' posts asking for advice or feedback — treat as an indirect signal of willingness to engage (not proof of willingness to pay or use a product).
+- Many unique authors (dozens) expressing the same pain = stronger validation than the same number of comments from few authors.
 
 COMMENT PATTERN ANALYSIS:
 - Analyze all provided comments for recurring patterns and themes
-- Identify: myths/beliefs, failures/frustrations, advice/suggestions, validation signals, feature requests, comparisons, workarounds
+- Identify: myths/beliefs, failures/frustrations, advice/suggestions, validation signals, feature requests, comparisons, workarounds, and emotions (disappointment, fear, hope — use type "emotion" when the main theme is emotional)
 - Calculate validation score (0-100): higher score = stronger evidence of real user problems and validation signals
 - For each pattern include:
   - sentimentScore: -1 (very negative) to +1 (very positive), 0 = neutral
   - confidenceScore: 0-1 (AI confidence in pattern analysis)
   - recencyScore: 0-1 (how recent this pattern is)
+- When assigning commentIds to a pattern, consider that each UUID corresponds to one comment; the number of unique authors will be computed server-side. Include all comment UUIDs that belong to the pattern so the system can count unique authors (many unique authors = stronger signal).
 - Extract top 5-7 most significant patterns
 - For each pattern include exactly ONE short example (max 120 chars). Do NOT include more than one example per pattern.
 - A numbered list of comments is provided with format "N. [id: <uuid>] \"preview\"". For each pattern set commentIds to an array of those exact UUID strings (the <uuid> part) for every comment that belongs to this pattern. Use as many as apply; do not limit to one.
@@ -58,7 +67,7 @@ Respond with ONLY valid JSON, no markdown:
     "totalComments": 184,
     "patterns": [
       {
-        "type": "validation"|"myth"|"failure"|"advice"|"feature_request"|"comparison"|"workaround",
+        "type": "validation"|"myth"|"failure"|"advice"|"feature_request"|"comparison"|"workaround"|"emotion",
         "label": "Pattern title (e.g., 'Users want dark mode')",
         "insight": "Detailed insight about this pattern",
         "count": 15,

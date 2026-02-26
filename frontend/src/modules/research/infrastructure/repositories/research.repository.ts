@@ -12,7 +12,7 @@ interface CollectResearchDataResponse {
   marketDataCollected: boolean;
   competitorDataCollected: boolean;
   autocompleteDataCollected: boolean;
-  canvas?: any; // For compatibility with existing frontend code
+  canvas?: ResearchCanvas;
 }
 
 interface ApiCooldownError {
@@ -79,9 +79,17 @@ export class ResearchRepository implements ResearchRepositoryPort {
         API_CONFIG.ENDPOINTS.RESEARCH_COLLECT(projectId),
         intent
       );
+      const emptyCanvas: ResearchCanvas = {
+        projectId,
+        marketData: {},
+        competitorInfo: {},
+        userInsights: {},
+        autocompleteInsights: null,
+        earlySignals: null,
+      };
       return {
         ...response,
-        canvas: {} // Empty canvas for compatibility
+        canvas: emptyCanvas,
       };
     } catch (error: unknown) {
       // Check if it's a cooldown error

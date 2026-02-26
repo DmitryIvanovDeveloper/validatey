@@ -30,6 +30,7 @@ export class ListResponsesForModerationUseCase {
       audioUrl: entity.audioUrl,
       transcript: entity.transcript,
       moderationStatus: entity.moderationStatus,
+      questionLabels: entity.questionLabels,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       wordCount: this.calculateWordCount(entity),

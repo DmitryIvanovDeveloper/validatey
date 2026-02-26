@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
 import ResultEx from '../../../../shared/result';
-import { WorkspaceRepositoryPort } from '../ports/workspace-repository.port';
+import type { WorkspaceRepositoryPort } from '../ports/workspace-repository.port';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 
 export interface ListWorkspacesUseCaseRequest {

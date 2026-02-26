@@ -47,12 +47,11 @@ export class GetOverviewUseCase {
   ): Promise<ResultEx<GetOverviewResponse, ProjectNotFoundError | ProjectAccessDeniedError | Error>> {
     this._logger.info('get-overview.start', { projectId: request.projectId, userId: request.userId });
 
-    const projectResult = await this._projectRepository.findById(request.projectId);
-    if (!projectResult.isSuccess) {
-      return ResultEx.failure(projectResult.error);
+    const accessResult = await this._projectRepository.userHasAccessToProject(request.projectId, request.userId);
+    if (!accessResult.isSuccess) {
+      return ResultEx.failure(accessResult.error);
     }
-    const project = projectResult.data;
-    if (project.userId !== request.userId) {
+    if (!accessResult.data) {
       return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, request.userId));
     }
 
@@ -115,10 +114,9 @@ export class GetOverviewUseCase {
 
     if (assessments && assessments.length > 0) {
       const assessmentMap = new Map(assessments.map((a) => [a.assumptionId, a.status]));
-      const statuses = assumptions.map((a) => assessmentMap.get(a.id) ?? null);
-      if (statuses.every((s) => s !== null)) {
-        return statuses.map((s) => this.normalizeStatus(s!));
-      }
+      const fallbackStatus = this.verdictToAssumptionStatus(verdict) ?? 'need_more';
+      const statuses = assumptions.map((a) => assessmentMap.get(a.id) ?? fallbackStatus);
+      return statuses.map((s) => this.normalizeStatus(s));
     }
 
     const status = this.verdictToAssumptionStatus(verdict);

@@ -14,12 +14,15 @@ export interface ResearchRepositoryPort {
     };
     assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported')[] | null;
     assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
+    researchStatus?: 'idle' | 'collecting' | 'synthesizing';
+    researchStatusUpdatedAt?: string | null;
   }>;
   collectResearchData(projectId: string, intent: ResearchIntent): Promise<{
     collected: boolean;
     marketDataCollected: boolean;
     competitorDataCollected: boolean;
     autocompleteDataCollected: boolean;
+    canvas?: ResearchCanvas;
   }>;
   generateSynthesis(projectId: string): Promise<SynthesisReport>;
   checkResearchAvailability(projectId: string): Promise<{

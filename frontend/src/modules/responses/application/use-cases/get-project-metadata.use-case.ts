@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
-import { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
+import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 

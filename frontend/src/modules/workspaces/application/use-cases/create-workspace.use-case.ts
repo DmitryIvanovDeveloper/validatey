@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import ResultEx from '../../../../shared/result';
 import { WorkspaceEntity } from '../../domain/entities/workspace.entity';
 import { InvalidWorkspaceDataError } from '../../domain/errors/workspace.error';
-import { WorkspaceRepositoryPort } from '../ports/workspace-repository.port';
+import type { WorkspaceRepositoryPort } from '../ports/workspace-repository.port';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 
 export interface CreateWorkspaceUseCaseRequest {

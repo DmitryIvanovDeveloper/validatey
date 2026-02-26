@@ -13,10 +13,11 @@ function delay(ms: number): Promise<void> {
 
 export interface StartFetchAndWaitInput {
   projectId: string;
-  sourceType?: 'reddit' | 'hackernews';
+  sourceType?: 'reddit' | 'hackernews' | 'linkedin';
   redditUrls?: string[];
   hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
   hnUrls?: string[];
+  linkedinUrls?: string[];
   periodDays?: number;
 }
 
@@ -53,6 +54,7 @@ export class StartFetchAndWaitUseCase {
       redditUrls: input.redditUrls,
       hnFeedType: input.hnFeedType,
       hnUrls: input.hnUrls,
+      linkedinUrls: input.linkedinUrls,
       periodDays: input.periodDays,
     });
 

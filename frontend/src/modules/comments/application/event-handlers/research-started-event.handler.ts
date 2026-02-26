@@ -21,10 +21,10 @@ export class ResearchStartedEventHandler implements IAsyncEventHandler<ResearchS
   }
 
   async handleAsync(event: ResearchStartedEvent): Promise<void> {
-    // Start comments fetching first — backend finds all project sources itself
+    // Wait for comments fetching to finish — then collect/synthesis will run (correct logic: analyse after data is ready)
     await this._commentsPresenter.startFetchAllProjectSources(event.projectId);
 
-    // After comments fetch started, signal that research data collection can begin
+    // After comments fetch finished, signal that research data collection (and then synthesis) can run
     await this._eventBus.publishAsync(new ResearchDataCollectionStartedEvent(event.projectId));
   }
 }

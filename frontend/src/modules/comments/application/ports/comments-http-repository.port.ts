@@ -26,7 +26,7 @@ export interface CommentDTO {
   processedAt: string | null;
   importOrigin: string | null;
   subsourceName: string | null;
-  sourceType?: 'reddit' | 'hackernews';
+  sourceType?: 'reddit' | 'hackernews' | 'linkedin';
 }
 
 export interface GetCommentsResponseDTO {
@@ -36,17 +36,19 @@ export interface GetCommentsResponseDTO {
 }
 
 export interface CreateSourceInput {
-  sourceType: 'reddit' | 'hackernews';
+  sourceType: 'reddit' | 'hackernews' | 'linkedin';
   redditUrl?: string;
   hnUrl?: string;
+  linkedinUrl?: string;
   hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
 }
 
 export interface SourceDTO {
   id: string;
-  sourceType: 'reddit' | 'hackernews';
+  sourceType: 'reddit' | 'hackernews' | 'linkedin';
   redditUrl?: string;
   hnUrl?: string;
+  linkedinUrl?: string;
   subredditName?: string;
   hnFeedType?: string;
   hnItemId?: string;
@@ -57,10 +59,11 @@ export interface CommentsHttpRepositoryPort {
   startFetch(
     projectId: string,
     options: {
-      sourceType?: 'reddit' | 'hackernews';
+      sourceType?: 'reddit' | 'hackernews' | 'linkedin';
       redditUrls?: string[];
       hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
       hnUrls?: string[];
+      linkedinUrls?: string[];
       periodDays?: number;
     }
   ): Promise<Result<{ started: boolean }, Error>>;
@@ -81,5 +84,5 @@ export interface CommentsHttpRepositoryPort {
 
   deleteSource(projectId: string, sourceId: string): Promise<Result<void, Error>>;
 
-  getCommentSources(projectId: string): Promise<Result<{ id: string; sourceType: 'reddit' | 'hackernews'; redditUrl?: string; hnUrl?: string }[], Error>>;
+  getCommentSources(projectId: string): Promise<Result<{ id: string; sourceType: 'reddit' | 'hackernews' | 'linkedin'; redditUrl?: string; hnUrl?: string; linkedinUrl?: string }[], Error>>;
 }

@@ -17,13 +17,14 @@ export class WishlistPresenter {
     const result = await this._addToWishlistUseCase.execute({ email });
 
     if (!result.isSuccess) {
-      if (result.error instanceof EmailAlreadyExistsError) {
+      const err = result.error as unknown;
+      if (err instanceof EmailAlreadyExistsError) {
         return { success: false, error: 'You\'re already on the waitlist!' };
       }
-      if (result.error instanceof InvalidEmailError) {
+      if (err instanceof InvalidEmailError) {
         return { success: false, error: 'Please enter a valid email address' };
       }
-      return { success: false, error: result.error.message || 'Failed to join waitlist' };
+      return { success: false, error: err instanceof Error ? err.message : 'Failed to join waitlist' };
     }
 
     return { success: true };

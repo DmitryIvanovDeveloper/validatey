@@ -19,8 +19,9 @@ async function main() {
   const useCase = container.get<GenerateSynthesisUseCase>(TYPES.GenerateSynthesisUseCase);
   const result = await useCase.execute({ projectId });
   if (result.isSuccess) {
-    console.log('Synthesis completed. Verdict:', result.data?.verdict);
-    console.log('Summary (first 300 chars):', result.data?.summary?.slice(0, 300));
+    const report = result.data?.report;
+    console.log('Synthesis completed. Verdict:', report?.verdict);
+    console.log('Summary (first 300 chars):', report?.summary?.slice(0, 300));
   } else {
     console.error('Synthesis failed:', result.error?.message);
     process.exit(1);

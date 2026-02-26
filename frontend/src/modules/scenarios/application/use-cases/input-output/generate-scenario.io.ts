@@ -15,6 +15,7 @@ export type GenerateScenarioUseCaseRequest = {
     assumptions: string[];
   } | null;
   marketContext?: MarketContextForScenario;
+  templateSlug?: string;
   prompt?: string;
 };
 

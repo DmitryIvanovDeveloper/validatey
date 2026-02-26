@@ -105,6 +105,7 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
           sentimentScore: this.estimateSentimentScore(rule.type), // Basic sentiment estimation
           confidenceScore: Math.min(0.7, count / total + 0.3), // Basic confidence based on frequency
           recencyScore: 0.5, // Default recency (can't determine from keywords)
+          commentIds: matched.slice(0, 100).map((c) => c.id), // So "Show N comments" can load them
           examples,
         });
 

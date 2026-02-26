@@ -1,4 +1,4 @@
-export type PatternType = 'myth' | 'failure' | 'advice' | 'validation';
+export type PatternType = 'myth' | 'failure' | 'advice' | 'validation' | 'feature_request' | 'comparison' | 'workaround' | 'emotion';
 
 export interface CommentPatternExample {
   readonly content: string;
@@ -14,6 +14,8 @@ export interface CommentPattern {
   readonly percentage: number;
   /** When present, UI shows "Show N comments" and loads via API; otherwise uses examples. */
   readonly commentIds?: ReadonlyArray<string>;
+  /** Unique authors in this pattern; many = stronger validation signal. Filled by backend. */
+  readonly uniqueAuthorCount?: number;
   readonly examples: ReadonlyArray<CommentPatternExample>;
 }
 

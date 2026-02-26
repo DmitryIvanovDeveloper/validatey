@@ -33,14 +33,15 @@
     <!-- Patterns list -->
     <div v-else class="cpw-patterns">
       <div
-        v-for="pattern in analysis.patterns"
-        :key="pattern.type"
+        v-for="(pattern, patternIndex) in analysis.patterns"
+        :key="patternIndex"
         class="cpw-pattern-card"
       >
         <div class="cpw-pattern-header">
           <div class="cpw-pattern-label-row">
             <span class="cpw-pattern-label">{{ pattern.label }}</span>
             <span class="cpw-pattern-count">{{ pattern.count }}</span>
+            <span v-if="pattern.uniqueAuthorCount != null" class="cpw-pattern-authors" :title="'Unique authors: stronger validation signal'">{{ pattern.uniqueAuthorCount }} authors</span>
             <span class="cpw-pattern-pct">{{ pattern.percentage }}%</span>
           </div>
           <div class="cpw-pattern-bar-wrap">
@@ -51,7 +52,7 @@
         <button
           v-if="hasPatternContent(pattern)"
           class="cpw-toggle-btn cpw-show-comments-btn"
-          @click="showPatternInSidebar(pattern)"
+          @click="showPatternInSidebar(pattern, patternIndex)"
           type="button"
         >
           Show {{ patternCommentCount(pattern) }}
@@ -234,7 +235,7 @@ function examplesToSidebarItems(examples: any[]): any[] {
   }));
 }
 
-async function showPatternInSidebar(pattern: any): Promise<void> {
+async function showPatternInSidebar(pattern: any, patternIndex?: number): Promise<void> {
   const hasIds = pattern.commentIds && pattern.commentIds.length > 0;
 
   showCommentsSidebar.value = true;
@@ -245,7 +246,18 @@ async function showPatternInSidebar(pattern: any): Promise<void> {
     try {
       sidebarLoading.value = true;
       const useCase = container.get<GetPatternCommentsUseCase>(COMMENT_TYPES.GetPatternCommentsUseCase);
-      const result = await useCase.execute(props.projectId, pattern.type);
+      const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const uuidFrom = (x: unknown): string | null => {
+        if (typeof x === 'string') return uuidRe.test(x.trim()) ? x.trim() : (x.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null);
+        if (x && typeof x === 'object' && 'id' in x && typeof (x as { id: string }).id === 'string') return uuidFrom((x as { id: string }).id);
+        return null;
+      };
+      const idsFromPattern: string[] = [];
+      for (const id of pattern.commentIds || []) {
+        const u = uuidFrom(id);
+        if (u) idsFromPattern.push(u);
+      }
+      const result = await useCase.execute(props.projectId, pattern.type, patternIndex, idsFromPattern.length > 0 ? idsFromPattern : undefined);
 
       if (result.isSuccess && result.data.comments && result.data.comments.length > 0) {
         sidebarComments.value = result.data.comments;
@@ -425,6 +437,12 @@ defineExpose({
   color: var(--color-text);
 }
 
+.cpw-pattern-authors {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
 .cpw-pattern-pct {
   font-size: 0.75rem;
   color: var(--color-text-muted);
@@ -449,6 +467,10 @@ defineExpose({
 .cpw-bar--failure { background: var(--color-error); }
 .cpw-bar--advice { background: var(--color-success); }
 .cpw-bar--validation { background: var(--color-accent); }
+.cpw-bar--emotion { background: #a78bfa; }
+.cpw-bar--feature_request { background: var(--color-accent); }
+.cpw-bar--comparison,
+.cpw-bar--workaround { background: var(--color-text-muted); }
 
 .cpw-examples {
   margin-top: 0.75rem;

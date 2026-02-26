@@ -18,9 +18,13 @@ export class CommentPatternHttpRepository implements CommentPatternRepositoryPor
     );
   }
 
-  async getPatternComments(projectId: string, patternType: string): Promise<{ comments: any[]; total: number; pattern: any }> {
-    return this._httpClient.get<{ comments: any[]; total: number; pattern: any }>(
-      `${API_CONFIG.ENDPOINTS.COMMENTS_PATTERNS(projectId)}/${patternType}/comments`
-    );
+  async getPatternComments(projectId: string, patternType: string, patternIndex?: number, commentIds?: string[]): Promise<{ comments: any[]; total: number; pattern: any }> {
+    const base = `${API_CONFIG.ENDPOINTS.COMMENTS_PATTERNS(projectId)}/${patternType}/comments`;
+    const params = new URLSearchParams();
+    if (typeof patternIndex === 'number' && patternIndex >= 0) params.set('patternIndex', String(patternIndex));
+    if (commentIds?.length) params.set('commentIds', commentIds.join(','));
+    params.set('_', String(Date.now()));
+    const url = `${base}?${params.toString()}`;
+    return this._httpClient.get<{ comments: any[]; total: number; pattern: any }>(url);
   }
 }

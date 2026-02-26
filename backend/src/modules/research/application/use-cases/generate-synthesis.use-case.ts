@@ -94,53 +94,109 @@ export class GenerateSynthesisUseCase {
         limit: RESEARCH_COMMENTS_LIMIT,
       });
       const comments = commentsResult.isSuccess ? commentsResult.data : [];
-      const commentsSummary = this.summarizeComments(comments);
-      const commentsNumberedWithIds = this.buildNumberedCommentsWithIds(comments);
+      const commentMetrics = this.buildCommentMetrics(comments);
 
-      // Get comment pattern analysis from stored research data (used as fallback context only)
-      const commentPatternAnalysis = stored?.commentPatternAnalysis ?? null;
-
-      // Pain points are extracted AFTER synthesis so we can use the freshly generated CPA.
-      // Pre-extract from responses now; comments will be re-extracted post-synthesis.
       const painPointsFromResponses = this.extractPainPointsFromResponses(responses);
-
       const earlySignalsSummary =
         signals.length > 0
         ? signals.map((s) => `[${s.type}] ${s.title}: ${s.description}`).join('. ')
         : 'No early signals yet';
-
       const academicPapersSummary = this.summarizeAcademicPapers(stored?.academicPapers ?? null);
       const productHuntSummary = this.summarizeProductHunt(stored?.productHunt ?? null);
 
-      // Build hard factual comment metrics to ground LLM verdict decision
-      const commentMetrics = this.buildCommentMetrics(comments);
+      const SYNTHESIS_BATCH_SIZE = 45;
+      const useBatchSynthesis = comments.length > SYNTHESIS_BATCH_SIZE;
 
-      const llmResult = await this._synthesisLlm.generateSynthesis({
-        projectName: project.name,
-        hypothesisSummary,
-        marketSummary,
-        competitorSummary,
-        autocompleteSummary,
-        userInsightsSummary,
-        commentsSummary,
-        commentsNumberedWithIds: commentsNumberedWithIds || undefined,
-        earlySignalsSummary,
-        academicPapersSummary: academicPapersSummary || undefined,
-        productHuntSummary: productHuntSummary || undefined,
-        commentMetrics,
-      });
+      let report: SynthesisReport;
+      let synthesisPatternAnalysis: CommentPatternAnalysis | null;
 
-      if (!llmResult.isSuccess) {
-        return ResultEx.failure(llmResult.error);
+      if (useBatchSynthesis) {
+        this._logger.info('generate-synthesis.batch-mode', {
+          projectId,
+          totalComments: comments.length,
+          batchSize: SYNTHESIS_BATCH_SIZE,
+          numBatches: Math.ceil(comments.length / SYNTHESIS_BATCH_SIZE),
+        });
+        const batchAnalyses: CommentPatternAnalysis[] = [];
+        for (let i = 0; i < comments.length; i += SYNTHESIS_BATCH_SIZE) {
+          const batch = comments.slice(i, i + SYNTHESIS_BATCH_SIZE);
+          const batchNumbered = this.buildNumberedCommentsWithIds(batch);
+          const batchSummary = this.summarizeComments(batch);
+          const batchResult = await this._synthesisLlm.generateSynthesis({
+            projectName: project.name,
+            hypothesisSummary,
+            marketSummary,
+            competitorSummary,
+            autocompleteSummary,
+            userInsightsSummary,
+            commentsSummary: batchSummary,
+            commentsNumberedWithIds: batchNumbered || undefined,
+            earlySignalsSummary,
+            academicPapersSummary,
+            productHuntSummary,
+            commentMetrics: { totalCount: comments.length, bySource: commentMetrics.bySource },
+          });
+          if (batchResult.isSuccess && batchResult.data.commentPatternAnalysis) {
+            batchAnalyses.push(batchResult.data.commentPatternAnalysis);
+          }
+        }
+        if (batchAnalyses.length === 0) {
+          return ResultEx.failure(new Error('Synthesis batch mode: no pattern analysis from any batch'));
+        }
+        const merged = this.mergePatternAnalyses(batchAnalyses, comments.length);
+        synthesisPatternAnalysis = this.enrichPatternCommentIdsFromExamples(merged, comments);
+        synthesisPatternAnalysis = this.enrichUniqueAuthorCounts(synthesisPatternAnalysis, comments);
+        const mergedSummary = this.formatMergedPatternSummary(synthesisPatternAnalysis);
+        const finalResult = await this._synthesisLlm.generateSynthesis({
+          projectName: project.name,
+          hypothesisSummary,
+          marketSummary,
+          competitorSummary,
+          autocompleteSummary,
+          userInsightsSummary,
+          commentsSummary: `Merged from ${comments.length} comments (${batchAnalyses.length} batches). Use pattern summary for verdict.`,
+          commentPatternSummary: mergedSummary,
+          earlySignalsSummary,
+          academicPapersSummary,
+          productHuntSummary,
+          commentMetrics,
+        });
+        if (!finalResult.isSuccess) return ResultEx.failure(finalResult.error);
+        report = {
+          summary: finalResult.data.summary,
+          recommendations: finalResult.data.recommendations ?? [],
+          verdict: finalResult.data.verdict,
+          sections: finalResult.data.sections,
+          commentPatternAnalysis: synthesisPatternAnalysis,
+        };
+      } else {
+        const commentsSummary = this.summarizeComments(comments);
+        const commentsNumberedWithIds = this.buildNumberedCommentsWithIds(comments);
+        const commentPatternAnalysis = stored?.commentPatternAnalysis ?? null;
+        const llmResult = await this._synthesisLlm.generateSynthesis({
+          projectName: project.name,
+          hypothesisSummary,
+          marketSummary,
+          competitorSummary,
+          autocompleteSummary,
+          userInsightsSummary,
+          commentsSummary,
+          commentsNumberedWithIds: commentsNumberedWithIds || undefined,
+          earlySignalsSummary,
+          academicPapersSummary: academicPapersSummary || undefined,
+          productHuntSummary: productHuntSummary || undefined,
+          commentMetrics,
+        });
+        if (!llmResult.isSuccess) return ResultEx.failure(llmResult.error);
+        report = llmResult.data;
+        synthesisPatternAnalysis = report.commentPatternAnalysis ?? commentPatternAnalysis;
       }
 
-      const report: SynthesisReport = llmResult.data;
-
       // Use comment pattern analysis from synthesis report, or fall back to stored
-      let synthesisPatternAnalysis = report.commentPatternAnalysis ?? commentPatternAnalysis;
       // When LLM returns patterns without commentIds (or empty), fill from example content match so UI can show "Show N comments"
       if (synthesisPatternAnalysis && comments.length > 0) {
         synthesisPatternAnalysis = this.enrichPatternCommentIdsFromExamples(synthesisPatternAnalysis, comments);
+        synthesisPatternAnalysis = this.enrichUniqueAuthorCounts(synthesisPatternAnalysis, comments);
       }
 
       // Adjust verdict based on comment pattern validation score (Domain логика)
@@ -376,12 +432,14 @@ export class GenerateSynthesisUseCase {
    */
   private buildNumberedCommentsWithIds(comments: CommentEntity[]): string {
     if (!comments || comments.length === 0) return '';
-    const maxComments = 400;
+    // Keep prompt under LLM context limit (~8k tokens): cap comments and preview length
+    const maxComments = 45;
+    const previewLen = 80;
     const slice = comments.slice(0, maxComments);
     const lines = slice.map((c, i) => {
-      const preview = c.content.replace(/\s+/g, ' ').trim().substring(0, 120);
+      const preview = c.content.replace(/\s+/g, ' ').trim().substring(0, previewLen);
       const escaped = preview.replace(/"/g, '\\"');
-      return `${i + 1}. [id: ${c.id}] "${escaped}${c.content.length > 120 ? '...' : ''}"`;
+      return `${i + 1}. [id: ${c.id}] "${escaped}${c.content.length > previewLen ? '...' : ''}"`;
     });
     return lines.join('\n');
   }
@@ -438,6 +496,94 @@ export class GenerateSynthesisUseCase {
     });
 
     return { ...analysis, patterns };
+  }
+
+  /**
+   * Enrich each pattern with uniqueAuthorCount from commentIds and comment entities.
+   * Many unique authors = stronger validation signal (avoids one vocal user dominating).
+   */
+  private enrichUniqueAuthorCounts(
+    analysis: CommentPatternAnalysis,
+    comments: CommentEntity[]
+  ): CommentPatternAnalysis {
+    const idToAuthor = new Map<string, string>();
+    for (const c of comments) {
+      const author = (c.author && String(c.author).trim()) || 'Anonymous';
+      idToAuthor.set(c.id, author);
+    }
+
+    const patterns = analysis.patterns.map((p) => {
+      const ids = p.commentIds ?? [];
+      if (ids.length === 0) return p;
+      const authors = new Set<string>();
+      for (const id of ids) {
+        const a = idToAuthor.get(id);
+        if (a) authors.add(a);
+      }
+      return { ...p, uniqueAuthorCount: authors.size };
+    });
+
+    return { ...analysis, patterns };
+  }
+
+  /**
+   * Merge pattern analyses from multiple batches: group by type, combine commentIds and counts.
+   */
+  private mergePatternAnalyses(
+    batchAnalyses: CommentPatternAnalysis[],
+    totalComments: number
+  ): CommentPatternAnalysis {
+    const byType = new Map<string, Array<{ pattern: typeof batchAnalyses[0]['patterns'][0]; batchIdx: number }>>();
+    for (let bi = 0; bi < batchAnalyses.length; bi++) {
+      const analysis = batchAnalyses[bi];
+      for (const p of analysis.patterns ?? []) {
+        const key = p.type;
+        if (!byType.has(key)) byType.set(key, []);
+        byType.get(key)!.push({ pattern: p, batchIdx: bi });
+      }
+    }
+    const mergedPatterns: Array<CommentPatternAnalysis['patterns'][number]> = [];
+    for (const [, items] of byType) {
+      const combinedIds = new Set<string>();
+      let totalCount = 0;
+      let best = items[0].pattern;
+      for (const { pattern } of items) {
+        totalCount += pattern.count;
+        for (const id of pattern.commentIds ?? []) {
+          combinedIds.add(id);
+        }
+        if (pattern.count > best.count) best = pattern;
+      }
+      const count = combinedIds.size > 0 ? combinedIds.size : totalCount;
+      mergedPatterns.push({
+        ...best,
+        count,
+        percentage: totalComments > 0 ? Math.round((count / totalComments) * 100) : 0,
+        commentIds: combinedIds.size > 0 ? Array.from(combinedIds) : undefined,
+      });
+    }
+    mergedPatterns.sort((a: { count: number }, b: { count: number }) => b.count - a.count);
+    const first = batchAnalyses[0];
+    return {
+      totalComments,
+      patterns: mergedPatterns,
+      validationScore: first?.validationScore ?? 50,
+      sentimentOverview: first?.sentimentOverview ?? { overall: 0, distribution: { positive: 33, neutral: 34, negative: 33 } },
+      platformInsights: first?.platformInsights ?? { dominantPlatform: 'Unknown', platformDistribution: {}, platformSentiments: {} },
+      temporalTrends: first?.temporalTrends ?? { recentActivity: 0.5, trendDirection: 'stable' },
+      analyzedAt: new Date(),
+    };
+  }
+
+  /**
+   * Format merged pattern analysis as text for the final summary/verdict LLM call.
+   */
+  private formatMergedPatternSummary(analysis: CommentPatternAnalysis): string {
+    const lines = analysis.patterns.map((p) => {
+      const authors = p.uniqueAuthorCount != null ? ` (${p.uniqueAuthorCount} unique authors)` : '';
+      return `${p.type}: ${p.label} — count ${p.count}${authors}, ${p.percentage}%. ${p.insight}`;
+    });
+    return `Merged comment patterns (${analysis.totalComments} total comments):\n${lines.join('\n')}\nValidation score: ${analysis.validationScore}/100`;
   }
 
   /**

@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
+import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 
 export interface ProjectMetadata {

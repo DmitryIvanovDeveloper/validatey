@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { WishlistRepositoryPort } from '../ports/wishlist-repository.port';
+import type { WishlistRepositoryPort } from '../ports/wishlist-repository.port';
 import Result from '../../../../infrastructure/result/result';
 
 @injectable()

@@ -28,12 +28,13 @@ const AI_PROXY_URL =
   process.env.LLM_SERVICE_URL ||
   'https://cerebras-api.vercel.app/api/prompt';
 
-const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a startup hypothesis, generate ONE short English search query to find relevant community discussions on Reddit and Hacker News.
+const SEARCH_QUERY_PROMPT = `You are a search query expert. Given a startup hypothesis and optional target segment/audience, generate ONE short English search query to find relevant community discussions on Reddit and Hacker News (where this audience actually talks).
 
 Rules:
 - Output ONLY the query string. No quotes, no explanation, no punctuation at the end.
 - 3-5 words ONLY.
 - Focus on the CORE PROBLEM or BEHAVIOR the hypothesis addresses — not the product or solution.
+- If target segment/audience is provided, choose query wording that matches how THAT audience discusses the problem (e.g. "bloggers content ideas" for content creators, "founders honest feedback" for founders).
 - Use plain everyday language that real people use in forum discussions (not academic terms).
 - Do NOT use: hypothesis, startup, platform, app, product, validation, business, AI, ML, software, technology, digital, online, system.
 - Do NOT use the project name literally.
@@ -41,7 +42,8 @@ Rules:
   - "founders need honest feedback" (for a peer-feedback platform)
   - "reciprocal feedback community" (for give-to-get mechanic)
   - "freelancer client trust" (for payment escrow app)
-  - "remote team async communication" (for async video tool)`;
+  - "remote team async communication" (for async video tool)
+  - "bloggers content creation workflow" (for content-creator tools)`;
 
 @injectable()
 export class CollectResearchDataUseCase {
@@ -180,13 +182,17 @@ export class CollectResearchDataUseCase {
   }
 
   private buildResearchIntent(
-    project: { name: string; hypothesis?: { description?: string } | null; segment?: { description?: string } | null },
+    project: {
+      name: string;
+      hypothesis?: { description?: string } | null;
+      segment?: { description?: string; demographics?: Record<string, unknown> } | null;
+    },
     request: CollectResearchDataRequest
   ): ResearchIntent {
     const topic = [project.name, project.hypothesis?.description].filter(Boolean).join('. ').trim() || '';
     const segment =
       request.segment ??
-      (typeof project.segment?.description === 'string' ? project.segment.description : undefined);
+      this.formatSegmentForIntent(project.segment);
     return {
       topic,
       geography: request.geography,
@@ -195,8 +201,29 @@ export class CollectResearchDataUseCase {
     };
   }
 
+  /** Build a single segment string from description + demographics for LLM context (search query, market, etc.). */
+  private formatSegmentForIntent(segment: { description?: string; demographics?: Record<string, unknown> } | null | undefined): string | undefined {
+    if (!segment) return undefined;
+    const desc = typeof segment.description === 'string' ? segment.description.trim() : '';
+    const demo = segment.demographics;
+    let demographicsStr = '';
+    if (demo && typeof demo === 'object') {
+      if (typeof (demo as { text?: string }).text === 'string') {
+        demographicsStr = (demo as { text: string }).text.trim();
+      } else {
+        const parts = Object.entries(demo)
+          .filter(([, v]) => v != null && v !== '')
+          .map(([k, v]) => `${k}: ${String(v)}`);
+        demographicsStr = parts.join(' | ');
+      }
+    }
+    const combined = [desc, demographicsStr].filter(Boolean).join('. ');
+    return combined.length > 0 ? combined.slice(0, 500) : undefined;
+  }
+
   /**
    * Generate a short search query (3–5 words) via LLM for HN and Reddit search.
+   * Uses hypothesis and optional segment/demographics so the query targets the right audience.
    * Falls back to regex-based extraction if LLM fails.
    */
   private async buildSearchQuery(intent: ResearchIntent): Promise<string | null> {
@@ -204,13 +231,22 @@ export class CollectResearchDataUseCase {
     if (!text) return null;
 
     const firstSentence = text.split(/[.!?\n]/)[0]?.trim() ?? text;
-    const input = firstSentence.slice(0, 400);
+    const hypothesisPart = firstSentence.slice(0, 400);
+    const segmentPart = (intent.segment ?? '').trim().slice(0, 300);
+    const prompt =
+      segmentPart.length > 0
+        ? `${SEARCH_QUERY_PROMPT}\n\nHypothesis: ${hypothesisPart}\n\nTarget audience / segment (use to tailor the query): ${segmentPart}`
+        : `${SEARCH_QUERY_PROMPT}\n\nHypothesis: ${hypothesisPart}`;
+
+    if (segmentPart.length > 0) {
+      this._logger.info('collect-research-data.search-query-with-segment', { segmentLength: segmentPart.length });
+    }
 
     try {
       const response = await this._http.post<{ response?: string }>(
         AI_PROXY_URL,
         {
-          prompt: `${SEARCH_QUERY_PROMPT}\n\nHypothesis: ${input}`,
+          prompt,
           model: 'llama3.3-70b',
           max_tokens: 32,
         },

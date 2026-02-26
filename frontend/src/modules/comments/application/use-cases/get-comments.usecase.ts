@@ -19,7 +19,7 @@ export interface CommentItem {
   processedAt: Date | null;
   importOrigin: string | null;
   subsourceName: string | null;
-  sourceType: 'reddit' | 'hackernews';
+  sourceType: 'reddit' | 'hackernews' | 'linkedin';
 }
 
 export interface GetCommentsInput {
@@ -71,7 +71,7 @@ export class GetCommentsUseCase {
       processedAt: comment.processedAt ? new Date(comment.processedAt) : null,
       importOrigin: comment.importOrigin,
       subsourceName: comment.subsourceName,
-      sourceType: comment.sourceType ?? ('reddit' as const),
+      sourceType: (comment.sourceType ?? 'reddit') as 'reddit' | 'hackernews' | 'linkedin',
     }));
 
     return Result.success({
@@ -81,7 +81,7 @@ export class GetCommentsUseCase {
     });
   }
 
-  async getCommentSources(projectId: string): Promise<Result<{ id: string; sourceType: 'reddit' | 'hackernews'; redditUrl?: string; hnUrl?: string }[], Error>> {
+  async getCommentSources(projectId: string): Promise<Result<{ id: string; sourceType: 'reddit' | 'hackernews' | 'linkedin'; redditUrl?: string; hnUrl?: string; linkedinUrl?: string }[], Error>> {
     return this._repository.getCommentSources(projectId);
   }
 }

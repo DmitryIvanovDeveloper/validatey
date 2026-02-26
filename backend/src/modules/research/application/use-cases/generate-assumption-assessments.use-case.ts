@@ -69,7 +69,12 @@ export class GenerateAssumptionAssessmentsUseCase {
       const storedResult = await this._researchDataRepository.findByProjectId(projectId);
       const stored = storedResult.isSuccess ? storedResult.data : null;
 
-      if (!stored?.synthesisReport?.summary) {
+      // Run when synthesis exists (summary or verdict) so AI can output per-assumption verdicts
+      const hasSynthesis = stored?.synthesisReport && (
+        (typeof stored.synthesisReport.summary === 'string' && stored.synthesisReport.summary.trim().length > 0) ||
+        (typeof stored.synthesisReport.verdict === 'string' && stored.synthesisReport.verdict.trim().length > 0)
+      );
+      if (!hasSynthesis) {
         this._logger.info('generate-assumption-assessments.skip-no-synthesis', { projectId });
         return ResultEx.success(null);
       }
@@ -132,10 +137,15 @@ export class GenerateAssumptionAssessmentsUseCase {
           totalComments: comments.length,
           batchMode: true
         });
+        const verdictStr = String(stored.synthesisReport.verdict ?? '');
+        const synthesisSummary =
+          (typeof stored.synthesisReport.summary === 'string' && stored.synthesisReport.summary.trim())
+            ? stored.synthesisReport.summary
+            : (verdictStr ? `Overall verdict: ${verdictStr}.` : 'No executive summary yet.');
         const baseContext = {
           projectId,
-          synthesisSummary: stored.synthesisReport.summary,
-          verdict: String(stored.synthesisReport.verdict ?? ''),
+          synthesisSummary,
+          verdict: verdictStr,
           hypothesisSummary,
           userInsightsSummary: enhancedUserInsightsSummary,
           commentPatternSummary,
@@ -146,9 +156,14 @@ export class GenerateAssumptionAssessmentsUseCase {
         return this.executeBatchCommentAnalysis(assumptions, comments, thematicCounts, baseContext);
       }
 
+      const verdictStr = String(stored.synthesisReport.verdict ?? '');
+      const synthesisSummary =
+        (typeof stored.synthesisReport.summary === 'string' && stored.synthesisReport.summary.trim())
+          ? stored.synthesisReport.summary
+          : (verdictStr ? `Overall verdict: ${verdictStr}.` : 'No executive summary yet.');
       const context = {
-        synthesisSummary: stored.synthesisReport.summary,
-        verdict: String(stored.synthesisReport.verdict ?? ''),
+        synthesisSummary,
+        verdict: verdictStr,
         hypothesisSummary,
         userInsightsSummary: enhancedUserInsightsSummary,
         commentsSummary,
@@ -525,11 +540,13 @@ export class GenerateAssumptionAssessmentsUseCase {
     const parts: string[] = [];
     if (validationPatterns.length > 0) {
       const topValidation = validationPatterns[0];
-      parts.push(`Validation signals: ${topValidation.insight}`);
+      const authorNote = typeof topValidation.uniqueAuthorCount === 'number' ? ` (${topValidation.uniqueAuthorCount} unique authors)` : '';
+      parts.push(`Validation signals: ${topValidation.insight}${authorNote}`);
     }
     if (failurePatterns.length > 0) {
       const topFailure = failurePatterns[0];
-      parts.push(`Failure patterns: ${topFailure.insight}`);
+      const authorNote = typeof topFailure.uniqueAuthorCount === 'number' ? ` (${topFailure.uniqueAuthorCount} unique authors)` : '';
+      parts.push(`Failure patterns: ${topFailure.insight}${authorNote}`);
     }
 
     if (analysis.validationScore >= 70) {

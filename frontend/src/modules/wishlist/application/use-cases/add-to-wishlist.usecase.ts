@@ -1,7 +1,8 @@
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../../infrastructure/bootstrap/types';
-import { WishlistRepositoryPort } from '../ports/wishlist-repository.port';
+import type { WishlistRepositoryPort } from '../ports/wishlist-repository.port';
 import { InvalidEmailError } from '../../domain/errors/wishlist.error';
+import type { WishlistEntry } from '../../domain/entities/wishlist.entity';
 import Result from '../../../../infrastructure/result/result';
 
 export interface AddToWishlistInput {

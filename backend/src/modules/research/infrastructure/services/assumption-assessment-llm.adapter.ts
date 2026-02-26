@@ -51,6 +51,12 @@ The "Data sources" section starts with "Total comments in this analysis: N" and 
 STEP 4 — Check for contradictions.
 If comments or insights directly contradict the assumption → status = "not_supported", explain what the data says instead.
 
+CONCLUSION RULES:
+- If the problem is widely discussed (many comments and/or many unique authors) — treat as support for the relevant assumption when the actor group matches.
+- If people complain about lack of tools/solutions — that is evidence of unmet need (you may cite it as context; it does not by itself confirm willingness to use a specific product).
+- If they actively respond to others asking for advice — treat as an indirect signal of engagement, not proof of behavior.
+- When comment patterns include unique author counts: many unique authors (e.g. dozens) expressing the same pain = stronger validation than the same number of comments from few people.
+
 RULES:
 - Evidence is REQUIRED for every assumption — never output null.
 - Never infer behavior from pain: people complaining about a problem does NOT confirm they will use the proposed solution.

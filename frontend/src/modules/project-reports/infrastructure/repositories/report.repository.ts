@@ -40,11 +40,11 @@ export class ReportRepository implements ReportRepositoryPort {
   async downloadHtml(projectId: string): Promise<Result<Blob, ReportNotFoundError>> {
     try {
       const userId = sessionManager.currentUserId;
-      
+      const headers: Record<string, string> = {};
+      if (userId != null) headers['x-user-id'] = userId;
+
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.REPORT_HTML(projectId)}`, {
-        headers: {
-          'x-user-id': userId,
-        },
+        headers,
       });
       
       if (!response.ok) {
@@ -61,11 +61,11 @@ export class ReportRepository implements ReportRepositoryPort {
   async downloadPdf(projectId: string): Promise<Result<Blob, ReportNotFoundError>> {
     try {
       const userId = sessionManager.currentUserId;
-      
+      const headers: Record<string, string> = {};
+      if (userId != null) headers['x-user-id'] = userId;
+
       const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.REPORT_PDF(projectId)}`, {
-        headers: {
-          'x-user-id': userId,
-        },
+        headers,
       });
       
       if (!response.ok) {

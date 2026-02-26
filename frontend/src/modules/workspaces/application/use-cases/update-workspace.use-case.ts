@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import ResultEx from '../../../../shared/result';
 import { WorkspaceEntity } from '../../domain/entities/workspace.entity';
-import { WorkspaceRepositoryPort } from '../ports/workspace-repository.port';
+import type { WorkspaceRepositoryPort } from '../ports/workspace-repository.port';
 import { WorkspaceNotFoundError, WorkspaceAccessDeniedError, InvalidWorkspaceDataError } from '../../domain/errors/workspace.error';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 
@@ -17,7 +17,7 @@ export interface UpdateWorkspaceUseCaseResponse {
     id: string;
     userId: string;
     name: string;
-    iconUrl: string | null;
+    iconUrl?: string | null;
     createdAt: Date;
     updatedAt: Date;
   };

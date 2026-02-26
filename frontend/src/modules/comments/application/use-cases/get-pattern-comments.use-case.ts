@@ -10,9 +10,9 @@ export class GetPatternCommentsUseCase {
     private readonly _repository: CommentPatternRepositoryPort
   ) {}
 
-  async execute(projectId: string, patternType: string): Promise<Result<{ comments: any[]; total: number; pattern: any }, Error>> {
+  async execute(projectId: string, patternType: string, patternIndex?: number, commentIds?: string[]): Promise<Result<{ comments: any[]; total: number; pattern: any }, Error>> {
     try {
-      const result = await this._repository.getPatternComments(projectId, patternType);
+      const result = await this._repository.getPatternComments(projectId, patternType, patternIndex, commentIds);
       return Result.success(result);
     } catch (error) {
       return Result.failure(error instanceof Error ? error : new Error('Failed to get pattern comments'));

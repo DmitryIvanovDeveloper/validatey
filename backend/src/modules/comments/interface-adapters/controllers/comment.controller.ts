@@ -9,6 +9,7 @@ import type { GetFetchStatusQueryHandler } from '../../application/queries/get-f
 import type { DeleteSourceCommandHandler } from '../../application/commands/delete-source.command-handler';
 import type { DeleteSourceCommand } from '../../application/commands/delete-source.command';
 import type { CommentSourceRepositoryPort } from '../../application/ports/comment-source-repository.port';
+import type { CommentRepositoryPort } from '../../application/ports/comment-repository.port';
 import type { FetchCommentsUseCase } from '../../application/use-cases/fetch-comments.usecase';
 import { CommentSourceValueObject } from '../../domain/value-objects/comment-source.vo';
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
@@ -30,11 +31,59 @@ export class CommentController {
     private readonly _getFetchStatusQueryHandler: GetFetchStatusQueryHandler,
     @inject(COMMENT_TYPES.CommentSourceRepository)
     private readonly _sourceRepository: CommentSourceRepositoryPort,
+    @inject(COMMENT_TYPES.CommentRepository)
+    private readonly _commentRepository: CommentRepositoryPort,
     @inject(COMMENT_TYPES.FetchCommentsUseCase)
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
     @inject(PROJECT_TYPES.ProjectRepository)
     private readonly _projectRepository: ProjectRepositoryPort
   ) {}
+
+  /**
+   * Returns true if comment text is relevant to the pattern (label, insight, or examples).
+   * Used to avoid showing comments that were wrongly assigned to a pattern by enrichment or LLM.
+   */
+  private static commentContentMatchesPattern(commentContent: string, pattern: any): boolean {
+    if (!commentContent || !commentContent.trim()) return false;
+    const norm = (s: string) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const words = (s: string) => norm(s).split(/\s+/).filter((w) => w.length >= 4);
+    const commentNorm = norm(commentContent);
+    const commentWordSet = new Set(words(commentContent));
+    const examples = pattern.examples ?? [];
+
+    // 1) Match by example substring: comment contains (or is contained in) example snippet
+    for (const ex of examples) {
+      const exContent = typeof ex === 'object' && ex !== null && typeof ex.content === 'string' ? ex.content : '';
+      const needle = norm(exContent).slice(0, 120);
+      if (needle.length >= 10 && (commentNorm.includes(needle) || needle.includes(commentNorm.slice(0, 120)))) {
+        return true;
+      }
+    }
+
+    // 2) Match by significant words from pattern label + insight
+    const labelWords = words(pattern.label ?? '');
+    const insightWords = words(pattern.insight ?? '');
+    const patternWords = [...new Set([...labelWords, ...insightWords])];
+    if (patternWords.length >= 2) {
+      const matchCount = patternWords.filter((w) => commentWordSet.has(w)).length;
+      if (matchCount >= 2) return true;
+    }
+
+    // 3) Words from example contents
+    const exampleWords = new Set<string>();
+    for (const ex of examples) {
+      const exContent = typeof ex === 'object' && ex !== null && typeof ex.content === 'string' ? ex.content : '';
+      words(exContent).forEach((w) => exampleWords.add(w));
+    }
+    if (exampleWords.size >= 2) {
+      const matchCount = [...exampleWords].filter((w) => commentWordSet.has(w)).length;
+      if (matchCount >= 2) return true;
+    }
+
+    // 4) Not enough pattern text to validate — keep comment (e.g. short label, no examples)
+    if (patternWords.length < 2 && exampleWords.size < 2) return true;
+    return false;
+  }
 
   /**
    * Resolves projectId (which can be UUID or slug) to UUID
@@ -527,7 +576,17 @@ export class CommentController {
         .maybeSingle();
 
       if (researchData.data?.comment_pattern_analysis) {
-        res.json(researchData.data.comment_pattern_analysis);
+        const analysis = researchData.data.comment_pattern_analysis as { patterns?: any[]; [k: string]: any };
+        const patterns = analysis.patterns ?? [];
+        const sortedPatterns = [...patterns].sort((a: any, b: any) => {
+          const countDiff = (b.count ?? 0) - (a.count ?? 0);
+          if (countDiff !== 0) return countDiff;
+          const aLen = Array.isArray(a.commentIds) ? a.commentIds.length : 0;
+          const bLen = Array.isArray(b.commentIds) ? b.commentIds.length : 0;
+          return bLen - aLen;
+        });
+        res.setHeader('Cache-Control', 'no-store');
+        res.json({ ...analysis, patterns: sortedPatterns });
         return;
       }
 
@@ -557,7 +616,7 @@ export class CommentController {
       }
 
       // Validate pattern type
-      const validPatternTypes = ['myth', 'failure', 'advice', 'validation', 'feature_request', 'comparison', 'workaround'];
+      const validPatternTypes = ['myth', 'failure', 'advice', 'validation', 'feature_request', 'comparison', 'workaround', 'emotion'];
       if (!validPatternTypes.includes(patternType)) {
         res.status(400).json({ error: `Invalid pattern type: ${patternType}` });
         return;
@@ -576,17 +635,107 @@ export class CommentController {
       }
 
       const patternAnalysis = researchData.data.comment_pattern_analysis as any;
-      const pattern = patternAnalysis.patterns?.find((p: any) => p.type === patternType);
+      const rawPatterns = patternAnalysis.patterns ?? [];
+      // Use same order as GET /patterns: by count desc, then by commentIds length desc so patternIndex matches the list
+      const patterns = [...rawPatterns].sort((a: any, b: any) => {
+        const countDiff = (b.count ?? 0) - (a.count ?? 0);
+        if (countDiff !== 0) return countDiff;
+        const aLen = Array.isArray(a.commentIds) ? a.commentIds.length : 0;
+        const bLen = Array.isArray(b.commentIds) ? b.commentIds.length : 0;
+        return bLen - aLen;
+      });
+      const rawIndex = req.query.patternIndex;
+      const patternIndex = typeof rawIndex === 'string' && /^\d+$/.test(rawIndex) ? parseInt(rawIndex, 10) : -1;
+      const pattern =
+        patternIndex >= 0 && patternIndex < patterns.length
+          ? patterns[patternIndex]
+          : patterns.find((p: any) => p.type === patternType);
 
       if (!pattern) {
         res.status(404).json({ error: `Pattern '${patternType}' not found in analysis` });
         return;
       }
 
-      const rawIds = pattern.commentIds || [];
       const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const commentIds = rawIds.filter((id: any) => typeof id === 'string' && uuidLike.test(id));
+      // Client may send commentIds from analysis so "Show N comments" works even when DB format differs
+      const queryIdsRaw = req.query.commentIds;
+      const fromQuery =
+        typeof queryIdsRaw === 'string' && queryIdsRaw.length > 0
+          ? [...new Set(queryIdsRaw.split(',').map((s) => s.trim()).filter((s) => uuidLike.test(s)))]
+          : [];
+
+      // Flatten: support commentIds as nested arrays or mixed shapes
+      const flattenIds = (arr: any[]): any[] => arr.flatMap((x) => (Array.isArray(x) ? flattenIds(x) : [x]));
+      const rawIds = fromQuery.length > 0 ? fromQuery : flattenIds(pattern.commentIds || []);
+      const uuidFromString = (s: string): string | null => {
+        const trimmed = String(s).trim();
+        if (uuidLike.test(trimmed)) return trimmed;
+        const match = trimmed.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+        return match ? match[0]! : null;
+      };
+      const toIdString = (id: any): string => {
+        if (id == null) return '';
+        if (typeof id === 'string') return id;
+        if (typeof id === 'object' && id !== null && typeof (id as { id?: unknown }).id === 'string') return (id as { id: string }).id;
+        return String(id);
+      };
+      let commentIds = [...new Set(
+        rawIds
+          .map(toIdString)
+          .filter((s) => s.length > 0)
+          .flatMap((s) => {
+            // Extract all UUIDs from string (e.g. "id: uuid1, uuid2" or JSON)
+            const one = uuidFromString(s);
+            if (one) return [one];
+            const all = s.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi);
+            return all ? [...all] : [];
+          })
+          .filter((id): id is string => id != null && uuidLike.test(id))
+      )];
+
+      // Fallback: when stored commentIds are empty/wrong but pattern has examples, resolve IDs by matching example content to project comments
+      if (commentIds.length === 0 && pattern.examples?.length) {
+        const { data: projectComments } = await getSupabaseClient()
+          .from('comments')
+          .select('id, content')
+          .eq('project_id', projectId)
+          .limit(2000);
+        if (projectComments?.length) {
+          const norm = (s: string) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+          const words = (s: string) => norm(s).split(/\s+/).filter((w) => w.length >= 4);
+          const matchedIds = new Set<string>();
+          for (const ex of pattern.examples) {
+            const exContent = typeof ex === 'object' && ex !== null && typeof (ex as any).content === 'string' ? (ex as any).content : '';
+            const needle = norm(exContent).slice(0, 150);
+            if (!needle) continue;
+            for (const c of projectComments) {
+              if (matchedIds.size >= 100) break;
+              const hay = norm(c.content ?? '');
+              if (hay.includes(needle) || needle.includes(hay)) matchedIds.add(c.id);
+            }
+          }
+          if (matchedIds.size === 0) {
+            const allWords = new Set<string>();
+            for (const ex of pattern.examples) {
+              const exContent = typeof ex === 'object' && ex !== null && typeof (ex as any).content === 'string' ? (ex as any).content : '';
+              words(exContent).forEach((w) => allWords.add(w));
+            }
+            if (allWords.size >= 2) {
+              const wordList = Array.from(allWords);
+              for (const c of projectComments) {
+                if (matchedIds.size >= 100) break;
+                const commentWords = new Set(words(c.content ?? ''));
+                const matchCount = wordList.filter((w) => commentWords.has(w)).length;
+                if (matchCount >= 2) matchedIds.add(c.id);
+              }
+            }
+          }
+          commentIds = [...matchedIds];
+        }
+      }
+
       if (commentIds.length === 0) {
+        res.setHeader('Cache-Control', 'no-store');
         res.json({ comments: [], total: 0, pattern: { type: pattern.type, label: pattern.label, count: pattern.count, percentage: pattern.percentage } });
         return;
       }
@@ -603,8 +752,60 @@ export class CommentController {
         return;
       }
 
+      // Return all comments by ID so "Show N comments" loads exactly N (no content filter)
+      let commentsToReturn = comments ?? [];
+
+      // When IDs from client/DB returned 0 rows (e.g. stale analysis), try matching by pattern examples to project comments
+      if (commentsToReturn.length === 0 && pattern.examples?.length) {
+        const { data: projectComments } = await getSupabaseClient()
+          .from('comments')
+          .select('*')
+          .eq('project_id', projectId)
+          .limit(2000);
+        if (projectComments?.length) {
+          const norm = (s: string) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+          const words = (s: string) => norm(s).split(/\s+/).filter((w) => w.length >= 4);
+          const matchedIds = new Set<string>();
+          for (const ex of pattern.examples) {
+            const exContent = typeof ex === 'object' && ex !== null && typeof (ex as any).content === 'string' ? (ex as any).content : '';
+            const needle = norm(exContent).slice(0, 150);
+            if (!needle) continue;
+            for (const c of projectComments) {
+              if (matchedIds.size >= 100) break;
+              const hay = norm(c.content ?? '');
+              if (hay.includes(needle) || needle.includes(hay)) matchedIds.add(c.id);
+            }
+          }
+          if (matchedIds.size === 0) {
+            const allWords = new Set<string>();
+            for (const ex of pattern.examples) {
+              const exContent = typeof ex === 'object' && ex !== null && typeof (ex as any).content === 'string' ? (ex as any).content : '';
+              words(exContent).forEach((w) => allWords.add(w));
+            }
+            if (allWords.size >= 2) {
+              const wordList = Array.from(allWords);
+              for (const c of projectComments) {
+                if (matchedIds.size >= 100) break;
+                const commentWords = new Set(words(c.content ?? ''));
+                const matchCount = wordList.filter((w) => commentWords.has(w)).length;
+                if (matchCount >= 2) matchedIds.add(c.id);
+              }
+            }
+          }
+          const fallbackIds = [...matchedIds];
+          if (fallbackIds.length > 0) {
+            const { data: fallbackRows } = await getSupabaseClient()
+              .from('comments')
+              .select('*')
+              .in('id', fallbackIds)
+              .order('created_at', { ascending: false });
+            commentsToReturn = fallbackRows ?? [];
+          }
+        }
+      }
+
       // Get source types for comments
-      const uniqueSourceIds = [...new Set(comments.map(c => c.source_id))];
+      const uniqueSourceIds = [...new Set(commentsToReturn.map((c: any) => c.source_id))];
       const sourcesResult = await this._commentRepository.getCommentSourcesByProjectId(projectId);
 
       const sourceTypesMap = new Map<string, string>();
@@ -617,7 +818,7 @@ export class CommentController {
       }
 
       // Format comments with source types
-      const formattedComments = comments.map(comment => {
+      const formattedComments = commentsToReturn.map((comment: any) => {
         let sourceType: string = sourceTypesMap.get(comment.source_id) || 'unknown';
 
         // Fallback: determine sourceType from URL pattern
@@ -650,6 +851,7 @@ export class CommentController {
         };
       });
 
+      res.setHeader('Cache-Control', 'no-store');
       res.json({
         comments: formattedComments,
         total: formattedComments.length,

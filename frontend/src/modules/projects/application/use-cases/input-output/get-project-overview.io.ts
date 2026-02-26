@@ -6,7 +6,7 @@ export interface OverviewResearchSummary {
     readonly recommendations?: string[];
   } | null;
   readonly assumptionStatuses?: readonly ('confirmed' | 'need_more' | 'not_supported')[] | null;
-  readonly assumptionAssessments?: readonly ReadonlyArray<{
+  readonly assumptionAssessments?: ReadonlyArray<{
     readonly assumptionId: string;
     readonly status: string;
     readonly evidence: string | null;
