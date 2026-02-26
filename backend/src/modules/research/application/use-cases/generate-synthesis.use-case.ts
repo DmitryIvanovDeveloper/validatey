@@ -143,7 +143,7 @@ export class GenerateSynthesisUseCase {
       // Now extract pain points using the FRESH CPA (synthesisPatternAnalysis) so even the first
       // run gets meaningful pain points rather than falling back to keyword-matched raw quotes.
       const painPointsFromComments = this.extractPainPointsFromComments(comments, synthesisPatternAnalysis);
-      const allPainPoints = [...new Set([...painPointsFromResponses, ...painPointsFromComments])].slice(0, 5);
+      const allPainPoints = [...new Set([...painPointsFromResponses, ...painPointsFromComments])]
 
       // Build user insights with pain points from both responses and comments
       const userInsights = {
