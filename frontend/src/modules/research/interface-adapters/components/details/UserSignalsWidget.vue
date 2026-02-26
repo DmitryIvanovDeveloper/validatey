@@ -46,9 +46,9 @@
         </div>
       </div>
 
-      <!-- Top Pain Points -->
+      <!-- Pain Points -->
       <div v-if="insights.topPains?.length" class="pain-points-section">
-        <h4 class="section-title">Top Pain Points</h4>
+        <h4 class="section-title">Pain Points</h4>
         <p class="section-subtitle">Key challenges identified from user feedback</p>
 
         <div class="pain-points-list">
