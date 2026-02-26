@@ -29,7 +29,7 @@ STEP 2 — For each assumption, identify the ACTOR GROUP and BEHAVIOR.
 STEP 3 — Check audience coverage, then check behavior evidence.
 The "Data sources" section starts with "Total comments in this analysis: N" and then "AUDIENCE COVERAGE". Read both.
 - The "THEMATIC COUNTS" block gives you pre-computed, keyword-based counts of how many comments match each assumption's core topic across ALL collected comments. Use these as hard facts in your evidence: "Of [total] comments, ~N match the topic of this assumption" — where N comes from THEMATIC COUNTS, NOT from your own estimate. The total is in "Total comments in this analysis: N".
-- Comments block shows filtered, relevant comments (up to 35 per source) — do NOT estimate counts from the sample; always use THEMATIC COUNTS.
+- Comments block shows filtered, relevant comments (up to 25 per source) — do NOT estimate counts from the sample; always use THEMATIC COUNTS.
 - Do NOT cite only a subset of sources (e.g. "6 from r/X, r/Y") — cite the thematic count and total.
 
   3a. SOURCE audience match — check the ACTOR GROUP against the AUDIENCE COVERAGE table.
@@ -92,7 +92,7 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
             assumptions.map(a => `  Assumption ${a.assumptionId}: ~${context.thematicCounts![a.assumptionId] ?? 0} comments match its core keywords`).join('\n')
           }`
         : '',
-      `Comments (filtered by relevance to assumptions, up to 35 per source — see THEMATIC COUNTS above for full-corpus numbers):\n${context.commentsSummary}`,
+      `Comments (filtered by relevance to assumptions, up to 25 per source — see THEMATIC COUNTS above for full-corpus numbers):\n${context.commentsSummary}`,
       context.commentPatternSummary ? `Comment patterns: ${context.commentPatternSummary}` : '',
       `Early signals: ${context.earlySignalsSummary}`,
       context.academicPapersSummary ? `Academic research:\n${context.academicPapersSummary}` : '',
@@ -103,7 +103,7 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
     try {
       // max_tokens scales with number of assumptions: ~300 tokens per assumption for evidence + status
       // Keep conservative to avoid API timeouts
-      const maxTokens = Math.max(4096, assumptions.length * 300);
+      const maxTokens = Math.max(3500, assumptions.length * 250); // Balanced: quality + stability
       const response = await this._http.post<{ response?: string }>(
         AI_PROXY_URL,
         {

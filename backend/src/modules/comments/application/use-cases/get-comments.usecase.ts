@@ -74,6 +74,7 @@ export class GetCommentsUseCase {
         const result = await this._commentRepository.findByProjectId(request.projectId, {
           limit: request.limit,
           offset: request.offset,
+          orderByCreatedAt: true, // Sort by date for UI display
         });
 
         if (!result.isSuccess) {

@@ -159,6 +159,7 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
       limit?: number;
       offset?: number;
       isProcessed?: boolean;
+      orderByCreatedAt?: boolean; // New option to control sorting
     }
   ): Promise<ResultEx<CommentEntity[], CommentError>> {
     try {
@@ -167,8 +168,12 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
       let query = supabase
         .from('comments')
         .select('*')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
+        .eq('project_id', projectId);
+
+      // Add sorting only if requested (can be slow for large datasets)
+      if (options?.orderByCreatedAt) {
+        query = query.order('created_at', { ascending: false });
+      }
 
       if (options?.isProcessed !== undefined) {
         query = query.eq('is_processed', options.isProcessed);
@@ -184,12 +189,12 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
 
       let data, error;
       try {
-        // Add timeout wrapper to prevent hanging requests
+        // Increase timeout for comment queries (can be large datasets)
         const queryPromise = query;
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Query timeout after 30 seconds')), 30000);
+          setTimeout(() => reject(new Error('Query timeout after 60 seconds')), 60000);
         });
-        
+
         const result = await Promise.race([queryPromise, timeoutPromise]);
         data = result.data;
         error = result.error;

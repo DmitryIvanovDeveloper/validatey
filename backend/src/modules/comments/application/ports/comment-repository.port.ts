@@ -10,6 +10,7 @@ export interface CommentRepositoryPort {
     limit?: number;
     offset?: number;
     isProcessed?: boolean;
+    orderByCreatedAt?: boolean;
   }): Promise<ResultEx<CommentEntity[], CommentError>>;
   findBySourceId(sourceId: string, options?: {
     limit?: number;

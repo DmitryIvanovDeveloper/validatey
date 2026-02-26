@@ -44,7 +44,7 @@
       </div>
 
       <!-- Donut chart (shown in full Research Canvas view) -->
-      <div v-if="statusCounts && hasStatuses && chartSeries.length > 0" class="widget-chart-container">
+      <div v-if="statusCounts && hasStatuses && chartSeries.length > 0 && isChartReady && Object.keys(chartOptions).length > 0" class="widget-chart-container">
         <apexchart
           type="donut"
           :options="chartOptions"
@@ -133,6 +133,34 @@ const statusCounts = computed(() => {
 const hasStatuses = computed(() => {
   if (!statusCounts.value) return false;
   return statusCounts.value.confirmed > 0 || statusCounts.value.need_more > 0 || statusCounts.value.not_supported > 0;
+});
+
+// Проверяем, что все массивы чарта согласованы и готовы
+const isChartReady = computed(() => {
+  const series = chartSeries.value;
+  const labels = chartLabels.value;
+  const colors = chartColors.value;
+
+  // Все массивы должны иметь одинаковую длину и не быть пустыми
+  const hasData = series.length > 0 && labels.length > 0 && colors.length > 0;
+  const isConsistent = series.length === labels.length && labels.length === colors.length;
+
+  // Все значения в series должны быть положительными числами
+  const hasValidData = series.every(value => typeof value === 'number' && value > 0);
+
+  console.log('AssumptionsWidget isChartReady:', {
+    hasData,
+    isConsistent,
+    hasValidData,
+    seriesLength: series.length,
+    labelsLength: labels.length,
+    colorsLength: colors.length,
+    series: series,
+    labels: labels,
+    colors: colors
+  });
+
+  return hasData && isConsistent && hasValidData;
 });
 
 // Формируем данные для ApexCharts
@@ -247,47 +275,74 @@ const chartColors = computed(() => {
   return colors;
 });
 
-const chartOptions = computed(() => ({
-  chart: {
-    type: 'donut',
-    width: 56,
-    height: 56,
-    sparkline: {
-      enabled: true, // Компактный режим без легенды и подписей
+const chartOptions = computed(() => {
+  try {
+    // Дополнительная проверка согласованности данных
+    const series = chartSeries.value;
+    const labels = chartLabels.value;
+    const colors = chartColors.value;
+
+    if (!series.length || !labels.length || !colors.length ||
+        series.length !== labels.length || labels.length !== colors.length) {
+      console.warn('AssumptionsWidget: Chart data inconsistent, skipping render');
+      return {};
+    }
+
+    // Проверяем, что все значения в series положительные числа
+    if (!series.every(value => typeof value === 'number' && value > 0)) {
+      console.warn('AssumptionsWidget: Invalid series data, skipping render', series);
+      return {};
+    }
+
+  return {
+    chart: {
+      type: 'donut',
+      width: 56,
+      height: 56,
+      // Убираем sparkline режим, который может вызывать проблемы с размерами
+      animations: {
+        enabled: false, // Отключаем анимацию для быстрого обновления
+      },
+      fontFamily: 'inherit',
     },
-    animations: {
-      enabled: false, // Отключаем анимацию для быстрого обновления
-    },
-  },
-  labels: chartLabels.value,
-  colors: chartColors.value, // Массив цветов для каждого сегмента
-  plotOptions: {
-    pie: {
-      donut: {
-        size: '70%', // Размер внутреннего отверстия
+    labels: labels,
+    colors: colors,
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '70%', // Размер внутреннего отверстия
+        },
       },
     },
-  },
-  legend: {
-    show: false,
-  },
-  tooltip: {
-    enabled: true,
-    y: {
-      formatter: (value: number) => {
-        const total = chartSeries.value.reduce((a, b) => a + b, 0);
-        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-        return `${value} (${percentage}%)`;
+    legend: {
+      show: false,
+    },
+    tooltip: {
+      enabled: true,
+      y: {
+        formatter: (value: number) => {
+          const total = series.reduce((a, b) => a + b, 0);
+          const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+          return `${value} (${percentage}%)`;
+        },
       },
     },
-  },
-  dataLabels: {
-    enabled: false, // Отключаем подписи на сегментах
-  },
-  stroke: {
-    show: false,
-  },
-}));
+    dataLabels: {
+      enabled: false, // Отключаем подписи на сегментах
+    },
+    stroke: {
+      show: false,
+    },
+    // Отключаем responsive, чтобы избежать проблем с размерами
+    responsive: [{
+      breakpoint: undefined,
+    }],
+  };
+  } catch (error) {
+    console.error('AssumptionsWidget: Error creating chart options', error);
+    return {};
+  }
+});
 
 const loadAssumptions = async () => {
   try {
@@ -352,6 +407,20 @@ watch(assumptionStatuses, (newStatuses) => {
     });
   }
 }, { deep: true });
+
+// Watch chart data for debugging ApexCharts issues
+watch([chartSeries, chartLabels, chartColors, isChartReady], ([series, labels, colors, ready]) => {
+  console.log('AssumptionsWidget: Chart data changed', {
+    series,
+    labels,
+    colors,
+    ready,
+    seriesLength: series?.length || 0,
+    labelsLength: labels?.length || 0,
+    colorsLength: colors?.length || 0,
+    allValid: ready,
+  });
+}, { deep: true });
 </script>
 
 <style scoped>
@@ -379,11 +448,23 @@ watch(assumptionStatuses, (newStatuses) => {
   width: 56px;
   height: 56px;
   flex-shrink: 0;
+  position: relative;
+  min-width: 56px;
+  min-height: 56px;
 }
 
 .widget-donut {
   width: 100% !important;
   height: 100% !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+}
+
+.widget-donut :deep(svg) {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
 }
 
 .widget-empty {
