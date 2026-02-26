@@ -44,7 +44,7 @@
             >
               <div class="comments-source-header">
                 <span class="comments-source-name">
-                  {{ stat.source === 'reddit' ? 'Reddit' : stat.source === 'hackernews' ? 'Hacker News' : 'Unknown' }}
+                  {{ formatSourceName(stat.source) }}
                 </span>
                 <span class="comments-source-count">{{ stat.count }}</span>
               </div>
@@ -99,6 +99,24 @@ const commentsPresenter = container.get<CommentsPresenter>(COMMENT_TYPES.Comment
 
 // Computed properties
 const sourceStats = computed(() => overviewData.value.sourceStats);
+
+// Format source name with smart capitalization and known name overrides
+const formatSourceName = (source: string) => {
+  const knownNames: Record<string, string> = {
+    'reddit': 'Reddit',
+    'hackernews': 'Hacker News',
+    'linkedin': 'LinkedIn'
+  }
+
+  if (knownNames[source]) return knownNames[source]
+
+  // For unknown sources: smart formatting
+  return source
+    .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase -> camel Case
+    .split(/[-_\s]+/) // split by hyphens/underscores/spaces
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
 
 // Methods
 const loadComments = async () => {
@@ -216,6 +234,10 @@ defineExpose({
 
 .comments-progress-segment.hackernews {
   background: #ff6600;
+}
+
+.comments-progress-segment.linkedin {
+  background: #0077b5;
 }
 
 .comments-progress-segment.unknown {
