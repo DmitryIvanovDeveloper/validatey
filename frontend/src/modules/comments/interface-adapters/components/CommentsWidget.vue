@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { CommentsPresenter, CommentsOverviewData } from '../presenters/comments.presenter';
 import { COMMENT_TYPES } from '../../types';
@@ -144,6 +144,10 @@ const loadComments = async () => {
 // Lifecycle
 onMounted(() => {
   loadComments();
+});
+
+watch(() => props.projectId, (newId) => {
+  if (newId) loadComments();
 });
 
 // Expose method for external reloading

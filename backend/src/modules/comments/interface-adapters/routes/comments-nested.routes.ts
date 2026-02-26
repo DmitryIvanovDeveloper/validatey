@@ -48,6 +48,12 @@ router.get('/patterns', async (req: Request, res: Response) => {
   await controller.analyzePatterns(req, res);
 });
 
+// GET /api/projects/:projectId/comments/patterns/:patternType/comments
+// Get all comments belonging to a specific pattern
+router.get('/patterns/:patternType/comments', async (req: Request, res: Response) => {
+  await controller.getPatternComments(req, res);
+});
+
 // DELETE /api/projects/:projectId/comments/sources/:sourceId
 // Delete a comment source and all its comments
 router.delete('/sources/:sourceId', async (req: Request, res: Response) => {

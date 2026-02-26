@@ -228,13 +228,14 @@
 
         <!-- Comments Overview -->
         <CommentsWidget
+          ref="commentsWidgetRef"
           :project-id="projectId"
           :external-loading="widgetsLoading"
           @comments-loaded="handleCommentsLoaded"
         />
 
         <!-- Comment Pattern Analysis -->
-        <CommentPatternsWidget :project-id="projectId" />
+        <CommentPatternsWidget ref="commentPatternsRef" :project-id="projectId" />
 
         <!-- Learning Journey -->
         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
@@ -380,6 +381,8 @@ const overviewInvitations = ref<Array<{ id: string; email: string; status: strin
 // Refs for widget components
 const painPointsRef = ref();
 const responsePaceRef = ref();
+const commentsWidgetRef = ref<{ reload?: () => Promise<void> } | null>(null);
+const commentPatternsRef = ref<{ reload?: () => void } | null>(null);
 
 /** Overview data from presenter (viewModel.overview). Loaded via presenter.loadOverview(). */
 const overviewData = viewModel.overview;
@@ -812,11 +815,15 @@ function handleResearchStarted() {
   widgetsLoading.value = true; // Show loading in Pain Points and Response Pace widgets
 }
 
-function handleResearchCompleted() {
+async function handleResearchCompleted() {
   executiveSummaryLoading.value = false;
   widgetsLoading.value = false; // Hide loading in Pain Points and Response Pace widgets
-  // Reload research data to get updated summary
-  loadResearchData();
+  // Reload overview (synthesis, assumptions) and research data
+  await loadOverview();
+  await loadResearchData();
+  // Reload comments overview and pattern analysis so UI updates reactively
+  await commentsWidgetRef.value?.reload?.();
+  commentPatternsRef.value?.reload?.();
 }
 
 function handleCommentsLoaded(count: number) {

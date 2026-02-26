@@ -12,6 +12,8 @@ export interface CommentPattern {
   readonly insight: string;
   readonly count: number;
   readonly percentage: number;
+  /** When present, UI shows "Show N comments" and loads via API; otherwise uses examples. */
+  readonly commentIds?: ReadonlyArray<string>;
   readonly examples: ReadonlyArray<CommentPatternExample>;
 }
 

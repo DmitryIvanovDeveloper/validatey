@@ -15,6 +15,7 @@ export const COMMENT_TYPES = {
 
   // Pattern Analysis Use Case
   GetCommentPatternsUseCase: Symbol.for('GetCommentPatternsUseCase'),
+  GetPatternCommentsUseCase: Symbol.for('GetPatternCommentsUseCase'),
 
   // Event Handlers
   ResearchStartedEventHandler: Symbol.for('IAsyncEventHandler<ResearchStartedEvent>'),

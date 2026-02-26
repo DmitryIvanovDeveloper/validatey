@@ -524,7 +524,7 @@ export class CommentController {
         .from('research_data')
         .select('comment_pattern_analysis')
         .eq('project_id', projectId)
-        .single();
+        .maybeSingle();
 
       if (researchData.data?.comment_pattern_analysis) {
         res.json(researchData.data.comment_pattern_analysis);
@@ -533,6 +533,133 @@ export class CommentController {
 
       // Fallback: perform analysis if not found in research data
       res.status(404).json({ error: 'Pattern analysis not available. Please run "Start Research" first.' });
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
+
+  public async getPatternComments(req: Request, res: Response): Promise<void> {
+    try {
+      const projectIdOrSlug = req.params.projectId;
+      const patternType = req.params.patternType;
+
+      if (!projectIdOrSlug || !patternType) {
+        res.status(400).json({ error: 'Project ID and pattern type are required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
+        return;
+      }
+
+      // Validate pattern type
+      const validPatternTypes = ['myth', 'failure', 'advice', 'validation', 'feature_request', 'comparison', 'workaround'];
+      if (!validPatternTypes.includes(patternType)) {
+        res.status(400).json({ error: `Invalid pattern type: ${patternType}` });
+        return;
+      }
+
+      // Get pattern analysis from stored research data
+      const researchData = await getSupabaseClient()
+        .from('research_data')
+        .select('comment_pattern_analysis')
+        .eq('project_id', projectId)
+        .maybeSingle();
+
+      if (!researchData.data?.comment_pattern_analysis) {
+        res.status(404).json({ error: 'Pattern analysis not available. Please run "Start Research" first.' });
+        return;
+      }
+
+      const patternAnalysis = researchData.data.comment_pattern_analysis as any;
+      const pattern = patternAnalysis.patterns?.find((p: any) => p.type === patternType);
+
+      if (!pattern) {
+        res.status(404).json({ error: `Pattern '${patternType}' not found in analysis` });
+        return;
+      }
+
+      const rawIds = pattern.commentIds || [];
+      const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const commentIds = rawIds.filter((id: any) => typeof id === 'string' && uuidLike.test(id));
+      if (commentIds.length === 0) {
+        res.json({ comments: [], total: 0, pattern: { type: pattern.type, label: pattern.label, count: pattern.count, percentage: pattern.percentage } });
+        return;
+      }
+
+      // Get comments by IDs
+      const { data: comments, error } = await getSupabaseClient()
+        .from('comments')
+        .select('*')
+        .in('id', commentIds)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        res.status(500).json({ error: `Failed to fetch comments: ${error.message}` });
+        return;
+      }
+
+      // Get source types for comments
+      const uniqueSourceIds = [...new Set(comments.map(c => c.source_id))];
+      const sourcesResult = await this._commentRepository.getCommentSourcesByProjectId(projectId);
+
+      const sourceTypesMap = new Map<string, string>();
+      if (sourcesResult.isSuccess) {
+        sourcesResult.data.forEach(source => {
+          if (uniqueSourceIds.includes(source.id)) {
+            sourceTypesMap.set(source.id, source.sourceType);
+          }
+        });
+      }
+
+      // Format comments with source types
+      const formattedComments = comments.map(comment => {
+        let sourceType: string = sourceTypesMap.get(comment.source_id) || 'unknown';
+
+        // Fallback: determine sourceType from URL pattern
+        if (sourceType === 'unknown') {
+          const url = (comment.context_url || comment.url).toLowerCase();
+          if (url.includes('ycombinator.com') || url.includes('news.ycombinator.com')) {
+            sourceType = 'hackernews';
+          } else {
+            sourceType = 'reddit';
+          }
+        }
+
+        return {
+          id: comment.id,
+          sourceId: comment.source_id,
+          projectId: comment.project_id,
+          externalId: comment.external_id,
+          content: comment.content,
+          author: comment.author,
+          url: comment.url,
+          contextTitle: comment.context_title,
+          contextUrl: comment.context_url,
+          createdAt: comment.created_at,
+          fetchedAt: comment.fetched_at,
+          isProcessed: comment.is_processed,
+          processedAt: comment.processed_at,
+          importOrigin: comment.import_origin,
+          subsourceName: comment.subsource_name,
+          sourceType
+        };
+      });
+
+      res.json({
+        comments: formattedComments,
+        total: formattedComments.length,
+        pattern: {
+          type: pattern.type,
+          label: pattern.label,
+          count: pattern.count,
+          percentage: pattern.percentage
+        }
+      });
     } catch (error) {
       res.status(500).json({
         error: error instanceof Error ? error.message : 'Internal server error',

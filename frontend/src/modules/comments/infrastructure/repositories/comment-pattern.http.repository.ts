@@ -17,4 +17,10 @@ export class CommentPatternHttpRepository implements CommentPatternRepositoryPor
       API_CONFIG.ENDPOINTS.COMMENTS_PATTERNS(projectId)
     );
   }
+
+  async getPatternComments(projectId: string, patternType: string): Promise<{ comments: any[]; total: number; pattern: any }> {
+    return this._httpClient.get<{ comments: any[]; total: number; pattern: any }>(
+      `${API_CONFIG.ENDPOINTS.COMMENTS_PATTERNS(projectId)}/${patternType}/comments`
+    );
+  }
 }

@@ -17,6 +17,8 @@ export interface SynthesisInput {
   autocompleteSummary: string;
   userInsightsSummary: string;
   commentsSummary: string;
+  /** Numbered list with comment UUIDs for pattern assignment, e.g. "1. [id: uuid] \"preview\"". */
+  commentsNumberedWithIds?: string;
   commentPatternSummary?: string;
   earlySignalsSummary: string;
   /** Summaries of relevant academic research papers (optional; may be absent on first run). */

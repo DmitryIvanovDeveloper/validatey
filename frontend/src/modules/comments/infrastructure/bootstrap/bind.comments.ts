@@ -17,6 +17,7 @@ import { CommentPatternHttpRepository } from '../repositories/comment-pattern.ht
 
 // Pattern Analysis
 import { GetCommentPatternsUseCase } from '../../application/use-cases/get-comment-patterns.use-case';
+import { GetPatternCommentsUseCase } from '../../application/use-cases/get-pattern-comments.use-case';
 
 // Event Bus
 import { IAsyncEventHandler } from '../../../../infrastructure/event-bus/ports/event-handler.port';
@@ -29,6 +30,7 @@ export function bindComments(container: Container): void {
   container.bind<GetCommentsUseCase>(COMMENT_TYPES.GetCommentsUseCase).to(GetCommentsUseCase);
   container.bind<DeleteSourceUseCase>(COMMENT_TYPES.DeleteSourceUseCase).to(DeleteSourceUseCase);
   container.bind<GetCommentPatternsUseCase>(COMMENT_TYPES.GetCommentPatternsUseCase).to(GetCommentPatternsUseCase);
+  container.bind<GetPatternCommentsUseCase>(COMMENT_TYPES.GetPatternCommentsUseCase).to(GetPatternCommentsUseCase);
 
   // Presenters
   container.bind<CommentsPresenter>(COMMENT_TYPES.CommentsPresenter).to(CommentsPresenter);

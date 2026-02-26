@@ -16,6 +16,7 @@ export interface CommentPattern {
   readonly sentimentScore: number; // -1 (very negative) to +1 (very positive), 0 = neutral
   readonly confidenceScore: number; // 0-1: AI confidence in this pattern analysis
   readonly recencyScore: number; // 0-1: how recent this pattern is (1 = very recent)
+  readonly commentIds: ReadonlyArray<string>; // IDs of all comments in this pattern
   readonly examples: ReadonlyArray<CommentPatternExample>;
 }
 

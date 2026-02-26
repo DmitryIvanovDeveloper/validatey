@@ -95,6 +95,7 @@ export class GenerateSynthesisUseCase {
       });
       const comments = commentsResult.isSuccess ? commentsResult.data : [];
       const commentsSummary = this.summarizeComments(comments);
+      const commentsNumberedWithIds = this.buildNumberedCommentsWithIds(comments);
 
       // Get comment pattern analysis from stored research data (used as fallback context only)
       const commentPatternAnalysis = stored?.commentPatternAnalysis ?? null;
@@ -122,6 +123,7 @@ export class GenerateSynthesisUseCase {
         autocompleteSummary,
         userInsightsSummary,
         commentsSummary,
+        commentsNumberedWithIds: commentsNumberedWithIds || undefined,
         earlySignalsSummary,
         academicPapersSummary: academicPapersSummary || undefined,
         productHuntSummary: productHuntSummary || undefined,
@@ -135,7 +137,11 @@ export class GenerateSynthesisUseCase {
       const report: SynthesisReport = llmResult.data;
 
       // Use comment pattern analysis from synthesis report, or fall back to stored
-      const synthesisPatternAnalysis = report.commentPatternAnalysis ?? commentPatternAnalysis;
+      let synthesisPatternAnalysis = report.commentPatternAnalysis ?? commentPatternAnalysis;
+      // When LLM returns patterns without commentIds (or empty), fill from example content match so UI can show "Show N comments"
+      if (synthesisPatternAnalysis && comments.length > 0) {
+        synthesisPatternAnalysis = this.enrichPatternCommentIdsFromExamples(synthesisPatternAnalysis, comments);
+      }
 
       // Adjust verdict based on comment pattern validation score (Domain логика)
       const adjustedReport = this.adjustVerdictByCommentPatterns(report, synthesisPatternAnalysis, comments.length);
@@ -362,6 +368,76 @@ export class GenerateSynthesisUseCase {
     }
 
     return parts.length > 0 ? parts.join('. ') : 'Comments collected but no clear themes identified';
+  }
+
+  /**
+   * Build a numbered list of comments with their UUIDs for LLM pattern assignment.
+   * Used so the LLM can return commentIds as UUID strings in each pattern.
+   */
+  private buildNumberedCommentsWithIds(comments: CommentEntity[]): string {
+    if (!comments || comments.length === 0) return '';
+    const maxComments = 400;
+    const slice = comments.slice(0, maxComments);
+    const lines = slice.map((c, i) => {
+      const preview = c.content.replace(/\s+/g, ' ').trim().substring(0, 120);
+      const escaped = preview.replace(/"/g, '\\"');
+      return `${i + 1}. [id: ${c.id}] "${escaped}${c.content.length > 120 ? '...' : ''}"`;
+    });
+    return lines.join('\n');
+  }
+
+  /**
+   * When LLM returns patterns with examples but empty commentIds, resolve comment IDs by
+   * matching example content to project comments so the UI can show "Show N comments" and load from API.
+   */
+  private enrichPatternCommentIdsFromExamples(
+    analysis: CommentPatternAnalysis,
+    comments: CommentEntity[]
+  ): CommentPatternAnalysis {
+    const MAX_IDS_PER_PATTERN = 100;
+    const normalizedContent = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+    const significantWords = (s: string) =>
+      normalizedContent(s).split(/\s+/).filter((w) => w.length >= 4);
+
+    const patterns = analysis.patterns.map((p) => {
+      const hasIds = p.commentIds && p.commentIds.length > 0;
+      if (hasIds) return p;
+      const examples = p.examples ?? [];
+      if (examples.length === 0) return p;
+
+      const matchedIds = new Set<string>();
+      for (const ex of examples) {
+        const needle = normalizedContent(ex.content).slice(0, 150);
+        if (!needle) continue;
+        for (const c of comments) {
+          if (matchedIds.size >= MAX_IDS_PER_PATTERN) break;
+          const hay = normalizedContent(c.content);
+          if (hay.includes(needle) || needle.includes(hay)) {
+            matchedIds.add(c.id);
+          }
+        }
+      }
+      // Fallback: match by significant words (e.g. "structured", "feedback", "data")
+      if (matchedIds.size === 0) {
+        const allWords = new Set<string>();
+        for (const ex of examples) {
+          significantWords(ex.content).forEach((w) => allWords.add(w));
+        }
+        if (allWords.size >= 2) {
+          const wordList = Array.from(allWords);
+          for (const c of comments) {
+            if (matchedIds.size >= MAX_IDS_PER_PATTERN) break;
+            const commentWords = new Set(significantWords(c.content));
+            const matchCount = wordList.filter((w) => commentWords.has(w)).length;
+            if (matchCount >= 2) matchedIds.add(c.id);
+          }
+        }
+      }
+      if (matchedIds.size === 0) return p;
+      return { ...p, commentIds: Array.from(matchedIds) };
+    });
+
+    return { ...analysis, patterns };
   }
 
   /**

@@ -40,6 +40,7 @@ COMMENT PATTERN ANALYSIS:
   - recencyScore: 0-1 (how recent this pattern is)
 - Extract top 5-7 most significant patterns
 - For each pattern include exactly ONE short example (max 120 chars). Do NOT include more than one example per pattern.
+- A numbered list of comments is provided with format "N. [id: <uuid>] \"preview\"". For each pattern set commentIds to an array of those exact UUID strings (the <uuid> part) for every comment that belongs to this pattern. Use as many as apply; do not limit to one.
 - Focus on patterns that are relevant to the hypothesis validation
 
 ADDITIONAL ANALYTICS:
@@ -65,6 +66,7 @@ Respond with ONLY valid JSON, no markdown:
         "sentimentScore": 0.3,
         "confidenceScore": 0.85,
         "recencyScore": 0.7,
+        "commentIds": ["uuid-from-list-1", "uuid-from-list-2"],
         "examples": [{"content": "one short quote max 120 chars", "author": "Anonymous", "source": "Reddit"}]
       }
     ],
@@ -124,6 +126,9 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `Search intents (Google Autocomplete): ${input.autocompleteSummary}`,
       `User insights: ${input.userInsightsSummary}`,
       `Comments: ${input.commentsSummary}`,
+      input.commentsNumberedWithIds
+        ? `Comments numbered list (use the [id: <uuid>] values in commentIds for each pattern):\n${input.commentsNumberedWithIds}`
+        : '',
       `Early signals: ${input.earlySignalsSummary}`,
       input.academicPapersSummary ? `Academic research:\n${input.academicPapersSummary}` : '',
       input.productHuntSummary ? `Product Hunt:\n${input.productHuntSummary}` : '',
@@ -182,6 +187,9 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
             sentimentScore: typeof p.sentimentScore === 'number' ? Math.max(-1, Math.min(1, p.sentimentScore)) : 0,
             confidenceScore: typeof p.confidenceScore === 'number' ? Math.max(0, Math.min(1, p.confidenceScore)) : 0.5,
             recencyScore: typeof p.recencyScore === 'number' ? Math.max(0, Math.min(1, p.recencyScore)) : 0.5,
+            commentIds: Array.isArray(p.commentIds)
+              ? p.commentIds.filter((id: any) => typeof id === 'string' && id.length > 10)
+              : [],
           }));
 
           commentPatternAnalysis = {
