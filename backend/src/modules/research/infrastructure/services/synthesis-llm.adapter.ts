@@ -126,6 +126,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `Comments: ${input.commentsSummary}`,
       `Early signals: ${input.earlySignalsSummary}`,
       input.academicPapersSummary ? `Academic research:\n${input.academicPapersSummary}` : '',
+      input.productHuntSummary ? `Product Hunt:\n${input.productHuntSummary}` : '',
       commentMetricsSection,
     ].filter(Boolean).join('\n\n');
 

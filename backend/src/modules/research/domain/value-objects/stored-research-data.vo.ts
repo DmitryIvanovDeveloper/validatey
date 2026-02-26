@@ -5,6 +5,7 @@ import type { AutocompleteInsights } from './autocomplete-insights.vo';
 import type { UserInsightsBlock } from './user-insights-block.vo';
 import type { AssumptionAssessment } from './assumption-assessment.vo';
 import type { AcademicPapersBlock } from './academic-papers-block.vo';
+import type { ProductHuntBlock } from './product-hunt-block.vo';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 import type { ResearchStatus } from './research-status.vo';
 
@@ -19,6 +20,7 @@ export interface StoredResearchData {
 	readonly assumptionAssessments: AssumptionAssessment[] | null;
 	readonly commentPatternAnalysis: CommentPatternAnalysis | null;
 	readonly academicPapers: AcademicPapersBlock | null;
+	readonly productHunt: ProductHuntBlock | null;
 	readonly lastResearchRunAt: Date | null;
 	readonly updatedAt: Date;
 	/** Current research phase; used to restore "in progress" state after page reload. */

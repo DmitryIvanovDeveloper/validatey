@@ -21,6 +21,12 @@ export interface AssumptionAssessmentContext {
 	readonly earlySignalsSummary: string;
 	/** Summaries of relevant academic research papers that may support or contradict assumptions. */
 	readonly academicPapersSummary?: string;
+	/**
+	 * Pre-computed per-assumption thematic comment counts.
+	 * Key = assumptionId, value = number of comments matching the assumption's keywords.
+	 * These are hard facts — LLM must use them in evidence instead of estimating "~0".
+	 */
+	readonly thematicCounts?: Record<string, number>;
 }
 
 export interface AssumptionAssessmentLlmPort {

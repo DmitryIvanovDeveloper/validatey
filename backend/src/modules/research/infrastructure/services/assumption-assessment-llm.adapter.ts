@@ -9,6 +9,9 @@ import type { AssumptionAssessment, AssumptionStatus } from '../../domain/value-
 
 const AI_PROXY_URL = process.env.SYNTHESIS_LLM_URL || process.env.LLM_SERVICE_URL || 'https://cerebras-api.vercel.app/api/prompt';
 
+// Use configurable model for analysis - defaults to llama3.3-70b, can be set to gpt-4-turbo for larger context
+const ANALYSIS_MODEL = process.env.ANALYSIS_MODEL || 'llama3.3-70b';
+
 const SYSTEM_PROMPT = `You are a product research analyst. Your output appears in a product dashboard under "Key Assumptions". Each assumption gets a status and an evidence sentence shown directly to the founder.
 
 Process EVERY assumption using the following 4 steps. Output ONLY the final JSON — do not output step-by-step reasoning.
@@ -17,38 +20,33 @@ STEP 1 — Identify audience groups from the hypothesis.
 Read the "Project hypothesis". Extract every distinct audience the user mentions (e.g. "entrepreneurs", "potential users", "investors", "B2B buyers", "teachers", "developers" — whatever the hypothesis says). These are SEPARATE groups; data from one cannot confirm claims about another. If the hypothesis does not name any audience, treat the product as having one audience (e.g. "users" or "customers") and use that as the single group.
 
 STEP 2 — For each assumption, identify the ACTOR GROUP and BEHAVIOR.
-  ACTOR GROUP = match the subject of this assumption to one of the groups you listed in STEP 1.
-    - Use the STEP 1 groups as the canonical list. Do NOT create new group names.
-    - Strip all qualifiers from the assumption text. Examples:
-        "Entrepreneurs in indie communities" → ACTOR GROUP = "entrepreneurs" (from STEP 1)
-        "Early-stage investors" → ACTOR GROUP = "investors" (from STEP 1)
-        "Potential users browsing the page" → ACTOR GROUP = "potential users" (from STEP 1)
-  BEHAVIOR = what specific action or belief is being claimed about that group?
+  ACTOR GROUP = the human audience group that performs the action or holds the belief.
+    - ACTOR must always be a group of people (e.g. "founders", "users", "investors") — NEVER a topic, a fear, or an abstract concept (e.g. "fear of idea theft" is NOT an actor; the actor is "founders" who fear it).
+    - Match ACTOR to one of the groups from STEP 1. Use the STEP 1 list as canonical; do NOT invent new group names.
+    - Strip all qualifiers: "Entrepreneurs in indie communities" → "entrepreneurs"; "Early-stage investors" → "investors".
+  BEHAVIOR = what specific action or belief is being claimed about that ACTOR GROUP?
 
 STEP 3 — Check audience coverage, then check behavior evidence.
-The "Data sources" section starts with "AUDIENCE COVERAGE" — a pre-computed table. Read it first.
-It shows exactly which audience groups have data and how many comments exist for each.
+The "Data sources" section starts with "Total comments in this analysis: N" and then "AUDIENCE COVERAGE". Read both.
+- The "THEMATIC COUNTS" block gives you pre-computed, keyword-based counts of how many comments match each assumption's core topic across ALL collected comments. Use these as hard facts in your evidence: "Of [total] comments, ~N match the topic of this assumption" — where N comes from THEMATIC COUNTS, NOT from your own estimate. The total is in "Total comments in this analysis: N".
+- Comments block shows filtered, relevant comments (up to 35 per source) — do NOT estimate counts from the sample; always use THEMATIC COUNTS.
+- Do NOT cite only a subset of sources (e.g. "6 from r/X, r/Y") — cite the thematic count and total.
 
-  3a. SOURCE audience match — find the ACTOR's coverage line by substring search.
-      The AUDIENCE COVERAGE table uses slash-separated labels like:
+  3a. SOURCE audience match — check the ACTOR GROUP against the AUDIENCE COVERAGE table.
+      The table uses slash-separated labels, e.g.:
         [audience: entrepreneurs / founders / indie hackers / solopreneurs / bootstrappers / startup founders / builders]
-      To match: check if the ACTOR GROUP word appears anywhere inside the [audience: ...] label text.
-      Examples:
-        ACTOR = "founders"      → "founders" appears in the label above → MATCH ✓
-        ACTOR = "indie hackers" → "indie hackers" appears in the label above → MATCH ✓
-        ACTOR = "VCs"           → "VCs" appears in [audience: investors / VCs / ...] → MATCH ✓
-        ACTOR = "end users"     → "end users" appears in [audience: potential users / end users / ...] → MATCH ✓
-      If NO coverage line contains the ACTOR word → status = "need_more",
-        evidence = "AUDIENCE COVERAGE has no data for [ACTOR GROUP] — collected data is from [list labels marked ✓]. Need [research type] with actual [ACTOR GROUP] respondents."
-      If a matching line EXISTS and is marked ✓ → data from that audience exists → continue to 3b.
+      MATCH RULE: if the ACTOR word (or any close synonym) appears ANYWHERE inside the [audience: ...] label text → it is a MATCH. "founders" inside "entrepreneurs / founders / ..." → MATCH ✓.
+      IMPORTANT: "entrepreneurs", "founders", "indie hackers", "startup founders", "solopreneurs", "builders" all refer to the SAME audience group in this table. If the assumption is about "founders" and the table has a ✓ line with "founders" in the label, that is a MATCH — do NOT write "no data for founders".
+      If a matching ✓ line EXISTS → continue to 3b.
+      Only if NO line in the whole table contains the ACTOR word → status = "need_more",
+        evidence = "No comments collected about [ACTOR GROUP] — data covers [list ✓ labels]. Need [research type] with [ACTOR GROUP]."
 
-  3b. BEHAVIOR evidence — what do those comments say:
-      From the comments block, look for direct evidence of BEHAVIOR from ACTOR audience.
+  3b. BEHAVIOR evidence — what do the matched comments say about the BEHAVIOR?
       Direct evidence = people explicitly stating intent, describing actions, A/B results, beta feedback.
       NOT direct evidence = pain-point complaints, general frustrations, problem descriptions.
       If direct behavioral evidence found → status = "confirmed", cite the specific data.
       If NOT found → status = "need_more",
-        evidence = "[ACTOR] pain/context IS confirmed — AUDIENCE COVERAGE shows [N] [ACTOR] comments from [sources]. Comments show [one sentence on what they say about the problem]. But behavioral evidence that [BEHAVIOR] occurs is missing — need [specific research: e.g. beta test / user interviews / A/B experiment]."
+        evidence = "[ACTOR] context IS confirmed — of [total] comments, ~[N from THEMATIC COUNTS] match the topic of this assumption; sample comments show [one sentence on the dominant theme from the Comments sample]. But behavioral evidence that [BEHAVIOR] occurs is missing — need [specific research: e.g. beta test / user interviews / A/B experiment]."
 
 STEP 4 — Check for contradictions.
 If comments or insights directly contradict the assumption → status = "not_supported", explain what the data says instead.
@@ -89,7 +87,12 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
       `Verdict: ${context.verdict}`,
       `User insights: ${context.userInsightsSummary}`,
       context.dataSourcesSummary ? `Data sources:\n${context.dataSourcesSummary}` : '',
-      `Comments: ${context.commentsSummary}`,
+      context.thematicCounts
+        ? `THEMATIC COUNTS (pre-computed keyword matches from ALL ${Object.values(context.thematicCounts).reduce((a, b) => Math.max(a, b), 0) > 0 ? 'comments' : 'comments'}, hard facts — use these as the on-topic count in evidence):\n${
+            assumptions.map(a => `  Assumption ${a.assumptionId}: ~${context.thematicCounts![a.assumptionId] ?? 0} comments match its core keywords`).join('\n')
+          }`
+        : '',
+      `Comments (filtered by relevance to assumptions, up to 35 per source — see THEMATIC COUNTS above for full-corpus numbers):\n${context.commentsSummary}`,
       context.commentPatternSummary ? `Comment patterns: ${context.commentPatternSummary}` : '',
       `Early signals: ${context.earlySignalsSummary}`,
       context.academicPapersSummary ? `Academic research:\n${context.academicPapersSummary}` : '',
@@ -99,12 +102,13 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
 
     try {
       // max_tokens scales with number of assumptions: ~300 tokens per assumption for evidence + status
-      const maxTokens = Math.max(4096, assumptions.length * 350);
+      // Keep conservative to avoid API timeouts
+      const maxTokens = Math.max(4096, assumptions.length * 300);
       const response = await this._http.post<{ response?: string }>(
         AI_PROXY_URL,
         {
           prompt: fullPrompt,
-          model: 'llama3.3-70b',
+          model: ANALYSIS_MODEL,
           max_tokens: maxTokens,
         },
         { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)' }

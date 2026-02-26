@@ -64,7 +64,7 @@ export class FetchCommentsUseCase {
           createdAt: rawComment.createdAt,
           fetchedAt: new Date(),
           importOrigin: 'api_fetch',
-          subsourceName: input.sourceType === 'reddit' ? source.subredditName || null : null,
+          subsourceName: source.subredditName ?? source.getDisplayName(),
         });
       });
 

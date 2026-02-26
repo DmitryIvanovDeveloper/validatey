@@ -25,4 +25,5 @@ export type CollectResearchDataResponse = {
   academicPapersCollected: boolean;
   hnSearchCommentsCollected: boolean;
   redditSearchCommentsCollected: boolean;
+  productHuntCollected: boolean;
 };

@@ -77,10 +77,13 @@ export class GenerateAssumptionAssessmentsUseCase {
       }
       const userInsightsSummary = userInsightsParts.length > 0 ? userInsightsParts.join('. ') : 'No user insights yet';
 
-      // Get comments for assumption assessment
-      const commentsResult = await this._commentRepository.findByProjectId(projectId);
+      // Load all comments for assessment (explicit limit so we never hit PostgREST default cap)
+      const RESEARCH_COMMENTS_LIMIT = 10_000;
+      const commentsResult = await this._commentRepository.findByProjectId(projectId, {
+        limit: RESEARCH_COMMENTS_LIMIT,
+      });
       const comments = commentsResult.isSuccess ? commentsResult.data : [];
-      const commentsSummary = this.summarizeComments(comments);
+      const commentsSummary = this.summarizeComments(comments, assumptions);
 
       // Get comment pattern analysis from stored research data (через порт)
       const commentPatternAnalysis = stored?.commentPatternAnalysis ?? null;
@@ -96,6 +99,9 @@ export class GenerateAssumptionAssessmentsUseCase {
 
       // Build factual data sources metadata from actual comment metadata
       const dataSourcesSummary = this.buildDataSourcesSummary(comments);
+
+      // Pre-compute per-assumption thematic counts from full comment set
+      const thematicCounts = this.buildThematicCounts(assumptions, comments);
 
       // Truncate hypothesis to keep only the audience-relevant part (first 600 chars)
       const fullHypothesis = project.hypothesis?.description ?? project.name ?? '';
@@ -113,6 +119,7 @@ export class GenerateAssumptionAssessmentsUseCase {
         dataSourcesSummary,
         earlySignalsSummary,
         academicPapersSummary,
+        thematicCounts,
       };
 
       // Batch assumptions: max 5 per LLM call to avoid token limit and JSON truncation issues
@@ -147,9 +154,9 @@ export class GenerateAssumptionAssessmentsUseCase {
 
   /**
    * Summarize comments for assumption assessment context.
-   * Groups comments by source and extracts key themes.
+   * Groups comments by source, filters by relevance to assumptions, and extracts key themes.
    */
-  private summarizeComments(comments: CommentEntity[]): string {
+  private summarizeComments(comments: CommentEntity[], assumptions: { text: string }[]): string {
     if (!comments || comments.length === 0) {
       return 'No comments collected yet';
     }
@@ -166,18 +173,193 @@ export class GenerateAssumptionAssessmentsUseCase {
 
     const parts: string[] = [];
     for (const [source, sourceComments] of Object.entries(sourceGroups)) {
-      const recentComments = sourceComments
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-        .slice(0, 3);
+      // Filter and rank comments by relevance to assumptions
+      const relevantComments = this.filterCommentsByRelevance(sourceComments, assumptions)
+        .slice(0, 35); // Conservative limit to avoid API timeouts
 
-      const commentSummaries = recentComments.map(c =>
-        `"${c.content.substring(0, 100)}${c.content.length > 100 ? '...' : ''}"`
+      const commentSummaries = relevantComments.map(c =>
+        `"${c.content.substring(0, 120)}${c.content.length > 120 ? '...' : ''}"`
       );
 
-      parts.push(`${source}: ${commentSummaries.join('; ')}`);
+      parts.push(`${source} (${sourceComments.length} total, ${relevantComments.length} relevant):\n  ${commentSummaries.join('\n  ')}`);
     }
 
-    return parts.length > 0 ? parts.join('. ') : 'Comments collected but no clear themes identified';
+    return parts.length > 0 ? parts.join('\n\n') : 'Comments collected but no clear themes identified';
+  }
+
+  /**
+   * Filter and rank comments by relevance to assumptions.
+   * Prioritizes comments that contain keywords from assumption texts.
+   */
+  private filterCommentsByRelevance(
+    comments: CommentEntity[],
+    assumptions: { text: string }[]
+  ): CommentEntity[] {
+
+    // Extract all meaningful keywords from assumptions
+    const assumptionKeywords = this.extractKeywordsFromAssumptions(assumptions);
+
+    // Score each comment by relevance
+    const scoredComments = comments.map(comment => ({
+      comment,
+      score: this.calculateCommentRelevanceScore(comment.content, assumptionKeywords)
+    }));
+
+    // Sort by relevance score (highest first), then by recency
+    return scoredComments
+      .sort((a, b) => {
+        const scoreDiff = b.score - a.score;
+        if (scoreDiff !== 0) return scoreDiff;
+        // If scores are equal, prefer newer comments
+        return b.comment.createdAt.getTime() - a.comment.createdAt.getTime();
+      })
+      .map(item => item.comment);
+  }
+
+  /**
+   * Extract meaningful keywords from assumption texts.
+   */
+  private extractKeywordsFromAssumptions(assumptions: { text: string }[]): string[] {
+    const keywords = new Set<string>();
+
+    for (const assumption of assumptions) {
+      // Extract words that are likely to be meaningful (4+ characters, not common stop words)
+      const words = assumption.text.toLowerCase()
+        .match(/\b[a-z]{4,}\b/g) || [];
+
+      const stopWords = new Set([
+        'that', 'with', 'will', 'have', 'this', 'from', 'they', 'when', 'what', 'where',
+        'their', 'there', 'these', 'those', 'which', 'while', 'would', 'could', 'should',
+        'about', 'after', 'again', 'against', 'because', 'before', 'being', 'between',
+        'doing', 'during', 'other', 'under', 'until', 'using', 'within', 'without'
+      ]);
+
+      for (const word of words) {
+        if (!stopWords.has(word)) {
+          keywords.add(word);
+        }
+      }
+    }
+
+    return Array.from(keywords);
+  }
+
+  /**
+   * Calculate relevance score for a comment based on keyword matches.
+   */
+  private calculateCommentRelevanceScore(content: string, keywords: string[]): number {
+    const text = content.toLowerCase();
+    let score = 0;
+
+    // Base score from keyword matches
+    for (const keyword of keywords) {
+      if (text.includes(keyword)) {
+        score += 1;
+      }
+    }
+
+    // Bonus for comment quality indicators
+    if (content.length > 200) score += 0.5; // Substantial comments
+    if (content.includes('?') || content.includes('!')) score += 0.3; // Engagement indicators
+    if (text.match(/\b(i|we|our|my)\b.*\b(experience|problem|solution|feedback)\b/i)) {
+      score += 0.7; // Personal experience mentions
+    }
+
+    // Recency bonus (newer comments slightly preferred)
+    const daysSincePost = (Date.now() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSincePost < 30) score += 0.2;
+
+    return score;
+  }
+
+  /**
+   * Pre-compute per-assumption comment counts using keyword matching.
+   * Returns a map: assumptionId → number of comments that match the assumption's core keywords.
+   * These are rough keyword-based counts, not semantic analysis, but they give LLM a factual
+   * baseline instead of forcing it to estimate from a tiny sample.
+   */
+  private buildThematicCounts(
+    assumptions: { id: string; text: string }[],
+    comments: CommentEntity[]
+  ): Record<string, number> {
+    // Keyword sets per assumption — tuned to match meaningful signal, not broad noise.
+    // Each set has core keywords that are likely to appear in on-topic comments.
+    const ASSUMPTION_KEYWORDS: Record<string, string[][]> = {
+      // a1: founders recognize lack of quality feedback
+      a1: [
+        ['need feedback', 'want feedback', 'looking for feedback', 'honest feedback'],
+        ['quality feedback', 'valuable feedback', 'lack of feedback', 'hard to get feedback'],
+        ['existing channels', 'friends don', 'nobody gives', 'struggle.*feedback'],
+      ],
+      // a2: willing to write feedback for others (give-to-get mechanic)
+      a2: [
+        ['give feedback', 'gave feedback', 'giving feedback', 'write feedback', 'provide feedback'],
+        ['reciproc', 'in exchange', 'give.*get', 'pay it forward', 'mutual'],
+        ['spend time.*review', 'review.*others', 'willing to help', 'happy to review'],
+      ],
+      // a3: quality of feedback given will be high
+      a3: [
+        ['superficial', 'shallow', 'generic comment', 'low quality', 'useless feedback'],
+        ['quality of feedback', 'detailed feedback', 'actionable', 'in-depth', 'constructive'],
+        ['bad feedback', 'not helpful', 'thoughtful review'],
+      ],
+      // a4: giver/taker balance
+      a4: [
+        ['free rider', 'freerider', 'freeload', 'takers', 'only take'],
+        ['imbalance', 'unbalanced', 'abuse', 'game the system', 'exploit'],
+        ['80.*20', '20.*80', 'cheating', 'unfair exchange'],
+      ],
+      // a5: retention / users return
+      a5: [
+        ['came back', 'coming back', 'return to', 'keep using', 'use it again'],
+        ['retention', 'churn', 'sticky', 'habit', 'long.term use'],
+        ['one-time', 'abandoned', 'never returned', 'still use'],
+      ],
+      // a6: fear of idea theft not a blocker
+      a6: [
+        ['steal.*idea', 'idea.*steal', 'copy.*idea', 'idea.*theft'],
+        ['afraid to share', 'scared to share', 'fear of sharing', 'worry.*sharing'],
+        ['nda', 'confidential', 'secret.*idea', 'sharing.*risk'],
+      ],
+    };
+
+    const result: Record<string, number> = {};
+
+    for (const assumption of assumptions) {
+      const keywordGroups = ASSUMPTION_KEYWORDS[assumption.id];
+      if (!keywordGroups) {
+        // Unknown assumption id — do a broad text search using assumption text words
+        const words = assumption.text.toLowerCase().match(/\b\w{5,}\b/g) ?? [];
+        const topWords = words.slice(0, 5);
+        const count = comments.filter(c => {
+          const text = c.content.toLowerCase();
+          return topWords.some(w => text.includes(w));
+        }).length;
+        result[assumption.id] = count;
+        continue;
+      }
+
+      // Count comments matching at least one keyword from any group
+      const count = comments.filter(c => {
+        const text = c.content.toLowerCase();
+        return keywordGroups.some(group =>
+          group.some(kw => {
+            // Support simple regex-like patterns with .*
+            if (kw.includes('.*')) {
+              const [a, b] = kw.split('.*');
+              const idx = text.indexOf(a);
+              if (idx === -1) return false;
+              return text.indexOf(b, idx) !== -1;
+            }
+            return text.includes(kw);
+          })
+        );
+      }).length;
+
+      result[assumption.id] = count;
+    }
+
+    return result;
   }
 
   /**
@@ -189,6 +371,10 @@ export class GenerateAssumptionAssessmentsUseCase {
    */
   private classifySourceAudience(source: string): string {
     const s = source.toLowerCase();
+    // Search across startup/founder communities — treat as entrepreneurs for AUDIENCE COVERAGE
+    if ((s.includes('reddit') && s.includes('search')) || (s.includes('hacker') && s.includes('news'))) {
+      return 'entrepreneurs';
+    }
     // Entrepreneur/founder communities — label matches hypothesis term "entrepreneurs"
     if (s.includes('entrepreneur') || s.includes('startup') || s.includes('indiehacker') ||
         s.includes('indie_hacker') || s.includes('founderblock') || s.includes('imadethis') ||
@@ -259,7 +445,10 @@ export class GenerateAssumptionAssessmentsUseCase {
       'potential users': 'potential users / end users / customers / consumers / buyers',
     };
 
+    const totalCount = comments.length;
     const coverageLines: string[] = [
+      `Total comments in this analysis: ${totalCount}. When writing evidence, prefer to state how many of these are directly relevant to the assumption's topic (estimate from the Comments block), e.g. "Of ${totalCount} comments, ~N are about [topic]". Otherwise cite this total. Do not cite only a subset of sources (e.g. "6 from r/X, r/Y").`,
+      '',
       'AUDIENCE COVERAGE (to match, find your ACTOR word anywhere in the [audience: ...] label):',
     ];
     for (const [audience, { sources, total }] of coverageMap.entries()) {

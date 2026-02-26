@@ -21,6 +21,8 @@ export interface SynthesisInput {
   earlySignalsSummary: string;
   /** Summaries of relevant academic research papers (optional; may be absent on first run). */
   academicPapersSummary?: string;
+  /** Product Hunt launches relevant to the hypothesis (optional). */
+  productHuntSummary?: string;
   /** Hard factual comment metrics passed directly to LLM to ground its verdict decision. */
   commentMetrics?: CommentMetrics;
 }

@@ -6,6 +6,7 @@ export const TYPES = {
   AutocompleteApi: Symbol.for('AutocompleteApi'),
   AutocompleteDataProvider: Symbol.for('AutocompleteDataProvider'),
   AcademicPapersProvider: Symbol.for('AcademicPapersProvider'),
+  ProductHuntProvider: Symbol.for('ProductHuntProvider'),
   ResearchAssistantLlm: Symbol.for('ResearchAssistantLlm'),
   SynthesisLlm: Symbol.for('SynthesisLlm'),
   AssumptionAssessmentLlm: Symbol.for('AssumptionAssessmentLlm'),

@@ -27,6 +27,7 @@ import type { Response } from '../../../responses/domain/entities/response.entit
 import { CommentEntity } from '../../../comments/domain/entities/comment.entity';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 import type { AcademicPapersBlock } from '../../domain/value-objects/academic-papers-block.vo';
+import type { ProductHuntBlock, ProductHuntPost } from '../../domain/value-objects/product-hunt-block.vo';
 import type { CommentMetrics } from '../ports/synthesis-llm.port';
 
 @injectable()
@@ -87,8 +88,11 @@ export class GenerateSynthesisUseCase {
       const responses = responsesResult.isSuccess ? responsesResult.data : [];
       const userInsightsSummary = this.summarizeUserInsights(responses);
 
-      // Get comments from social media
-      const commentsResult = await this._commentRepository.findByProjectId(projectId);
+      // Load all comments for synthesis (explicit limit so we never hit PostgREST default cap)
+      const RESEARCH_COMMENTS_LIMIT = 10_000;
+      const commentsResult = await this._commentRepository.findByProjectId(projectId, {
+        limit: RESEARCH_COMMENTS_LIMIT,
+      });
       const comments = commentsResult.isSuccess ? commentsResult.data : [];
       const commentsSummary = this.summarizeComments(comments);
 
@@ -105,6 +109,7 @@ export class GenerateSynthesisUseCase {
         : 'No early signals yet';
 
       const academicPapersSummary = this.summarizeAcademicPapers(stored?.academicPapers ?? null);
+      const productHuntSummary = this.summarizeProductHunt(stored?.productHunt ?? null);
 
       // Build hard factual comment metrics to ground LLM verdict decision
       const commentMetrics = this.buildCommentMetrics(comments);
@@ -119,6 +124,7 @@ export class GenerateSynthesisUseCase {
         commentsSummary,
         earlySignalsSummary,
         academicPapersSummary: academicPapersSummary || undefined,
+        productHuntSummary: productHuntSummary || undefined,
         commentMetrics,
       });
 
@@ -157,6 +163,7 @@ export class GenerateSynthesisUseCase {
         assumptionAssessments: stored?.assumptionAssessments ?? null,
         commentPatternAnalysis: synthesisPatternAnalysis, // Use analysis from synthesis
         academicPapers: stored?.academicPapers ?? null,
+        productHunt: stored?.productHunt ?? null,
         lastResearchRunAt: stored?.lastResearchRunAt ?? null,
         updatedAt: now,
         researchStatus: 'idle',
@@ -572,4 +579,11 @@ export class GenerateSynthesisUseCase {
     return `Academic research (query: "${block.searchQuery}"):\n${lines.join('\n')}`;
   }
 
+  private summarizeProductHunt(block: ProductHuntBlock | null): string {
+    if (!block || block.posts.length === 0) return '';
+    const lines = block.posts.slice(0, 10).map(
+      (p: ProductHuntPost) => `"${p.name}" — ${p.tagline}${p.votesCount != null ? ` (${p.votesCount} votes)` : ''}`
+    );
+    return `Product Hunt launches (query: "${block.searchQuery}"):\n${lines.join('\n')}`;
+  }
 }

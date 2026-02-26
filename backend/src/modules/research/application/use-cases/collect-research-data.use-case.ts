@@ -13,6 +13,7 @@ import type { AutocompleteDataProviderPort } from '../ports/autocomplete-data-pr
 import type { AcademicPapersProviderPort } from '../ports/academic-papers-provider.port';
 import type { HnSearchCommentsCollectorPort } from '../ports/hn-search-comments-collector.port';
 import type { RedditSearchCommentsCollectorPort } from '../ports/reddit-search-comments-collector.port';
+import type { ProductHuntProviderPort } from '../ports/product-hunt-provider.port';
 import { ResearchNotFoundError, ResearchCooldownError } from '../../domain/errors/research.error';
 import type { StoredResearchData } from '../../domain/value-objects/stored-research-data.vo';
 import { CheckResearchAvailabilityUseCase } from './check-research-availability.use-case';
@@ -66,7 +67,9 @@ export class CollectResearchDataUseCase {
     @inject(RESEARCH_TYPES.HnSearchCommentsCollector)
     private readonly _hnSearchCollector: HnSearchCommentsCollectorPort,
     @inject(RESEARCH_TYPES.RedditSearchCommentsCollector)
-    private readonly _redditSearchCollector: RedditSearchCommentsCollectorPort
+    private readonly _redditSearchCollector: RedditSearchCommentsCollectorPort,
+    @inject(RESEARCH_TYPES.ProductHuntProvider)
+    private readonly _productHuntProvider: ProductHuntProviderPort
   ) {}
 
   async execute(
@@ -109,7 +112,7 @@ export class CollectResearchDataUseCase {
 
       const searchQuery = await this.buildSearchQuery(intent);
 
-      const [marketResult, competitorResult, autocompleteResult, academicPapersResult, hnSearchResult, redditSearchResult] =
+      const [marketResult, competitorResult, autocompleteResult, academicPapersResult, hnSearchResult, redditSearchResult, productHuntResult] =
         await Promise.all([
           this._marketDataProvider.fetchMarketData(projectId, intent),
           this._competitorDataProvider.fetchCompetitorData(projectId, intent),
@@ -121,6 +124,9 @@ export class CollectResearchDataUseCase {
           searchQuery
             ? this._redditSearchCollector.collect(projectId, searchQuery)
             : Promise.resolve(ResultEx.success({ count: 0 })),
+          searchQuery
+            ? this._productHuntProvider.fetchProductHunt(projectId, searchQuery)
+            : Promise.resolve(ResultEx.success(null)),
         ]);
 
       const marketData = marketResult.isSuccess ? marketResult.data : null;
@@ -129,6 +135,7 @@ export class CollectResearchDataUseCase {
       const academicPapers = academicPapersResult.isSuccess ? academicPapersResult.data : null;
       const hnSearchCount = hnSearchResult.isSuccess ? hnSearchResult.data.count : 0;
       const redditSearchCount = redditSearchResult.isSuccess ? redditSearchResult.data.count : 0;
+      const productHunt = productHuntResult.isSuccess ? productHuntResult.data : null;
 
       const existingResult = await this._researchDataRepository.findByProjectId(projectId);
       const existing = existingResult.isSuccess ? existingResult.data : null;
@@ -144,6 +151,7 @@ export class CollectResearchDataUseCase {
         assumptionAssessments: existing?.assumptionAssessments ?? null,
         commentPatternAnalysis: existing?.commentPatternAnalysis ?? null,
         academicPapers: academicPapers ?? existing?.academicPapers ?? null,
+        productHunt: productHunt ?? existing?.productHunt ?? null,
         lastResearchRunAt: now,
         updatedAt: now,
         researchStatus: 'idle',
@@ -162,6 +170,7 @@ export class CollectResearchDataUseCase {
         academicPapersCollected: academicPapers != null,
         hnSearchCommentsCollected: hnSearchCount > 0,
         redditSearchCommentsCollected: redditSearchCount > 0,
+        productHuntCollected: productHunt != null,
       });
     } catch (error) {
       this._logger.error('collect-research-data.exception', { projectId, error });

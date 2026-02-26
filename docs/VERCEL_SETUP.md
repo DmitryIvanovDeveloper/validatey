@@ -21,7 +21,8 @@
   - `SUPABASE_ANON_KEY` = ваш Supabase anon key
   - `FRONTEND_ORIGIN` = `https://validatey.vercel.app` (для CORS и cookie)
   - `COMMENT_FETCH_USE_JOBS` = `false` (для Vercel, где job система не работает; по умолчанию `true` для обратной совместимости)
-  - Остальные по необходимости: `CEREBRAS_API_KEY`, `PORT`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` и т.д. (см. backend/env.example)
+  - **Product Hunt (Algolia):** при необходимости обновить ключ/индекс — `PRODUCT_HUNT_ALGOLIA_APP_ID`, `PRODUCT_HUNT_ALGOLIA_API_KEY`, `PRODUCT_HUNT_ALGOLIA_INDEX` (по умолчанию в коде стоят значения из публичной документации PH; если ключи не заданы, блок Product Hunt пропускается).
+  - Остальные по необходимости: `CEREBRAS_API_KEY`, `PORT`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` и т.д.
 
 ## Puppeteer на Vercel
 
