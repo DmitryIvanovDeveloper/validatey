@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import type { ProjectRepositoryPort, CreateProjectData, UpdateProjectData } from '../../application/ports/project-repository.port';
+import type { ProjectRepositoryPort, CreateProjectData, UpdateProjectData, GetProjectByIdOptions } from '../../application/ports/project-repository.port';
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { sessionManager } from '../../../../shared/services/session-manager';
@@ -67,8 +67,23 @@ export class ProjectRepository implements ProjectRepositoryPort {
     }
   }
 
-  async getById(id: string): Promise<Result<Project, ProjectNotFoundError>> {
+  async getMetaByPublicSlug(slug: string): Promise<Result<{ id: string; name: string; publicSlug: string }, ProjectNotFoundError>> {
     try {
+      const meta = await this._httpClient.get<{ id: string; name: string; publicSlug: string }>(
+        API_CONFIG.ENDPOINTS.PUBLIC_PROJECT_BY_SLUG(slug)
+      );
+      if (!meta?.id) return Result.failure(new ProjectNotFoundError(slug));
+      return Result.success({ id: meta.id, name: meta.name, publicSlug: meta.publicSlug ?? slug });
+    } catch {
+      return Result.failure(new ProjectNotFoundError(slug));
+    }
+  }
+
+  async getById(id: string, options?: GetProjectByIdOptions): Promise<Result<Project, ProjectNotFoundError>> {
+    try {
+      const url = options?.guestSlug
+        ? API_CONFIG.ENDPOINTS.PROJECT_WITH_GUEST(id, options.guestSlug)
+        : API_CONFIG.ENDPOINTS.PROJECT(id);
       const response = await this._httpClient.get<{
         project: {
           id: string;
@@ -90,7 +105,7 @@ export class ProjectRepository implements ProjectRepositoryPort {
           captchaEnabled?: boolean;
           scenarioTemplateSlug?: string | null;
         };
-      }>(API_CONFIG.ENDPOINTS.PROJECT(id));
+      }>(url);
 
       const projectData = response.project;
       const createdAt = projectData.createdAt != null ? new Date(projectData.createdAt) : new Date();

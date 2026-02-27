@@ -10,6 +10,61 @@ import { sessionManager } from '../../../../shared/services/session-manager';
 
 @injectable()
 export class WorkspaceListPresenter {
+  readonly labels = {
+    pageTitle: 'Workspaces',
+    pageSubtitle: 'Organize your projects into workspaces',
+    breadcrumbWorkspaces: 'Workspaces',
+    newWorkspace: '+ New Workspace',
+    loadingWorkspaces: 'Loading workspaces…',
+    errorPresenterNotInitialized: 'ERROR: Presenter not initialized!',
+    emptyTitle: 'Create your first workspace',
+    emptyDescription: 'Workspaces help you organize your projects. Create your first workspace to get started.',
+    createWorkspace: 'Create workspace',
+    createProject: 'Create Project',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleting: 'Deleting...',
+    editAria: (name: string) => `Edit ${name}`,
+    deleteAria: (name: string) => `Delete ${name}`,
+    createModalTitle: 'Create New Workspace',
+    createModalIconLabel: 'Icon (optional)',
+    createModalLoadIcon: 'Load icon',
+    createModalNameLabel: 'Workspace Name',
+    createModalNamePlaceholder: 'e.g. Product Validation, Marketing Research',
+    createModalNameHelp: 'Choose a descriptive name for your workspace. You can change it later.',
+    cancel: 'Cancel',
+    createWorkspaceButton: 'Create Workspace',
+    creating: 'Creating...',
+    editModalTitle: 'Edit Workspace',
+    editModalIconLabel: 'Icon',
+    editModalNamePlaceholder: 'Workspace name',
+    updateWorkspace: 'Update Workspace',
+    updating: 'Updating...',
+    deleteModalTitle: 'Delete Workspace',
+    deleteModalConfirmTitle: 'Are you sure you want to delete this workspace?',
+    deleteModalConfirmDescription: 'This action cannot be undone. This will permanently delete the',
+    deleteModalConfirmSuffix: 'workspace and all associated projects.',
+    deleteModalTypeConfirm: 'Type',
+    deleteModalTypeConfirmSuffix: 'to delete this workspace:',
+    deleteModalConfirmPlaceholder: 'confirm',
+    deleteWorkspaceButton: 'Delete Workspace',
+    deletingButton: 'Deleting...',
+    cardOpenWorkspace: 'Open Workspace',
+    cardCreated: 'Created',
+    sidebarTitle: 'Workspaces',
+    sidebarNewWorkspace: 'New workspace',
+    sidebarAllWorkspaces: 'All workspaces',
+    sidebarEdit: 'Edit',
+    sidebarDelete: 'Delete',
+    sidebarManageAria: (name: string) => `Manage ${name}`,
+    errorLoadWorkspaces: 'Failed to load workspaces',
+    errorCreateWorkspace: 'Failed to create workspace',
+    errorUpdateWorkspace: 'Failed to update workspace',
+    errorDeleteWorkspace: 'Failed to delete workspace',
+    errorUploadIcon: 'Failed to upload icon',
+    errorInvalidUploadResponse: 'Invalid upload response',
+  };
+
   public viewModel: WorkspaceListViewModel = reactive({
     workspaces: [],
     loading: false,
@@ -47,7 +102,7 @@ export class WorkspaceListPresenter {
       }
       this.viewModel.workspaces = result.data.workspaces;
     } catch (error) {
-      this.viewModel.error = error instanceof Error ? error.message : 'Failed to load workspaces';
+      this.viewModel.error = error instanceof Error ? error.message : this.labels.errorLoadWorkspaces;
     } finally {
       this.viewModel.loading = false;
     }
@@ -68,7 +123,7 @@ export class WorkspaceListPresenter {
       await this.loadWorkspaces();
       return workspace;
     } catch (error) {
-      this.viewModel.error = error instanceof Error ? error.message : 'Failed to create workspace';
+      this.viewModel.error = error instanceof Error ? error.message : this.labels.errorCreateWorkspace;
       throw error;
     } finally {
       this.viewModel.creatingWorkspace = false;
@@ -121,7 +176,7 @@ export class WorkspaceListPresenter {
       // Remove the workspace from the list
       this.viewModel.workspaces = this.viewModel.workspaces.filter(w => w.id !== workspaceId);
     } catch (error) {
-      this.viewModel.error = error instanceof Error ? error.message : 'Failed to delete workspace';
+      this.viewModel.error = error instanceof Error ? error.message : this.labels.errorDeleteWorkspace;
       throw error;
     } finally {
       this.viewModel.deletingWorkspaceId = null;

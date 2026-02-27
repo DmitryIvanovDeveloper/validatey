@@ -6,19 +6,29 @@ import { OverviewController } from '../controllers/overview.controller';
 const router = Router({ mergeParams: true });
 const controller = container.get<OverviewController>(TYPES.OverviewController);
 
-/** GET /projects/:projectId/overview — Overview command center data (executive summary, pulse, smart actions, research context, learning journey, decision pathway). */
+/** GET /projects/:projectId/overview — Overview command center data. Auth: x-user-id header OR guestSlug (query or x-guest-slug header) for guest view. */
 router.get('/', async (req: Request, res: Response) => {
   try {
     const projectId = req.params.projectId as string;
+    const guestSlug = (req.query.guestSlug || req.headers['x-guest-slug']) as string | undefined;
+    const trimmedGuestSlug = typeof guestSlug === 'string' ? guestSlug.trim() || undefined : undefined;
     const userId = (req.headers['x-user-id'] || req.body?.userId) as string | undefined;
-    if (!projectId || !userId) {
+
+    if (!projectId) {
+      return res.status(400).json({ error: 'projectId is required' });
+    }
+    if (!trimmedGuestSlug && !userId) {
       return res.status(400).json({
-        error: 'projectId and userId are required',
-        hint: 'Provide x-user-id header',
+        error: 'userId or guestSlug is required',
+        hint: 'Provide x-user-id header or guestSlug query / x-guest-slug header',
       });
     }
 
-    const result = await controller.getOverview({ projectId, userId });
+    const result = await controller.getOverview({
+      projectId,
+      userId: trimmedGuestSlug ? undefined : userId,
+      guestSlug: trimmedGuestSlug,
+    });
 
     if (!result.isSuccess) {
       if (result.error.name === 'ProjectNotFoundError') {

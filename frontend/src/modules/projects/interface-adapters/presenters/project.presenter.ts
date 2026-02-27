@@ -1,6 +1,7 @@
 import { injectable, inject } from 'inversify';
 import type { CreateProjectUseCase } from '../../application/use-cases/create-project.use-case';
 import type { GetProjectUseCase } from '../../application/use-cases/get-project.use-case';
+import type { GetPublicProjectMetaBySlugUseCase } from '../../application/use-cases/get-public-project-meta-by-slug.use-case';
 import type { UpdateProjectUseCase } from '../../application/use-cases/update-project.use-case';
 import type { GetMarketContextSuggestionUseCase } from '../../application/use-cases/get-market-context-suggestion.use-case';
 import type { AssessProjectRiskUseCase } from '../../application/use-cases/assess-project-risk.use-case';
@@ -85,6 +86,118 @@ export class ProjectPresenter {
     wizardStepWho: 'Who & what?',
     wizardStepHow: 'How?',
     wizardStepWhoAsk: 'Who to ask?',
+    // ProjectSettingsWidget
+    settingsTitle: 'Project Settings',
+    settingsProjectNameLabel: 'Project Name',
+    settingsProjectNamePlaceholder: 'Enter project name',
+    settingsSegmentLabel: 'Segment Description',
+    settingsSegmentPlaceholder: 'Describe your target segment',
+    settingsUpdating: 'Updating...',
+    // GettingStartedWidget (passed as props from view)
+    gettingStartedTitle: 'Getting Started',
+    gettingStartedSubtitle: 'Follow these steps to validate your hypothesis',
+    gettingStartedDismissAria: 'Dismiss getting started guide',
+    gettingStartedStep1Title: 'Start Research',
+    gettingStartedStep1Description: 'Get AI-powered market and competitive research for your hypothesis',
+    gettingStartedStep1Action: 'Start Research',
+    gettingStartedStep2Title: 'Collect Comments',
+    gettingStartedStep2Description: 'Fetch real feedback from Reddit, Hacker News, and LinkedIn',
+    gettingStartedStep2Action: 'Go to Comments',
+    gettingStartedStep3Title: 'Analyze Results',
+    gettingStartedStep3Description: 'Review validation insights and make data-driven decisions',
+    gettingStartedStep3Action: 'View Overview',
+    // SurveyPlatformsWidget (passed as props from view)
+    surveyPlatformsTitle: 'Survey Distribution Platforms',
+    surveyPlatformsGenerate: 'Generate',
+    surveyPlatformsGenerating: 'Generating...',
+    surveyPlatformsAnalyzing: 'Analyzing your project to suggest optimal platforms…',
+    surveyPlatformsReady: 'Ready to find the best platforms for your survey.',
+    surveyPlatformsReadyHint: 'Click "Generate Platforms" to get AI-powered recommendations.',
+    surveyPlatformsPostLabel: 'Ready-to-post message',
+    surveyPlatformsCopy: 'Copy',
+    surveyPlatformsCopied: 'Copied',
+    // ProjectDashboardView
+    dashboardBreadcrumbProjects: 'Projects',
+    dashboardTabOverview: 'Overview',
+    dashboardTabScraper: 'Scraper',
+    dashboardTabInvitations: 'Invitations',
+    dashboardTabResponses: 'Responses',
+    dashboardTabComments: 'Comments',
+    dashboardTabReport: 'Report',
+    dashboardBackToOverview: '← Back to Overview',
+    dashboardDefaultProjectName: 'Project',
+    // ProjectGuestOverviewView
+    guestLoading: 'Loading project…',
+    guestErrorTitle: 'Unable to load project',
+    guestSignIn: 'Sign in',
+    guestBadge: 'Guest view · Read-only',
+    guestSignInToEdit: 'Sign in to edit',
+    guestSectionHypothesis: 'Hypothesis',
+    guestSectionKeyAssumptions: 'Key Assumptions',
+    guestSectionDecisionPathway: 'Decision Pathway',
+    guestSectionResponsePace: 'Response Pace',
+    guestMetricCurrent: 'Current',
+    guestMetricResponses: 'Responses',
+    guestResponseRatePct: (pct: number) => `${pct}% response rate`,
+    guestSectionLearningJourney: 'Learning Journey',
+    guestRoundsHintEmpty: 'Rounds help you track each iteration of your validation. Sign in to start a round.',
+    guestRoundsHintNewRound: 'Sign in to start a new round.',
+    guestEvidenceLabel: 'Evidence',
+    guestEvidenceNeedMore: 'Why more data is needed',
+    guestEvidenceNotSupported: 'Why not supported',
+    guestEvidenceExplanation: 'Explanation',
+    guestPlaceholderStartResearch: 'Start Research',
+    guestPlaceholderStartResearchMessage: 'Sign in to run research and collect responses.',
+    guestPlaceholderResearchOverview: 'Research Overview',
+    guestPlaceholderResearchOverviewMessage: 'Sign in to view research data.',
+    guestPlaceholderShowDetails: 'Show Details',
+    guestPlaceholderShowDetailsMessage: 'Sign in to view details.',
+    guestPlaceholderTopPainPoints: 'Top Pain Points',
+    guestPlaceholderTopPainPointsMessage: 'Sign in to view pain points.',
+    guestPlaceholderComments: 'Comments Overview',
+    guestPlaceholderCommentsMessage: 'Sign in to view comments.',
+    guestPlaceholderCommentPatterns: 'Comment Pattern Analysis',
+    guestPlaceholderCommentPatternsMessage: 'Sign in to view pattern analysis.',
+    guestSignInLabel: 'Sign in',
+    // EditProjectView
+    editBreadcrumbProject: 'Project',
+    editBreadcrumbEdit: 'Edit',
+    editPageTitle: 'Edit project',
+    editLoadingProject: 'Loading project…',
+    editBackToOverview: 'Back to Overview',
+    editSavedAndBack: 'Saved. ',
+    editSectionSegment: 'Segment & demographics',
+    editSegmentDescriptionLabel: 'Segment description',
+    editSegmentDescriptionPlaceholder: 'Describe your target segment',
+    editDemographicsLabel: 'Demographics',
+    editDemographicsPlaceholder: 'e.g. B2B, 25-45, tech sector or JSON: {"role": "PM", "company_size": "50-200"}',
+    editSectionHypothesis: 'Hypothesis',
+    editHypothesisDescriptionLabel: 'Hypothesis description',
+    editHypothesisPlaceholder: 'What are we validating?',
+    editAssumptionsLabel: 'Assumptions',
+    editAssumptionPlaceholder: 'Assumption',
+    editRemoveAria: 'Remove',
+    editAddAssumption: '+ Add assumption',
+    editSectionMarket: 'Market context (optional)',
+    editMarketPictureLabel: 'Market picture',
+    editMarketPicturePlaceholder: 'Brief market overview',
+    editMarketFitLabel: 'Market fit',
+    editMarketFitPlaceholder: 'How your solution fits',
+    editDifferentiationLabel: 'Differentiation',
+    editDifferentiationPlaceholder: 'What makes you different',
+    editCancel: 'Cancel',
+    editSaveChanges: 'Save changes',
+    editSaving: 'Saving…',
+    // ProjectDetailsView section titles and actions
+    detailsSectionHypothesis: 'Hypothesis',
+    detailsSectionKeyAssumptions: 'Key Assumptions',
+    detailsSectionResearchContext: 'Research Context',
+    detailsSectionHypothesisSubtitle: 'Hypothesis',
+    detailsSectionDecisionPathway: 'Decision Pathway',
+    detailsSectionLearningJourney: 'Learning Journey',
+    detailsNewRound: '+ New Round',
+    detailsStartNewRound: '+ Start New Round',
+    detailsModalStartNewRound: 'Start New Round',
   };
 
   constructor(
@@ -92,6 +205,8 @@ export class ProjectPresenter {
     private readonly _createProjectUseCase: CreateProjectUseCase,
     @inject(TYPES.GetProjectUseCase)
     private readonly _getProjectUseCase: GetProjectUseCase,
+    @inject(TYPES.GetPublicProjectMetaBySlugUseCase)
+    private readonly _getPublicProjectMetaBySlugUseCase: GetPublicProjectMetaBySlugUseCase,
     @inject(TYPES.UpdateProjectUseCase)
     private readonly _updateProjectUseCase: UpdateProjectUseCase,
     @inject(TYPES.GetMarketContextSuggestionUseCase)
@@ -319,6 +434,71 @@ export class ProjectPresenter {
     }
   }
 
+  /**
+   * Load project and overview as guest by public slug. Sets viewModel.project, viewModel.overview, viewModel.loading, viewModel.error.
+   */
+  async loadGuestOverview(slug: string, viewModel: ProjectViewModel): Promise<void> {
+    viewModel.loading.value = true;
+    viewModel.error.value = null;
+    viewModel.project.value = null;
+    viewModel.overview.value = null;
+
+    const metaResult = await this._getPublicProjectMetaBySlugUseCase.execute({ slug });
+    if (!metaResult.isSuccess) {
+      viewModel.error.value = metaResult.error?.message ?? 'Project not found';
+      viewModel.loading.value = false;
+      this._logger.error('Guest: failed to resolve slug', { slug, error: metaResult.error });
+      return;
+    }
+    const projectId = metaResult.data.id;
+
+    const projectResult = await this._getProjectUseCase.execute({ projectId, guestSlug: slug });
+    if (!projectResult.isSuccess) {
+      viewModel.error.value = projectResult.error?.message ?? 'Failed to load project';
+      viewModel.loading.value = false;
+      this._logger.error('Guest: failed to load project', { projectId, slug, error: projectResult.error });
+      return;
+    }
+    const projectData = projectResult.data.project as GetProjectUseCaseResponse['project'];
+    const segment = projectData.segment
+      ? new Segment(projectData.segment.description, projectData.segment.demographics)
+      : null;
+    const hypothesis = projectData.hypothesis
+      ? new Hypothesis(projectData.hypothesis.description, projectData.hypothesis.assumptions?.length ? projectData.hypothesis.assumptions : [])
+      : null;
+    const project = new Project(
+      projectData.id,
+      projectData.name,
+      segment,
+      hypothesis,
+      projectData.marketContext ?? null,
+      projectData.status as ProjectStatus,
+      new Date(projectData.createdAt),
+      new Date(projectData.updatedAt),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      projectData.publicAccessEnabled ?? false,
+      projectData.publicSlug ?? null,
+      projectData.maxPublicResponses ?? null,
+      projectData.requirePublicEmail ?? false,
+      projectData.captchaEnabled ?? false,
+      projectData.scenarioTemplateSlug ?? null
+    );
+    viewModel.project.value = project;
+
+    const overviewResult = await this._getProjectOverviewUseCase.execute({ projectId, guestSlug: slug });
+    if (overviewResult.isSuccess) {
+      viewModel.overview.value = overviewResult.data.overview;
+      this._logger.info('Guest overview loaded', { projectId, slug });
+    } else {
+      this._logger.error('Guest: failed to load overview', { projectId, slug, error: overviewResult.error });
+      viewModel.overview.value = null;
+    }
+    viewModel.loading.value = false;
+  }
+
   async updateProject(
     projectId: string,
     name?: string,
@@ -409,6 +589,40 @@ export class ProjectPresenter {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this._logger.error('Unexpected error during project update', { projectId, error: errorMessage, errorDetails: error });
+      return { ok: false, error: errorMessage };
+    }
+  }
+
+  async updateProjectPublicSettings(
+    projectId: string,
+    opts: {
+      publicAccessEnabled?: boolean;
+      maxPublicResponses?: number | null;
+      requirePublicEmail?: boolean;
+      captchaEnabled?: boolean;
+    }
+  ): Promise<{ ok: boolean; error?: string; project?: { publicAccessEnabled?: boolean; publicSlug?: string | null; maxPublicResponses?: number | null; requirePublicEmail?: boolean; captchaEnabled?: boolean } }> {
+    try {
+      const result = await this._updateProjectUseCase.execute({
+        projectId,
+        updates: {
+          publicAccessEnabled: opts.publicAccessEnabled ?? undefined,
+          maxPublicResponses: opts.maxPublicResponses ?? undefined,
+          requirePublicEmail: opts.requirePublicEmail ?? undefined,
+          captchaEnabled: opts.captchaEnabled ?? undefined,
+        },
+      });
+      if (result.isSuccess) {
+        this._logger.info('Project public settings updated', { projectId });
+        return { ok: true, project: result.data.project };
+      } else {
+        const errorMessage = result.error instanceof Error ? result.error.message : typeof result.error === 'string' ? result.error : 'Failed to update project';
+        this._logger.error('Failed to update project public settings', { projectId, error: errorMessage, errorDetails: result.error });
+        return { ok: false, error: errorMessage };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this._logger.error('Unexpected error during project public settings update', { projectId, error: errorMessage, errorDetails: error });
       return { ok: false, error: errorMessage };
     }
   }

@@ -8,6 +8,8 @@ import { EventBusPort } from '../event-bus/ports/event-bus.port';
 import { EventBus } from '../event-bus/event-bus';
 import { TYPES } from './types';
 import { bindProjects } from '../../modules/projects/infrastructure/bootstrap/bind.projects';
+import { GetPublicProjectMetaBySlugUseCase } from '../../modules/projects/application/use-cases/get-public-project-meta-by-slug.use-case';
+import { TYPES as PROJECT_TYPES } from '../../modules/projects/infrastructure/bootstrap/types';
 import { bindScenarios } from '../../modules/scenarios/infrastructure/bootstrap/bind.scenarios';
 import { bindInvitations } from '../../modules/invitations/infrastructure/bootstrap/bind.invitations';
 import { bindProjectReports } from '../../modules/project-reports/infrastructure/bootstrap/bind.project-reports';
@@ -28,6 +30,10 @@ container.bind<HttpClientPort>(TYPES.HttpClient).to(HttpClient);
 container.bind<EventBusPort>(TYPES.EventBus).to(EventBus);
 // Module bindings
 bindProjects(container);
+// Fallback: ensure GetPublicProjectMetaBySlugUseCase is bound (avoids "No bindings found" when resolving ProjectPresenter)
+if (!container.isBound(PROJECT_TYPES.GetPublicProjectMetaBySlugUseCase)) {
+  container.bind<GetPublicProjectMetaBySlugUseCase>(PROJECT_TYPES.GetPublicProjectMetaBySlugUseCase).to(GetPublicProjectMetaBySlugUseCase);
+}
 bindScenarios(container);
 bindInvitations(container);
 bindProjectReports(container);

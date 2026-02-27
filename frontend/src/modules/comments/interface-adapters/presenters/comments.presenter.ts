@@ -39,6 +39,52 @@ export interface CommentsOverviewData {
 
 @injectable()
 export class CommentsPresenter {
+  readonly labels = {
+    reddit: 'Reddit',
+    redditSubtitle: 'Collect comments from Reddit posts',
+    redditSources: 'Reddit Sources',
+    hackerNews: 'Hacker News',
+    hnSubtitle: 'Collect comments from Hacker News posts',
+    hnSources: 'Hacker News Sources',
+    linkedin: 'LinkedIn',
+    linkedinSubtitle: 'Collect comments from LinkedIn posts',
+    linkedinSources: 'LinkedIn Sources',
+    pasteRedditUrls: 'Paste Reddit URLs here...',
+    pasteHnUrls: 'Paste Hacker News URLs here...',
+    pasteLinkedInUrls: 'Paste LinkedIn post URLs here...',
+    viewCommentsFor: (url: string) => `View comments for ${url}`,
+    removeUrl: 'Remove URL',
+    fetchComments: 'Fetch Comments',
+    fetchingComments: 'Fetching Comments...',
+    comments: 'Comments',
+    allComments: 'All Comments',
+    close: 'Close',
+    noCommentsFound: 'No comments found',
+    noCommentsForUrl: 'No comments available for this URL yet.',
+    noCommentsCollected: 'No comments have been collected yet.',
+    anonymous: 'Anonymous',
+    viewSource: 'View Source',
+    confirmDeletion: 'Confirm Deletion',
+    deleteLabel: 'Delete',
+    cancelLabel: 'Cancel',
+    confirmLabel: 'Confirm',
+    deleteRedditSource: 'Delete Reddit Source',
+    deleteHnSource: 'Delete Hacker News Source',
+    deleteLinkedInSource: 'Delete LinkedIn Source',
+    dataLossWarning: '⚠️ Data Loss Warning',
+    dataLossReddit: 'All comments from this source will be permanently deleted.',
+    dataLossHn: 'All comments collected from this Hacker News source will be permanently deleted and cannot be recovered.',
+    dataLossLinkedIn: 'All comments collected from this LinkedIn source will be permanently deleted and cannot be recovered.',
+    errorLoadComments: 'Failed to load comments',
+    errorLoadCommentsByUrl: 'Failed to load comments by URL',
+    errorLoadCommentsBySourceId: 'Failed to load comments by sourceId',
+    errorFindSource: 'Failed to find source to delete',
+    sourceNotFound: 'Source not found',
+    errorDeleteSource: 'Failed to delete source',
+    errorFetchComments: 'Failed to fetch comments',
+    errorLoadOverview: 'Failed to load comments overview',
+  };
+
   public viewModel: CommentsViewModel = {
     isLoading: false,
     isFetching: false,
@@ -84,7 +130,7 @@ export class CommentsPresenter {
         this._logger.error('Failed to load comments', { projectId, error: result.error });
       }
     } catch (error) {
-      this.viewModel.error = error instanceof Error ? error.message : 'Failed to load comments';
+      this.viewModel.error = error instanceof Error ? error.message : this.labels.errorLoadComments;
       this._logger.error('Exception loading comments', { projectId, error });
     } finally {
       this.viewModel.isLoading = false;
@@ -134,7 +180,7 @@ export class CommentsPresenter {
         this._logger.error('Failed to load comments by sourceId', { projectId, sourceId, error: result.error });
       }
     } catch (error) {
-      this.viewModel.error = error instanceof Error ? error.message : 'Failed to load comments by sourceId';
+      this.viewModel.error = error instanceof Error ? error.message : this.labels.errorLoadCommentsBySourceId;
       this._logger.error('Exception loading comments by sourceId', { projectId, sourceId, error });
     } finally {
       this.viewModel.isLoading = false;
@@ -158,7 +204,7 @@ export class CommentsPresenter {
       );
 
       if (!source) {
-        this.viewModel.error = 'Source not found';
+        this.viewModel.error = this.labels.sourceNotFound;
         return;
       }
 
@@ -221,7 +267,7 @@ export class CommentsPresenter {
         this._logger.error('Failed to fetch comments (all sources)', { projectId, error: result.error });
       }
     } catch (error) {
-      this.viewModel.error = error instanceof Error ? error.message : 'Failed to fetch comments';
+      this.viewModel.error = error instanceof Error ? error.message : this.labels.errorFetchComments;
       this._logger.error('Exception fetching comments (all sources)', { projectId, error });
     } finally {
       this.viewModel.isFetching = false;
@@ -262,7 +308,7 @@ export class CommentsPresenter {
         this._logger.error('Failed to fetch comments', { projectId, input, error: result.error });
       }
     } catch (error) {
-      this.viewModel.error = error instanceof Error ? error.message : 'Failed to fetch comments';
+      this.viewModel.error = error instanceof Error ? error.message : this.labels.errorFetchComments;
       this._logger.error('Exception fetching comments', { projectId, error });
     } finally {
       this.viewModel.isFetching = false;
@@ -677,7 +723,7 @@ export class CommentsPresenter {
       this._logger.error('Exception getting comments overview', { projectId, error });
       return {
         data: { sourceStats: [], totalComments: 0 },
-        error: error instanceof Error ? error.message : 'Failed to load comments overview',
+        error: error instanceof Error ? error.message : this.labels.errorLoadOverview,
       };
     }
   }

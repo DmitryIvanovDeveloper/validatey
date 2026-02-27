@@ -19,7 +19,7 @@ export class GetProjectUseCase {
   async execute(
     request: GetProjectUseCaseRequest
   ): Promise<ResultEx<GetProjectUseCaseResponse, ProjectNotFoundError | ProjectAccessDeniedError>> {
-    this._logger.info('get-project.start', { projectId: request.projectId, userId: request.userId });
+    this._logger.info('get-project.start', { projectId: request.projectId, userId: request.userId, guestSlug: request.guestSlug ? '(set)' : undefined });
 
     const findResult = await this._repository.findById(request.projectId);
 
@@ -30,13 +30,23 @@ export class GetProjectUseCase {
 
     const project = findResult.data;
 
-    const accessResult = await this._repository.userHasAccessToProject(request.projectId, request.userId);
-    if (!accessResult.isSuccess) {
-      return ResultEx.failure(accessResult.error);
-    }
-    if (!accessResult.data) {
-      this._logger.warn('get-project.access-denied', { projectId: request.projectId, userId: request.userId });
-      return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, request.userId));
+    if (request.guestSlug) {
+      if (project.publicSlug !== request.guestSlug || !project.publicAccessEnabled) {
+        this._logger.warn('get-project.guest-denied', { projectId: request.projectId });
+        return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, '(guest)'));
+      }
+    } else {
+      if (!request.userId) {
+        return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, '(missing userId)'));
+      }
+      const accessResult = await this._repository.userHasAccessToProject(request.projectId, request.userId);
+      if (!accessResult.isSuccess) {
+        return ResultEx.failure(accessResult.error);
+      }
+      if (!accessResult.data) {
+        this._logger.warn('get-project.access-denied', { projectId: request.projectId, userId: request.userId });
+        return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, request.userId));
+      }
     }
 
     this._logger.info('get-project.success', { projectId: project.id });

@@ -31,6 +31,31 @@ export class ProjectListPresenter {
     deleting: 'Deleting...',
     editAria: (name: string) => `Edit ${name}`,
     deleteAria: (name: string) => `Delete ${name}`,
+    // DashboardView (when used as dashboard)
+    dashboardWelcomeTitle: 'Welcome to Validatey!',
+    dashboardWelcomeDescription: 'Start by creating your first project to validate your product hypothesis',
+    dashboardCreateFirstProject: 'Create First Project',
+    dashboardMyProjectsTitle: 'My Projects',
+    dashboardMyProjectsSubtitle: 'Manage validation of your product hypotheses',
+    dashboardBreadcrumbHome: 'Home',
+    dashboardCreateProject: '+ Create Project',
+    dashboardCardDetails: 'Details',
+    // DeleteProjectModal (passed as props from ProjectsListView)
+    deleteModalTitle: 'Delete Project',
+    deleteModalWarningTitle: 'Are you sure you want to delete this project?',
+    deleteModalWarningDescription: 'This action cannot be undone. This will permanently delete the',
+    deleteModalWarningProjectSuffix: 'project',
+    deleteModalAnd: 'and all associated',
+    deleteModalResponses: 'responses',
+    deleteModalAndComments: 'and',
+    deleteModalComments: 'comments',
+    deleteModalConfirmLabel: 'Type',
+    deleteModalConfirmBold: 'confirm',
+    deleteModalConfirmSuffix: 'to delete this project:',
+    deleteModalPlaceholder: 'confirm',
+    deleteModalCancel: 'Cancel',
+    deleteModalDelete: 'Delete project',
+    deleteModalDeleting: 'Deleting...',
   };
 
   constructor(

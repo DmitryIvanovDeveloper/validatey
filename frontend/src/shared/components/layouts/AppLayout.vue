@@ -44,7 +44,7 @@ import { TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
 import type { AuthPresenter } from '../../../modules/auth/interface-adapters/presenters/auth.presenter';
 import type { AuthSession } from '../../../modules/auth/application/ports/auth-service.port';
 import { sessionManager } from '../../services/session-manager';
-import WorkspaceSidebar from '../../../modules/workspaces/interface-adapters/views/components/WorkspaceSidebar.vue';
+import WorkspaceSidebar from '../../../modules/workspaces/interface-adapters/ui/components/WorkspaceSidebar.vue';
 
 const route = useRoute();
 const router = useRouter();

@@ -30,7 +30,7 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id', 'confirmText', 'confirmtext'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-user-id', 'x-guest-slug', 'confirmText', 'confirmtext'],
   })
 );
 app.use(cookieParser());
@@ -89,6 +89,7 @@ import hubspotRoutes from './modules/integrations/interface-adapters/routes/hubs
 import commentsRoutes from './modules/comments/interface-adapters/routes/comments.routes';
 import workspacesRoutes from './modules/workspaces/interface-adapters/routes/workspaces.routes';
 import wishlistRoutes from './modules/wishlist/interface-adapters/routes/wishlist.routes';
+import publicProjectsRoutes from './modules/projects/interface-adapters/routes/public-projects.routes';
 
 app.use('/api/projects', projectsRoutes);
 app.use('/api/projects', projectsNestedRoutes); // Nested routes: /projects/:projectId/scenarios, /invitations, /report
@@ -112,6 +113,7 @@ app.use('/api/integrations/hubspot', hubspotRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/workspaces', workspacesRoutes); // Flat routes: /comments/:id
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/public/projects', publicProjectsRoutes);
 app.use('/survey', surveyRoutes);
 
 app.get('/api', (req: Request, res: Response) => {

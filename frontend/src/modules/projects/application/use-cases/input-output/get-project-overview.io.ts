@@ -104,6 +104,8 @@ export interface OverviewPayload {
 
 export interface GetProjectOverviewRequest {
   readonly projectId: string;
+  /** When set, request is made as guest (no auth); backend validates slug. */
+  readonly guestSlug?: string;
 }
 
 export interface GetProjectOverviewResponse {

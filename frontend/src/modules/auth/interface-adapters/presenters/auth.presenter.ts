@@ -12,6 +12,31 @@ import { sessionManager } from '../../../../shared/services/session-manager';
 
 @injectable()
 export class AuthPresenter {
+  readonly labels = {
+    // LoginView
+    loginTitle: 'Validatey',
+    loginSubtitle: 'Sign in to create and manage validation projects',
+    emailLabel: 'Email',
+    emailPlaceholder: 'you@example.com',
+    passwordLabel: 'Password',
+    passwordPlaceholder: '••••••••',
+    togglePasswordAria: 'Toggle password',
+    showPassword: 'Show',
+    hidePassword: 'Hide',
+    passwordHint: 'Minimum 8 characters',
+    signIn: 'Sign in',
+    createAccount: 'Create account',
+    alreadyHaveAccount: 'Already have an account? Sign in',
+    dontHaveAccount: "Don't have an account? Create one",
+    orDivider: 'or',
+    signInWithGoogle: 'Sign in with Google',
+    registrationSuccessMessage: 'Check your email to confirm your account, then sign in.',
+    // AuthCallbackView
+    callbackTitle: 'Validatey',
+    callbackSigningIn: 'Signing you in…',
+    callbackRedirecting: 'Redirecting…',
+  };
+
   constructor(
     @inject(TYPES.SignInWithGoogleUseCase)
     private readonly _signInWithGoogleUseCase: SignInWithGoogleUseCase,

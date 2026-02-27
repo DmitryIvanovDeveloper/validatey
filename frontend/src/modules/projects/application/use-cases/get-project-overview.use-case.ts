@@ -15,7 +15,7 @@ export class GetProjectOverviewUseCase {
   async execute(
     input: GetProjectOverviewRequest
   ): Promise<Result<GetProjectOverviewResponse, OverviewLoadError>> {
-    const result = await this._repository.getOverview(input.projectId);
+    const result = await this._repository.getOverview(input.projectId, input.guestSlug);
 
     if (!result.isSuccess) {
       return Result.failure(result.error);

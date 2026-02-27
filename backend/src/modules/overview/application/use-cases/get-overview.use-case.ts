@@ -45,14 +45,28 @@ export class GetOverviewUseCase {
   async execute(
     request: GetOverviewRequest
   ): Promise<ResultEx<GetOverviewResponse, ProjectNotFoundError | ProjectAccessDeniedError | Error>> {
-    this._logger.info('get-overview.start', { projectId: request.projectId, userId: request.userId });
+    this._logger.info('get-overview.start', { projectId: request.projectId, userId: request.userId, guestSlug: request.guestSlug ? '(set)' : undefined });
 
-    const accessResult = await this._projectRepository.userHasAccessToProject(request.projectId, request.userId);
-    if (!accessResult.isSuccess) {
-      return ResultEx.failure(accessResult.error);
-    }
-    if (!accessResult.data) {
-      return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, request.userId));
+    if (request.guestSlug) {
+      const slugResult = await this._projectRepository.findByPublicSlug(request.guestSlug);
+      if (!slugResult.isSuccess) {
+        return ResultEx.failure(slugResult.error);
+      }
+      const project = slugResult.data;
+      if (project.id !== request.projectId || !project.publicAccessEnabled || project.publicSlug !== request.guestSlug) {
+        return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, '(guest)'));
+      }
+    } else {
+      if (!request.userId) {
+        return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, '(missing userId)'));
+      }
+      const accessResult = await this._projectRepository.userHasAccessToProject(request.projectId, request.userId);
+      if (!accessResult.isSuccess) {
+        return ResultEx.failure(accessResult.error);
+      }
+      if (!accessResult.data) {
+        return ResultEx.failure(new ProjectAccessDeniedError(request.projectId, request.userId));
+      }
     }
 
     const dataResult = await this._dataProvider.getData(request.projectId);
@@ -77,7 +91,13 @@ export class GetOverviewUseCase {
     );
 
     const synthesisReport = d.synthesisReport
-      ? { summary: d.synthesisReport.summary, recommendations: [...d.synthesisReport.recommendations], verdict: d.synthesisReport.verdict }
+      ? {
+          summary: d.synthesisReport.summary,
+          recommendations: Array.isArray(d.synthesisReport.recommendations)
+            ? [...d.synthesisReport.recommendations]
+            : [],
+          verdict: d.synthesisReport.verdict,
+        }
       : null;
     const assumptionAssessments = d.assumptionAssessments
       ? d.assumptionAssessments.map((a: RawAssumptionAssessment) => ({ assumptionId: a.assumptionId, status: a.status, evidence: a.evidence }))

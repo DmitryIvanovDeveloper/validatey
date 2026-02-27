@@ -5,6 +5,7 @@ export const TYPES = {
   MarketContextRepository: Symbol.for('MarketContextRepository'),
   CreateProjectUseCase: Symbol.for('CreateProjectUseCase'),
   GetProjectUseCase: Symbol.for('GetProjectUseCase'),
+  GetPublicProjectMetaBySlugUseCase: Symbol.for('GetPublicProjectMetaBySlugUseCase'),
   GetProjectOverviewUseCase: Symbol.for('GetProjectOverviewUseCase'),
   ListProjectsUseCase: Symbol.for('ListProjectsUseCase'),
   UpdateProjectUseCase: Symbol.for('UpdateProjectUseCase'),

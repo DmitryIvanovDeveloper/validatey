@@ -31,9 +31,14 @@ export interface UpdateProjectData {
   captchaEnabled?: boolean;
 }
 
+export interface GetProjectByIdOptions {
+  guestSlug?: string;
+}
+
 export interface ProjectRepositoryPort {
   create(project: CreateProjectData): Promise<Result<Project, InvalidProjectDataError>>;
-  getById(id: string): Promise<Result<Project, ProjectNotFoundError>>;
+  getById(id: string, options?: GetProjectByIdOptions): Promise<Result<Project, ProjectNotFoundError>>;
+  getMetaByPublicSlug(slug: string): Promise<Result<{ id: string; name: string; publicSlug: string }, ProjectNotFoundError>>;
   list(): Promise<Result<Project[], ProjectListError>>;
   listByWorkspace(workspaceId: string): Promise<Result<Project[], ProjectListError>>;
   update(id: string, updates: UpdateProjectData): Promise<Result<Project, ProjectNotFoundError | InvalidProjectDataError>>;

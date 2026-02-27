@@ -4,31 +4,37 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('@/modules/auth/interface-adapters/views/LoginView.vue'),
+    component: () => import('@/modules/auth/interface-adapters/ui/views/LoginView.vue'),
     meta: { requiresAuth: false, layout: 'empty' },
   },
   {
     path: '/auth/callback',
     name: 'auth-callback',
-    component: () => import('@/modules/auth/interface-adapters/views/AuthCallbackView.vue'),
+    component: () => import('@/modules/auth/interface-adapters/ui/views/AuthCallbackView.vue'),
     meta: { requiresAuth: false, layout: 'empty' },
   },
   {
     path: '/',
     name: 'home',
-    component: () => import('@/modules/auth/interface-adapters/views/LoginView.vue'),
+    component: () => import('@/modules/auth/interface-adapters/ui/views/LoginView.vue'),
     meta: { requiresAuth: false, layout: 'empty' },
   },
   {
     path: '/landing',
     name: 'landing',
-    component: () => import('@/modules/landing/interface-adapters/views/LandingPageView.vue'),
+    component: () => import('@/modules/landing/interface-adapters/ui/views/LandingPageView.vue'),
+    meta: { requiresAuth: false, layout: 'empty' },
+  },
+  {
+    path: '/view/:slug',
+    name: 'project-guest-overview',
+    component: () => import('@/modules/projects/interface-adapters/ui/views/ProjectGuestOverviewView.vue'),
     meta: { requiresAuth: false, layout: 'empty' },
   },
   {
     path: '/workspaces',
     name: 'workspaces',
-    component: () => import('@/modules/workspaces/interface-adapters/views/WorkspacesListView.vue'),
+    component: () => import('@/modules/workspaces/interface-adapters/ui/views/WorkspacesListView.vue'),
   },
   /* Comments are per-project: use /workspaces/:workspaceId/projects/:projectId/comments */
   {
@@ -44,96 +50,96 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/projects',
     name: 'projects',
-    component: () => import('@/modules/projects/interface-adapters/views/ProjectsListView.vue'),
+    component: () => import('@/modules/projects/interface-adapters/ui/views/ProjectsListView.vue'),
     meta: { skipAuthGuard: true },
   },
   {
     path: '/workspaces/:workspaceId/projects',
     name: 'workspace-projects',
-    component: () => import('@/modules/projects/interface-adapters/views/ProjectsListView.vue'),
+    component: () => import('@/modules/projects/interface-adapters/ui/views/ProjectsListView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/workspaces/:workspaceId/projects/new',
     name: 'create-project',
-    component: () => import('@/modules/projects/interface-adapters/views/CreateProjectWizardView.vue'),
+    component: () => import('@/modules/projects/interface-adapters/ui/views/CreateProjectWizardView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/workspaces/:workspaceId/projects/:projectId',
-    component: () => import('@/modules/projects/interface-adapters/views/ProjectDashboardView.vue'),
+    component: () => import('@/modules/projects/interface-adapters/ui/views/ProjectDashboardView.vue'),
     meta: { requiresAuth: true },
     children: [
       {
         path: '',
         name: 'project-details',
-        component: () => import('@/modules/projects/interface-adapters/views/ProjectDetailsView.vue'),
+        component: () => import('@/modules/projects/interface-adapters/ui/views/ProjectDetailsView.vue'),
       },
       {
         path: 'scraper',
         name: 'project-scraper',
-        component: () => import('@/modules/scraper/interface-adapters/views/ScraperView.vue'),
+        component: () => import('@/modules/scraper/interface-adapters/ui/views/ScraperView.vue'),
       },
       {
         path: 'report',
         name: 'project-report',
-        component: () => import('@/modules/project-reports/interface-adapters/views/ProjectReportView.vue'),
+        component: () => import('@/modules/project-reports/interface-adapters/ui/views/ProjectReportView.vue'),
       },
       {
         path: 'invitations',
         name: 'project-invitations',
-        component: () => import('@/modules/invitations/interface-adapters/views/InvitationManagerView.vue'),
+        component: () => import('@/modules/invitations/interface-adapters/ui/views/InvitationManagerView.vue'),
       },
       {
         path: 'edit',
         name: 'project-edit',
-        component: () => import('@/modules/projects/interface-adapters/views/CreateProjectWizardView.vue'),
+        component: () => import('@/modules/projects/interface-adapters/ui/views/CreateProjectWizardView.vue'),
       },
       {
         path: 'responses',
         name: 'project-responses',
-        component: () => import('@/modules/responses/interface-adapters/views/ResponsesTableView.vue'),
+        component: () => import('@/modules/responses/interface-adapters/ui/views/ResponsesTableView.vue'),
       },
       {
         path: 'comments',
         name: 'project-comments',
-        component: () => import('@/modules/comments/interface-adapters/views/CommentsView.vue'),
+        component: () => import('@/modules/comments/interface-adapters/ui/views/CommentsView.vue'),
       },
       {
         path: 'rounds/:roundId',
         name: 'round-detail',
-        component: () => import('@/modules/rounds/interface-adapters/views/RoundDetailView.vue'),
+        component: () => import('@/modules/rounds/interface-adapters/ui/views/RoundDetailView.vue'),
       },
     ],
   },
   {
     path: '/admin/users',
     name: 'admin-users',
-    component: () => import('@/modules/admin/interface-adapters/views/AdminUsersView.vue'),
+    component: () => import('@/modules/admin/interface-adapters/ui/views/AdminUsersView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
   },
   {
     path: '/admin/feedback',
     name: 'admin-feedback',
-    component: () => import('@/modules/feedback/interface-adapters/views/FeedbackListView.vue'),
+    component: () => import('@/modules/feedback/interface-adapters/ui/views/FeedbackListView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
   },
   {
     path: '/integrations/hubspot/callback',
     name: 'hubspot-callback',
-    component: () => import('@/modules/integrations/interface-adapters/views/HubSpotCallbackView.vue'),
+    component: () => import('@/modules/integrations/interface-adapters/ui/views/HubSpotCallbackView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/workspaces/:workspaceId/projects/:projectId/panel',
     name: 'project-panel',
-    component: () => import('@/modules/projects/interface-adapters/views/RespondentPanelStubView.vue'),
+    component: () => import('@/modules/projects/interface-adapters/ui/views/RespondentPanelStubView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/survey/public/:slug',
     name: 'survey-public',
-    component: () => import('@/modules/surveys/interface-adapters/views/SurveyPublicRedirectView.vue'),
+    component: () => import('@/modules/surveys/interface-adapters/ui/views/SurveyPublicRedirectView.vue'),
     meta: {
       requiresAuth: false,
       layout: 'empty',
@@ -142,7 +148,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/s/:slug',
     name: 'survey-public-short',
-    component: () => import('@/modules/surveys/interface-adapters/views/SurveyPublicRedirectView.vue'),
+    component: () => import('@/modules/surveys/interface-adapters/ui/views/SurveyPublicRedirectView.vue'),
     meta: {
       requiresAuth: false,
       layout: 'empty',
@@ -151,7 +157,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/survey/:token',
     name: 'respondent-survey',
-    component: () => import('@/modules/surveys/interface-adapters/views/SurveyView.vue'),
+    component: () => import('@/modules/surveys/interface-adapters/ui/views/SurveyView.vue'),
     meta: {
       requiresAuth: false,
       layout: 'empty',

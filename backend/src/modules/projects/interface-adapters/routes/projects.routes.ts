@@ -157,20 +157,24 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Get project by ID
+// Get project by ID. Auth: x-user-id header OR guestSlug (query or x-guest-slug header) for guest view.
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    const guestSlug = (req.query.guestSlug || req.headers['x-guest-slug']) as string | undefined;
+    const trimmedGuestSlug = typeof guestSlug === 'string' ? guestSlug.trim() || undefined : undefined;
     const userId = (req.body?.userId || req.headers['x-user-id']) as string | undefined;
-    if (!userId) {
+
+    if (!trimmedGuestSlug && !userId) {
       return res.status(400).json({
-        error: 'userId is required',
-        hint: 'Provide x-user-id header or userId in request body'
+        error: 'userId or guestSlug is required',
+        hint: 'Provide x-user-id header or guestSlug query / x-guest-slug header'
       });
     }
 
     const result = await presenter.getProject({
       projectId: req.params.id,
-      userId,
+      userId: trimmedGuestSlug ? undefined : userId,
+      guestSlug: trimmedGuestSlug,
     });
 
     if (!result.isSuccess) {

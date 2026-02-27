@@ -2,7 +2,10 @@
 
 export type GetOverviewRequest = {
   projectId: string;
-  userId: string;
+  /** Required when not using guest access. */
+  userId?: string;
+  /** When set, access is granted by public slug (guest view); userId is ignored. */
+  guestSlug?: string;
 };
 
 export type ValidationStatus = 'weak_support' | 'unclear_signal' | 'validated' | 'no_data';

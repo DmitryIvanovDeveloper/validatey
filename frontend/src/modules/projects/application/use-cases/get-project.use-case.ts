@@ -13,7 +13,9 @@ export class GetProjectUseCase {
   ) {}
 
   async execute(input: GetProjectUseCaseRequest): Promise<Result<GetProjectUseCaseResponse, ProjectNotFoundError>> {
-    const result = await this._repository.getById(input.projectId);
+    const result = await this._repository.getById(input.projectId, {
+      guestSlug: input.guestSlug,
+    });
 
     if (!result.isSuccess) {
       return Result.failure(result.error);

@@ -10,6 +10,7 @@ import { MarketContextRepository } from '../repositories/market-context.reposito
 import { ProjectRiskHttpRepository } from '../repositories/project-risk.http.repository';
 import { CreateProjectUseCase } from '../../application/use-cases/create-project.use-case';
 import { GetProjectUseCase } from '../../application/use-cases/get-project.use-case';
+import { GetPublicProjectMetaBySlugUseCase } from '../../application/use-cases/get-public-project-meta-by-slug.use-case';
 import { GetProjectOverviewUseCase } from '../../application/use-cases/get-project-overview.use-case';
 import { ListProjectsUseCase } from '../../application/use-cases/list-projects.use-case';
 import { UpdateProjectUseCase } from '../../application/use-cases/update-project.use-case';
@@ -31,6 +32,7 @@ export function bindProjects(container: Container): void {
   // Use Cases
   container.bind<CreateProjectUseCase>(TYPES.CreateProjectUseCase).to(CreateProjectUseCase);
   container.bind<GetProjectUseCase>(TYPES.GetProjectUseCase).to(GetProjectUseCase);
+  container.bind<GetPublicProjectMetaBySlugUseCase>(TYPES.GetPublicProjectMetaBySlugUseCase).to(GetPublicProjectMetaBySlugUseCase);
   container.bind<GetProjectOverviewUseCase>(TYPES.GetProjectOverviewUseCase).to(GetProjectOverviewUseCase);
   container.bind<ListProjectsUseCase>(TYPES.ListProjectsUseCase).to(ListProjectsUseCase);
   container.bind<UpdateProjectUseCase>(TYPES.UpdateProjectUseCase).to(UpdateProjectUseCase);

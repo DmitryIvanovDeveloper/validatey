@@ -1,5 +1,7 @@
 export type GetProjectUseCaseRequest = {
   projectId: string;
+  /** When set, request is made as guest (no auth); backend validates slug. */
+  guestSlug?: string;
 };
 
 export type GetProjectUseCaseResponse = {

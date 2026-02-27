@@ -14,6 +14,21 @@ export type InvitationListItem = {
 
 @injectable()
 export class InvitationPresenter {
+  readonly labels = {
+    pageTitle: 'Invitations',
+    pageSubtitle: 'Send and track survey invitations by email or share a single link.',
+    back: 'Back',
+    sendInvitations: 'Send invitations',
+    publicLink: 'Public link',
+    publicLinkSubtitle: 'One link, many respondents. Limit and moderate responses.',
+    personalInvitations: 'Personal invitations',
+    surveyConsent: 'Survey consent',
+    enablePublicAccess: 'Enable public access',
+    copy: 'Copy',
+    copied: 'Copied',
+    errorLoadInvitations: 'Failed to load invitations',
+  };
+
   constructor(
     @inject(TYPES.InvitationRepository)
     private readonly _repository: InvitationRepositoryPort

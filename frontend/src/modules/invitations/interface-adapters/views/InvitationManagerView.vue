@@ -74,6 +74,22 @@
               </button>
             </div>
           </div>
+          <div v-if="publicSlug" class="input-group">
+            <label class="label">Guest view link</label>
+            <p class="label-hint">Share this link to let others view the project overview (read-only, no Start Research).</p>
+            <div class="input-with-action">
+              <input :value="guestViewFullUrl" readonly class="input input-readonly" aria-label="Guest view URL" />
+              <button
+                type="button"
+                class="btn btn-primary btn-copy"
+                :aria-label="guestViewCopyFeedback ? 'Copied' : 'Copy guest view link'"
+                @click="copyGuestViewLink"
+              >
+                <span v-if="guestViewCopyFeedback" class="copy-check" aria-hidden="true">✓</span>
+                {{ guestViewCopyFeedback ? 'Copied' : 'Copy' }}
+              </button>
+            </div>
+          </div>
           <div class="input-group input-group-inline">
             <label class="label" for="max-public-responses">Max responses</label>
             <input
@@ -516,12 +532,13 @@ import { SendRemindersButton, ResponsePaceCard } from './components';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import { TYPES } from '../../infrastructure/bootstrap/types';
+import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
 import { sessionManager } from '../../../../shared/services/session-manager';
 import type { InvitationPresenter } from '../presenters/invitation.presenter';
+import type { ProjectPresenter } from '../../../projects/interface-adapters/presenters/project.presenter';
 import type { InvitationListItem } from '../presenters/invitation.presenter';
-import { ProjectSettingsWidget } from '../../../projects/interface-adapters';
+import { ProjectSettingsWidget, SurveyPlatformsWidget } from '../../../projects/interface-adapters';
 import type { Response } from '../../../projects/domain/entities/response.entity';
-import SurveyPlatformsWidget from '../../../projects/interface-adapters/components/SurveyPlatformsWidget.vue';
 
 const route = useRoute();
 const workspaceId = computed(() => (route.params.workspaceId as string) || '');
@@ -600,6 +617,7 @@ const getRecommendationReasons = () => {
 };
 
 const invitationPresenter = container.get<InvitationPresenter>(TYPES.InvitationPresenter);
+const projectPresenter = container.get<ProjectPresenter>(PROJECT_TYPES.ProjectPresenter);
 // Project settings are now handled by ProjectSettingsWidget
 
 /** Parse API error message for display (e.g. extract .error from HTTP 400 body) */
@@ -671,6 +689,32 @@ const publicSurveyFullUrl = computed(() => {
   const base = typeof window !== 'undefined' ? window.location.origin : '';
   return `${base}/s/${publicSlug.value}`;
 });
+
+const guestViewFullUrl = computed(() => {
+  if (!publicSlug.value) return '';
+  const base = typeof window !== 'undefined' ? window.location.origin : '';
+  return `${base}/view/${publicSlug.value}`;
+});
+
+const guestViewCopyFeedback = ref(false);
+let guestViewCopyFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
+
+const copyGuestViewLink = async () => {
+  const url = guestViewFullUrl.value;
+  if (!url) return;
+  if (guestViewCopyFeedbackTimer) clearTimeout(guestViewCopyFeedbackTimer);
+  try {
+    await navigator.clipboard.writeText(url);
+    guestViewCopyFeedback.value = true;
+    guestViewCopyFeedbackTimer = setTimeout(() => {
+      guestViewCopyFeedback.value = false;
+      guestViewCopyFeedbackTimer = null;
+    }, 2000);
+  } catch {
+    publicSaveResult.value = 'Could not copy to clipboard';
+    publicSaveError.value = true;
+  }
+};
 
 const getStatusLabel = (status: string): string => {
   const labels: Record<string, string> = {
@@ -926,8 +970,18 @@ const copyShareLink = async () => {
 };
 
 const loadProject = async () => {
-  // Project data loading is now handled by individual widgets
-  // Use ProjectSettingsWidget for basic project settings
+  if (!projectId) return;
+  const { project, error } = await projectPresenter.getProject(projectId);
+  if (error || !project) {
+    projectLoadError.value = error ?? 'Failed to load project';
+    return;
+  }
+  projectLoadError.value = null;
+  publicAccessEnabled.value = project.publicAccessEnabled ?? false;
+  publicSlug.value = project.publicSlug ?? null;
+  maxPublicResponsesInput.value = project.maxPublicResponses ?? '';
+  requirePublicEmail.value = project.requirePublicEmail ?? false;
+  captchaEnabled.value = project.captchaEnabled ?? false;
 };
 
 const savePublicSettings = async () => {
@@ -942,10 +996,23 @@ const savePublicSettings = async () => {
       publicSaveError.value = true;
       return;
     }
-    // TODO: Create PublicSettingsWidget to handle project public settings
-    // For now, public settings management is disabled to maintain architectural integrity
-    publicSaveResult.value = 'Feature temporarily disabled - use ProjectSettingsWidget for basic settings';
-    publicSaveError.value = true;
+    const result = await projectPresenter.updateProjectPublicSettings(projectId, {
+      publicAccessEnabled: publicAccessEnabled.value,
+      maxPublicResponses: maxVal ?? null,
+      requirePublicEmail: requirePublicEmail.value,
+      captchaEnabled: captchaEnabled.value,
+    });
+    if (result.ok && result.project) {
+      publicSlug.value = result.project.publicSlug ?? null;
+      if (result.project.maxPublicResponses !== undefined) {
+        maxPublicResponsesInput.value = result.project.maxPublicResponses ?? '';
+      }
+      publicSaveResult.value = 'Settings saved.';
+      publicSaveError.value = false;
+    } else {
+      publicSaveResult.value = result.error ?? 'Failed to save settings';
+      publicSaveError.value = true;
+    }
   } catch (err) {
     publicSaveResult.value = parseApiError(err);
     publicSaveError.value = true;
@@ -1267,6 +1334,12 @@ onMounted(() => {
   font-size: 0.8125rem;
   color: var(--color-text, #334155);
   margin-bottom: 0.375rem;
+}
+
+.label-hint {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #64748b);
+  margin: -0.25rem 0 0.5rem 0;
 }
 
 .input {

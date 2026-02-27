@@ -14,9 +14,11 @@ export class ProjectOverviewRepository implements ProjectOverviewRepositoryPort 
     private readonly _httpClient: HttpClientPort
   ) {}
 
-  async getOverview(projectId: string): Promise<Result<OverviewPayload, OverviewLoadError>> {
+  async getOverview(projectId: string, guestSlug?: string): Promise<Result<OverviewPayload, OverviewLoadError>> {
     try {
-      const url = API_CONFIG.ENDPOINTS.OVERVIEW(projectId);
+      const url = guestSlug
+        ? API_CONFIG.ENDPOINTS.OVERVIEW_WITH_GUEST(projectId, guestSlug)
+        : API_CONFIG.ENDPOINTS.OVERVIEW(projectId);
       const data = await this._httpClient.get<OverviewPayload>(url);
       if (data == null) {
         return Result.failure(new OverviewLoadError('Overview response was empty'));

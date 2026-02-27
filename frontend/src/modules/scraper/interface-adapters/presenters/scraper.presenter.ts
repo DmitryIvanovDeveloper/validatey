@@ -6,6 +6,20 @@ import type { ScraperRun } from '../../domain/entities/scraper-run.entity';
 
 @injectable()
 export class ScraperPresenter {
+  readonly labels = {
+    backToProject: 'Back to project',
+    back: 'Back',
+    dataSources: 'Data sources',
+    dataSourcesSubtitle: 'Collect prices, reviews, and trends from the web',
+    addSource: 'Add source',
+    keyInsightsTitle: 'Key insights from your data',
+    projectLabel: 'Project:',
+    sources: 'Sources',
+    runs: 'Runs',
+    insights: 'Insights',
+    aiAssistTitle: "Don't know what to parse? AI will help",
+  };
+
   constructor(
     @inject(TYPES.ScraperApi)
     private readonly _api: ScraperApiPort

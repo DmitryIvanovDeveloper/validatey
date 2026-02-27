@@ -20,6 +20,11 @@ export const API_CONFIG = {
     // Projects
     PROJECTS: '/projects',
     PROJECT: (id: string) => `/projects/${id}`,
+    /** Guest view: project by slug (no auth). */
+    PUBLIC_PROJECT_BY_SLUG: (slug: string) => `/public/projects/by-slug/${encodeURIComponent(slug)}`,
+    /** Guest view: append ?guestSlug= to project or overview URL. */
+    PROJECT_WITH_GUEST: (id: string, slug: string) => `/projects/${id}?guestSlug=${encodeURIComponent(slug)}`,
+    OVERVIEW_WITH_GUEST: (id: string, slug: string) => `/projects/${id}/overview?guestSlug=${encodeURIComponent(slug)}`,
     PROJECTS_OVERVIEW: '/projects/overview',
     PROJECTS_ASSESS_RISK: '/projects/assess-risk',
     

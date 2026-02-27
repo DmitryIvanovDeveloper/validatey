@@ -3,5 +3,5 @@ import type { OverviewPayload } from '../use-cases/input-output/get-project-over
 import type { OverviewLoadError } from '../../domain/errors/project.error';
 
 export interface ProjectOverviewRepositoryPort {
-  getOverview(projectId: string): Promise<Result<OverviewPayload, OverviewLoadError>>;
+  getOverview(projectId: string, guestSlug?: string): Promise<Result<OverviewPayload, OverviewLoadError>>;
 }
