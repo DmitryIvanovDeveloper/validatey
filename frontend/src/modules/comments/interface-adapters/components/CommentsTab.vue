@@ -625,7 +625,7 @@ const removeUrl = async (index: number) => {
 
       <p style="margin-bottom: 1rem;">Are you sure you want to remove this Reddit source? This action cannot be undone.</p>
 
-      <div class="url-text" style="background: rgba(255, 69, 0, 0.1); border-left: 3px solid #ff4500; padding-left: 0.75rem;">
+      <div class="url-text" style="background: rgba(255, 69, 0, 0.1); border-left: var(--border-width) var(--border-style) #ff4500; padding-left: 0.75rem;">
         <ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />
         ${url}
       </div>
@@ -760,7 +760,7 @@ const removeHnUrl = async (index: number) => {
 
       <p style="margin-bottom: 1rem;">Are you sure you want to remove this Hacker News source? This action cannot be undone.</p>
 
-      <div class="url-text" style="background: rgba(255, 102, 0, 0.1); border-left: 3px solid #ff6600; padding-left: 0.75rem;">
+      <div class="url-text" style="background: rgba(255, 102, 0, 0.1); border-left: var(--border-width) var(--border-style) #ff6600; padding-left: 0.75rem;">
         <ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />
         ${url}
       </div>
@@ -830,7 +830,7 @@ const removeLinkedInUrl = async (index: number) => {
 
       <p style="margin-bottom: 1rem;">Are you sure you want to remove this LinkedIn source? This action cannot be undone.</p>
 
-      <div class="url-text" style="background: rgba(0, 119, 181, 0.1); border-left: 3px solid #0077B5; padding-left: 0.75rem;">
+      <div class="url-text" style="background: rgba(0, 119, 181, 0.1); border-left: var(--border-width) var(--border-style) #0077B5; padding-left: 0.75rem;">
         <ExternalLink size="14" style="margin-right: 0.5rem; vertical-align: middle;" />
         ${url}
       </div>
@@ -990,6 +990,7 @@ onMounted(async () => {
 /* Source Cards */
 .source-card {
   margin-bottom: 1.5rem;
+  background: none;
 }
 
 /* Actions Container */
@@ -1117,7 +1118,7 @@ onMounted(async () => {
 .source-tag.reddit {
   background: var(--color-accent-bg);
   color: var(--color-accent-dark);
-  border: 1px solid var(--color-accent-light);
+  border: var(--border-width) var(--border-style) var(--color-accent-light);
 }
 
 .source-tag.hackernews {
@@ -1172,7 +1173,7 @@ onMounted(async () => {
 .url-input,
 .feed-select {
   padding: 0.75rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-bg);
   color: var(--color-text);
@@ -1221,7 +1222,7 @@ onMounted(async () => {
   gap: 0.5rem;
   padding: 0.75rem;
   background: #fef2f2;
-  border: 1px solid #fecaca;
+  border: var(--border-width) var(--border-style) #fecaca;
   border-radius: var(--radius-sm);
   color: #dc2626;
   font-size: 0.875rem;
@@ -1263,7 +1264,7 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   margin: 1rem 0;
   position: relative;
   overflow: hidden;
@@ -1363,7 +1364,7 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   margin: 1rem 0;
 }
 
@@ -1378,8 +1379,8 @@ onMounted(async () => {
 .loading-spinner {
   width: 2.5rem;
   height: 2.5rem;
-  border: 3px solid var(--color-border-light);
-  border-top: 3px solid var(--color-accent);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
+  border-top: var(--border-width) var(--border-style) var(--color-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
@@ -1422,7 +1423,7 @@ onMounted(async () => {
   padding: 0.75rem;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
@@ -1442,7 +1443,7 @@ onMounted(async () => {
 
 .url-item-error {
   border-color: var(--color-error-light);
-  background: rgba(254, 226, 226, 0.8);
+  background: none;
 }
 
 .url-item-error:hover {
@@ -1460,7 +1461,7 @@ onMounted(async () => {
   width: 100%;
   padding: 0.625rem 0.75rem;
   padding-right: 2.5rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-bg);
   color: var(--color-text);
@@ -1530,7 +1531,7 @@ onMounted(async () => {
 .url-comments-btn {
   background: var(--color-accent);
   color: white;
-  border: 1px solid var(--color-accent);
+  border: var(--border-width) var(--border-style) var(--color-accent);
 }
 
 .url-comments-btn:hover {
@@ -1542,7 +1543,7 @@ onMounted(async () => {
 .url-remove-btn {
   background: var(--color-error-bg);
   color: var(--color-error);
-  border: 1px solid var(--color-error-light);
+  border: var(--border-width) var(--border-style) var(--color-error-light);
 }
 
 .url-remove-btn:hover {
@@ -1575,7 +1576,7 @@ onMounted(async () => {
 .url-input {
   flex: 1;
   padding: 0.75rem;
-  border: 2px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-bg);
   color: var(--color-text);
@@ -1665,7 +1666,7 @@ onMounted(async () => {
   padding: 1.5rem;
   background: rgba(248, 250, 252, 0.8);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
 }
 
 .comments-summary {
@@ -1776,7 +1777,7 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border);
   background: var(--color-bg);
 }
 
@@ -1819,7 +1820,7 @@ onMounted(async () => {
   padding: 0.5rem 0.9rem;
   background: transparent;
   color: var(--color-accent);
-  border: 1px solid var(--color-accent);
+  border: var(--border-width) var(--border-style) var(--color-accent);
   border-radius: 6px;
   font-size: 0.8rem;
   font-weight: 500;
@@ -1900,7 +1901,7 @@ onMounted(async () => {
   padding: 1rem;
   border-radius: var(--radius-md);
   background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   transition: border-color 0.2s ease;
 }
 
@@ -1978,7 +1979,7 @@ onMounted(async () => {
   padding: 0.5rem 0.75rem;
   background: var(--color-bg);
   color: var(--color-accent);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   font-weight: 500;

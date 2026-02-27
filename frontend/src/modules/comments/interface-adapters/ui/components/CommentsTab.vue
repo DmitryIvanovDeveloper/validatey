@@ -990,6 +990,7 @@ onMounted(async () => {
 /* Source Cards */
 .source-card {
   margin-bottom: 1.5rem;
+  background: none;
 }
 
 /* Actions Container */
@@ -1420,8 +1421,7 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  background: none;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-md);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -1442,7 +1442,7 @@ onMounted(async () => {
 
 .url-item-error {
   border-color: var(--color-error-light);
-  background: rgba(254, 226, 226, 0.8);
+  background: none;
 }
 
 .url-item-error:hover {

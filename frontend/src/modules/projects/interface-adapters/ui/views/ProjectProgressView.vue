@@ -17,8 +17,7 @@
     </PageHeader>
 
     <div v-if="loading" class="loading-state">
-      <LoadingSpinner />
-      <p>Loading progress data...</p>
+      <LoadingSpots message="Loading progress data..." size="lg" />
     </div>
 
     <div v-else-if="error" class="error-state">
@@ -482,7 +481,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import PageHeader from '../../../../../shared/components/PageHeader.vue';
-import LoadingSpinner from '../../../../../shared/components/LoadingSpinner.vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import ConfirmDialog from '../../../../../shared/components/ConfirmDialog.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { TYPES as INVITATION_TYPES } from '../../../../invitations/infrastructure/bootstrap/types';
@@ -1188,7 +1187,7 @@ onMounted(async () => {
 .btn-secondary {
   background: var(--progress-card);
   color: var(--progress-text);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
 }
 .btn-secondary:hover {
   background: var(--progress-bg);
@@ -1231,7 +1230,7 @@ onMounted(async () => {
   padding: 1.75rem 2rem;
   background: var(--progress-card);
   border-radius: var(--progress-radius);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   box-shadow: var(--progress-shadow-lg);
   position: relative;
   overflow: hidden;
@@ -1275,7 +1274,7 @@ onMounted(async () => {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--progress-text);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
 }
 .badge-pill--goal {
   background: var(--progress-accent-soft);
@@ -1324,7 +1323,7 @@ onMounted(async () => {
 .predicted-impact {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--progress-border);
+  border-top: var(--border-width) var(--border-style) var(--progress-border);
   font-size: 0.875rem;
   color: var(--progress-muted);
 }
@@ -1340,7 +1339,7 @@ onMounted(async () => {
   padding: 1.25rem;
   background: var(--progress-card);
   border-radius: var(--progress-radius-sm);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   box-shadow: var(--progress-shadow);
   display: flex;
   flex-direction: column;
@@ -1373,7 +1372,7 @@ onMounted(async () => {
   margin-top: 1rem;
   background: var(--progress-card);
   border-radius: var(--progress-radius-sm);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   box-shadow: var(--progress-shadow);
 }
 .quality-score-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
@@ -1409,7 +1408,7 @@ onMounted(async () => {
   padding: 0.75rem 1rem;
   border-radius: var(--progress-radius-sm);
   background: var(--progress-bg);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
 }
 .signal-meta { font-size: 0.75rem; color: var(--progress-muted); margin-left: 0.35rem; }
 
@@ -1418,7 +1417,7 @@ onMounted(async () => {
   padding: 1.25rem 1.5rem;
   background: var(--progress-card);
   border-radius: var(--progress-radius-sm);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   box-shadow: var(--progress-shadow);
 }
 .insights-feed-list { list-style: none; padding: 0; margin: 0; }
@@ -1427,7 +1426,7 @@ onMounted(async () => {
   gap: 1rem;
   padding: 0.6rem 0;
   font-size: 0.875rem;
-  border-bottom: 1px solid var(--progress-border);
+  border-bottom: var(--border-width) var(--border-style) var(--progress-border);
   align-items: flex-start;
 }
 .insight-item:last-child { border-bottom: none; }
@@ -1444,7 +1443,7 @@ onMounted(async () => {
   padding: 1.25rem 1.5rem;
   background: var(--progress-card);
   border-radius: var(--progress-radius-sm);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   box-shadow: var(--progress-shadow);
 }
 .whats-next-list { list-style: none; padding: 0; margin: 0; }
@@ -1554,7 +1553,7 @@ onMounted(async () => {
   border-radius: var(--progress-radius-sm);
   padding: 1.25rem;
   margin-bottom: 1rem;
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   box-shadow: var(--progress-shadow);
 }
 
@@ -1574,7 +1573,7 @@ onMounted(async () => {
   background: var(--progress-card);
   border-radius: var(--progress-radius-sm);
   padding: 1.25rem 1.5rem;
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   box-shadow: var(--progress-shadow);
 }
 
@@ -1609,7 +1608,7 @@ onMounted(async () => {
   max-width: 28rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   border-radius: 10px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -1624,7 +1623,7 @@ onMounted(async () => {
   max-width: 36rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   border-radius: 10px;
   resize: vertical;
   transition: border-color 0.2s ease;
@@ -1656,7 +1655,7 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 0.6rem 0;
-  border-bottom: 1px solid var(--progress-border);
+  border-bottom: var(--border-width) var(--border-style) var(--progress-border);
   font-size: 0.8125rem;
 }
 
@@ -1688,7 +1687,7 @@ onMounted(async () => {
 .btn-danger:hover { background: #fef2f2; color: #b91c1c; }
 
 .deletion-requests-panel { margin-bottom: 1.5rem; }
-.deletion-requests-table-wrap { overflow-x: auto; border-radius: var(--progress-radius-sm); border: 1px solid var(--progress-border); }
+.deletion-requests-table-wrap { overflow-x: auto; border-radius: var(--progress-radius-sm); border: var(--border-width) var(--border-style) var(--progress-border); }
 .deletion-requests-table {
   width: 100%;
   border-collapse: collapse;
@@ -1698,7 +1697,7 @@ onMounted(async () => {
 .deletion-requests-table td {
   padding: 0.65rem 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--progress-border);
+  border-bottom: var(--border-width) var(--border-style) var(--progress-border);
 }
 .deletion-requests-table th {
   font-weight: 600;
@@ -1722,7 +1721,7 @@ onMounted(async () => {
 .moderation-filter {
   padding: 0.35rem 0.65rem;
   font-size: 0.8125rem;
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   border-radius: 8px;
   background: var(--progress-card);
   color: var(--progress-text);
@@ -1730,7 +1729,7 @@ onMounted(async () => {
 .moderation-table-wrap {
   overflow-x: auto;
   border-radius: var(--progress-radius-sm);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
 }
 .moderation-table {
   width: 100%;
@@ -1741,7 +1740,7 @@ onMounted(async () => {
 .moderation-table td {
   padding: 0.65rem 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--progress-border);
+  border-bottom: var(--border-width) var(--border-style) var(--progress-border);
 }
 .moderation-table th {
   font-weight: 600;
@@ -1798,7 +1797,7 @@ onMounted(async () => {
   padding: 1rem;
   background: var(--progress-bg);
   border-radius: 10px;
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
 }
 .preview-title {
   font-size: 0.6875rem;
@@ -1814,7 +1813,7 @@ onMounted(async () => {
   gap: 0.5rem;
   padding: 0.4rem 0;
   font-size: 0.8125rem;
-  border-bottom: 1px solid var(--progress-border);
+  border-bottom: var(--border-width) var(--border-style) var(--progress-border);
 }
 .preview-item:last-child { border-bottom: none; }
 .preview-num { flex-shrink: 0; color: var(--progress-muted); font-weight: 500; }
@@ -1842,14 +1841,14 @@ onMounted(async () => {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 10px;
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   background: var(--progress-card);
   box-shadow: var(--progress-shadow);
 }
 
-.signal-card.signal-positive { background: #f0fdf4; border-left: 4px solid #22c55e; }
-.signal-card.signal-negative { background: #fef2f2; border-left: 4px solid #ef4444; }
-.signal-card.signal-neutral { background: #f0f9ff; border-left: 4px solid #0ea5e9; }
+.signal-card.signal-positive { background: #f0fdf4; border-left: var(--border-width) var(--border-style) #22c55e; }
+.signal-card.signal-negative { background: #fef2f2; border-left: var(--border-width) var(--border-style) #ef4444; }
+.signal-card.signal-neutral { background: #f0f9ff; border-left: var(--border-width) var(--border-style) #0ea5e9; }
 
 .signal-icon {
   flex-shrink: 0;
@@ -1887,7 +1886,7 @@ onMounted(async () => {
 }
 .btn-export {
   background: var(--progress-bg);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   color: var(--progress-text);
   cursor: pointer;
   border-radius: 8px;
@@ -1899,7 +1898,7 @@ onMounted(async () => {
 .responses-accordion { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .response-block {
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
   border-radius: var(--progress-radius-sm);
   overflow: hidden;
   box-shadow: var(--progress-shadow);
@@ -1934,7 +1933,7 @@ onMounted(async () => {
   font-weight: 600;
   background: var(--progress-bg);
   color: var(--progress-muted);
-  border: 1px solid var(--progress-border);
+  border: var(--border-width) var(--border-style) var(--progress-border);
 }
 
 .response-chevron {
@@ -1946,7 +1945,7 @@ onMounted(async () => {
 .response-body {
   padding: 1.25rem;
   background: var(--progress-bg);
-  border-top: 1px solid var(--progress-border);
+  border-top: var(--border-width) var(--border-style) var(--progress-border);
 }
 
 .response-block:not(.is-expanded) .response-body { display: none; }
@@ -1984,7 +1983,7 @@ onMounted(async () => {
 
 .response-transcript {
   padding-top: 1rem;
-  border-top: 1px solid var(--progress-border);
+  border-top: var(--border-width) var(--border-style) var(--progress-border);
 }
 
 .transcript-label { font-size: 0.75rem; font-weight: 600; color: var(--progress-muted); display: block; margin-bottom: 0.35rem; }
@@ -1994,7 +1993,7 @@ onMounted(async () => {
 .response-audio {
   padding-top: 1rem;
   margin-top: 1rem;
-  border-top: 1px solid var(--progress-border);
+  border-top: var(--border-width) var(--border-style) var(--progress-border);
 }
 
 .audio-player { width: 100%; max-width: 100%; border-radius: 8px; }

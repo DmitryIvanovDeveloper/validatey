@@ -9,9 +9,7 @@
       </div>
       <div class="auth-redirect__body">
         <template v-if="status === 'loading'">
-          <div class="auth-redirect__dots" aria-hidden="true">
-            <span></span><span></span><span></span>
-          </div>
+          <LoadingSpots inline size="lg" />
         </template>
         <template v-else-if="status === 'done'">
           <div class="auth-redirect__check" aria-hidden="true">
@@ -38,6 +36,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../../infrastructure/bootstrap/types';
 import type { AuthPresenter } from '../../presenters/auth.presenter';
@@ -154,29 +153,6 @@ onMounted(async () => {
   justify-content: center;
   gap: 1rem;
   min-height: 80px;
-}
-
-.auth-redirect__dots {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.auth-redirect__dots span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-accent, #0d9488);
-  animation: bounce 1.4s ease-in-out infinite both;
-}
-
-.auth-redirect__dots span:nth-child(1) { animation-delay: 0s; }
-.auth-redirect__dots span:nth-child(2) { animation-delay: 0.2s; }
-.auth-redirect__dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
 }
 
 .auth-redirect__check {

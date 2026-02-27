@@ -169,7 +169,7 @@ async function handleSignOut() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg, #fafafa);
+  background: var(--color-bg-page, #fbf7eb);
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
@@ -179,9 +179,7 @@ async function handleSignOut() {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--color-bg-page);
   border-bottom: 1px solid var(--color-border, #e5e7eb);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -362,7 +360,7 @@ async function handleSignOut() {
 .sidebar {
   width: 14rem;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--color-bg-page);
   border-right: 1px solid var(--color-border, #e5e7eb);
   overflow-y: auto;
 }

@@ -57,8 +57,7 @@ const isOpen = ref(false);
 
 <style scoped>
 .overview-guide-widget {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border: 1px solid #bae6fd;
+  background: none;
   border-radius: 0.75rem;
   overflow: hidden;
   margin-bottom: 1rem;

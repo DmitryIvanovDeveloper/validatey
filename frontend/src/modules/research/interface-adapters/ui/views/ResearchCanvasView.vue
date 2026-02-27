@@ -23,10 +23,7 @@
     </PageHeader>
 
     <div v-if="loading" class="state state-loading">
-      <div class="loading-dots">
-        <span></span><span></span><span></span>
-      </div>
-      <p>Loading Research Assistant…</p>
+      <LoadingSpots message="Loading Research Assistant…" size="lg" />
     </div>
     <div v-else-if="error" class="state state-error">
       <span class="state-icon" aria-hidden="true">!</span>
@@ -295,6 +292,7 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import PageHeader from '../../../../../shared/components/PageHeader.vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import { API_CONFIG } from '../../../../../infrastructure/config/api.config';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { TYPES as ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
@@ -563,7 +561,7 @@ onMounted(() => {
 .research-canvas-view :deep(.header-actions a.btn-secondary) {
   background: var(--color-bg-subtle, #f1f5f9);
   color: var(--color-text);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
 }
 .research-canvas-view :deep(.header-actions .btn-secondary:hover:not(:disabled)),
 .research-canvas-view :deep(.header-actions a.btn-secondary:hover) {
@@ -591,7 +589,7 @@ onMounted(() => {
   display: inline-block;
   width: 1em;
   height: 1em;
-  border: 2px solid currentColor;
+  border: var(--border-width) var(--border-style) currentColor;
   border-right-color: transparent;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
@@ -611,25 +609,6 @@ onMounted(() => {
   margin: var(--space-3, 0.75rem) 0 0;
   color: var(--color-text-muted);
   font-size: var(--text-base, 0.875rem);
-}
-.loading-dots {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-.loading-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: bounce 1.4s ease-in-out infinite both;
-}
-.loading-dots span:nth-child(1) { animation-delay: 0s; }
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
 }
 .state-error .state-icon {
   display: inline-flex;
@@ -669,7 +648,7 @@ onMounted(() => {
   min-width: 140px;
   max-width: 220px;
   padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-sm, 0.5rem);
   font-size: var(--text-base, 0.875rem);
   font-family: inherit;
@@ -692,7 +671,7 @@ onMounted(() => {
 .alert-error {
   background: var(--color-error-bg);
   color: var(--color-error);
-  border: 1px solid rgba(220, 38, 38, 0.2);
+  border: var(--border-width) var(--border-style) rgba(220, 38, 38, 0.2);
 }
 
 .section {
@@ -785,7 +764,7 @@ onMounted(() => {
 .card {
   background: var(--color-bg);
   border-radius: var(--radius-lg, 0.75rem);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   box-shadow: var(--shadow-sm);
   padding: var(--space-6, 1.5rem);
   transition: box-shadow 0.2s, border-color 0.2s;
@@ -793,6 +772,9 @@ onMounted(() => {
 .card:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--color-border);
+}
+.card.synthesis-card {
+  background: transparent;
 }
 .card-head {
   display: flex;
@@ -850,7 +832,7 @@ onMounted(() => {
 .chat-wrap {
   border-radius: var(--radius-md, 0.625rem);
   background: var(--color-bg-page, #f8fafc);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   overflow: hidden;
 }
 .chat-messages {
@@ -895,7 +877,7 @@ onMounted(() => {
 }
 .chat-msg.assistant .chat-msg-body {
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   color: var(--color-text);
 }
 .chat-msg-text { margin: 0; }
@@ -912,12 +894,12 @@ onMounted(() => {
   gap: var(--space-2, 0.5rem);
   padding: var(--space-3, 0.75rem);
   background: var(--color-bg);
-  border-top: 1px solid var(--color-border-light);
+  border-top: var(--border-width) var(--border-style) var(--color-border-light);
 }
 .chat-input {
   flex: 1;
   padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--text-base, 0.875rem);
   font-family: inherit;
@@ -1075,7 +1057,7 @@ onMounted(() => {
   font-family: inherit;
   color: var(--color-accent);
   background: rgba(13, 148, 136, 0.08);
-  border: 1px solid rgba(13, 148, 136, 0.25);
+  border: var(--border-width) var(--border-style) rgba(13, 148, 136, 0.25);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;

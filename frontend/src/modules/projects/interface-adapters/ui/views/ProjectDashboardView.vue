@@ -109,6 +109,7 @@ onMounted(() => {
 .project-dashboard-view {
   padding: 0 1rem 2rem;
   max-width: 100%;
+  background: var(--color-bg-page);
 }
 
 .dashboard-header {
@@ -168,6 +169,7 @@ onMounted(() => {
 
 .dashboard-content {
   min-height: 200px;
+  background: var(--color-bg-page);
 }
 
 .round-sub-header {

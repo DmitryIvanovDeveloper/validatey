@@ -12,12 +12,7 @@
 
       <!-- Loading state: only show animated dots while actually loading -->
       <div v-if="loading" class="loading-state">
-        <div class="loading-dots">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-        </div>
-        <p class="loading-text">Analyzing research data...</p>
+        <LoadingSpots message="Analyzing research data..." size="md" />
       </div>
 
       <!-- Empty state: no data in DB, loading finished -->
@@ -69,9 +64,9 @@ const emit = defineEmits<{
 }
 
 .section-card {
-  background: white;
+  background: var(--color-bg-page);
   border-radius: 0.75rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   padding: 1.5rem;
 }
 
@@ -122,7 +117,7 @@ const emit = defineEmits<{
   padding: 0.375rem 0.75rem;
   background: transparent;
   color: var(--color-accent);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
@@ -162,7 +157,7 @@ const emit = defineEmits<{
 }
 
 .summary-text {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   font-weight: var(--font-weight-normal);
   color: var(--color-text);
@@ -179,45 +174,6 @@ const emit = defineEmits<{
 }
 
 .loading-dots {
-  display: flex;
-  gap: var(--space-1);
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: loading-dots 1.4s ease-in-out infinite both;
-}
-
-.dot:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.dot:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-@keyframes loading-dots {
-  0%, 80%, 100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.loading-text {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  margin: 0;
-  font-weight: var(--font-weight-medium);
-}
-
-.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;

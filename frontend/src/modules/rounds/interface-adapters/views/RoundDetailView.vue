@@ -362,12 +362,11 @@ onMounted(loadRound);
 
 /* Synthesis card */
 .synthesis-card {
-  background: linear-gradient(135deg, #f8fafc, #fff);
+  background: transparent;
   border: 1px solid #e2e8f0;
   border-radius: 1rem;
   padding: 1.5rem 1.75rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
 
 .synthesis-heading {

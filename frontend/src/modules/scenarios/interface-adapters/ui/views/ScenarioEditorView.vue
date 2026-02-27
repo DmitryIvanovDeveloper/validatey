@@ -1,7 +1,9 @@
 <template>
   <div class="scenario-editor-view">
     <h1>Scenario Editor</h1>
-    <div v-if="viewModel.loading">Loading...</div>
+    <div v-if="viewModel.loading" class="loading-state">
+      <LoadingSpots message="Loading..." size="lg" />
+    </div>
     <div v-else-if="viewModel.error" class="error">{{ viewModel.error }}</div>
     <div v-else-if="viewModel.scenario">
       <textarea v-model="scenarioContent" rows="20" cols="80"></textarea>
@@ -12,6 +14,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import LoadingSpots from '../../../../shared/components/LoadingSpots.vue';
 import { ScenarioViewModel } from '../../view-models/scenario.view-model';
 
 const viewModel = new ScenarioViewModel();

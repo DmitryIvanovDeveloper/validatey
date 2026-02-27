@@ -6,9 +6,7 @@
         <p class="auth-redirect__subtitle">Redirecting…</p>
       </div>
       <div class="auth-redirect__body">
-        <div class="auth-redirect__dots" aria-hidden="true">
-          <span></span><span></span><span></span>
-        </div>
+        <LoadingSpots inline size="lg" />
       </div>
     </div>
   </div>
@@ -16,6 +14,7 @@
 
 <script setup lang="ts">
 import { onBeforeMount } from 'vue';
+import LoadingSpots from './LoadingSpots.vue';
 
 // Immediate redirect on component creation
 onBeforeMount(() => {
@@ -76,26 +75,4 @@ onBeforeMount(() => {
   min-height: 80px;
 }
 
-.auth-redirect__dots {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.auth-redirect__dots span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-accent, #0d9488);
-  animation: bounce 1.4s ease-in-out infinite both;
-}
-
-.auth-redirect__dots span:nth-child(1) { animation-delay: 0s; }
-.auth-redirect__dots span:nth-child(2) { animation-delay: 0.2s; }
-.auth-redirect__dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
-}
 </style>

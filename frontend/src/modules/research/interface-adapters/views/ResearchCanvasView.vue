@@ -794,6 +794,9 @@ onMounted(() => {
   box-shadow: var(--shadow-md);
   border-color: var(--color-border);
 }
+.card.synthesis-card {
+  background: transparent;
+}
 .card-head {
   display: flex;
   align-items: center;

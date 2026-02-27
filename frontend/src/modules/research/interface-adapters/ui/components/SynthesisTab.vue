@@ -123,7 +123,7 @@ defineProps<Props>();
 
 /* Section cards */
 .section-card {
-  background: var(--color-bg);
+  background: var(--color-bg-page);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
@@ -208,20 +208,13 @@ defineProps<Props>();
 }
 
 .synthesis-card {
-  background: var(--color-bg);
+  background: transparent;
   border: 1px solid var(--color-border-light);
   border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s, border-color 0.2s;
-}
-
-.synthesis-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-border);
+  transition: border-color 0.2s;
 }
 
 .synthesis-summary {
-  background: #ecfdf5;
   border-color: #bbf7d0;
 }
 
@@ -264,11 +257,12 @@ defineProps<Props>();
 
 .synthesis-card-content {
   padding: 1.5rem;
+  background: transparent;
 }
 
 .synthesis-summary-text {
   color: #166534;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.6;
   margin: 0;
 }

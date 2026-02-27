@@ -21,8 +21,7 @@
     </header>
 
     <div v-if="loading" class="loading-state">
-      <LoadingSpinner />
-      <p>Generating report...</p>
+      <LoadingSpots message="Generating report..." size="lg" />
     </div>
 
     <div v-else-if="error" class="report-state">
@@ -280,7 +279,7 @@ onMounted(() => {
 .page-header {
   margin-bottom: var(--space-8);
   padding-bottom: var(--space-6);
-  border-bottom: 2px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
 }
 
 .breadcrumb {
@@ -368,7 +367,7 @@ onMounted(() => {
 
 .executive-summary-card {
   background: var(--color-bg-elevated, #f8fafc);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-lg);
 }
 
@@ -394,7 +393,7 @@ onMounted(() => {
 .executive-summary-actions {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-width) var(--border-style) var(--color-border);
 }
 
 .report-full-content {
@@ -404,7 +403,7 @@ onMounted(() => {
 }
 
 .verdict-card {
-  border-left: 6px solid var(--color-border);
+  border-left: var(--border-width) var(--border-style) var(--color-border);
   box-shadow: var(--shadow-md);
   overflow: hidden;
 }
@@ -495,8 +494,8 @@ onMounted(() => {
   padding: 1.5rem;
   background: var(--color-bg-page);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  border-left: 4px solid var(--color-accent);
+  border: var(--border-width) var(--border-style) var(--color-border);
+  border-left: var(--border-width) var(--border-style) var(--color-accent);
 }
 
 .cluster-header {
@@ -557,8 +556,8 @@ onMounted(() => {
   margin-bottom: 0.75rem;
   background: var(--color-bg-page);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
-  border-left: 4px solid var(--color-warning);
+  border: var(--border-width) var(--border-style) var(--color-border);
+  border-left: var(--border-width) var(--border-style) var(--color-warning);
 }
 
 .recommendation-item {

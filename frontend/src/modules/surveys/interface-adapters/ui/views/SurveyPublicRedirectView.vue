@@ -4,7 +4,7 @@
       <p>{{ error }}</p>
     </div>
     <div v-else class="loading-state">
-      <p>Loading survey...</p>
+      <LoadingSpots message="Loading survey..." size="lg" />
     </div>
   </div>
 </template>
@@ -12,6 +12,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import { API_CONFIG } from '../../../../../infrastructure/config/api.config';
 
 const route = useRoute();

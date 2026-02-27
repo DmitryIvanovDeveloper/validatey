@@ -2,10 +2,7 @@
   <div v-if="loading || risks.length > 0" class="risk-warnings">
     <!-- Loading state -->
     <div v-if="loading" class="risk-warnings-loading">
-      <div class="risk-loading-dots">
-        <span></span><span></span><span></span>
-      </div>
-      <span class="risk-loading-text">Analyzing for failure patterns...</span>
+      <LoadingSpots message="Analyzing for failure patterns..." size="sm" />
     </div>
 
     <!-- Risk warnings list -->
@@ -47,6 +44,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import LoadingSpots from '@/shared/components/LoadingSpots.vue';
 import type { ProjectRisk, RiskLevel } from '../../../domain/entities/project-risk.entity';
 
 interface Props {
@@ -87,7 +85,7 @@ function levelLabel(level: RiskLevel): string {
 .risk-warnings {
   margin-top: 1rem;
   border-radius: 8px;
-  border: 1px solid #fde68a;
+  border: var(--border-width) var(--border-style) #fde68a;
   background: #fffbeb;
   overflow: hidden;
 }
@@ -101,33 +99,12 @@ function levelLabel(level: RiskLevel): string {
   font-size: 0.8125rem;
 }
 
-.risk-loading-dots {
-  display: flex;
-  gap: 3px;
-}
-
-.risk-loading-dots span {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #d97706;
-  animation: risk-pulse 1.2s ease-in-out infinite;
-}
-
-.risk-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.risk-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes risk-pulse {
-  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-  40% { opacity: 1; transform: scale(1); }
-}
-
 .risk-warnings-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  border-bottom: 1px solid #fde68a;
+  border-bottom: var(--border-width) var(--border-style) #fde68a;
   background: #fef3c7;
 }
 
@@ -167,7 +144,7 @@ function levelLabel(level: RiskLevel): string {
   display: flex;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #fde68a;
+  border-bottom: var(--border-width) var(--border-style) #fde68a;
 }
 
 .risk-item:last-child {

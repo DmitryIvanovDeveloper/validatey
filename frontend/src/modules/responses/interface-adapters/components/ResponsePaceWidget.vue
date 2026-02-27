@@ -35,18 +35,12 @@
 
         <!-- Progress towards target -->
         <div v-if="targetPace > 0" class="pace-progress">
-          <div class="progress-bar">
-            <div
-              class="progress-fill"
-              :class="{
-                'progress-excellent': (currentPace / targetPace) >= 0.8,
-                'progress-good': (currentPace / targetPace) >= 0.5 && (currentPace / targetPace) < 0.8,
-                'progress-low': (currentPace / targetPace) < 0.5
-              }"
-              :style="{ width: `${Math.min((currentPace / targetPace) * 100, 100)}%` }"
-            ></div>
-          </div>
-          <div class="progress-label">{{ Math.round((currentPace / targetPace) * 100) }}%</div>
+          <ProgressBar
+            :percentage="pacePercent"
+            :variant="paceVariant"
+            show-label
+            size="sm"
+          />
         </div>
 
         <!-- Response trend -->
@@ -84,6 +78,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch, withDefaults } from 'vue';
+import ProgressBar from '@/shared/components/ProgressBar.vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { ResponsePresenter } from '../presenters/response.presenter';
 import type { ResponsePaceData } from '../presenters/response.presenter';
@@ -103,6 +98,7 @@ const props = withDefaults(defineProps<Props>(), {
 const responsePresenter = container.get<ResponsePresenter>(TYPES.ResponsePresenter);
 const paceData = ref<ResponsePaceData>({
   currentPace: 0,
+  totalResponses: 0,
   yesterdayResponses: 0,
   lastWeekAvg: 0,
   thisWeekTotal: 0,
@@ -120,6 +116,23 @@ const yesterdayResponses = computed(() => paceData.value.yesterdayResponses);
 const lastWeekAvg = computed(() => paceData.value.lastWeekAvg);
 const thisWeekTotal = computed(() => paceData.value.thisWeekTotal);
 const insights = computed(() => paceData.value.insights);
+
+// Progress bar must match displayed data: Current (X/day) vs Target (Y/day) → (currentPace / target) * 100
+const pacePercent = computed(() => {
+  const target = props.targetPace || 0;
+  if (target <= 0) return 0;
+  const current = paceData.value.currentPace;
+  return Math.min(100, Math.round((current / target) * 100));
+});
+
+const paceVariant = computed<'default' | 'excellent' | 'good' | 'low'>(() => {
+  const target = props.targetPace || 0;
+  if (target <= 0) return 'default';
+  const ratio = paceData.value.currentPace / target;
+  if (ratio >= 0.8) return 'excellent';
+  if (ratio >= 0.5) return 'good';
+  return 'low';
+});
 
 const loadResponsePace = async () => {
   try {
@@ -157,7 +170,7 @@ watch(() => props.projectId, (newProjectId) => {
 }
 
 .section-card {
-  background: white;
+  background: var(--color-bg-page);
   border-radius: 0.5rem;
   border: 1px solid var(--color-border);
   padding: 1rem;
@@ -247,39 +260,6 @@ watch(() => props.projectId, (newProjectId) => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 0.375rem;
-  background: var(--color-bg-subtle, #f1f5f9);
-  border-radius: 0.25rem;
-  overflow: hidden;
-}
-
-.progress-label {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  text-align: right;
-  margin: 0;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 0.25rem;
-  transition: width 0.3s ease;
-}
-
-.progress-excellent {
-  background: linear-gradient(90deg, #10b981, #059669);
-}
-
-.progress-good {
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
-}
-
-.progress-low {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
 }
 
 .pace-trend {

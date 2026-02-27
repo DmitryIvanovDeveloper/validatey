@@ -287,12 +287,10 @@ const emit = defineEmits<EmitEvents>();
 
 /* Cooldown Notice */
 .cooldown-notice {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(13, 148, 136, 0.15);
+  background: none;
+  border: none;
   border-radius: 0.75rem;
   padding: 1rem 1.5rem;
-  box-shadow: 0 2px 12px rgba(13, 148, 136, 0.08);
 }
 
 .cooldown-content {

@@ -26,7 +26,7 @@
     </div>
 
     <div v-if="loading" class="loading-state">
-      <p>Loading responses...</p>
+      <LoadingSpots message="Loading responses..." size="lg" />
     </div>
     <div v-else-if="error" class="error-state">
       <p class="error-text">{{ error }}</p>
@@ -127,6 +127,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../../infrastructure/bootstrap/types';
 import type { ResponsePresenter, ResponseListItem } from '../../presenters/response.presenter';
@@ -321,6 +322,7 @@ onMounted(async () => {
   --resp-radius: 12px;
   --resp-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   --resp-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: var(--color-bg-page);
 }
 
 .view-header {
@@ -348,7 +350,7 @@ onMounted(async () => {
   margin-bottom: 1.25rem;
   padding: 1rem 1.25rem;
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--resp-radius);
   box-shadow: var(--resp-shadow);
 }
@@ -361,7 +363,7 @@ onMounted(async () => {
   max-width: 320px;
   padding: 0.625rem 1rem;
   font-size: 0.9375rem;
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: 10px;
   background: var(--color-bg);
   color: var(--color-text);
@@ -390,7 +392,7 @@ onMounted(async () => {
   text-align: center;
   background: var(--color-bg);
   border-radius: var(--resp-radius);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
 }
 .loading-state p,
 .error-state .error-text {
@@ -405,7 +407,7 @@ onMounted(async () => {
 .table-wrap {
   overflow-x: auto;
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--resp-radius);
   box-shadow: var(--resp-shadow);
   margin-bottom: 1rem;
@@ -433,11 +435,11 @@ onMounted(async () => {
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
   background: var(--color-bg-subtle, #f8fafc);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
   white-space: nowrap;
 }
 .responses-table tbody tr {
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
   transition: background-color 0.12s ease;
 }
 .responses-table tbody tr:last-child {
@@ -555,7 +557,7 @@ tr.row-selected:hover {
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
   background: var(--color-bg);
   flex-shrink: 0;
 }

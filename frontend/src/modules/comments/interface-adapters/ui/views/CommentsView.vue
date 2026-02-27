@@ -17,5 +17,6 @@ const projectId = computed(() => route.params.projectId as string);
 .comments-view {
   padding: 0 1rem 2rem;
   max-width: 100%;
+  background: var(--color-bg-page);
 }
 </style>

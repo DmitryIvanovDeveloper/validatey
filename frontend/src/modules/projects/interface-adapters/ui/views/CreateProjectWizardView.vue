@@ -193,17 +193,17 @@
               <!-- AI Generation Overlay -->
               <div v-if="scenarioSource === 'ai'" class="ai-generation-overlay">
                 <div v-if="scenarioLoading" class="generation-loading">
-                  <div class="generation-dots">
-                    <span></span><span></span><span></span>
-                  </div>
+                  <LoadingSpots inline size="lg" />
                   <div class="generation-content">
                     <h3>{{ projectPresenter.labels.generatingScenario }}</h3>
                     <p>{{ projectPresenter.labels.creatingFor(getValidationTypeName(selectedTemplateSlugs)) }}</p>
                     <div class="generation-progress">
-                      <div class="progress-bar">
-                        <div class="progress-fill" :style="{ width: generationProgress + '%' }"></div>
-                      </div>
-                      <p class="progress-text">{{ projectPresenter.labels.percentComplete(generationProgress) }}</p>
+                      <ProgressBar
+                        :percentage="generationProgress"
+                        show-label
+                        :label="projectPresenter.labels.percentComplete(generationProgress)"
+                        size="md"
+                      />
                     </div>
                   </div>
                 </div>
@@ -278,6 +278,8 @@ import PageHeader from '../../../../../shared/components/PageHeader.vue';
 import Wizard from '../../../../../shared/components/Wizard.vue';
 import Modal from '../../../../../shared/components/Modal.vue';
 import LoadingSpinner from '../../../../../shared/components/LoadingSpinner.vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
+import ProgressBar from '@/shared/components/ProgressBar.vue';
 import Button from '../../../../../shared/components/atoms/Button.vue';
 import ScenarioViewer from '../components/ScenarioViewer.vue';
 import Toast from '../../../../../shared/components/Toast.vue';
@@ -1051,10 +1053,9 @@ onMounted(async () => {
 }
 
 .wizard-container {
-  background: white;
+  background: transparent;
   border-radius: var(--radius-xl, 1rem);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
   padding: 2rem;
 }
 
@@ -1072,7 +1073,7 @@ onMounted(async () => {
 .wizard-section {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-width) var(--border-style) var(--color-border);
 }
 
 .wizard-section:first-of-type {
@@ -1150,10 +1151,11 @@ onMounted(async () => {
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
   border-radius: var(--radius-md);
   font-size: 1rem;
   transition: border-color 0.2s;
+  background: transparent;
 }
 
 .form-input:focus {
@@ -1221,7 +1223,7 @@ onMounted(async () => {
 
 .btn-add {
   padding: 0.75rem;
-  border: 2px dashed var(--color-border);
+  border: 2px dashed var(--color-border-dashed, var(--color-border));
   background: transparent;
   color: var(--color-text-muted);
   border-radius: var(--radius-md);
@@ -1278,7 +1280,7 @@ onMounted(async () => {
 .context-accordion {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-width) var(--border-style) var(--color-border);
 }
 
 .context-accordion-trigger {
@@ -1286,7 +1288,7 @@ onMounted(async () => {
   padding: 0.75rem;
   text-align: left;
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
   border-radius: var(--radius-md);
   font-weight: 500;
   color: var(--color-text-muted);
@@ -1303,7 +1305,7 @@ onMounted(async () => {
   padding: 1rem;
   background: var(--color-bg-page);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
 }
 
 .scenario-source-options {
@@ -1337,7 +1339,7 @@ onMounted(async () => {
   padding: 1.5rem;
   background: var(--color-bg-page);
   border-radius: var(--radius-md);
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--color-border-dashed, var(--color-border));
 }
 
 .scenario-ai-prompt p {
@@ -1354,7 +1356,7 @@ onMounted(async () => {
   padding: 1rem;
   background: var(--color-bg-page);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
 }
 
 .scenario-rating-label {
@@ -1372,7 +1374,7 @@ onMounted(async () => {
 .rating-btn {
   width: 2.5rem;
   height: 2.5rem;
-  border: 2px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
   border-radius: var(--radius-md);
   background: white;
   font-weight: 600;
@@ -1403,7 +1405,7 @@ onMounted(async () => {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
   border-radius: var(--radius-md);
   font-weight: 500;
   cursor: pointer;
@@ -1419,7 +1421,7 @@ onMounted(async () => {
   padding: 1.5rem;
   background: var(--color-bg-page);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
 }
 
 .price-row {
@@ -1502,7 +1504,7 @@ onMounted(async () => {
   appearance: none;
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
   border-radius: 0.25rem;
   display: flex;
   align-items: center;
@@ -1550,7 +1552,7 @@ onMounted(async () => {
   appearance: none;
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1593,7 +1595,7 @@ onMounted(async () => {
 
 .context-accordion-content {
   padding: 1rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border-dashed, var(--color-border));
   border-radius: var(--radius-md);
   margin-top: 0.5rem;
 }
@@ -1678,7 +1680,7 @@ onMounted(async () => {
 
 .validation-type-card {
   padding: 1.5rem;
-  border: 2px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-lg);
   background: var(--color-bg);
   cursor: pointer;
@@ -1744,26 +1746,9 @@ onMounted(async () => {
   margin-top: 1rem;
 }
 
-/* Generation progress */
 .generation-progress {
   margin-top: 1.5rem;
   text-align: center;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: var(--color-bg-subtle);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
-  border-radius: 4px;
-  transition: width 0.3s ease;
 }
 
 /* AI Generation Overlay */
@@ -1794,25 +1779,6 @@ onMounted(async () => {
   text-align: center;
 }
 
-.generation-dots {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.generation-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: bounce 1.4s ease-in-out infinite both;
-}
-
-.generation-dots span:nth-child(1) { animation-delay: 0s; }
-.generation-dots span:nth-child(2) { animation-delay: 0.2s; }
-.generation-dots span:nth-child(3) { animation-delay: 0.4s; }
-
 .generation-content h3 {
   font-size: 1.25rem;
   font-weight: 600;
@@ -1829,29 +1795,6 @@ onMounted(async () => {
   margin-top: 1.5rem;
 }
 
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin: 0;
-}
-
-
 @keyframes bounce {
   0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
   40% { transform: scale(1); opacity: 1; }
@@ -1866,9 +1809,4 @@ onMounted(async () => {
   }
 }
 
-.progress-text {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin: 0;
-}
 </style>

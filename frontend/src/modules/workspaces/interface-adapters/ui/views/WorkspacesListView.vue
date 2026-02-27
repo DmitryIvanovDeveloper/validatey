@@ -21,10 +21,7 @@
     </PageHeader>
 
     <div v-if="presenter?.viewModel?.loading" class="loading-state">
-      <div class="loading-dots">
-        <span></span><span></span><span></span>
-      </div>
-      <p>{{ presenter?.labels?.loadingWorkspaces ?? 'Loading workspaces…' }}</p>
+      <LoadingSpots :message="presenter?.labels?.loadingWorkspaces ?? 'Loading workspaces…'" size="lg" />
     </div>
 
     <ErrorDisplay
@@ -141,6 +138,7 @@ import { WorkspaceListPresenter } from '../../presenters/workspace-list.presente
 import type { Workspace } from '../../view-models/workspace-list.view-model';
 import { TYPES } from '../../../infrastructure/bootstrap/types';
 import PageHeader from '@/shared/components/PageHeader.vue';
+import LoadingSpots from '@/shared/components/LoadingSpots.vue';
 import ErrorDisplay from '@/shared/components/ErrorDisplay.vue';
 import Button from '@/shared/components/atoms/Button.vue';
 import WorkspaceCard from '../components/WorkspaceCard.vue';
@@ -279,6 +277,7 @@ const goToWorkspace = (workspaceId: string): void => {
 <style scoped>
 .workspaces-list-view {
   padding: 2rem;
+  background: var(--color-bg-page);
 }
 
 .loading-state,
@@ -288,33 +287,39 @@ const goToWorkspace = (workspaceId: string): void => {
   padding: 4rem 2rem;
 }
 
-.loading-dots {
-  display: inline-flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.loading-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #007bff;
-  animation: loading 1.4s infinite ease-in-out both;
-}
-
-.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes loading {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
-}
-
 .workspaces-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-top: 2rem;
+}
+
+.workspaces-grid > * {
+  position: relative;
+}
+
+.workspaces-grid > *::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 0;
+  bottom: -1.5rem;
+  margin-left: 0.75rem;
+  width: 0;
+  border-left: 1px dashed var(--color-border-dashed, var(--color-border));
+  pointer-events: none;
+}
+
+.workspaces-grid > *::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: -1.5rem;
+  margin-top: 0.75rem;
+  height: 0;
+  border-top: 1px dashed var(--color-border-dashed, var(--color-border));
+  pointer-events: none;
 }
 
 .onboarding-block {

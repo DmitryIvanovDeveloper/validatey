@@ -33,6 +33,7 @@ export interface ResponseSummary {
 
 export interface ResponsePaceData {
   currentPace: number; // responses per day (7-day average)
+  totalResponses: number; // all-time count (for progress when currentPace is 0)
   yesterdayResponses: number;
   lastWeekAvg: number; // same as currentPace, kept for backward compatibility
   thisWeekTotal: number;
@@ -135,6 +136,7 @@ export class ResponsePresenter {
       return {
         data: {
           currentPace,
+          totalResponses: responses.length,
           yesterdayResponses,
           lastWeekAvg: currentPace,
           thisWeekTotal,
@@ -152,6 +154,7 @@ export class ResponsePresenter {
   private _getEmptyPaceData(targetPace: number): ResponsePaceData {
     return {
       currentPace: 0,
+      totalResponses: 0,
       yesterdayResponses: 0,
       lastWeekAvg: 0,
       thisWeekTotal: 0,

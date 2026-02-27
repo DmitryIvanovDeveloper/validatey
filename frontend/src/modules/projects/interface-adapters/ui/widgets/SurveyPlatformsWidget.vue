@@ -12,10 +12,7 @@
     </div>
 
     <div v-if="loading" class="spw-loading">
-      <div class="spw-loading-dots">
-        <span></span><span></span><span></span>
-      </div>
-      <span>{{ labels.analyzing }}</span>
+      <LoadingSpots :message="labels.analyzing" size="sm" />
     </div>
 
     <div v-else-if="error" class="spw-empty">
@@ -98,6 +95,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { TYPES as ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { HttpClientPort } from '../../../../../infrastructure/http/ports/http-client.port';
@@ -228,12 +226,12 @@ function copyPost(post: string, event: Event): void {
 
 <style scoped>
 .survey-platforms-widget {
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-bg);
   overflow: hidden;
 }
-.spw-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border); }
+.spw-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: var(--border-width) var(--border-style) var(--color-border); }
 .spw-title { font-size: 1rem; font-weight: 600; color: var(--color-text); margin: 0; }
 .spw-generate-btn {
   padding: 0.5rem 0.75rem; background: var(--color-accent); color: white; border: none; border-radius: var(--radius-sm);
@@ -241,17 +239,12 @@ function copyPost(post: string, event: Event): void {
 }
 .spw-generate-btn:hover:not(:disabled) { background: var(--color-accent-hover); }
 .spw-generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.spw-loading { display: flex; align-items: center; gap: 0.5rem; padding: 1.5rem 1.25rem; color: var(--color-text-muted); font-size: 0.875rem; }
-.spw-loading-dots { display: flex; gap: 3px; }
-.spw-loading-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--color-accent); animation: spw-pulse 1.2s ease-in-out infinite; }
-.spw-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.spw-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes spw-pulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+.spw-loading { padding: 1.5rem 1.25rem; }
 .spw-empty { padding: 2rem 1.25rem; text-align: center; color: var(--color-text-muted); font-size: 0.875rem; }
 .spw-empty-icon { width: 2rem; height: 2rem; margin: 0 auto 0.75rem; color: var(--color-text-muted); opacity: 0.5; }
 .spw-empty-hint { margin-top: 0.5rem; color: var(--color-text-muted); font-size: 0.8125rem; }
 .spw-platforms { padding: 0; }
-.spw-platform-card { border-bottom: 1px solid var(--color-border); padding: 1rem 1.25rem; }
+.spw-platform-card { border-bottom: var(--border-width) var(--border-style) var(--color-border); padding: 1rem 1.25rem; }
 .spw-platform-card:last-child { border-bottom: none; }
 .spw-platform-header { margin-bottom: 0.75rem; }
 .spw-platform-name-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
@@ -262,13 +255,13 @@ function copyPost(post: string, event: Event): void {
 .spw-platform-meta { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-text-muted); }
 .spw-platform-reason { color: var(--color-text); font-size: 0.875rem; line-height: 1.6; margin: 0.75rem 0; }
 .spw-platform-reason p { margin: 0; }
-.spw-platform-post { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border); }
+.spw-platform-post { margin-top: 1rem; padding-top: 1rem; border-top: var(--border-width) var(--border-style) var(--color-border); }
 .spw-post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; gap: 0.75rem; }
 .spw-post-label { font-size: 0.875rem; font-weight: 600; color: var(--color-text); }
-.spw-copy-btn { padding: 0.375rem 0.75rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 500; color: var(--color-text); cursor: pointer; }
+.spw-copy-btn { padding: 0.375rem 0.75rem; background: var(--color-bg); border: var(--border-width) var(--border-style) var(--color-border); border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 500; color: var(--color-text); cursor: pointer; }
 .spw-copy-btn:hover { background: var(--color-bg-subtle); }
 .spw-copy-btn.copied { background: var(--color-success-bg); border-color: var(--color-success); color: var(--color-success); }
-.spw-post-content { background: var(--color-bg-subtle); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem; color: var(--color-text); font-size: 0.875rem; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+.spw-post-content { background: var(--color-bg-subtle); border: var(--border-width) var(--border-style) var(--color-border); border-radius: var(--radius-md); padding: 1rem; color: var(--color-text); font-size: 0.875rem; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
 @media (max-width: 768px) {
   .spw-header { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
   .spw-generate-btn { width: 100%; }

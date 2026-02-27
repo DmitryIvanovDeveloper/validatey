@@ -45,10 +45,7 @@
     </PageHeader>
 
     <div v-if="viewModel.loading.value" class="loading-state">
-      <div class="loading-dots">
-        <span></span><span></span><span></span>
-      </div>
-      <p>{{ presenter.labels.loading }}</p>
+      <LoadingSpots :message="presenter.labels.loading" size="lg" />
     </div>
     <div v-else-if="viewModel.error.value" class="error-state">
       <ErrorDisplay :error="viewModel.error.value" />
@@ -175,7 +172,7 @@ import PageHeader from '../../../../../shared/components/PageHeader.vue';
 import ProjectCard from '../components/ProjectCard.vue';
 import ProjectTableRow from '../components/ProjectTableRow.vue';
 import EmptyState from '../../../../../shared/components/EmptyState.vue';
-import LoadingSpinner from '../../../../../shared/components/LoadingSpinner.vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import ErrorDisplay from '../../../../../shared/components/ErrorDisplay.vue';
 import Button from '../../../../../shared/components/atoms/Button.vue';
 import DeleteProjectModal from '../components/DeleteProjectModal.vue';
@@ -349,6 +346,31 @@ onUnmounted(() => {
 .projects-grid > * {
   display: block !important;
   min-width: 0;
+  position: relative;
+}
+
+.projects-grid > *::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 0;
+  bottom: -1.5rem;
+  margin-left: 0.75rem;
+  width: 0;
+  border-left: 1px dashed var(--color-border-dashed, var(--color-border));
+  pointer-events: none;
+}
+
+.projects-grid > *::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: -1.5rem;
+  margin-top: 0.75rem;
+  height: 0;
+  border-top: 1px dashed var(--color-border-dashed, var(--color-border));
+  pointer-events: none;
 }
 
 /* View toggle */
@@ -362,7 +384,7 @@ onUnmounted(() => {
 .view-toggle {
   display: inline-flex;
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   padding: 2px;
 }
@@ -400,7 +422,7 @@ onUnmounted(() => {
 /* ── Projects table ───────────────────────────────────────── */
 .projects-table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: 12px;
   background: var(--color-bg);
 }
@@ -430,14 +452,14 @@ onUnmounted(() => {
   letter-spacing: 0.06em;
   color: var(--color-text-subtle);
   background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
 }
 
 .projects-table th:first-child { border-radius: 12px 0 0 0; padding-left: 1.25rem; }
 .projects-table th:last-child  { border-radius: 0 12px 0 0; }
 
 .projects-table td {
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
 }
 
 .projects-table td:first-child { padding-left: 1.25rem; }
@@ -451,36 +473,13 @@ onUnmounted(() => {
 
 .projects-table__row:last-child td { border-bottom: none; }
 
-.loading-dots {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}
-
-.loading-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: bounce 1.4s ease-in-out infinite both;
-}
-
-.loading-dots span:nth-child(1) { animation-delay: 0s; }
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
-}
-
 .project-card-edit {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-accent);
   background: transparent;
-  border: 1px solid var(--color-accent-bg);
+  border: var(--border-width) var(--border-style) var(--color-accent-bg);
   border-radius: var(--radius-sm);
   text-decoration: none;
   cursor: pointer;
@@ -508,7 +507,7 @@ onUnmounted(() => {
   font-weight: 500;
   color: var(--color-error);
   background: transparent;
-  border: 1px solid var(--color-error-bg);
+  border: var(--border-width) var(--border-style) var(--color-error-bg);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -602,7 +601,7 @@ onUnmounted(() => {
   width: 100%;
   padding: 0.75rem 1rem;
   font-size: 1rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   box-sizing: border-box;
 }

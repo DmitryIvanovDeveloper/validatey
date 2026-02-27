@@ -105,23 +105,16 @@ const props = defineProps<Props>();
 }
 
 .synthesis-card {
-  background: var(--color-bg);
+  background: transparent;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-light);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  transition: all 0.2s;
+  transition: border-color 0.2s;
   margin-bottom: 1.5rem;
-}
-
-.synthesis-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .synthesis-summary {
   border-left: 4px solid var(--color-success);
-  background: var(--color-success-bg);
 }
 
 .synthesis-recommendations {
@@ -170,10 +163,11 @@ const props = defineProps<Props>();
 
 .synthesis-card-content {
   padding: 1.5rem;
+  background: transparent;
 }
 
 .synthesis-summary-text {
-  font-size: var(--text-base);
+  font-size: 0.875rem;
   line-height: var(--leading-relaxed);
   color: var(--color-text);
   margin: 0;

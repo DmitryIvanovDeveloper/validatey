@@ -2,12 +2,7 @@
   <div class="early-signals-widget">
     <!-- Loading state -->
     <div v-if="loading" class="loading-state">
-      <div class="loading-dots">
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-      </div>
-      <p class="loading-text">Loading early signals...</p>
+      <LoadingSpots message="Loading early signals..." size="md" />
     </div>
 
     <!-- Error state -->
@@ -111,6 +106,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { Zap, AlertTriangle, TrendingUp, TrendingDown, Minus, Info, AlertCircle } from 'lucide-vue-next';
+import LoadingSpots from '../../../../shared/components/LoadingSpots.vue';
 import { container } from '@infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../presenters/research.presenter';
 import { TYPES as RESEARCH_TYPES } from '@modules/research/infrastructure/bootstrap/types';
@@ -240,47 +236,9 @@ onMounted(() => {
   padding: 3rem 2rem;
   gap: 1.5rem;
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-lg);
   margin: 1rem 0;
-}
-
-.loading-dots {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: loading-dots 1.4s ease-in-out infinite both;
-}
-
-.dot:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.dot:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-@keyframes loading-dots {
-  0%, 80%, 100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.loading-text {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  margin: 0;
 }
 
 .error-state {
@@ -292,7 +250,7 @@ onMounted(() => {
   text-align: center;
   gap: 1.5rem;
   background: var(--color-error-bg);
-  border: 1px solid var(--color-error);
+  border: var(--border-width) var(--border-style) var(--color-error);
   border-radius: var(--radius-lg);
   margin: 1rem 0;
 }
@@ -323,7 +281,7 @@ onMounted(() => {
   text-align: center;
   gap: 1.5rem;
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-lg);
   margin: 1rem 0;
 }
@@ -360,7 +318,7 @@ onMounted(() => {
 .signal-confidence-group {
   margin: 0;
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -381,7 +339,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
 }
 
 .confidence-indicator {
@@ -422,7 +380,7 @@ onMounted(() => {
   gap: 1rem;
   padding: 1rem;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   background: var(--color-bg);
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -449,17 +407,17 @@ onMounted(() => {
 }
 
 .signal-positive {
-  border-left: 4px solid var(--color-success);
+  border-left: var(--border-width) var(--border-style) var(--color-success);
   background: var(--color-success-bg);
 }
 
 .signal-negative {
-  border-left: 4px solid var(--color-error);
+  border-left: var(--border-width) var(--border-style) var(--color-error);
   background: var(--color-error-bg);
 }
 
 .signal-neutral {
-  border-left: 4px solid var(--color-accent);
+  border-left: var(--border-width) var(--border-style) var(--color-accent);
   background: var(--color-accent-bg);
 }
 
@@ -509,7 +467,7 @@ onMounted(() => {
 
 .confidence-note {
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-md);
   padding: 1rem;
   margin-bottom: 1rem;
@@ -532,7 +490,7 @@ onMounted(() => {
   gap: 1rem;
   padding: 1.25rem;
   background: var(--color-info-bg);
-  border: 1px solid var(--color-info);
+  border: var(--border-width) var(--border-style) var(--color-info);
   border-radius: var(--radius-lg);
   margin-top: 1.5rem;
   box-shadow: var(--shadow-sm);

@@ -97,7 +97,14 @@ defineEmits<{
 .assumption-evidence-content { padding: 0.25rem 0; }
 .assumption-evidence-text {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
+}
+
+.assumption-evidence-text.formatted-text {
+  background: none;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 </style>

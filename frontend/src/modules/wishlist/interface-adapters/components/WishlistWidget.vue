@@ -122,7 +122,7 @@ async function handleSubmit() {
 .wishlist-input {
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 2px solid #d1d5db;
+  border: var(--border-width) var(--border-style) #d1d5db;
   border-radius: 0.5rem;
   background-color: white;
   color: #111827;
@@ -227,13 +227,13 @@ async function handleSubmit() {
 .wishlist-message.success {
   background-color: #d1fae5;
   color: #065f46;
-  border: 1px solid #86efac;
+  border: var(--border-width) var(--border-style) #86efac;
 }
 
 .wishlist-message.error {
   background-color: #fee2e2;
   color: #991b1b;
-  border: 1px solid #fca5a5;
+  border: var(--border-width) var(--border-style) #fca5a5;
 }
 
 .message-icon {

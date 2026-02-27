@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="project-details-view max-w-7xl mx-auto px-6 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Main Content -->
       <div class="lg:col-span-2 space-y-6">
@@ -86,12 +86,11 @@
                 <div class="assumption-card-inner">
                   <div class="assumption-card-header">
                     <p class="assumption-label" v-html="formatMarkdown(assumption.text)"></p>
-                    <span
+                    <Badge
                       v-if="getAssumptionStatus(assumption.id)"
-                      :class="['assumption-badge', `assumption-badge--${getAssumptionStatus(assumption.id)}`]"
-                    >
-                      {{ getAssumptionStatus(assumption.id) === 'confirmed' ? 'Confirmed' : getAssumptionStatus(assumption.id) === 'need_more' ? 'Need more' : 'Not supported' }}
-                    </span>
+                      :variant="getAssumptionStatus(assumption.id) as NonNullable<HypothesisStatus>"
+                      size="sm"
+                    />
                   </div>
                   <div
                     v-if="getAssumptionEvidence(assumption.id)"
@@ -142,7 +141,7 @@
           <div class="space-y-4">
             <div class="mb-4">
               <p class="section-subtitle">Target Segment</p>
-              <div class="text-gray-900 formatted-text" v-html="formatMarkdown(project?.segment?.description || 'Not specified')"></div>
+              <div class="segment-description text-gray-900 formatted-text" v-html="formatMarkdown(project?.segment?.description || 'Not specified')"></div>
             </div>
 
             <div class="mb-4">
@@ -171,18 +170,18 @@
         </SectionCard>
 
         <!-- Decision Pathway (hidden) -->
-        <SectionCard v-if="false && overviewData?.decisionPathway?.steps && overviewData.decisionPathway.steps.length > 0">
+        <SectionCard v-if="false && overviewData?.decisionPathway?.steps?.length">
           <template #header>
             <h3 class="section-title">Decision Pathway</h3>
           </template>
           <div class="decision-pathway-list">
-            <div v-for="step in overviewData.decisionPathway.steps" :key="step.id" class="decision-pathway-step">
+            <div v-for="step in overviewData?.decisionPathway?.steps || []" :key="step.id" class="decision-pathway-step">
               <div :class="['decision-pathway-indicator', `decision-pathway-indicator--${step.status}`]"></div>
               <div class="decision-pathway-content">
                 <span :class="['decision-pathway-label', `decision-pathway-label--${step.status}`]">
                   {{ step.label }}
                 </span>
-                <router-link v-if="step.actionHref" :to="step.actionHref" class="decision-pathway-link">
+                <router-link v-if="step.actionHref" :to="step.actionHref!" class="decision-pathway-link">
                   {{ step.status === 'pending' ? 'Start' : step.status === 'in_progress' ? 'Continue' : 'View' }}
                 </router-link>
               </div>
@@ -259,7 +258,7 @@
 
           <!-- Suggestion from overview -->
           <p v-if="rounds.length && overviewData?.learningJourney?.extendSuggestions?.[0]" class="text-gray-500 text-xs mb-3 italic">
-            {{ overviewData.learningJourney.extendSuggestions[0] }}
+            {{ overviewData?.learningJourney?.extendSuggestions?.[0] }}
           </p>
 
           <!-- Start New Round button -->
@@ -346,6 +345,7 @@ import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, St
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
+import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { normalizeAssumptions } from '../../../domain/value-objects/hypothesis.vo';
 import type { OverviewPayload } from '../../../application/use-cases/input-output/get-project-overview.io';
 
@@ -855,12 +855,16 @@ watch(project, (p) => {
 
 .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
 
+.project-details-view {
+  background: var(--color-bg-page);
+}
+
 /* Overview redesign */
 .overview-redesign {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  background: var(--color-bg-page);
   min-height: 100vh;
   padding: 2rem 0;
   animation: fadeInUp 0.6s ease-out;
@@ -922,7 +926,7 @@ watch(project, (p) => {
 .overview-response-progress { margin-bottom: 0; }
 .response-progress-card {
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
 }
@@ -944,7 +948,7 @@ watch(project, (p) => {
 .rounds-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
 .round-card {
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
 }
@@ -964,7 +968,7 @@ watch(project, (p) => {
 .recent-quotes-list { list-style: none; padding: 0; margin: 0; }
 .recent-quote {
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
 }
 .recent-quote:last-child { border-bottom: none; }
 .recent-quote-label { font-size: 0.75rem; color: var(--color-text-muted); }
@@ -972,7 +976,7 @@ watch(project, (p) => {
 .card-elevated {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   border-radius: 1rem;
   padding: 1.5rem 2rem;
   box-shadow:
@@ -1005,7 +1009,7 @@ watch(project, (p) => {
 .overview-executive {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.3);
   border-radius: 1.25rem;
   padding: 2rem 2.5rem;
   box-shadow:
@@ -1041,7 +1045,7 @@ watch(project, (p) => {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
@@ -1077,7 +1081,7 @@ watch(project, (p) => {
   color: #1e293b;
   margin: 0.5rem 0;
   padding: 1rem 1.25rem;
-  border-left: 4px solid linear-gradient(180deg, #0d9488, #0891b2);
+  border-left: var(--border-width) var(--border-style) linear-gradient(180deg, #0d9488, #0891b2);
   background: linear-gradient(135deg, rgba(13, 148, 136, 0.05), rgba(8, 145, 178, 0.05));
   border-radius: 0 0.75rem 0.75rem 0;
   position: relative;
@@ -1102,7 +1106,7 @@ watch(project, (p) => {
   backdrop-filter: blur(10px);
   padding: 1rem 1.25rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 .executive-header {
@@ -1158,7 +1162,7 @@ watch(project, (p) => {
     0 8px 32px rgba(13, 148, 136, 0.2),
     0 2px 8px rgba(13, 148, 136, 0.1);
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   transition: all 0.4s ease;
 }
 .overview-progress-ring .progress-ring::before {
@@ -1191,7 +1195,7 @@ watch(project, (p) => {
   backdrop-filter: blur(10px);
   padding: 0.25rem 0.5rem;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -1223,7 +1227,7 @@ watch(project, (p) => {
   padding: 1.25rem 1.5rem;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   border-radius: 1rem;
   text-decoration: none;
   color: #1e293b;
@@ -1271,7 +1275,7 @@ watch(project, (p) => {
 .overview-research-context {
   padding: 1.75rem 2rem;
   border-radius: 1rem;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: var(--border-width) var(--border-style) rgba(139, 92, 246, 0.2);
   background:
     linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(168, 85, 247, 0.04) 100%),
     rgba(255, 255, 255, 0.8);
@@ -1346,12 +1350,12 @@ watch(project, (p) => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
 }
 .journey-round {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   border-radius: 1rem;
   padding: 1.5rem 1.75rem;
   min-width: 240px;
@@ -1418,7 +1422,7 @@ watch(project, (p) => {
   gap: 0.875rem;
   padding: 0.875rem 1.25rem;
   background: linear-gradient(135deg, #ede9fe, #dbeafe);
-  border: 1px solid #c4b5fd;
+  border: var(--border-width) var(--border-style) #c4b5fd;
   border-radius: 0.875rem;
   box-shadow: 0 4px 12px rgba(124,58,237,0.1);
 }
@@ -1459,7 +1463,7 @@ watch(project, (p) => {
   gap: 0.875rem;
   padding: 0.875rem 1.25rem;
   background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  border: 1px solid #86efac;
+  border: var(--border-width) var(--border-style) #86efac;
   border-radius: 0.875rem;
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1);
   animation: slideInFromTop 0.5s ease-out;
@@ -1513,7 +1517,7 @@ watch(project, (p) => {
   border-radius: 0.375rem;
   font-size: 0.75rem;
   font-weight: 600;
-  border: 1px solid transparent;
+  border: var(--border-width) var(--border-style) transparent;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -1588,7 +1592,7 @@ watch(project, (p) => {
 .overview-decision-pathway {
   padding: 2rem 2.5rem;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
@@ -1605,7 +1609,7 @@ watch(project, (p) => {
   gap: 1rem;
   flex-wrap: wrap;
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: var(--border-width) var(--border-style) rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   position: relative;
 }
@@ -1631,7 +1635,7 @@ watch(project, (p) => {
   backdrop-filter: blur(10px);
   padding: 0.25rem 0.5rem;
   border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
 }
 .pathway-done {
   color: #166534;
@@ -1667,7 +1671,7 @@ watch(project, (p) => {
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   border-radius: 0.75rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
@@ -1690,7 +1694,7 @@ watch(project, (p) => {
 }
 .health-cell {
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-md);
   padding: 1rem;
   display: flex;
@@ -1729,7 +1733,7 @@ watch(project, (p) => {
 .overview-insights { margin: 0; }
 .insights-placeholder {
   background: var(--color-bg);
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--color-border-dashed, var(--color-border));
   border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
 }
@@ -1800,7 +1804,7 @@ watch(project, (p) => {
   border-radius: 0.5rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -1869,10 +1873,8 @@ watch(project, (p) => {
   width: 100%;
   padding: 0.875rem 1rem;
   font-size: 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.3);
   border-radius: 0.75rem;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
   color: #1e293b;
   margin-bottom: 0.75rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1887,7 +1889,6 @@ watch(project, (p) => {
   box-shadow:
     0 0 0 3px rgba(13, 148, 136, 0.1),
     0 4px 12px rgba(13, 148, 136, 0.15);
-  background: rgba(255, 255, 255, 0.95);
 }
 
 .overview-input::placeholder,
@@ -1921,7 +1922,7 @@ watch(project, (p) => {
   backdrop-filter: blur(10px);
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
 }
 .market-context-card .collapsible-header {
   cursor: pointer;
@@ -1950,7 +1951,7 @@ watch(project, (p) => {
   backdrop-filter: blur(10px);
   padding: 0.875rem 1rem;
   border-radius: 0.625rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -1973,7 +1974,7 @@ watch(project, (p) => {
   backdrop-filter: blur(10px);
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
 }
 .assumptions-compact:hover {
@@ -1996,20 +1997,20 @@ watch(project, (p) => {
 
 .assumption-card {
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   background: var(--color-bg);
 }
 .assumption-card--confirmed {
-  border-left: 2px solid var(--color-success);
+  border-left: var(--border-width) var(--border-style) var(--color-success);
 }
 .assumption-card--need_more {
-  border-left: 2px solid var(--color-warning);
+  border-left: var(--border-width) var(--border-style) var(--color-warning);
 }
 .assumption-card--not_supported {
-  border-left: 2px solid var(--color-error);
+  border-left: var(--border-width) var(--border-style) var(--color-error);
 }
 .assumption-card--pending {
-  border-left: 2px solid var(--color-border);
+  border-left: var(--border-width) var(--border-style) var(--color-border);
 }
 
 .assumption-card-inner {
@@ -2089,6 +2090,15 @@ watch(project, (p) => {
   overflow-wrap: break-word;
 }
 
+.assumption-evidence-text.formatted-text {
+  background: none;
+  backdrop-filter: none;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  font-size: 0.8125rem;
+}
+
 .scenario-summary {
   margin: 0 0 0.75rem 0;
   font-size: 0.9375rem;
@@ -2098,7 +2108,7 @@ watch(project, (p) => {
   backdrop-filter: blur(10px);
   padding: 0.875rem 1rem;
   border-radius: 0.625rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 .scenario-details-toggle {
@@ -2113,7 +2123,7 @@ watch(project, (p) => {
   background: rgba(13, 148, 136, 0.05);
   border-radius: 0.5rem;
   transition: all 0.2s ease;
-  border: 1px solid rgba(13, 148, 136, 0.1);
+  border: var(--border-width) var(--border-style) rgba(13, 148, 136, 0.1);
 }
 .scenario-details-toggle summary:hover {
   background: rgba(13, 148, 136, 0.1);
@@ -2233,8 +2243,19 @@ watch(project, (p) => {
   backdrop-filter: blur(10px);
   padding: 1rem 1.25rem;
   border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.hypothesis-content.formatted-text,
+.segment-description.formatted-text {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  font-size: 0.875rem;
 }
 
 .assumptions-list {
@@ -2244,7 +2265,7 @@ watch(project, (p) => {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(10px);
   border-radius: 0.625rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
@@ -2253,7 +2274,7 @@ watch(project, (p) => {
   padding: 0.75rem 1rem 0.75rem 2rem;
   position: relative;
   color: #64748b;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: var(--border-width) var(--border-style) rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
 }
 
@@ -2334,7 +2355,7 @@ watch(project, (p) => {
   box-shadow:
     0 4px 16px rgba(13, 148, 136, 0.3),
     0 2px 8px rgba(13, 148, 136, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
 }
 
 .btn-primary:hover {
@@ -2349,7 +2370,7 @@ watch(project, (p) => {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   color: #64748b;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.3);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -2439,7 +2460,7 @@ watch(project, (p) => {
 .overview-card {
   background: white;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: var(--border-width) var(--border-style) #e5e7eb;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
 }
@@ -2482,7 +2503,7 @@ watch(project, (p) => {
 /* Key Insight */
 .key-insight {
   background: #eff6ff;
-  border: 1px solid #dbeafe;
+  border: var(--border-width) var(--border-style) #dbeafe;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -2505,7 +2526,7 @@ watch(project, (p) => {
 /* Significance Alert */
 .significance-alert {
   background: #fef3c7;
-  border: 1px solid #fde68a;
+  border: var(--border-width) var(--border-style) #fde68a;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -2591,7 +2612,7 @@ watch(project, (p) => {
 
 .journey-node {
   background: white;
-  border: 2px solid #e5e7eb;
+  border: var(--border-width) var(--border-style) #e5e7eb;
   border-radius: 8px;
   padding: 1rem;
   position: relative;
@@ -2686,7 +2707,7 @@ watch(project, (p) => {
 }
 
 .hypothesis-content {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--color-text);
 }
@@ -2780,7 +2801,7 @@ watch(project, (p) => {
   gap: 1rem;
   padding: 1rem;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: var(--border-width) var(--border-style) #e5e7eb;
   background: white;
 }
 
@@ -2849,7 +2870,7 @@ watch(project, (p) => {
 }
 
 .success-criteria {
-  border-top: 1px solid #e5e7eb;
+  border-top: var(--border-width) var(--border-style) #e5e7eb;
   padding-top: 1.5rem;
 }
 
@@ -2877,7 +2898,7 @@ watch(project, (p) => {
 
 .criterion-met {
   background: #ecfdf5;
-  border: 1px solid #d1fae5;
+  border: var(--border-width) var(--border-style) #d1fae5;
 }
 
 .criterion-check {
@@ -2920,7 +2941,7 @@ watch(project, (p) => {
 .sidebar-card {
   background: white;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: var(--border-width) var(--border-style) #e5e7eb;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   padding: 1.25rem;
 }
@@ -3097,7 +3118,7 @@ watch(project, (p) => {
 .overview-card {
   background: white;
   border-radius: 0.75rem;
-  border: 1px solid #e5e7eb;
+  border: var(--border-width) var(--border-style) #e5e7eb;
   padding: 1.5rem;
 }
 
@@ -3536,7 +3557,7 @@ watch(project, (p) => {
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.2);
   border-radius: 0.5rem;
   text-decoration: none;
   color: inherit;

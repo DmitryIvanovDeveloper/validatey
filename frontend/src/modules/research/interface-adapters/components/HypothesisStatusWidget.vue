@@ -1,17 +1,18 @@
 <template>
-  <span
+  <Badge
     v-if="finalStatus"
-    :class="['hypothesis-status-badge', `hypothesis-status-badge--${finalStatus}`]"
-  >
-    {{ statusLabel }}
-  </span>
+    :variant="finalStatus"
+    size="md"
+    :label="statusLabel"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../presenters/research.presenter';
 import { TYPES as RESEARCH_TYPES } from '../../infrastructure/bootstrap/types';
+import Badge from '@/shared/components/atoms/Badge.vue';
 
 type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | null;
 
@@ -65,30 +66,3 @@ const statusLabel = computed(() => {
   }
 });
 </script>
-
-<style scoped>
-.hypothesis-status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.625rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.hypothesis-status-badge--confirmed {
-  background: var(--color-success-bg, #d1fae5);
-  color: var(--color-success, #059669);
-}
-
-.hypothesis-status-badge--need_more {
-  background: var(--color-warning-bg, #fef3c7);
-  color: var(--color-warning, #d97706);
-}
-
-.hypothesis-status-badge--not_supported {
-  background: var(--color-error-bg, #fee2e2);
-  color: var(--color-error, #dc2626);
-}
-</style>

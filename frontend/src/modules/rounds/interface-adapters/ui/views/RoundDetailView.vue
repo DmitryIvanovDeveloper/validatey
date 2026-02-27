@@ -2,8 +2,7 @@
   <div class="round-detail-view">
     <!-- Loading -->
     <div v-if="loading" class="round-loading">
-      <div class="round-spinner" />
-      <p class="text-gray-500 text-sm mt-3">Loading round…</p>
+      <LoadingSpots message="Loading round…" size="lg" />
     </div>
 
     <!-- Error -->
@@ -17,7 +16,7 @@
       <!-- Header -->
       <div class="round-header">
         <div class="round-meta">
-          <span :class="['round-status-badge', `round-status-${round.status}`]">{{ round.status }}</span>
+          <Badge>{{ round.status }}</Badge>
           <span class="round-type-badge">{{ TYPE_LABELS[round.type] ?? round.type }}</span>
         </div>
         <h2 class="round-title">{{ round.title }}</h2>
@@ -56,15 +55,15 @@
       <!-- Synthesis result card -->
       <div v-if="round.results" class="synthesis-card">
         <h3 class="synthesis-heading">Synthesis Result</h3>
-        <div class="synthesis-verdict" :class="`verdict-${round.results.confidence >= 0.8 ? 'validated' : round.results.confidence <= 0.2 ? 'rejected' : 'needs-more-data'}`">
+        <div class="synthesis-verdict" :class="`verdict-${(round.results.confidence ?? 0.5) >= 0.8 ? 'validated' : (round.results.confidence ?? 0.5) <= 0.2 ? 'rejected' : 'needs-more-data'}`">
           {{
-            round.results.confidence >= 0.8
+            (round.results.confidence ?? 0.5) >= 0.8
               ? 'Validated'
-              : round.results.confidence <= 0.2
+              : (round.results.confidence ?? 0.5) <= 0.2
               ? 'Rejected'
               : 'Needs More Data'
           }}
-          <span class="synthesis-confidence">{{ Math.round(round.results.confidence * 100) }}% confidence</span>
+          <span class="synthesis-confidence">{{ Math.round((round.results.confidence ?? 0.5) * 100) }}% confidence</span>
         </div>
         <p v-if="round.results.keyFinding" class="synthesis-finding">
           {{ round.results.keyFinding }}
@@ -120,6 +119,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
+import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { HttpClientPort } from '../../../../../infrastructure/http/ports/http-client.port';
@@ -232,6 +233,7 @@ onMounted(loadRound);
 .round-detail-view {
   padding: 2rem 0;
   max-width: 720px;
+  background: var(--color-bg-page);
 }
 
 .round-loading {
@@ -241,21 +243,10 @@ onMounted(loadRound);
   padding: 4rem 0;
 }
 
-.round-spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid rgba(13, 148, 136, 0.2);
-  border-top-color: #0d9488;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
 .round-error {
   padding: 2rem;
   background: #fef2f2;
-  border: 1px solid #fecaca;
+  border: var(--border-width) var(--border-style) #fecaca;
   border-radius: 0.75rem;
 }
 
@@ -270,19 +261,7 @@ onMounted(loadRound);
   margin-bottom: 0.5rem;
 }
 
-.round-status-badge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.round-status-draft    { background: rgba(148,163,184,0.15); color: #64748b; }
-.round-status-active   { background: rgba(8,145,178,0.12);   color: #0891b2; }
-.round-status-completed{ background: rgba(22,163,74,0.12);   color: #166534; }
+/* Round status badge styles removed - using shared Badge component */
 .round-status-archived { background: rgba(0,0,0,0.06);       color: #94a3b8; }
 
 .round-type-badge {
@@ -342,7 +321,7 @@ onMounted(loadRound);
 
 .btn-secondary-sm {
   background: rgba(0,0,0,0.04);
-  border: 1px solid rgba(0,0,0,0.1);
+  border: var(--border-width) var(--border-style) rgba(0,0,0,0.1);
   color: #374151;
   text-decoration: none;
 }
@@ -354,7 +333,7 @@ onMounted(loadRound);
   display: inline-block;
   width: 0.875rem;
   height: 0.875rem;
-  border: 2px solid rgba(255,255,255,0.4);
+  border: var(--border-width) var(--border-style) rgba(255,255,255,0.4);
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -362,12 +341,11 @@ onMounted(loadRound);
 
 /* Synthesis card */
 .synthesis-card {
-  background: linear-gradient(135deg, #f8fafc, #fff);
-  border: 1px solid #e2e8f0;
+  background: transparent;
+  border: var(--border-width) var(--border-style) #e2e8f0;
   border-radius: 1rem;
   padding: 1.5rem 1.75rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
 
 .synthesis-heading {
@@ -462,7 +440,7 @@ onMounted(loadRound);
 /* Scenario section */
 .scenario-section {
   background: rgba(255,255,255,0.8);
-  border: 1px solid #e2e8f0;
+  border: var(--border-width) var(--border-style) #e2e8f0;
   border-radius: 1rem;
   padding: 1.25rem 1.5rem;
 }

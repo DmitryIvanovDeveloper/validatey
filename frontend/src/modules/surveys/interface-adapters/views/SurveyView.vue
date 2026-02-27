@@ -9,15 +9,12 @@
           </span>
           <span class="progress-percent">{{ progressPercent }}%</span>
         </div>
-        <div class="progress-bar-container">
-          <div class="progress-bar-fill" :style="{ width: `${progressPercent}%` }"></div>
-        </div>
+        <ProgressBar :percentage="progressPercent" size="md" />
       </div>
 
       <!-- Loading State -->
       <div v-if="viewModel.loading.value" class="loading-state">
-        <LoadingSpinner />
-        <p>Loading survey...</p>
+        <LoadingSpots message="Loading survey..." size="lg" />
       </div>
 
       <!-- Error State -->
@@ -209,6 +206,7 @@ import ScaleInput from '../../../../shared/components/ScaleInput.vue';
 import MultipleChoiceInput from '../../../../shared/components/MultipleChoiceInput.vue';
 import AudioRecorder from '../../../../shared/components/AudioRecorder.vue';
 import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import ProgressBar from '@/shared/components/ProgressBar.vue';
 import { SurveyViewModel } from '../view-models/survey.view-model';
 import { SurveyPresenter } from '../presenters/survey.presenter';
 import { container } from '../../../../infrastructure/bootstrap/container';
@@ -427,14 +425,14 @@ onMounted(() => {
   background: var(--color-bg);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   overflow: hidden;
 }
 
 .survey-progress {
   padding: 1.5rem;
   background: var(--color-bg-page);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border);
 }
 
 .progress-header {
@@ -452,20 +450,6 @@ onMounted(() => {
 .progress-percent {
   font-weight: 600;
   color: #4299e1;
-}
-
-.progress-bar-container {
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #4299e1, #667eea);
-  transition: width 0.3s ease;
-  border-radius: 9999px;
 }
 
 .consent-screen {
@@ -645,7 +629,7 @@ onMounted(() => {
 .text-input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   font-size: 1rem;
   font-family: inherit;
@@ -671,7 +655,7 @@ onMounted(() => {
   align-items: center;
   gap: 1rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-width) var(--border-style) var(--color-border);
 }
 
 .spacer {
@@ -719,7 +703,7 @@ onMounted(() => {
   margin-top: 1.5rem;
   padding: 1rem;
   background: var(--color-error-bg);
-  border: 1px solid var(--color-error);
+  border: var(--border-width) var(--border-style) var(--color-error);
   border-radius: var(--radius-md);
   text-align: center;
 }
@@ -784,7 +768,7 @@ onMounted(() => {
 .email-input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid #e2e8f0;
+  border: var(--border-width) var(--border-style) #e2e8f0;
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.2s;

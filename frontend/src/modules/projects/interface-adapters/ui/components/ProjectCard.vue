@@ -190,12 +190,6 @@ const formattedDate = computed(() => {
     border-color 0.18s ease;
 }
 
-.project-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.1), 0 3px 8px -2px rgba(15, 23, 42, 0.06);
-  border-color: var(--color-accent-muted);
-}
-
 .project-card__inner {
   padding: 1.25rem 1.5rem 1.125rem;
   display: flex;
@@ -502,14 +496,14 @@ const formattedDate = computed(() => {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-accent);
-  background: var(--color-accent-light);
+  background: transparent;
   border-radius: 8px;
   text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .project-card__footer :deep(.project-card__link:hover) {
-  background: var(--color-accent-muted);
+  background: transparent;
   color: var(--color-accent-hover);
 }
 
@@ -521,11 +515,6 @@ const formattedDate = computed(() => {
 
 .project-card__footer :deep(.project-card__link:hover .project-card__link-arrow) {
   transform: translateX(2px);
-}
-
-/* ─── Contextual hover enhancement ───────────────────────────── */
-.project-card:hover .project-card__metrics {
-  border-color: var(--color-border);
 }
 
 /* ─── Menu ────────────────────────────────────────────────────── */

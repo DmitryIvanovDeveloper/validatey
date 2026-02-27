@@ -112,7 +112,7 @@ const props = defineProps<Props>();
   text-align: center;
   gap: 1.5rem;
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-lg);
   margin: 1rem 0;
 }
@@ -148,7 +148,7 @@ const props = defineProps<Props>();
   padding: 1.5rem;
   background: var(--color-bg-subtle);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
 }
 
 .signals-title-section {
@@ -187,7 +187,7 @@ const props = defineProps<Props>();
 .signal-card {
   background: var(--color-bg);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
   transition: all 0.2s;
@@ -199,12 +199,12 @@ const props = defineProps<Props>();
 }
 
 .signal-wtp {
-  border-left: 4px solid var(--color-success);
+  border-left: var(--border-width) var(--border-style) var(--color-success);
   background: var(--color-success-bg);
 }
 
 .signal-retention {
-  border-left: 4px solid var(--color-info);
+  border-left: var(--border-width) var(--border-style) var(--color-info);
   background: var(--color-info-bg);
 }
 
@@ -266,7 +266,7 @@ const props = defineProps<Props>();
 .pain-points-section {
   margin-top: 2rem;
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
@@ -292,7 +292,7 @@ const props = defineProps<Props>();
   gap: 0.75rem;
   padding: 1rem;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
@@ -347,7 +347,7 @@ const props = defineProps<Props>();
   text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid transparent;
+  border: var(--border-width) var(--border-style) transparent;
 }
 
 .btn-primary {

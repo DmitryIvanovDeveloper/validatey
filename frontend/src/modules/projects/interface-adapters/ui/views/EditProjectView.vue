@@ -330,7 +330,6 @@ onMounted(async () => {
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-family: inherit;
-  background: var(--color-bg);
   color: var(--color-text);
 }
 .input-textarea {
@@ -410,7 +409,7 @@ onMounted(async () => {
 .btn-ghost {
   background: transparent;
   color: var(--color-accent);
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--color-border-dashed, var(--color-border));
 }
 .btn-ghost:hover {
   border-color: var(--color-accent);

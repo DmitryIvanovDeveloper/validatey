@@ -159,6 +159,7 @@ onUnmounted(() => {
   padding: 1rem 0.75rem;
   position: sticky;
   top: 0;
+  background: var(--color-bg-page);
 }
 
 .workspace-sidebar__title {
@@ -178,7 +179,7 @@ onUnmounted(() => {
   width: 100%;
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
-  border: 1px dashed var(--color-border, #e5e7eb);
+  border: 1px dashed var(--color-border-dashed, var(--color-border, #e5e7eb));
   border-radius: 0.375rem;
   background: transparent;
   font-size: 0.875rem;
@@ -307,7 +308,7 @@ onUnmounted(() => {
   min-width: 8rem;
   margin-top: 0.25rem;
   padding: 0.25rem;
-  background: white;
+  background: var(--color-bg-page);
   border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 0.375rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

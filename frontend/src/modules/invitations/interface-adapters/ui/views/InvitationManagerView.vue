@@ -1163,6 +1163,7 @@ onMounted(() => {
 .invitation-manager-view {
   padding: 0;
   max-width: var(--content-max-width, 56rem);
+  background: var(--color-bg-page);
 }
 
 .onboarding-hint {
@@ -1214,6 +1215,7 @@ onMounted(() => {
   margin-bottom: 0;
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, border-color 0.2s;
+  background: var(--color-bg-page);
 }
 
 .section-card:hover {

@@ -7,12 +7,7 @@
 
       <!-- Loading state -->
       <div v-if="loading" class="loading-state">
-        <div class="loading-dots">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-        </div>
-        <p class="loading-text">Loading comments...</p>
+        <LoadingSpots message="Loading comments..." size="lg" />
       </div>
 
       <!-- Error state -->
@@ -48,13 +43,11 @@
                 </span>
                 <span class="comments-source-count">{{ stat.count }}</span>
               </div>
-              <div class="comments-progress-bar">
-                <div
-                  class="comments-progress-segment"
-                  :class="stat.source.toLowerCase()"
-                  :style="{ width: `${(stat.count / overviewData.totalComments) * 100}%` }"
-                ></div>
-              </div>
+              <ProgressBar
+                :percentage="overviewData.totalComments ? (stat.count / overviewData.totalComments) * 100 : 0"
+                :fill-color="sourceFillColor(stat.source)"
+                size="sm"
+              />
             </div>
           </div>
         </div>
@@ -70,6 +63,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
+import ProgressBar from '@/shared/components/ProgressBar.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { CommentsPresenter, CommentsOverviewData } from '../../presenters/comments.presenter';
 import { COMMENT_TYPES } from '../../../types';
@@ -99,6 +94,19 @@ const commentsPresenter = container.get<CommentsPresenter>(COMMENT_TYPES.Comment
 
 // Computed properties
 const sourceStats = computed(() => overviewData.value.sourceStats);
+
+// Distinct color per source for progress bars (muted, less saturated)
+function sourceFillColor(source: string): string {
+  const colors: Record<string, string> = {
+    reddit: '#b86b5a',
+    hackernews: '#c98a5a',
+    hn: '#c98a5a',
+    linkedin: '#6b95b8',
+    twitter: '#7ab5d9',
+  };
+  const key = (source || '').toLowerCase().replace(/[\s_-]+/g, '');
+  return colors[key] ?? 'var(--color-accent, #0f766e)';
+}
 
 // Format source name with smart capitalization and known name overrides
 const formatSourceName = (source: string) => {
@@ -219,35 +227,6 @@ defineExpose({
   color: var(--color-text-muted);
 }
 
-.comments-progress-bar {
-  width: 100%;
-  height: 6px;
-  background: var(--color-bg-subtle);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.comments-progress-segment {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.comments-progress-segment.reddit {
-  background: #ff4500;
-}
-
-.comments-progress-segment.hackernews {
-  background: #ff6600;
-}
-
-.comments-progress-segment.linkedin {
-  background: #0077b5;
-}
-
-.comments-progress-segment.unknown {
-  background: var(--color-text-muted);
-}
-
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -272,40 +251,6 @@ defineExpose({
   justify-content: center;
   padding: 3rem 2rem;
   text-align: center;
-}
-
-.loading-dots {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: loading 1.4s ease-in-out infinite both;
-}
-
-.dot:nth-child(1) { animation-delay: -0.32s; }
-.dot:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes loading {
-  0%, 80%, 100% {
-    transform: scale(0.8);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.loading-text {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-  margin: 0;
 }
 
 /* Error state styles */
@@ -340,9 +285,9 @@ defineExpose({
 
 /* Section card styles */
 .section-card {
-  background: white;
+  background: var(--color-bg-page);
   border-radius: 0.75rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   padding: 1.5rem;
 }
 

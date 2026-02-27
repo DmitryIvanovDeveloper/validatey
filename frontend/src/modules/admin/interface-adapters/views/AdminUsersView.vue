@@ -1,8 +1,7 @@
 <template>
   <div class="admin-users-view">
     <div v-if="loading" class="loading-state">
-      <LoadingSpinner />
-      <p>Loading users...</p>
+      <LoadingSpots message="Loading users..." size="lg" />
     </div>
     <div v-else-if="error" class="error-state">
       <ErrorDisplay :error="error" />
@@ -31,7 +30,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import LoadingSpots from '../../../../shared/components/LoadingSpots.vue';
 import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 
@@ -86,7 +85,7 @@ onMounted(async () => {
 
 .users-table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--color-border, #e5e7eb);
+  border: var(--border-width) var(--border-style) var(--color-border, #e5e7eb);
   border-radius: 0.5rem;
   background: var(--color-bg, #fff);
 }
@@ -101,7 +100,7 @@ onMounted(async () => {
 .users-table td {
   padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border, #e5e7eb);
 }
 
 .users-table th {

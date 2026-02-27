@@ -6,7 +6,7 @@
       </div>
 
       <div v-if="loading" class="loading-state">
-        <p class="loading-text">Loading...</p>
+        <LoadingSpots message="Loading..." size="md" />
       </div>
 
       <div v-else-if="painPoints?.length" class="signals-content">
@@ -94,9 +94,9 @@ watch(() => props.projectId, (newProjectId) => {
 }
 
 .section-card {
-  background: white;
+  background: var(--color-bg-page);
   border-radius: 0.5rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   padding: 1rem;
 }
 
@@ -116,12 +116,6 @@ watch(() => props.projectId, (newProjectId) => {
   padding: 1rem 0;
 }
 
-.loading-text {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-  margin: 0;
-}
-
 .pain-points-list {
   display: flex;
   flex-direction: column;
@@ -131,7 +125,7 @@ watch(() => props.projectId, (newProjectId) => {
 .pain-point-item {
   padding: 0.625rem;
   border-radius: 0.375rem;
-  border: 1px solid var(--color-border, #e5e7eb);
+  border: var(--border-width) var(--border-style) var(--color-border, #e5e7eb);
 }
 
 .pain-point-text {

@@ -150,7 +150,7 @@ const formatDate = (date: Date) => {
 
 <style scoped>
 .workspace-card {
-  background: white;
+  background: var(--color-bg-page);
   border: 1px solid #e1e5e9;
   border-radius: 8px;
   padding: 1.5rem;
@@ -159,10 +159,6 @@ const formatDate = (date: Date) => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.workspace-card:hover {
-  border-color: #007bff;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-}
 
 .workspace-card__header {
   display: flex;
@@ -234,7 +230,7 @@ const formatDate = (date: Date) => {
 }
 
 .workspace-card__menu-trigger:hover {
-  background: #f1f3f5;
+  background: transparent;
   color: #333;
 }
 
@@ -249,7 +245,7 @@ const formatDate = (date: Date) => {
   right: 0;
   z-index: 100;
   min-width: 140px;
-  background: white;
+  background: var(--color-bg-page);
   border: 1px solid #e1e5e9;
   border-radius: 6px;
   box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.1), 0 4px 8px -2px rgba(15, 23, 42, 0.08);
@@ -290,7 +286,7 @@ const formatDate = (date: Date) => {
 
 .workspace-card__menu-actions :deep(.workspace-card-menu-btn:hover),
 .workspace-card__menu-actions :deep(.btn:not(.btn-danger):hover) {
-  background: #f1f3f5;
+  background: transparent;
 }
 
 .workspace-card__menu-actions :deep(.btn-danger) {
@@ -298,7 +294,7 @@ const formatDate = (date: Date) => {
 }
 
 .workspace-card__menu-actions :deep(.btn-danger:hover) {
-  background: #fff5f5;
+  background: transparent;
   color: #c82333;
 }
 
@@ -339,8 +335,8 @@ const formatDate = (date: Date) => {
   font-size: 0.875rem;
   font-weight: 500;
   color: #0d9488;
-  background: #f0fdfa;
-  border: 1px solid #99f6e4;
+  background: transparent;
+  border: 1px solid var(--color-border, #e1e5e9);
   border-radius: 6px;
   text-decoration: none;
   transition: all 0.2s;
@@ -349,8 +345,8 @@ const formatDate = (date: Date) => {
 }
 
 .workspace-card__footer-actions :deep(.workspace-create-project-btn:hover) {
-  background: #ccfbf1;
-  border-color: #5eead4;
+  background: transparent;
+  border-color: var(--color-accent, #0d9488);
   color: #0f766e;
 }
 

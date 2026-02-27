@@ -71,10 +71,12 @@
               <div v-if="dashboardData.neededForSignificance !== null || dashboardData.daysRemaining !== null || dashboardData.paceResponsesPerDay !== null" class="dashboard-additional-metrics">
                 <div v-if="dashboardData.progressPct !== null" class="progress-item">
                   <div class="progress-label">{{ labels.progressToGoal }}</div>
-                  <div class="progress-bar">
-                    <div class="progress-fill" :style="{ width: `${Math.min(100, dashboardData.progressPct)}%` }"></div>
-                  </div>
-                  <div class="progress-text">{{ dashboardData.responded }}/{{ (dashboardData.neededForSignificance || 0) + dashboardData.responded }} responses</div>
+                  <ProgressBar
+                    :percentage="Math.min(100, dashboardData.progressPct ?? 0)"
+                    show-label
+                    :label="`${dashboardData.responded}/${(dashboardData.neededForSignificance || 0) + dashboardData.responded} responses`"
+                    size="md"
+                  />
                 </div>
                 <div v-if="dashboardData.paceResponsesPerDay !== null && dashboardData.paceResponsesPerDay > 0" class="metric-row">
                   <span class="metric-row-label">Pace:</span>
@@ -131,6 +133,7 @@ import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { HttpClientPort } from '@/infrastructure/http/ports/http-client.port';
 import { API_CONFIG } from '@/infrastructure/config/api.config';
 import WishlistWidget from '@/modules/wishlist/interface-adapters/components/WishlistWidget.vue';
+import ProgressBar from '@/shared/components/ProgressBar.vue';
 import { DEFAULT_LANDING_LABELS } from '../landing-default-labels';
 
 const props = withDefaults(
@@ -550,27 +553,6 @@ onMounted(() => {
   letter-spacing: 0.05em;
 }
 
-.progress-bar {
-  width: 100%;
-  height: 0.5rem;
-  background-color: var(--color-bg-subtle, #e2e8f0);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: var(--color-accent, #0d9488);
-  border-radius: 9999px;
-  transition: width 0.3s ease;
-}
-
-.progress-text {
-  font-size: 0.75rem;
-  color: var(--color-text-muted, #475569);
-  font-weight: 500;
-}
-
 .metric-row {
   display: flex;
   justify-content: space-between;
@@ -745,20 +727,6 @@ onMounted(() => {
 .willingness-amount {
   font-weight: 600;
   color: #111827;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 0.5rem;
-  background-color: #e5e7eb;
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #2563eb;
-  border-radius: 9999px;
 }
 
 .dashboard-email {

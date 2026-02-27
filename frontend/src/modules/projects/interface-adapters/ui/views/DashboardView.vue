@@ -175,6 +175,34 @@ const goToProject = (projectId: string) => {
   gap: 1.5rem;
 }
 
+.projects-grid > * {
+  position: relative;
+}
+
+.projects-grid > *::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 0;
+  bottom: -1.5rem;
+  margin-left: 0.75rem;
+  width: 0;
+  border-left: 1px dashed var(--color-border-dashed, var(--color-border));
+  pointer-events: none;
+}
+
+.projects-grid > *::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: -1.5rem;
+  margin-top: 0.75rem;
+  height: 0;
+  border-top: 1px dashed var(--color-border-dashed, var(--color-border));
+  pointer-events: none;
+}
+
 .dashboard-card-footer {
   display: flex;
   align-items: center;

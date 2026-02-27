@@ -29,12 +29,7 @@
           <div class="tab-content">
             <!-- Canvas loading indicator -->
             <div v-if="canvasLoading && activeTab !== 'synthesis'" class="canvas-loading">
-              <div class="loading-dots">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-              </div>
-              <p class="loading-text">Loading research data…</p>
+              <LoadingSpots message="Loading research data…" size="md" />
             </div>
 
             <!-- Early Signals -->
@@ -83,6 +78,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { Zap, Users, Search, MapPin, FileText, X } from 'lucide-vue-next';
+import LoadingSpots from '../../../../shared/components/LoadingSpots.vue';
 import type { ResearchData, ResearchDataProp, TabItem } from '../../domain/types/research.types';
 import type { ResearchCanvas } from '../../domain/entities/research-canvas.entity';
 import EarlySignalsWidget from './EarlySignalsWidget.vue';
@@ -193,7 +189,7 @@ const closeModal = () => {
 
 .modal-content {
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   max-width: 90vw;
@@ -209,7 +205,7 @@ const closeModal = () => {
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
   background: var(--color-bg-subtle);
 }
 
@@ -264,7 +260,7 @@ const closeModal = () => {
   gap: 0.25rem;
   padding: 0 1.5rem;
   background: var(--color-bg-subtle);
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border-light);
 }
 
 .tab-button {
@@ -274,7 +270,7 @@ const closeModal = () => {
   color: var(--color-text-muted);
   cursor: pointer;
   border-radius: var(--radius-md) var(--radius-md) 0 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--border-width) var(--border-style) transparent;
   transition: all 0.2s;
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
@@ -321,33 +317,6 @@ const closeModal = () => {
   justify-content: center;
   min-height: 400px;
   gap: var(--space-3);
-}
-
-.loading-dots {
-  display: flex;
-  gap: var(--space-1);
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: loading-dots 1.4s ease-in-out infinite both;
-}
-
-.dot:nth-child(1) { animation-delay: -0.32s; }
-.dot:nth-child(2) { animation-delay: -0.16s; }
-
-.loading-text {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  margin: 0;
-}
-
-@keyframes loading-dots {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes fadeIn {

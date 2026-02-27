@@ -3,9 +3,7 @@
     <div class="survey-container">
       <h1>Survey</h1>
       <p>Token: {{ $route.params.token }}</p>
-      <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: '0%' }"></div>
-      </div>
+      <ProgressBar :percentage="0" size="sm" />
       <div class="survey-form">
         <p>Survey form will be here:</p>
         <ul>
@@ -19,6 +17,7 @@
 </template>
 
 <script setup lang="ts">
+import ProgressBar from '@/shared/components/ProgressBar.vue';
 // Survey View - survey form for respondent
 </script>
 
@@ -45,21 +44,6 @@
   font-size: 2rem;
   margin-bottom: 1rem;
   color: #1a202c;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  margin: 1.5rem 0;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #4299e1;
-  transition: width 0.3s;
 }
 
 .survey-form {

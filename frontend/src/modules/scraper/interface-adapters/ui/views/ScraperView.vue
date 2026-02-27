@@ -1138,7 +1138,7 @@ watch(sourceMenuOpenId, (id) => {
   gap: var(--space-4);
 }
 .source-card {
-  background: var(--color-bg);
+  background: none;
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-xl);
   padding: var(--space-5);

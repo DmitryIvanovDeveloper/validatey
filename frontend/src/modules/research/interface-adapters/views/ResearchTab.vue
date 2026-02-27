@@ -283,7 +283,7 @@ onMounted(async () => {
 
 .settings-card {
   background: var(--color-bg);
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, border-color 0.2s;
@@ -345,7 +345,7 @@ onMounted(async () => {
   flex: 1;
   min-width: 12rem;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--color-border-light);
+  border: var(--border-width) var(--border-style) var(--color-border-light);
   border-radius: 8px;
   font-size: 0.875rem;
   font-family: inherit;
@@ -398,7 +398,7 @@ onMounted(async () => {
   display: flex;
   gap: 0.25rem;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border);
 }
 
 .invitations-tabs button {
@@ -408,7 +408,7 @@ onMounted(async () => {
   color: var(--color-text-muted);
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--border-width) var(--border-style) transparent;
   margin-bottom: -1px;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;

@@ -10,10 +10,7 @@
 
     <!-- Loading -->
     <div v-if="loading" class="cpw-loading">
-      <div class="cpw-loading-dots">
-        <span></span><span></span><span></span>
-      </div>
-      <span>Analyzing comment patterns…</span>
+      <LoadingSpots message="Analyzing comment patterns…" size="sm" />
     </div>
 
     <!-- Error -->
@@ -44,9 +41,11 @@
             <span v-if="pattern.uniqueAuthorCount != null" class="cpw-pattern-authors" :title="'Unique authors: stronger validation signal'">{{ pattern.uniqueAuthorCount }} authors</span>
             <span class="cpw-pattern-pct">{{ pattern.percentage }}%</span>
           </div>
-          <div class="cpw-pattern-bar-wrap">
-            <div class="cpw-pattern-bar" :class="`cpw-bar--${pattern.type}`" :style="{ width: pattern.percentage + '%' }"></div>
-          </div>
+          <ProgressBar
+              :percentage="pattern.percentage"
+              :fill-color="patternFillColor(pattern.type)"
+              size="sm"
+            />
         </div>
 
         <button
@@ -93,10 +92,7 @@
             </div>
             <div class="detail-body">
               <div v-if="sidebarLoading" class="cpw-sidebar-loading">
-                <div class="cpw-loading-dots">
-                  <span></span><span></span><span></span>
-                </div>
-                <p>Loading comments...</p>
+                <LoadingSpots message="Loading comments..." size="lg" />
               </div>
               <div v-else-if="sidebarComments.length === 0" class="comments-empty-state">
                 <div class="empty-comments-icon">💬</div>
@@ -150,6 +146,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
+import ProgressBar from '@/shared/components/ProgressBar.vue';
 import { decodeHtmlEntities } from '../../../../../shared/utils/text';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { COMMENT_TYPES } from '../../../types';
@@ -229,6 +227,20 @@ function formatDate(date: Date | string): string {
 function truncateForFairUse(text: string, maxLength: number = 500): string {
   if (!text || text.length <= maxLength) return text || '';
   return text.substring(0, maxLength) + '...';
+}
+
+function patternFillColor(type: string): string {
+  const colors: Record<string, string> = {
+    myth: 'var(--color-warning)',
+    failure: 'var(--color-error)',
+    advice: 'var(--color-success)',
+    validation: 'var(--color-accent)',
+    emotion: '#a78bfa',
+    feature_request: 'var(--color-accent)',
+    comparison: 'var(--color-text-muted)',
+    workaround: 'var(--color-text-muted)',
+  };
+  return colors[type] ?? 'var(--color-accent)';
 }
 
 function formatSourceName(source: string): string {
@@ -320,7 +332,7 @@ defineExpose({
 
 <style scoped>
 .comment-patterns-widget {
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-bg);
   overflow: hidden;
@@ -331,7 +343,7 @@ defineExpose({
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border);
 }
 
 .cpw-title {
@@ -353,33 +365,7 @@ defineExpose({
 .cpw-score--low { background: var(--color-bg-subtle); color: var(--color-text-muted); }
 
 .cpw-loading {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   padding: 1.5rem 1.25rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.cpw-loading-dots {
-  display: flex;
-  gap: 3px;
-}
-
-.cpw-loading-dots span {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #6366f1;
-  animation: cpw-pulse 1.2s ease-in-out infinite;
-}
-
-.cpw-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.cpw-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes cpw-pulse {
-  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-  40% { opacity: 1; transform: scale(1); }
 }
 
 .cpw-empty {
@@ -411,7 +397,7 @@ defineExpose({
 
 .cpw-show-more-wrap {
   padding: 0.5rem 0 0;
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-width) var(--border-style) var(--color-border);
   margin-top: 0.25rem;
 }
 
@@ -447,7 +433,7 @@ defineExpose({
 }
 
 .cpw-pattern-card {
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
   background: var(--color-bg);
@@ -488,40 +474,18 @@ defineExpose({
   text-align: right;
 }
 
-.cpw-pattern-bar-wrap {
-  height: 6px;
-  background: var(--color-bg-subtle);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.cpw-pattern-bar {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-
-.cpw-bar--myth { background: var(--color-warning); }
-.cpw-bar--failure { background: var(--color-error); }
-.cpw-bar--advice { background: var(--color-success); }
-.cpw-bar--validation { background: var(--color-accent); }
-.cpw-bar--emotion { background: #a78bfa; }
-.cpw-bar--feature_request { background: var(--color-accent); }
-.cpw-bar--comparison,
-.cpw-bar--workaround { background: var(--color-text-muted); }
-
 .cpw-examples {
   margin-top: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-width) var(--border-style) var(--color-border);
   padding-top: 0.75rem;
 }
 
 .cpw-example {
   background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   border-radius: var(--radius-sm);
   padding: 0.625rem 0.75rem;
 }
@@ -624,7 +588,7 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-width) var(--border-style) var(--color-border);
   background: var(--color-bg);
 }
 
@@ -692,26 +656,7 @@ defineExpose({
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
 }
-
-.cpw-loading-dots {
-  display: flex;
-  gap: 3px;
-  margin-bottom: 1rem;
-}
-
-.cpw-loading-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: cpw-pulse 1.2s ease-in-out infinite;
-}
-
-.cpw-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.cpw-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 
 .comments-empty-state {
   text-align: center;
@@ -748,14 +693,14 @@ defineExpose({
   color: var(--color-text-muted, #6b7280);
   background: var(--color-bg-subtle, #f3f4f6);
   border-radius: var(--radius-sm, 6px);
-  border-left: 3px solid var(--color-accent, #6366f1);
+  border-left: var(--border-width) var(--border-style) var(--color-accent, #6366f1);
 }
 
 .comment-item-sidebar {
   padding: 1rem;
   border-radius: var(--radius-md);
   background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   transition: border-color 0.2s ease;
 }
 

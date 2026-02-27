@@ -1,8 +1,7 @@
 <template>
   <div class="feedback-list-view">
     <div v-if="loading" class="feedback-list-view__loading">
-      <LoadingSpinner />
-      <p>Loading feedback…</p>
+      <LoadingSpots message="Loading feedback…" size="lg" />
     </div>
     <div v-else-if="error" class="feedback-list-view__error">
       <ErrorDisplay :error="error" />
@@ -101,7 +100,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import LoadingSpinner from '../../../../shared/components/LoadingSpinner.vue';
+import LoadingSpots from '../../../../shared/components/LoadingSpots.vue';
 import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 
@@ -301,7 +300,7 @@ onMounted(async () => {
 
 .feedback-card {
   background: var(--color-bg, #fff);
-  border: 1px solid var(--color-border-light, #e2e8f0);
+  border: var(--border-width) var(--border-style) var(--color-border-light, #e2e8f0);
   border-radius: 1rem;
   padding: 1.25rem 1.5rem;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -421,7 +420,7 @@ onMounted(async () => {
 .feedback-list-view__filter-select {
   padding: 0.4rem 0.75rem;
   font-size: 0.875rem;
-  border: 1px solid var(--color-border, #cbd5e1);
+  border: var(--border-width) var(--border-style) var(--color-border, #cbd5e1);
   border-radius: 0.5rem;
   background: var(--color-bg, #fff);
   color: var(--color-text, #0f172a);
@@ -465,7 +464,7 @@ onMounted(async () => {
 .feedback-list-view__analyze-spinner {
   width: 1rem;
   height: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: var(--border-width) var(--border-style) rgba(255, 255, 255, 0.4);
   border-top-color: #fff;
   border-radius: 50%;
   animation: feedback-list-view-spin 0.7s linear infinite;
@@ -479,7 +478,7 @@ onMounted(async () => {
   margin-bottom: 1.5rem;
   padding: 1.25rem 1.5rem;
   background: var(--color-bg-elevated, #f8fafc);
-  border: 1px solid var(--color-border-light, #e2e8f0);
+  border: var(--border-width) var(--border-style) var(--color-border-light, #e2e8f0);
   border-radius: 1rem;
 }
 

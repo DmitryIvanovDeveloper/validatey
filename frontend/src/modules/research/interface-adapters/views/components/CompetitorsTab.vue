@@ -130,7 +130,7 @@ defineProps<Props>();
 
 /* Section cards */
 .section-card {
-  background: var(--color-bg);
+  background: var(--color-bg-page);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);

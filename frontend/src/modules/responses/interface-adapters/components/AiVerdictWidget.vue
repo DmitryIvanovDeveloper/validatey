@@ -13,12 +13,7 @@
 
       <!-- Loading state -->
       <div v-if="loading" class="loading-state">
-        <div class="loading-dots">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-        </div>
-        <p class="loading-text">Analyzing response data...</p>
+        <LoadingSpots message="Analyzing response data..." size="md" />
       </div>
 
       <!-- Error state -->
@@ -54,6 +49,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { CheckCircle, AlertCircle, Brain } from 'lucide-vue-next';
+import LoadingSpots from '../../../../shared/components/LoadingSpots.vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { ResponsePresenter } from '../../presenters/response.presenter';
 import type { AiVerdictData } from '../../presenters/response.presenter';
@@ -109,9 +105,9 @@ onMounted(() => {
 }
 
 .section-card {
-  background: white;
+  background: var(--color-bg-page);
   border-radius: 0.75rem;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) var(--border-style) var(--color-border);
   padding: 1.5rem;
 }
 
@@ -158,43 +154,6 @@ onMounted(() => {
   gap: 1rem;
 }
 
-.loading-dots {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: loading-dots 1.4s ease-in-out infinite both;
-}
-
-.dot:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.dot:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-@keyframes loading-dots {
-  0%, 80%, 100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.loading-text {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-}
-
 .state {
   display: flex;
   flex-direction: column;
@@ -238,17 +197,17 @@ onMounted(() => {
 
 .verdict-positive {
   background: #ecfdf5;
-  border: 1px solid #d1fae5;
+  border: var(--border-width) var(--border-style) #d1fae5;
 }
 
 .verdict-negative {
   background: #fef2f2;
-  border: 1px solid #fee2e2;
+  border: var(--border-width) var(--border-style) #fee2e2;
 }
 
 .verdict-neutral {
   background: #fefce8;
-  border: 1px solid #fde68a;
+  border: var(--border-width) var(--border-style) #fde68a;
 }
 
 .verdict-icon {
