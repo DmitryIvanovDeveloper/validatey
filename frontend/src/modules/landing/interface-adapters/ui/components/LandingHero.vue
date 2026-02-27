@@ -137,7 +137,7 @@ import ProgressBar from '@/shared/components/ProgressBar.vue';
 import { DEFAULT_LANDING_LABELS } from '../landing-default-labels';
 
 const props = withDefaults(
-  defineProps<{ labels?: Partial<typeof DEFAULT_LANDING_LABELS.hero>>()>(),
+  defineProps<{ labels?: Partial<typeof DEFAULT_LANDING_LABELS.hero> }>(),
   () => ({})
 );
 const labels = computed(() => ({ ...DEFAULT_LANDING_LABELS.hero, ...props.labels }));

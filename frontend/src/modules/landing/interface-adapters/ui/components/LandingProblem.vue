@@ -30,7 +30,7 @@ import { h, computed } from 'vue';
 import { DEFAULT_LANDING_LABELS } from '../landing-default-labels';
 
 const props = withDefaults(
-  defineProps<{ labels?: Partial<typeof DEFAULT_LANDING_LABELS.problem>>()>(),
+  defineProps<{ labels?: Partial<typeof DEFAULT_LANDING_LABELS.problem> }>(),
   () => ({})
 );
 
