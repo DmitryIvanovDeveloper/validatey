@@ -111,7 +111,7 @@
                     </div>
                   </div>
                   <div class="comment-content-sidebar">
-                    {{ truncateForFairUse(comment.content) }}
+                    {{ truncateForFairUse(decodeHtmlEntities(comment.content)) }}
                   </div>
                   <div v-if="comment.contextTitle" class="comment-context-sidebar">
                     From: {{ comment.contextTitle }}
@@ -140,6 +140,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { decodeHtmlEntities } from '../../../../shared/utils/text';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { COMMENT_TYPES } from '../../types';
 import type { GetCommentPatternsUseCase } from '../../application/use-cases/get-comment-patterns.use-case';
@@ -163,14 +164,14 @@ const sidebarLoading = ref(false);
 
 const scoreBadgeClass = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
-  if (score >= 60) return 'cpw-score--high';
+  if (score >= 70) return 'cpw-score--high';
   if (score >= 30) return 'cpw-score--medium';
   return 'cpw-score--low';
 });
 
 const scoreLabel = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
-  if (score >= 60) return `Strong Evidence (${score}%)`;
+  if (score >= 70) return `Strong Evidence (${score}%)`;
   if (score >= 30) return `Moderate Evidence (${score}%)`;
   return `Early Stage (${score}%)`;
 });
@@ -438,9 +439,7 @@ defineExpose({
 }
 
 .cpw-pattern-authors {
-  font-size: 0.7rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
+  display: none;
 }
 
 .cpw-pattern-pct {
@@ -820,15 +819,13 @@ defineExpose({
 
 /* Show comments button styling */
 .cpw-show-comments-btn {
-  background: var(--color-accent);
-  color: white;
-  border: 1px solid var(--color-accent);
+  background: none;
+  border: none;
   transition: all 0.2s;
 }
 
 .cpw-show-comments-btn:hover {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
-  color: white;
+  background: none;
+  border: none;
 }
 </style>

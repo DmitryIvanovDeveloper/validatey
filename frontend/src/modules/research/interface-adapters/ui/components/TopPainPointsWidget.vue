@@ -130,7 +130,6 @@ watch(() => props.projectId, (newProjectId) => {
 
 .pain-point-item {
   padding: 0.625rem;
-  background: var(--color-bg-subtle, #f8fafc);
   border-radius: 0.375rem;
   border: 1px solid var(--color-border, #e5e7eb);
 }

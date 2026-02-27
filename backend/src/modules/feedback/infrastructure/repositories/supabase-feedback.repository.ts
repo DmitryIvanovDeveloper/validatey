@@ -13,7 +13,7 @@ interface FeedbackRow {
   type: string;
   text: string;
   screenshot_url: string | null;
-  user_id: string;
+  user_id: string | null;
   page_url: string | null;
   created_at: string;
 }

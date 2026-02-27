@@ -30,11 +30,11 @@
       <p class="cpw-empty-hint">Add Reddit or HackerNews sources in the Comments tab to collect data.</p>
     </div>
 
-    <!-- Patterns list -->
+    <!-- Patterns list (preview: 3, then Show more) -->
     <div v-else class="cpw-patterns">
       <div
-        v-for="(pattern, patternIndex) in analysis.patterns"
-        :key="patternIndex"
+        v-for="(pattern, idx) in visiblePatterns"
+        :key="patternIndexFor(idx)"
         class="cpw-pattern-card"
       >
         <div class="cpw-pattern-header">
@@ -52,12 +52,21 @@
         <button
           v-if="presenter.hasPatternContent(pattern)"
           class="cpw-toggle-btn cpw-show-comments-btn"
-          @click="showPatternInSidebar(pattern, patternIndex)"
+          @click="showPatternInSidebar(pattern, patternIndexFor(idx))"
           type="button"
         >
           Show {{ presenter.getPatternButtonLabel(pattern) }}
           <svg class="cpw-toggle-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </button>
+      </div>
+
+      <div v-if="hasMorePatterns" class="cpw-show-more-wrap">
+        <button type="button" class="cpw-show-more-btn" @click="patternsExpanded = !patternsExpanded">
+          {{ patternsExpanded ? 'Show less' : `Show more (${remainingPatternsCount} more)` }}
+          <svg class="cpw-show-more-icon" :class="{ expanded: patternsExpanded }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
       </div>
@@ -112,7 +121,7 @@
                     </div>
                   </div>
                   <div class="comment-content-sidebar">
-                    {{ truncateForFairUse(comment.content) }}
+                    {{ truncateForFairUse(decodeHtmlEntities(comment.content)) }}
                   </div>
                   <div v-if="comment.contextTitle" class="comment-context-sidebar">
                     From: {{ comment.contextTitle }}
@@ -141,6 +150,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { decodeHtmlEntities } from '../../../../../shared/utils/text';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { COMMENT_TYPES } from '../../../types';
 import type { CommentPatternsPresenter } from '../../presenters/comment-patterns.presenter';
@@ -165,16 +175,39 @@ const sidebarPattern = ref<any>(null);
 const sidebarLoading = ref(false);
 const showingOnlyExamples = ref(false);
 
+const PREVIEW_PATTERNS_COUNT = 3;
+const patternsExpanded = ref(false);
+
+const visiblePatterns = computed(() => {
+  const patterns = analysis.value?.patterns ?? [];
+  if (patternsExpanded.value || patterns.length <= PREVIEW_PATTERNS_COUNT) return patterns;
+  return patterns.slice(0, PREVIEW_PATTERNS_COUNT);
+});
+
+const hasMorePatterns = computed(() => {
+  const patterns = analysis.value?.patterns ?? [];
+  return patterns.length > PREVIEW_PATTERNS_COUNT;
+});
+
+const remainingPatternsCount = computed(() => {
+  const patterns = analysis.value?.patterns ?? [];
+  return Math.max(0, patterns.length - PREVIEW_PATTERNS_COUNT);
+});
+
+function patternIndexFor(idx: number): number {
+  return idx;
+}
+
 const scoreBadgeClass = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
-  if (score >= 60) return 'cpw-score--high';
+  if (score >= 70) return 'cpw-score--high';
   if (score >= 30) return 'cpw-score--medium';
   return 'cpw-score--low';
 });
 
 const scoreLabel = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
-  if (score >= 60) return `Strong Evidence (${score}%)`;
+  if (score >= 70) return `Strong Evidence (${score}%)`;
   if (score >= 30) return `Moderate Evidence (${score}%)`;
   return `Early Stage (${score}%)`;
 });
@@ -376,6 +409,43 @@ defineExpose({
   gap: 0.75rem;
 }
 
+.cpw-show-more-wrap {
+  padding: 0.5rem 0 0;
+  border-top: 1px solid var(--color-border);
+  margin-top: 0.25rem;
+}
+
+.cpw-show-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #0d9488;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cpw-show-more-btn:hover {
+  background: rgba(13, 148, 136, 0.08);
+}
+
+.cpw-show-more-icon {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.2s;
+}
+
+.cpw-show-more-icon.expanded {
+  transform: rotate(180deg);
+}
+
 .cpw-pattern-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -408,9 +478,7 @@ defineExpose({
 }
 
 .cpw-pattern-authors {
-  font-size: 0.7rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
+  display: none;
 }
 
 .cpw-pattern-pct {
@@ -800,15 +868,13 @@ defineExpose({
 
 /* Show comments button styling */
 .cpw-show-comments-btn {
-  background: var(--color-accent);
-  color: white;
-  border: 1px solid var(--color-accent);
+  background: none;
+  border: none;
   transition: all 0.2s;
 }
 
 .cpw-show-comments-btn:hover {
-  background: var(--color-accent-hover);
-  border-color: var(--color-accent-hover);
-  color: white;
+  background: none;
+  border: none;
 }
 </style>

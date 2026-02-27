@@ -180,8 +180,8 @@
           </div>
         </SectionCard>
 
-        <!-- Decision Pathway -->
-        <SectionCard v-if="overviewData?.decisionPathway?.steps && overviewData.decisionPathway.steps.length > 0">
+        <!-- Decision Pathway (hidden) -->
+        <SectionCard v-if="false && overviewData?.decisionPathway?.steps && overviewData.decisionPathway.steps.length > 0">
           <template #header>
             <h3 class="section-title">Decision Pathway</h3>
           </template>
@@ -236,8 +236,8 @@
         <!-- Comment Pattern Analysis -->
         <CommentPatternsWidget ref="commentPatternsRef" :project-id="projectId" />
 
-        <!-- Learning Journey -->
-        <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
+        <!-- Learning Journey (hidden) -->
+        <div v-if="false" class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
           <h3 class="section-title">{{ presenter.labels.detailsSectionLearningJourney }}</h3>
 
           <!-- Empty state -->

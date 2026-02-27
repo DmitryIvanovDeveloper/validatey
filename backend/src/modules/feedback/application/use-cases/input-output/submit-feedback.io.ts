@@ -5,7 +5,7 @@ export type SubmitFeedbackUseCaseRequest = {
   text: string;
   screenshotUrl?: string | null;
   pageUrl?: string | null;
-  callerUserId: string;
+  callerUserId: string | null;
 };
 
 export type SubmitFeedbackUseCaseResponse = {

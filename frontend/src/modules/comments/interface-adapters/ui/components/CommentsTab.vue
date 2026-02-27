@@ -385,7 +385,7 @@
 
                       <!-- Comment Content -->
                       <div class="comment-content-sidebar">
-                        {{ truncateForFairUse(comment.content) }}
+                        {{ truncateForFairUse(decodeHtmlEntities(comment.content)) }}
                       </div>
 
                       <!-- Comment Actions -->
@@ -432,6 +432,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
+import { decodeHtmlEntities } from '../../../../../shared/utils/text';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { CommentsPresenter } from '../../presenters/comments.presenter';
 import { COMMENT_TYPES } from '../../../types';

@@ -291,7 +291,6 @@ const props = defineProps<Props>();
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem;
-  background: var(--color-bg-subtle);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-light);
   transition: all 0.2s;
@@ -299,7 +298,6 @@ const props = defineProps<Props>();
 }
 
 .pain-point-item:hover {
-  background: var(--color-bg);
   border-color: var(--color-border);
   box-shadow: var(--shadow-sm);
   transform: translateY(-1px);

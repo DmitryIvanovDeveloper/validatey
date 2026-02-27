@@ -20,7 +20,7 @@
         <h4 class="guide-heading">What each block means</h4>
         <ul class="guide-list">
           <li><strong>Executive Summary</strong> — AI summary of your research. Read it first for the main conclusion.</li>
-          <li><strong>Comment Pattern Analysis (score)</strong> — How much collected comments support your idea: <strong>Strong Evidence (≥60%)</strong> = hypothesis supported by data; <strong>Moderate (30–60%)</strong> = mixed signals; <strong>Early Stage (&lt;30%)</strong> = too little data or weak support.</li>
+          <li><strong>Comment Pattern Analysis (score)</strong> — How much collected comments support your idea: <strong>Strong Evidence (≥70%)</strong> = hypothesis supported by data; <strong>Moderate (30–70%)</strong> = mixed signals; <strong>Early Stage (&lt;30%)</strong> = too little data or weak support.</li>
           <li><strong>Top Pain Points</strong> — Main problems your audience talks about (from research). Use them to align your solution.</li>
           <li><strong>Early Signals</strong> — Positive/negative/neutral signals from the same research. High-confidence signals are more reliable.</li>
           <li><strong>Decision Pathway</strong> — Your validation steps (e.g. collect responses → run round → get verdict). Green = done, blue = in progress.</li>
@@ -35,7 +35,7 @@
           </li>
           <li>
             <span class="badge badge-more">Need more data</span>
-            <span class="guide-verdict-text">Score 30–60% or verdict <strong>needs-more-data</strong>. Keep collecting responses and comments, then re-check.</span>
+            <span class="guide-verdict-text">Score 30–70% or verdict <strong>needs-more-data</strong>. Keep collecting responses and comments, then re-check.</span>
           </li>
           <li>
             <span class="badge badge-rejected">Not supported</span>

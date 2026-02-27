@@ -37,7 +37,7 @@ export class SubmitFeedbackUseCase {
       type: request.type,
       text: trimmed,
       screenshotUrl: request.screenshotUrl ?? null,
-      userId: request.callerUserId,
+      userId: request.callerUserId ?? null,
       pageUrl: request.pageUrl ?? null,
       createdAt: new Date(),
     };

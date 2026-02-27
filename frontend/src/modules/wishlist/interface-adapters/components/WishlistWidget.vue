@@ -157,7 +157,7 @@ async function handleSubmit() {
   justify-content: center;
   width: 100%;
   padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: #0d9488;
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -169,7 +169,7 @@ async function handleSubmit() {
 }
 
 .wishlist-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  background: #0f766e;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   transform: translateY(-1px);
 }
@@ -186,7 +186,7 @@ async function handleSubmit() {
 }
 
 .wishlist-button.loading {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: #0f766e;
 }
 
 .button-text {

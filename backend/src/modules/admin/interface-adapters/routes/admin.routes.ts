@@ -73,7 +73,8 @@ router.get('/feedback', async (req: Request, res: Response) => {
       }
     }
 
-    const author = (userId: string) => userMap.get(userId) ?? { email: null, displayName: null };
+    const author = (userId: string | null) =>
+      userId ? (userMap.get(userId) ?? { email: null, displayName: null }) : { email: null, displayName: null };
 
     const feedback = feedbackResult.data.feedback.map((f) => {
       const { email, displayName } = author(f.userId);

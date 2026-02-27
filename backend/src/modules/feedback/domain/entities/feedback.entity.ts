@@ -11,7 +11,7 @@ export interface Feedback {
   type: FeedbackType;
   text: string;
   screenshotUrl: string | null;
-  userId: string;
+  userId: string | null;
   pageUrl: string | null;
   createdAt: Date;
 }

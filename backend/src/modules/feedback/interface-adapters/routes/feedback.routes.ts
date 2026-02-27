@@ -9,17 +9,14 @@ const router = Router();
 const authProvider = new SupabaseAuthProvider();
 const COOKIE_NAME = 'validatey_auth';
 
-/** POST /api/feedback — submit feedback (authenticated). Body: { type, text, page_url?, screenshot_url? } */
+/** POST /api/feedback — submit feedback (authenticated or guest). Body: { type, text, page_url?, screenshot_url? } */
 router.post('/', async (req: Request, res: Response) => {
   try {
+    let callerUserId: string | null = null;
     const token = req.cookies?.[COOKIE_NAME];
-    if (!token) {
-      return res.status(401).json({ error: 'No session' });
-    }
-
-    const user = await authProvider.getUserFromAccessToken(token);
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid session' });
+    if (token) {
+      const user = await authProvider.getUserFromAccessToken(token);
+      if (user) callerUserId = user.id;
     }
 
     const { type, text, page_url: pageUrl, screenshot_url: screenshotUrl } = req.body ?? {};
@@ -29,7 +26,7 @@ router.post('/', async (req: Request, res: Response) => {
       text,
       pageUrl: pageUrl ?? null,
       screenshotUrl: screenshotUrl ?? null,
-      callerUserId: user.id,
+      callerUserId,
     });
 
     if (!result.isSuccess) {
