@@ -126,7 +126,7 @@ export class ProjectPresenter {
     dashboardTabReport: 'Report',
     dashboardBackToOverview: '← Back to Overview',
     dashboardDefaultProjectName: 'Project',
-    // ProjectGuestOverviewView
+    // ProjectDashboardGuestView
     guestLoading: 'Loading project…',
     guestErrorTitle: 'Unable to load project',
     guestSignIn: 'Sign in',

@@ -1,6 +1,5 @@
 /** Widgets — UI components that use presenter or project context; can be imported by other modules */
 export { default as ProjectSettingsWidget } from './ui/widgets/ProjectSettingsWidget.vue';
-export { default as GettingStartedWidget } from './ui/widgets/GettingStartedWidget.vue';
 export { default as SurveyPlatformsWidget } from './ui/widgets/SurveyPlatformsWidget.vue';
 
 /** Atoms — minimal presentational building blocks */

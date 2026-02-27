@@ -6,7 +6,15 @@ import type { AuthServicePort, AuthSession } from '../../../modules/auth/applica
 import { sessionManager } from '../../../shared/services/session-manager';
 
 /** Routes that are allowed without authentication (no redirect to login). */
-const PUBLIC_ROUTE_NAMES = new Set(['login', 'auth-callback', 'landing', 'respondent-survey', 'survey-public', 'survey-public-short']);
+const PUBLIC_ROUTE_NAMES = new Set([
+  'login',
+  'auth-callback',
+  'landing',
+  'respondent-survey',
+  'survey-public',
+  'survey-public-short',
+  'project-dashboard-guest', // /view/:slug — public project overview
+]);
 
 /** User app routes (workspaces/projects): admin has no access, redirect to /admin/users. */
 const USER_APP_ROUTE_NAMES = new Set([

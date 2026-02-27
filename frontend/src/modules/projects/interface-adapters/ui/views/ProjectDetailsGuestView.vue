@@ -1,12 +1,21 @@
 <template>
-  <div class="max-w-7xl mx-auto px-6 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="max-w-7xl mx-auto px-6 py-8" data-view="project-details-guest">
+    <div v-if="isGuest && loading" class="guest-loading">
+      <div class="guest-loading-spinner" aria-hidden="true"></div>
+      <p class="guest-loading-text">Loading…</p>
+    </div>
+    <div v-else-if="isGuest && error" class="guest-error">
+      <h2 class="guest-error-title">Something went wrong</h2>
+      <p class="guest-error-message">{{ error }}</p>
+      <router-link to="/login" class="guest-error-link">Sign in</router-link>
+    </div>
+    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Main Content -->
       <div class="lg:col-span-2 space-y-6">
         <!-- AI "Start New Round" suggestion banner -->
-        <!-- Success Banner after Round Creation -->
+        <!-- Success Banner after Round Creation (hidden for guest) -->
         <div
-          v-if="showSuccessBanner && justCreatedRound"
+          v-if="!isGuest && showSuccessBanner && justCreatedRound"
           class="success-banner"
         >
           <div class="success-banner-icon">✅</div>
@@ -194,12 +203,8 @@
 
       <!-- Sidebar -->
       <div class="space-y-6">
-        <!-- Start Research -->
-        <StartResearchWidget
-          :project-id="projectId"
-          @research-started="handleResearchStarted"
-          @research-completed="handleResearchCompleted"
-        />
+        <!-- Waitlist (guest: join waitlist instead of Start Research) -->
+        <WishlistWidget />
 
         <!-- Research Overview -->
         <ResearchOverviewWidget :project-id="projectId" />
@@ -274,9 +279,9 @@
     </div>
   </div>
 
-  <!-- New Round Modal -->
+  <!-- New Round Modal (hidden for guest) -->
   <div
-    v-if="showNewRoundModal"
+    v-if="!isGuest && showNewRoundModal"
     v-show="showNewRoundModal"
     class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center"
     @click.self="modalState.showNewRoundModal = false"
@@ -342,7 +347,8 @@ import { TYPES as INVITATION_TYPES } from '../../../../invitations/infrastructur
 import type { InvitationPresenter } from '../../../../invitations/interface-adapters/presenters/invitation.presenter';
 import ResponsePaceWidget from '../../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
 import { CommentsWidget } from '../../../../comments/interface-adapters/components';
-import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../../research/interface-adapters';
+import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../../research/interface-adapters';
+import WishlistWidget from '@/modules/wishlist/interface-adapters/components/WishlistWidget.vue';
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
@@ -351,7 +357,9 @@ import type { OverviewPayload } from '../../../application/use-cases/input-outpu
 
 const route = useRoute();
 const router = useRouter();
-const projectId = route.params.projectId as string;
+const slug = computed(() => (route.params.slug as string) || '');
+const isGuest = computed(() => !!slug.value);
+const projectId = computed(() => (route.params.projectId as string) || viewModel.project.value?.id || '');
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 const invitationPresenter = container.get<InvitationPresenter>(INVITATION_TYPES.InvitationPresenter);
@@ -365,7 +373,10 @@ const responsePaceRef = ref();
 const commentsWidgetRef = ref<{ reload?: () => Promise<void> } | null>(null);
 const commentPatternsRef = ref<{ reload?: () => void } | null>(null);
 
-/** Overview data from presenter (viewModel.overview). Loaded via presenter.loadOverview(). */
+const loading = computed(() => viewModel.loading.value);
+const error = computed(() => viewModel.error.value);
+
+/** Overview data from presenter (viewModel.overview). Loaded via presenter.loadOverview() or loadGuestOverview(). */
 const overviewData = viewModel.overview;
 
 /** Research slice for Key Assumptions / Executive Summary. Derived from overview (backend-aggregated). */
@@ -466,8 +477,9 @@ const newRoundSuggestion = computed(() => {
 });
 
 function roundHref(roundId: string): string {
+  if (isGuest.value) return '#';
   const workspaceId = route.params.workspaceId as string;
-  return `/workspaces/${workspaceId}/projects/${projectId}/rounds/${roundId}`;
+  return `/workspaces/${workspaceId}/projects/${projectId.value}/rounds/${roundId}`;
 }
 
 function goToRound(roundId: string): void {
@@ -477,8 +489,9 @@ function goToRound(roundId: string): void {
 
 function goToInvitations(roundId: string): void {
   dismissSuccessBanner();
+  if (isGuest.value) return;
   const workspaceId = route.params.workspaceId as string;
-  router.push(`/workspaces/${workspaceId}/projects/${projectId}/rounds/${roundId}/invitations`);
+  router.push(`/workspaces/${workspaceId}/projects/${projectId.value}/rounds/${roundId}/invitations`);
 }
 
 function dismissSuccessBanner(): void {
@@ -624,7 +637,7 @@ async function createRound() {
   if (!newRoundTitle.value.trim() || roundCreating.value) return;
   roundCreating.value = true;
   try {
-    const response = await httpClient.post<CreateRoundResponse>(API_CONFIG.ENDPOINTS.ROUNDS(projectId), {
+    const response = await httpClient.post<CreateRoundResponse>(API_CONFIG.ENDPOINTS.ROUNDS(projectId.value), {
       title: newRoundTitle.value.trim(),
       type: newRoundType.value,
     });
@@ -636,7 +649,7 @@ async function createRound() {
       type: response.type,
       status: response.status,
       keyFinding: null,
-      reportHref: `/projects/${projectId}/report?roundId=${response.id}`,
+      reportHref: `/projects/${projectId.value}/report?roundId=${response.id}`,
     };
     showSuccessBanner.value = true;
 
@@ -685,18 +698,18 @@ const getProjectAge = (): number => {
 
 
 function goToReportTab() {
-  router.push(`/projects/${projectId}/report`);
+  router.push(`/projects/${projectId.value}/report`);
 }
 
 async function loadOverviewInvitations() {
-  if (!projectId) return;
-  const { invitations } = await invitationPresenter.loadInvitations(projectId);
+  if (!projectId.value) return;
+  const { invitations } = await invitationPresenter.loadInvitations(projectId.value);
   overviewInvitations.value = invitations;
 }
 
 async function loadOverview() {
-  if (!projectId) return;
-  await presenter.loadOverview(projectId, viewModel);
+  if (!projectId.value) return;
+  await presenter.loadOverview(projectId.value, viewModel);
 }
 
 // Research data loading is now handled by ResearchOverviewWidget
@@ -705,7 +718,7 @@ async function loadResearchData() {
 }
 
 async function formatResearchContext() {
-  if (!projectId || !project.value) return;
+  if (!projectId.value || !project.value) return;
 
   researchContextFormatting.value = true;
   try {
@@ -767,7 +780,7 @@ async function formatResearchContext() {
     
     // Update project data with formatted texts
     await presenter.updateProject(
-      projectId,
+      projectId.value,
       undefined, // name
       formattedData.segmentDescription,
       undefined, // segmentDemographics
@@ -782,29 +795,13 @@ async function formatResearchContext() {
     );
 
     // Reload project data to reflect changes
-    await presenter.loadProject(projectId, viewModel);
+    await presenter.loadProject(projectId.value, viewModel);
 
   } catch (error) {
     console.error('Failed to format research context:', error);
   } finally {
     researchContextFormatting.value = false;
   }
-}
-
-function handleResearchStarted() {
-  executiveSummaryLoading.value = true;
-  widgetsLoading.value = true; // Show loading in Pain Points and Response Pace widgets
-}
-
-async function handleResearchCompleted() {
-  executiveSummaryLoading.value = false;
-  widgetsLoading.value = false; // Hide loading in Pain Points and Response Pace widgets
-  // Reload overview (synthesis, assumptions) and research data
-  await loadOverview();
-  await loadResearchData();
-  // Reload comments overview and pattern analysis so UI updates reactively
-  await commentsWidgetRef.value?.reload?.();
-  commentPatternsRef.value?.reload?.();
 }
 
 function handleCommentsLoaded(count: number) {
@@ -816,8 +813,10 @@ function handleShowDetails() {
 }
 
 onMounted(() => {
-  if (projectId) {
-    presenter.loadProject(projectId, viewModel);
+  if (slug.value) {
+    presenter.loadGuestOverview(slug.value, viewModel);
+  } else if (projectId.value) {
+    presenter.loadProject(projectId.value, viewModel);
     loadOverview();
     loadResearchData();
   }
@@ -831,7 +830,7 @@ onUnmounted(() => {
 });
 
 watch(project, (p) => {
-  if (p && projectId) {
+  if (p && projectId.value && !isGuest.value) {
     loadOverviewInvitations();
     loadOverview();
   }
@@ -839,6 +838,29 @@ watch(project, (p) => {
 </script>
 
 <style>
+.guest-loading,
+.guest-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  gap: 1rem;
+}
+.guest-loading-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent, #6366f1);
+  border-radius: 50%;
+  animation: guest-spin 0.8s linear infinite;
+}
+@keyframes guest-spin { to { transform: rotate(360deg); } }
+.guest-loading-text { font-size: 0.9375rem; color: var(--color-text-secondary); }
+.guest-error-title { font-size: 1.25rem; font-weight: 600; color: var(--color-text); }
+.guest-error-message { font-size: 0.9375rem; color: var(--color-text-secondary); }
+.guest-error-link { color: var(--color-accent); text-decoration: underline; }
+
 .project-details-view {
   padding: 2rem 0;
 }

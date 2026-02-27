@@ -27,8 +27,8 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: '/view/:slug',
-    name: 'project-guest-overview',
-    component: () => import('@/modules/projects/interface-adapters/ui/views/ProjectGuestOverviewView.vue'),
+    name: 'project-dashboard-guest',
+    component: () => import('@/modules/projects/interface-adapters/ui/views/ProjectDetailsGuestView.vue'),
     meta: { requiresAuth: false, layout: 'empty' },
   },
   {
