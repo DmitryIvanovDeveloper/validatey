@@ -1,3 +1,4 @@
+/** Legacy fixed types (used by pattern rules / keyword analyzer). Comment patterns may use these or project-defined slugs. */
 export type PatternType = 'myth' | 'failure' | 'advice' | 'validation' | 'feature_request' | 'comparison' | 'workaround' | 'emotion';
 
 export interface CommentPatternExample {
@@ -8,7 +9,8 @@ export interface CommentPatternExample {
 }
 
 export interface CommentPattern {
-  readonly type: PatternType;
+  /** Pattern type: AI-defined slug from project context (e.g. feedback_seeking, reciprocity_concern). Short snake_case. */
+  readonly type: string;
   readonly label: string;
   readonly insight: string;
   readonly count: number;
@@ -16,6 +18,8 @@ export interface CommentPattern {
   readonly sentimentScore: number; // -1 (very negative) to +1 (very positive), 0 = neutral
   readonly confidenceScore: number; // 0-1: AI confidence in this pattern analysis
   readonly recencyScore: number; // 0-1: how recent this pattern is (1 = very recent)
+  /** True = supports hypothesis, false = contradicts or weakens, undefined = neutral. Used for assumption evidence. */
+  readonly supportsHypothesis?: boolean;
   readonly commentIds?: ReadonlyArray<string>; // IDs of all comments in this pattern (optional; filled by synthesis or enrichment)
   /** Number of unique authors in this pattern; many unique authors = stronger validation signal. Filled server-side when commentIds exist. */
   readonly uniqueAuthorCount?: number;

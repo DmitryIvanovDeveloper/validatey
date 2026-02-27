@@ -9,7 +9,8 @@
       <p class="guest-error-message">{{ error }}</p>
       <router-link to="/login" class="guest-error-link">Sign in</router-link>
     </div>
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div v-else class="project-details-guest-content">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Main Content -->
       <div class="lg:col-span-2 space-y-6">
         <!-- AI "Start New Round" suggestion banner -->
@@ -277,6 +278,7 @@
         </div>
       </div>
     </div>
+    <FeedbackWidget />
   </div>
 
   <!-- New Round Modal (hidden for guest) -->
@@ -331,6 +333,7 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -349,6 +352,7 @@ import ResponsePaceWidget from '../../../../responses/interface-adapters/compone
 import { CommentsWidget } from '../../../../comments/interface-adapters/components';
 import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../../research/interface-adapters';
 import WishlistWidget from '@/modules/wishlist/interface-adapters/components/WishlistWidget.vue';
+import FeedbackWidget from '@/modules/feedback/interface-adapters/components/FeedbackWidget.vue';
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';

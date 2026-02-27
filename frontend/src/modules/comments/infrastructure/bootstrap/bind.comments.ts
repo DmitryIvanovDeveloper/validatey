@@ -10,6 +10,7 @@ import { ResearchStartedEventHandler } from '../../application/event-handlers/re
 
 // Interface Adapters
 import { CommentsPresenter } from '../../interface-adapters/presenters/comments.presenter';
+import { CommentPatternsPresenter } from '../../interface-adapters/presenters/comment-patterns.presenter';
 
 // Infrastructure
 import { CommentsHttpRepository } from '../repositories/comments.http.repository';
@@ -34,6 +35,7 @@ export function bindComments(container: Container): void {
 
   // Presenters
   container.bind<CommentsPresenter>(COMMENT_TYPES.CommentsPresenter).to(CommentsPresenter);
+  container.bind<CommentPatternsPresenter>(COMMENT_TYPES.CommentPatternsPresenter).to(CommentPatternsPresenter);
 
   // Repositories
   container.bind(COMMENT_TYPES.CommentsHttpRepository).to(CommentsHttpRepository);

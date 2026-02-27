@@ -13,8 +13,10 @@ import type { CommentRepositoryPort } from '../../application/ports/comment-repo
 import type { FetchCommentsUseCase } from '../../application/use-cases/fetch-comments.usecase';
 import { CommentSourceValueObject } from '../../domain/value-objects/comment-source.vo';
 import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstrap/types';
+import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootstrap/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
-import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
+import type { ResearchDataRepositoryPort } from '../../../research/application/ports/research-data-repository.port';
+import type { GetPatternCommentsUseCase } from '../../application/use-cases/get-pattern-comments.use-case';
 
 @injectable()
 export class CommentController {
@@ -35,93 +37,25 @@ export class CommentController {
     private readonly _commentRepository: CommentRepositoryPort,
     @inject(COMMENT_TYPES.FetchCommentsUseCase)
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
+    @inject(COMMENT_TYPES.GetPatternCommentsUseCase)
+    private readonly _getPatternCommentsUseCase: GetPatternCommentsUseCase,
     @inject(PROJECT_TYPES.ProjectRepository)
-    private readonly _projectRepository: ProjectRepositoryPort
+    private readonly _projectRepository: ProjectRepositoryPort,
+    @inject(RESEARCH_TYPES.ResearchDataRepository)
+    private readonly _researchDataRepository: ResearchDataRepositoryPort
   ) {}
 
   /**
-   * Returns true if comment text is relevant to the pattern (label, insight, or examples).
-   * Used to avoid showing comments that were wrongly assigned to a pattern by enrichment or LLM.
-   */
-  private static commentContentMatchesPattern(commentContent: string, pattern: any): boolean {
-    if (!commentContent || !commentContent.trim()) return false;
-    const norm = (s: string) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
-    const words = (s: string) => norm(s).split(/\s+/).filter((w) => w.length >= 4);
-    const commentNorm = norm(commentContent);
-    const commentWordSet = new Set(words(commentContent));
-    const examples = pattern.examples ?? [];
-
-    // 1) Match by example substring: comment contains (or is contained in) example snippet
-    for (const ex of examples) {
-      const exContent = typeof ex === 'object' && ex !== null && typeof ex.content === 'string' ? ex.content : '';
-      const needle = norm(exContent).slice(0, 120);
-      if (needle.length >= 10 && (commentNorm.includes(needle) || needle.includes(commentNorm.slice(0, 120)))) {
-        return true;
-      }
-    }
-
-    // 2) Match by significant words from pattern label + insight
-    const labelWords = words(pattern.label ?? '');
-    const insightWords = words(pattern.insight ?? '');
-    const patternWords = [...new Set([...labelWords, ...insightWords])];
-    if (patternWords.length >= 2) {
-      const matchCount = patternWords.filter((w) => commentWordSet.has(w)).length;
-      if (matchCount >= 2) return true;
-    }
-
-    // 3) Words from example contents
-    const exampleWords = new Set<string>();
-    for (const ex of examples) {
-      const exContent = typeof ex === 'object' && ex !== null && typeof ex.content === 'string' ? ex.content : '';
-      words(exContent).forEach((w) => exampleWords.add(w));
-    }
-    if (exampleWords.size >= 2) {
-      const matchCount = [...exampleWords].filter((w) => commentWordSet.has(w)).length;
-      if (matchCount >= 2) return true;
-    }
-
-    // 4) Not enough pattern text to validate — keep comment (e.g. short label, no examples)
-    if (patternWords.length < 2 && exampleWords.size < 2) return true;
-    return false;
-  }
-
-  /**
-   * Resolves projectId (which can be UUID or slug) to UUID
+   * Resolves projectId (which can be UUID or slug) to UUID via ProjectRepository.
    */
   private async resolveProjectId(projectIdOrSlug: string): Promise<string | null> {
-    // Check if it's already a UUID (format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidRegex.test(projectIdOrSlug)) {
-      return projectIdOrSlug;
+      const result = await this._projectRepository.findById(projectIdOrSlug);
+      return result.isSuccess ? projectIdOrSlug : null;
     }
-
-    // It's a slug, try to find project by slug
-    // First try to find by public_slug
-    const supabase = getSupabaseClient();
-    const { data: projectBySlug, error: slugError } = await supabase
-      .from('projects')
-      .select('id')
-      .eq('public_slug', projectIdOrSlug)
-      .single();
-
-    if (!slugError && projectBySlug) {
-      return projectBySlug.id;
-    }
-
-    // If not found by public_slug, try to find by name (slug might be derived from name)
-    // This is a fallback - ideally projects should have proper slugs
-    const { data: projectByName, error: nameError } = await supabase
-      .from('projects')
-      .select('id')
-      .ilike('name', projectIdOrSlug.replace(/-/g, ' '))
-      .single();
-
-    if (!nameError && projectByName) {
-      return projectByName.id;
-    }
-
-    // If still not found, return null (project not found)
-    return null;
+    const result = await this._projectRepository.findByPublicSlug(projectIdOrSlug);
+    return result.isSuccess ? result.data.id : null;
   }
 
   public   async fetchComments(req: Request, res: Response): Promise<void> {
@@ -561,37 +495,28 @@ export class CommentController {
         return;
       }
 
-      // Get pattern analysis from stored research data (generated during synthesis)
-      const researchDataResult = await this._projectRepository.findById(projectId);
-      if (!researchDataResult.isSuccess) {
-        res.status(404).json({ error: 'Project not found' });
+      const researchResult = await this._researchDataRepository.findByProjectId(projectId);
+      if (!researchResult.isSuccess) {
+        res.status(500).json({ error: researchResult.error.message });
         return;
       }
 
-      // Try to get analysis from research data first
-      const researchData = await getSupabaseClient()
-        .from('research_data')
-        .select('comment_pattern_analysis')
-        .eq('project_id', projectId)
-        .maybeSingle();
-
-      if (researchData.data?.comment_pattern_analysis) {
-        const analysis = researchData.data.comment_pattern_analysis as { patterns?: any[]; [k: string]: any };
-        const patterns = analysis.patterns ?? [];
-        const sortedPatterns = [...patterns].sort((a: any, b: any) => {
-          const countDiff = (b.count ?? 0) - (a.count ?? 0);
-          if (countDiff !== 0) return countDiff;
-          const aLen = Array.isArray(a.commentIds) ? a.commentIds.length : 0;
-          const bLen = Array.isArray(b.commentIds) ? b.commentIds.length : 0;
-          return bLen - aLen;
-        });
-        res.setHeader('Cache-Control', 'no-store');
-        res.json({ ...analysis, patterns: sortedPatterns });
+      const stored = researchResult.data;
+      const analysis = stored?.commentPatternAnalysis;
+      if (!analysis?.patterns?.length) {
+        res.status(404).json({ error: 'Pattern analysis not available. Please run "Start Research" first.' });
         return;
       }
 
-      // Fallback: perform analysis if not found in research data
-      res.status(404).json({ error: 'Pattern analysis not available. Please run "Start Research" first.' });
+      const patterns = [...analysis.patterns].sort((a: any, b: any) => {
+        const countDiff = (b.count ?? 0) - (a.count ?? 0);
+        if (countDiff !== 0) return countDiff;
+        const aLen = Array.isArray(a.commentIds) ? a.commentIds.length : 0;
+        const bLen = Array.isArray(b.commentIds) ? b.commentIds.length : 0;
+        return bLen - aLen;
+      });
+      res.setHeader('Cache-Control', 'no-store');
+      res.json({ ...analysis, patterns });
     } catch (error) {
       res.status(500).json({
         error: error instanceof Error ? error.message : 'Internal server error',
@@ -615,239 +540,57 @@ export class CommentController {
         return;
       }
 
-      // Validate pattern type
-      const validPatternTypes = ['myth', 'failure', 'advice', 'validation', 'feature_request', 'comparison', 'workaround', 'emotion'];
-      if (!validPatternTypes.includes(patternType)) {
-        res.status(400).json({ error: `Invalid pattern type: ${patternType}` });
-        return;
-      }
-
-      // Get pattern analysis from stored research data
-      const researchData = await getSupabaseClient()
-        .from('research_data')
-        .select('comment_pattern_analysis')
-        .eq('project_id', projectId)
-        .maybeSingle();
-
-      if (!researchData.data?.comment_pattern_analysis) {
-        res.status(404).json({ error: 'Pattern analysis not available. Please run "Start Research" first.' });
-        return;
-      }
-
-      const patternAnalysis = researchData.data.comment_pattern_analysis as any;
-      const rawPatterns = patternAnalysis.patterns ?? [];
-      // Use same order as GET /patterns: by count desc, then by commentIds length desc so patternIndex matches the list
-      const patterns = [...rawPatterns].sort((a: any, b: any) => {
-        const countDiff = (b.count ?? 0) - (a.count ?? 0);
-        if (countDiff !== 0) return countDiff;
-        const aLen = Array.isArray(a.commentIds) ? a.commentIds.length : 0;
-        const bLen = Array.isArray(b.commentIds) ? b.commentIds.length : 0;
-        return bLen - aLen;
-      });
       const rawIndex = req.query.patternIndex;
       const patternIndex = typeof rawIndex === 'string' && /^\d+$/.test(rawIndex) ? parseInt(rawIndex, 10) : -1;
-      const pattern =
-        patternIndex >= 0 && patternIndex < patterns.length
-          ? patterns[patternIndex]
-          : patterns.find((p: any) => p.type === patternType);
-
-      if (!pattern) {
-        res.status(404).json({ error: `Pattern '${patternType}' not found in analysis` });
-        return;
-      }
-
-      const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      // Client may send commentIds from analysis so "Show N comments" works even when DB format differs
       const queryIdsRaw = req.query.commentIds;
-      const fromQuery =
+      const commentIdsFromQuery =
         typeof queryIdsRaw === 'string' && queryIdsRaw.length > 0
-          ? [...new Set(queryIdsRaw.split(',').map((s) => s.trim()).filter((s) => uuidLike.test(s)))]
-          : [];
+          ? [...new Set(queryIdsRaw.split(',').map((s) => s.trim()).filter(Boolean))]
+          : undefined;
 
-      // Flatten: support commentIds as nested arrays or mixed shapes
-      const flattenIds = (arr: any[]): any[] => arr.flatMap((x) => (Array.isArray(x) ? flattenIds(x) : [x]));
-      const rawIds = fromQuery.length > 0 ? fromQuery : flattenIds(pattern.commentIds || []);
-      const uuidFromString = (s: string): string | null => {
-        const trimmed = String(s).trim();
-        if (uuidLike.test(trimmed)) return trimmed;
-        const match = trimmed.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-        return match ? match[0]! : null;
-      };
-      const toIdString = (id: any): string => {
-        if (id == null) return '';
-        if (typeof id === 'string') return id;
-        if (typeof id === 'object' && id !== null && typeof (id as { id?: unknown }).id === 'string') return (id as { id: string }).id;
-        return String(id);
-      };
-      let commentIds = [...new Set(
-        rawIds
-          .map(toIdString)
-          .filter((s) => s.length > 0)
-          .flatMap((s) => {
-            // Extract all UUIDs from string (e.g. "id: uuid1, uuid2" or JSON)
-            const one = uuidFromString(s);
-            if (one) return [one];
-            const all = s.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi);
-            return all ? [...all] : [];
-          })
-          .filter((id): id is string => id != null && uuidLike.test(id))
-      )];
+      const result = await this._getPatternCommentsUseCase.execute({
+        projectId,
+        patternType,
+        patternIndex,
+        commentIdsFromQuery,
+      });
 
-      // Fallback: when stored commentIds are empty/wrong but pattern has examples, resolve IDs by matching example content to project comments
-      if (commentIds.length === 0 && pattern.examples?.length) {
-        const { data: projectComments } = await getSupabaseClient()
-          .from('comments')
-          .select('id, content')
-          .eq('project_id', projectId)
-          .limit(2000);
-        if (projectComments?.length) {
-          const norm = (s: string) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
-          const words = (s: string) => norm(s).split(/\s+/).filter((w) => w.length >= 4);
-          const matchedIds = new Set<string>();
-          for (const ex of pattern.examples) {
-            const exContent = typeof ex === 'object' && ex !== null && typeof (ex as any).content === 'string' ? (ex as any).content : '';
-            const needle = norm(exContent).slice(0, 150);
-            if (!needle) continue;
-            for (const c of projectComments) {
-              if (matchedIds.size >= 100) break;
-              const hay = norm(c.content ?? '');
-              if (hay.includes(needle) || needle.includes(hay)) matchedIds.add(c.id);
-            }
-          }
-          if (matchedIds.size === 0) {
-            const allWords = new Set<string>();
-            for (const ex of pattern.examples) {
-              const exContent = typeof ex === 'object' && ex !== null && typeof (ex as any).content === 'string' ? (ex as any).content : '';
-              words(exContent).forEach((w) => allWords.add(w));
-            }
-            if (allWords.size >= 2) {
-              const wordList = Array.from(allWords);
-              for (const c of projectComments) {
-                if (matchedIds.size >= 100) break;
-                const commentWords = new Set(words(c.content ?? ''));
-                const matchCount = wordList.filter((w) => commentWords.has(w)).length;
-                if (matchCount >= 2) matchedIds.add(c.id);
-              }
-            }
-          }
-          commentIds = [...matchedIds];
+      if (!result.isSuccess) {
+        const msg = result.error.message;
+        if (msg.includes('not found') || msg.includes('not available')) {
+          res.status(404).json({ error: msg });
+        } else {
+          res.status(500).json({ error: msg });
         }
-      }
-
-      if (commentIds.length === 0) {
-        res.setHeader('Cache-Control', 'no-store');
-        res.json({ comments: [], total: 0, pattern: { type: pattern.type, label: pattern.label, count: pattern.count, percentage: pattern.percentage } });
         return;
       }
 
-      // Get comments by IDs
-      const { data: comments, error } = await getSupabaseClient()
-        .from('comments')
-        .select('*')
-        .in('id', commentIds)
-        .order('created_at', { ascending: false });
+      const { comments, pattern } = result.data;
 
-      if (error) {
-        res.status(500).json({ error: `Failed to fetch comments: ${error.message}` });
-        return;
-      }
-
-      // Return all comments by ID so "Show N comments" loads exactly N (no content filter)
-      let commentsToReturn = comments ?? [];
-
-      // When IDs from client/DB returned 0 rows (e.g. stale analysis), try matching by pattern examples to project comments
-      if (commentsToReturn.length === 0 && pattern.examples?.length) {
-        const { data: projectComments } = await getSupabaseClient()
-          .from('comments')
-          .select('*')
-          .eq('project_id', projectId)
-          .limit(2000);
-        if (projectComments?.length) {
-          const norm = (s: string) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
-          const words = (s: string) => norm(s).split(/\s+/).filter((w) => w.length >= 4);
-          const matchedIds = new Set<string>();
-          for (const ex of pattern.examples) {
-            const exContent = typeof ex === 'object' && ex !== null && typeof (ex as any).content === 'string' ? (ex as any).content : '';
-            const needle = norm(exContent).slice(0, 150);
-            if (!needle) continue;
-            for (const c of projectComments) {
-              if (matchedIds.size >= 100) break;
-              const hay = norm(c.content ?? '');
-              if (hay.includes(needle) || needle.includes(hay)) matchedIds.add(c.id);
-            }
-          }
-          if (matchedIds.size === 0) {
-            const allWords = new Set<string>();
-            for (const ex of pattern.examples) {
-              const exContent = typeof ex === 'object' && ex !== null && typeof (ex as any).content === 'string' ? (ex as any).content : '';
-              words(exContent).forEach((w) => allWords.add(w));
-            }
-            if (allWords.size >= 2) {
-              const wordList = Array.from(allWords);
-              for (const c of projectComments) {
-                if (matchedIds.size >= 100) break;
-                const commentWords = new Set(words(c.content ?? ''));
-                const matchCount = wordList.filter((w) => commentWords.has(w)).length;
-                if (matchCount >= 2) matchedIds.add(c.id);
-              }
-            }
-          }
-          const fallbackIds = [...matchedIds];
-          if (fallbackIds.length > 0) {
-            const { data: fallbackRows } = await getSupabaseClient()
-              .from('comments')
-              .select('*')
-              .in('id', fallbackIds)
-              .order('created_at', { ascending: false });
-            commentsToReturn = fallbackRows ?? [];
-          }
-        }
-      }
-
-      // Get source types for comments
-      const uniqueSourceIds = [...new Set(commentsToReturn.map((c: any) => c.source_id))];
+      const uniqueSourceIds = [...new Set(comments.map((c) => c.sourceId))];
       const sourcesResult = await this._commentRepository.getCommentSourcesByProjectId(projectId);
-
       const sourceTypesMap = new Map<string, string>();
       if (sourcesResult.isSuccess) {
-        sourcesResult.data.forEach(source => {
+        sourcesResult.data.forEach((source) => {
           if (uniqueSourceIds.includes(source.id)) {
             sourceTypesMap.set(source.id, source.sourceType);
           }
         });
       }
 
-      // Format comments with source types
-      const formattedComments = commentsToReturn.map((comment: any) => {
-        let sourceType: string = sourceTypesMap.get(comment.source_id) || 'unknown';
-
-        // Fallback: determine sourceType from URL pattern
+      const formattedComments = comments.map((comment) => {
+        const data = comment.toData();
+        let sourceType = sourceTypesMap.get(comment.sourceId) || 'unknown';
         if (sourceType === 'unknown') {
-          const url = (comment.context_url || comment.url).toLowerCase();
-          if (url.includes('ycombinator.com') || url.includes('news.ycombinator.com')) {
-            sourceType = 'hackernews';
-          } else {
-            sourceType = 'reddit';
-          }
+          const url = (data.contextUrl || data.url || '').toLowerCase();
+          sourceType = url.includes('ycombinator.com') || url.includes('news.ycombinator.com') ? 'hackernews' : 'reddit';
         }
-
         return {
-          id: comment.id,
-          sourceId: comment.source_id,
-          projectId: comment.project_id,
-          externalId: comment.external_id,
-          content: comment.content,
-          author: comment.author,
-          url: comment.url,
-          contextTitle: comment.context_title,
-          contextUrl: comment.context_url,
-          createdAt: comment.created_at,
-          fetchedAt: comment.fetched_at,
-          isProcessed: comment.is_processed,
-          processedAt: comment.processed_at,
-          importOrigin: comment.import_origin,
-          subsourceName: comment.subsource_name,
-          sourceType
+          ...data,
+          createdAt: data.createdAt.toISOString(),
+          fetchedAt: data.fetchedAt.toISOString(),
+          processedAt: data.processedAt?.toISOString() ?? null,
+          sourceType,
         };
       });
 
@@ -855,12 +598,7 @@ export class CommentController {
       res.json({
         comments: formattedComments,
         total: formattedComments.length,
-        pattern: {
-          type: pattern.type,
-          label: pattern.label,
-          count: pattern.count,
-          percentage: pattern.percentage
-        }
+        pattern,
       });
     } catch (error) {
       res.status(500).json({

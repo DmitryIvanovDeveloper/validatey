@@ -12,6 +12,7 @@ import { DeleteSourceCommandHandler } from '../../application/commands/delete-so
 import { GetCommentsQueryHandler } from '../../application/queries/get-comments.query-handler';
 import { GetFetchStatusQueryHandler } from '../../application/queries/get-fetch-status.query-handler';
 import { GetCommentByIdQueryHandler } from '../../application/queries/get-comment-by-id.query-handler';
+import { GetPatternCommentsUseCase } from '../../application/use-cases/get-pattern-comments.use-case';
 
 // Infrastructure
 import { SupabaseCommentRepository } from '../repositories/supabase-comment.repository';
@@ -39,6 +40,7 @@ export function bindComments(container: Container): void {
   container.bind<GetCommentsUseCase>(COMMENT_TYPES.GetCommentsUseCase).to(GetCommentsUseCase);
   container.bind<GetFetchStatusUseCase>(COMMENT_TYPES.GetFetchStatusUseCase).to(GetFetchStatusUseCase);
   container.bind<GetCommentByIdUseCase>(COMMENT_TYPES.GetCommentByIdUseCase).to(GetCommentByIdUseCase);
+  container.bind<GetPatternCommentsUseCase>(COMMENT_TYPES.GetPatternCommentsUseCase).to(GetPatternCommentsUseCase);
 
   // Command Handlers
   container.bind<StartFetchCommandHandler>(COMMENT_TYPES.StartFetchCommandHandler).to(StartFetchCommandHandler);

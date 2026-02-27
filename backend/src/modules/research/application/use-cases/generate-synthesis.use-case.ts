@@ -104,7 +104,7 @@ export class GenerateSynthesisUseCase {
       const academicPapersSummary = this.summarizeAcademicPapers(stored?.academicPapers ?? null);
       const productHuntSummary = this.summarizeProductHunt(stored?.productHunt ?? null);
 
-      const SYNTHESIS_BATCH_SIZE = 45;
+      const SYNTHESIS_BATCH_SIZE = 60;
       const useBatchSynthesis = comments.length > SYNTHESIS_BATCH_SIZE;
 
       let report: SynthesisReport;
@@ -432,9 +432,9 @@ export class GenerateSynthesisUseCase {
    */
   private buildNumberedCommentsWithIds(comments: CommentEntity[]): string {
     if (!comments || comments.length === 0) return '';
-    // Keep prompt under LLM context limit (~8k tokens): cap comments and preview length
-    const maxComments = 45;
-    const previewLen = 80;
+    // Keep prompt under LLM context limit (~8k tokens): cap comments and preview length (aligned with batch size)
+    const maxComments = 60;
+    const previewLen = 220;
     const slice = comments.slice(0, maxComments);
     const lines = slice.map((c, i) => {
       const preview = c.content.replace(/\s+/g, ' ').trim().substring(0, previewLen);
@@ -526,8 +526,12 @@ export class GenerateSynthesisUseCase {
     return { ...analysis, patterns };
   }
 
+  /** Max commentIds per pattern after merging batches (avoids one pattern dominating). */
+  private static readonly MAX_COMMENT_IDS_PER_PATTERN = 80;
+
   /**
-   * Merge pattern analyses from multiple batches: group by type, combine commentIds and counts.
+   * Merge pattern analyses from multiple batches: group by type, keep best pattern metadata per type,
+   * but union commentIds from all batches for that type (dedupe, cap at MAX_COMMENT_IDS_PER_PATTERN).
    */
   private mergePatternAnalyses(
     batchAnalyses: CommentPatternAnalysis[],
@@ -544,22 +548,23 @@ export class GenerateSynthesisUseCase {
     }
     const mergedPatterns: Array<CommentPatternAnalysis['patterns'][number]> = [];
     for (const [, items] of byType) {
-      const combinedIds = new Set<string>();
-      let totalCount = 0;
-      let best = items[0].pattern;
+      const best = items.reduce(
+        (acc, { pattern }) => ((pattern.count ?? 0) > (acc.count ?? 0) ? pattern : acc),
+        items[0].pattern
+      );
+      const allIds = new Set<string>();
       for (const { pattern } of items) {
-        totalCount += pattern.count;
         for (const id of pattern.commentIds ?? []) {
-          combinedIds.add(id);
+          allIds.add(id);
         }
-        if (pattern.count > best.count) best = pattern;
       }
-      const count = combinedIds.size > 0 ? combinedIds.size : totalCount;
+      const ids = Array.from(allIds).slice(0, GenerateSynthesisUseCase.MAX_COMMENT_IDS_PER_PATTERN);
+      const count = ids.length > 0 ? ids.length : (best.count ?? 0);
       mergedPatterns.push({
         ...best,
         count,
         percentage: totalComments > 0 ? Math.round((count / totalComments) * 100) : 0,
-        commentIds: combinedIds.size > 0 ? Array.from(combinedIds) : undefined,
+        commentIds: ids.length > 0 ? ids : undefined,
       });
     }
     mergedPatterns.sort((a: { count: number }, b: { count: number }) => b.count - a.count);
@@ -632,18 +637,18 @@ export class GenerateSynthesisUseCase {
 
     const extractedPains: string[] = [];
 
-    // PRIORITY: Use pattern analysis — prefer "failure" then "myth" then negative "validation" patterns.
+    // PRIORITY: Use pattern analysis — prefer contradicting patterns (supportsHypothesis === false) or negative sentiment.
     // Use pattern.insight (LLM-synthesized text) as the pain point label — more meaningful than raw quotes.
     if (patternAnalysis) {
       const allPatterns = patternAnalysis.patterns;
 
-      // Score: failure > myth > negative validation; tiebreak by confidenceScore
+      // Score: contradicting > negative sentiment; tiebreak by confidenceScore
       const scored = allPatterns
         .map(p => {
           let typeScore = 0;
-          if (p.type === 'failure') typeScore = 3;
-          else if (p.type === 'myth') typeScore = 2;
-          else if (p.type === 'validation' && p.sentimentScore < -0.1) typeScore = 1;
+          if (p.supportsHypothesis === false) typeScore = 3;
+          else if (p.sentimentScore < -0.1) typeScore = 2;
+          else if (p.sentimentScore < 0.2) typeScore = 1;
           return { pattern: p, score: typeScore * (p.confidenceScore ?? 1) };
         })
         .filter(x => x.score > 0)

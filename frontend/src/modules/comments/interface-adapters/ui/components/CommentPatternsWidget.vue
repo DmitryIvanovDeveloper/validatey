@@ -50,12 +50,12 @@
         </div>
 
         <button
-          v-if="hasPatternContent(pattern)"
+          v-if="presenter.hasPatternContent(pattern)"
           class="cpw-toggle-btn cpw-show-comments-btn"
           @click="showPatternInSidebar(pattern, patternIndex)"
           type="button"
         >
-          Show {{ patternCommentCount(pattern) }}
+          Show {{ presenter.getPatternButtonLabel(pattern) }}
           <svg class="cpw-toggle-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
@@ -95,6 +95,7 @@
                 <p>No comments for this pattern yet.</p>
               </div>
               <div v-else class="comments-list-sidebar">
+                <p v-if="sidebarHint" class="cpw-sidebar-hint">{{ sidebarHint }}</p>
                 <div
                   v-for="comment in sidebarComments"
                   :key="comment.id"
@@ -142,7 +143,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { COMMENT_TYPES } from '../../../types';
-import type { GetCommentPatternsUseCase } from '../../../application/use-cases/get-comment-patterns.use-case';
+import type { CommentPatternsPresenter } from '../../presenters/comment-patterns.presenter';
 import type { CommentPatternAnalysis } from '../../../domain/entities/comment-pattern-analysis.entity';
 
 interface Props {
@@ -150,6 +151,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const presenter = container.get<CommentPatternsPresenter>(COMMENT_TYPES.CommentPatternsPresenter);
 
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -160,6 +163,7 @@ const showCommentsSidebar = ref(false);
 const sidebarComments = ref<any[]>([]);
 const sidebarPattern = ref<any>(null);
 const sidebarLoading = ref(false);
+const showingOnlyExamples = ref(false);
 
 const scoreBadgeClass = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
@@ -174,6 +178,10 @@ const scoreLabel = computed(() => {
   if (score >= 30) return `Moderate Evidence (${score}%)`;
   return `Early Stage (${score}%)`;
 });
+
+const sidebarHint = computed(() =>
+  presenter.getSidebarHint(sidebarPattern.value, showingOnlyExamples.value, sidebarComments.value.length)
+);
 
 function formatDate(date: Date | string): string {
   return new Intl.DateTimeFormat('en-US', {
@@ -204,74 +212,43 @@ function formatSourceName(source: string): string {
     .join(' ');
 }
 
-function hasPatternContent(pattern: any): boolean {
-  const hasIds = pattern.commentIds && pattern.commentIds.length > 0;
-  const hasExamples = pattern.examples && pattern.examples.length > 0;
-  return !!hasIds || !!hasExamples;
-}
-
-function patternCommentCount(pattern: any): string {
-  const n = (pattern.commentIds && pattern.commentIds.length) || (pattern.examples && pattern.examples.length) || 0;
-  const fromApi = pattern.commentIds && pattern.commentIds.length > 0;
-  return n ? `${n} ${fromApi ? 'comments' : 'examples'}` : '0';
-}
-
-function examplesToSidebarItems(examples: any[]): any[] {
-  if (!examples || !examples.length) return [];
-  return examples.map((ex, idx) => ({
-    id: `example-${idx}`,
-    content: ex.content,
-    author: ex.author || 'Anonymous',
-    sourceType: ex.source?.toLowerCase().replace(/\s+/g, '') || 'other',
-    url: ex.url,
-    contextTitle: null,
-    contextUrl: ex.url,
-    createdAt: new Date().toISOString(),
-    fetchedAt: new Date().toISOString(),
-    isProcessed: false,
-    processedAt: null,
-    importOrigin: null,
-    subsourceName: ex.source || null,
-  }));
-}
-
 async function showPatternInSidebar(pattern: any, patternIndex?: number): Promise<void> {
-  const hasIds = pattern.commentIds && pattern.commentIds.length > 0;
-
   showCommentsSidebar.value = true;
   sidebarPattern.value = pattern;
   sidebarComments.value = [];
+  showingOnlyExamples.value = false;
 
+  const hasIds = pattern.commentIds && pattern.commentIds.length > 0;
   if (hasIds) {
     try {
       sidebarLoading.value = true;
-      const useCase = container.get<GetPatternCommentsUseCase>(COMMENT_TYPES.GetPatternCommentsUseCase);
-      const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const uuidFrom = (x: unknown): string | null => {
-        if (typeof x === 'string') return uuidRe.test(x.trim()) ? x.trim() : (x.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] ?? null);
-        if (x && typeof x === 'object' && 'id' in x && typeof (x as { id: string }).id === 'string') return uuidFrom((x as { id: string }).id);
-        return null;
-      };
-      const idsFromPattern: string[] = [];
-      for (const id of pattern.commentIds || []) {
-        const u = uuidFrom(id);
-        if (u) idsFromPattern.push(u);
-      }
-      const result = await useCase.execute(props.projectId, pattern.type, patternIndex, idsFromPattern.length > 0 ? idsFromPattern : undefined);
-
-      if (result.isSuccess && result.data.comments && result.data.comments.length > 0) {
-        sidebarComments.value = result.data.comments;
-      } else {
-        sidebarComments.value = examplesToSidebarItems(pattern.examples || []);
-      }
-    } catch (error) {
-      console.error('Exception loading pattern comments:', error);
-      sidebarComments.value = examplesToSidebarItems(pattern.examples || []);
+      const { comments, showingOnlyExamples: onlyExamples } = await presenter.loadPatternComments(
+        props.projectId,
+        pattern,
+        patternIndex
+      );
+      sidebarComments.value = comments;
+      showingOnlyExamples.value = onlyExamples;
+    } catch (e) {
+      console.error('Exception loading pattern comments:', e);
+      const { comments, showingOnlyExamples: onlyExamples } = await presenter.loadPatternComments(
+        props.projectId,
+        { ...pattern, commentIds: [] },
+        patternIndex
+      );
+      sidebarComments.value = comments;
+      showingOnlyExamples.value = onlyExamples;
     } finally {
       sidebarLoading.value = false;
     }
   } else {
-    sidebarComments.value = examplesToSidebarItems(pattern.examples || []);
+    const { comments, showingOnlyExamples: onlyExamples } = await presenter.loadPatternComments(
+      props.projectId,
+      pattern,
+      patternIndex
+    );
+    sidebarComments.value = comments;
+    showingOnlyExamples.value = onlyExamples;
   }
 }
 
@@ -279,24 +256,17 @@ function closeCommentsSidebar(): void {
   showCommentsSidebar.value = false;
   sidebarComments.value = [];
   sidebarPattern.value = null;
+  showingOnlyExamples.value = false;
 }
 
 async function loadPatterns(): Promise<void> {
   if (!props.projectId) return;
   loading.value = true;
   error.value = null;
-
   try {
-    const useCase = container.get<GetCommentPatternsUseCase>(COMMENT_TYPES.GetCommentPatternsUseCase);
-    const result = await useCase.execute(props.projectId);
-
-    if (result.isSuccess) {
-      analysis.value = result.data;
-    } else {
-      error.value = result.error?.message ?? 'Failed to load pattern analysis';
-    }
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to load pattern analysis';
+    const { analysis: a, error: e } = await presenter.loadAnalysis(props.projectId);
+    analysis.value = a;
+    error.value = e;
   } finally {
     loading.value = false;
   }
@@ -701,6 +671,16 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.cpw-sidebar-hint {
+  margin: 0 0 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #6b7280);
+  background: var(--color-bg-subtle, #f3f4f6);
+  border-radius: var(--radius-sm, 6px);
+  border-left: 3px solid var(--color-accent, #6366f1);
 }
 
 .comment-item-sidebar {

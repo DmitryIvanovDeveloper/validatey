@@ -534,19 +534,19 @@ export class GenerateAssumptionAssessmentsUseCase {
       return undefined; // Optional field
     }
 
-    const validationPatterns = analysis.patterns.filter(p => p.type === 'validation');
-    const failurePatterns = analysis.patterns.filter(p => p.type === 'failure');
+    const supportingPatterns = analysis.patterns.filter(p => p.supportsHypothesis === true);
+    const contradictingPatterns = analysis.patterns.filter(p => p.supportsHypothesis === false);
 
     const parts: string[] = [];
-    if (validationPatterns.length > 0) {
-      const topValidation = validationPatterns[0];
-      const authorNote = typeof topValidation.uniqueAuthorCount === 'number' ? ` (${topValidation.uniqueAuthorCount} unique authors)` : '';
-      parts.push(`Validation signals: ${topValidation.insight}${authorNote}`);
+    if (supportingPatterns.length > 0) {
+      const top = supportingPatterns[0];
+      const authorNote = typeof top.uniqueAuthorCount === 'number' ? ` (${top.uniqueAuthorCount} unique authors)` : '';
+      parts.push(`Supporting evidence: ${top.insight}${authorNote}`);
     }
-    if (failurePatterns.length > 0) {
-      const topFailure = failurePatterns[0];
-      const authorNote = typeof topFailure.uniqueAuthorCount === 'number' ? ` (${topFailure.uniqueAuthorCount} unique authors)` : '';
-      parts.push(`Failure patterns: ${topFailure.insight}${authorNote}`);
+    if (contradictingPatterns.length > 0) {
+      const top = contradictingPatterns[0];
+      const authorNote = typeof top.uniqueAuthorCount === 'number' ? ` (${top.uniqueAuthorCount} unique authors)` : '';
+      parts.push(`Contradicting or weakening: ${top.insight}${authorNote}`);
     }
 
     if (analysis.validationScore >= 70) {

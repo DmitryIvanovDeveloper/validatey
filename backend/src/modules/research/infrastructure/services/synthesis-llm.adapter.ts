@@ -46,10 +46,12 @@ COMMENT PATTERN ANALYSIS:
   - sentimentScore: -1 (very negative) to +1 (very positive), 0 = neutral
   - confidenceScore: 0-1 (AI confidence in pattern analysis)
   - recencyScore: 0-1 (how recent this pattern is)
-- When assigning commentIds to a pattern, consider that each UUID corresponds to one comment; the number of unique authors will be computed server-side. Include all comment UUIDs that belong to the pattern so the system can count unique authors (many unique authors = stronger signal).
+- A numbered list of comments is provided with format "N. [id: <uuid>] \"preview\"". For each pattern set commentIds to an array of those exact UUID strings (the <uuid> part).
+- Include in commentIds every comment from the list whose content clearly matches this pattern's label and insight. Do not add loosely related comments or ones that fit another pattern better. Prefer accuracy over quantity, but do not limit to 1–2: if many comments clearly support this pattern, include all of them.
+- Each pattern has a label and insight: assign a comment only when the comment text clearly supports that label/insight (e.g. for label "Users are not willing to give feedback" the comment must express unwillingness to give feedback or that others don't).
+- The number of unique authors is computed server-side from commentIds; many unique authors = stronger signal. Include all comment UUIDs that clearly belong to this pattern.
 - Extract top 5-7 most significant patterns
 - For each pattern include exactly ONE short example (max 120 chars). Do NOT include more than one example per pattern.
-- A numbered list of comments is provided with format "N. [id: <uuid>] \"preview\"". For each pattern set commentIds to an array of those exact UUID strings (the <uuid> part) for every comment that belongs to this pattern. Use as many as apply; do not limit to one.
 - Focus on patterns that are relevant to the hypothesis validation
 
 ADDITIONAL ANALYTICS:
@@ -67,14 +69,15 @@ Respond with ONLY valid JSON, no markdown:
     "totalComments": 184,
     "patterns": [
       {
-        "type": "validation"|"myth"|"failure"|"advice"|"feature_request"|"comparison"|"workaround"|"emotion",
-        "label": "Pattern title (e.g., 'Users want dark mode')",
+        "type": "feedback_seeking",
+        "label": "Pattern title (e.g., 'Users seek honest feedback')",
         "insight": "Detailed insight about this pattern",
         "count": 15,
         "percentage": 8.2,
         "sentimentScore": 0.3,
         "confidenceScore": 0.85,
         "recencyScore": 0.7,
+        "supportsHypothesis": true,
         "commentIds": ["uuid-from-list-1", "uuid-from-list-2"],
         "examples": [{"content": "one short quote max 120 chars", "author": "Anonymous", "source": "Reddit"}]
       }
@@ -193,11 +196,16 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
           // Ensure pattern scores have defaults
           const patterns = patternObj.patterns.map((p: any) => ({
             ...p,
+            type: typeof p.type === 'string' && p.type.trim() ? p.type.trim() : 'other',
             sentimentScore: typeof p.sentimentScore === 'number' ? Math.max(-1, Math.min(1, p.sentimentScore)) : 0,
             confidenceScore: typeof p.confidenceScore === 'number' ? Math.max(0, Math.min(1, p.confidenceScore)) : 0.5,
             recencyScore: typeof p.recencyScore === 'number' ? Math.max(0, Math.min(1, p.recencyScore)) : 0.5,
+            supportsHypothesis: typeof p.supportsHypothesis === 'boolean' ? p.supportsHypothesis : undefined,
             commentIds: Array.isArray(p.commentIds)
-              ? p.commentIds.filter((id: any) => typeof id === 'string' && id.length > 10)
+              ? p.commentIds
+                  .filter((id: any) => typeof id === 'string' && id.length > 10)
+                  .map((id: string) => String(id).replace(/^\s*id:\s*/i, '').trim())
+                  .filter((id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
               : [],
           }));
 

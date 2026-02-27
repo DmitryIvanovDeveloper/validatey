@@ -30,6 +30,7 @@ export class CommentEntity {
   ) {}
 
   static create(params: {
+    id?: string;
     sourceId: string;
     projectId: string;
     externalId: string;
@@ -57,8 +58,9 @@ export class CommentEntity {
       throw new Error('Comment URL is required');
     }
 
+    const id = params.id ?? this.generateId();
     return new CommentEntity(
-      this.generateId(),
+      id,
       params.sourceId,
       params.projectId,
       params.externalId.trim(),

@@ -8,6 +8,7 @@ export const COMMENT_TYPES = {
 
   // Presenters
   CommentsPresenter: Symbol.for('CommentsPresenter'),
+  CommentPatternsPresenter: Symbol.for('CommentPatternsPresenter'),
 
   // Repositories
   CommentsHttpRepository: Symbol.for('CommentsHttpRepository'),

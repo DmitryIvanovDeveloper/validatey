@@ -124,6 +124,7 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
 
       try {
         const comment = CommentEntity.create({
+          id: data.id,
           sourceId: data.source_id,
           projectId: data.project_id,
           externalId: data.external_id,
@@ -234,6 +235,7 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
 
       try {
         const comments = data.map(row => CommentEntity.create({
+          id: row.id,
           sourceId: row.source_id,
           projectId: row.project_id,
           externalId: row.external_id,
@@ -334,6 +336,7 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
 
       try {
         const comments = data.map(row => CommentEntity.create({
+          id: row.id,
           sourceId: row.source_id,
           projectId: row.project_id,
           externalId: row.external_id,
@@ -357,6 +360,55 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
       }
     } catch (error) {
       this._logger.error('comment.findBySourceId.exception', { error, sourceId, options });
+      return ResultEx.failure(new CommentError(
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      ));
+    }
+  }
+
+  async findByProjectIdAndIds(projectId: string, ids: string[]): Promise<ResultEx<CommentEntity[], CommentError>> {
+    if (!ids.length) {
+      return ResultEx.success([]);
+    }
+    try {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('project_id', projectId)
+        .in('id', ids)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this._logger.error('comment.findByProjectIdAndIds.error', { error, projectId });
+        return ResultEx.failure(new CommentError(`Failed to find comments: ${error.message}`));
+      }
+
+      if (!data || data.length === 0) {
+        return ResultEx.success([]);
+      }
+
+      const comments = data.map(row => CommentEntity.create({
+        id: row.id,
+        sourceId: row.source_id,
+        projectId: row.project_id,
+        externalId: row.external_id,
+        content: row.content,
+        author: row.author,
+        url: row.url,
+        contextTitle: row.context_title,
+        contextUrl: row.context_url,
+        createdAt: new Date(row.created_at),
+        fetchedAt: new Date(row.fetched_at),
+        isProcessed: row.is_processed ?? false,
+        processedAt: row.processed_at ? new Date(row.processed_at) : undefined,
+        importOrigin: row.import_origin,
+        subsourceName: row.subsource_name,
+      }));
+
+      return ResultEx.success(comments);
+    } catch (error) {
+      this._logger.error('comment.findByProjectIdAndIds.exception', { error, projectId });
       return ResultEx.failure(new CommentError(
         error instanceof Error ? error.message : 'Unknown error occurred'
       ));

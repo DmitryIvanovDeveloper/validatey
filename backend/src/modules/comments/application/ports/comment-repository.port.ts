@@ -12,6 +12,8 @@ export interface CommentRepositoryPort {
     isProcessed?: boolean;
     orderByCreatedAt?: boolean;
   }): Promise<ResultEx<CommentEntity[], CommentError>>;
+  /** Find comments by project and list of ids (only returns comments that belong to the project). */
+  findByProjectIdAndIds(projectId: string, ids: string[]): Promise<ResultEx<CommentEntity[], CommentError>>;
   findBySourceId(sourceId: string, options?: {
     limit?: number;
     offset?: number;
