@@ -124,7 +124,6 @@ async function handleSubmit() {
   padding: 0.875rem 1rem;
   border: var(--border-width) var(--border-style) #d1d5db;
   border-radius: 0.5rem;
-  background-color: white;
   color: #111827;
   font-size: 1rem;
   transition: all 0.2s ease;
@@ -143,7 +142,6 @@ async function handleSubmit() {
 .wishlist-input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: #f3f4f6;
 }
 
 .wishlist-input.error {
