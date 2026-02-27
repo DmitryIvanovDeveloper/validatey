@@ -21,6 +21,11 @@ export interface GetPatternCommentsResponse {
   pattern: { type: string; label: string; count: number; percentage: number };
 }
 
+/** Port for controller/DI: only execute is required; allows mocks in tests. */
+export interface IGetPatternCommentsUseCase {
+  execute(request: GetPatternCommentsRequest): Promise<ResultEx<GetPatternCommentsResponse, CommentError | Error>>;
+}
+
 function sortPatternsByCountAndCommentIds<T extends { count?: number; commentIds?: unknown }>(patterns: T[]): T[] {
   return [...patterns].sort((a, b) => {
     const countDiff = (b.count ?? 0) - (a.count ?? 0);
@@ -63,7 +68,7 @@ function normalizeCommentIds(fromQuery: string[] | undefined, patternCommentIds:
 }
 
 @injectable()
-export class GetPatternCommentsUseCase {
+export class GetPatternCommentsUseCase implements IGetPatternCommentsUseCase {
   constructor(
     @inject(RESEARCH_TYPES.ResearchDataRepository)
     private readonly _researchDataRepository: ResearchDataRepositoryPort,

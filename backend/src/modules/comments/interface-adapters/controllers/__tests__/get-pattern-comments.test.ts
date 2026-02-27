@@ -10,7 +10,7 @@ import { COMMENT_TYPES } from '../../../types';
 import type { CommentRepositoryPort } from '../../../application/ports/comment-repository.port';
 import type { CommentSourceRepositoryPort } from '../../../application/ports/comment-source-repository.port';
 import type { ProjectRepositoryPort } from '../../../../projects/application/ports/project-repository.port';
-import type { GetPatternCommentsUseCase } from '../../../application/use-cases/get-pattern-comments.use-case';
+import type { IGetPatternCommentsUseCase } from '../../../application/use-cases/get-pattern-comments.use-case';
 import type { ResearchDataRepositoryPort } from '../../../../research/application/ports/research-data-repository.port';
 import ResultEx from '../../../../../infrastructure/result/result';
 import { CommentEntity } from '../../../domain/entities/comment.entity';
@@ -56,7 +56,7 @@ function createMockResponse(): Response {
 }
 
 function createController(
-  getPatternCommentsUseCase: { execute: GetPatternCommentsUseCase['execute'] },
+  getPatternCommentsUseCase: IGetPatternCommentsUseCase,
   commentRepository?: Partial<CommentRepositoryPort>
 ): CommentController {
   const noop = vi.fn();
@@ -110,7 +110,7 @@ describe('CommentController.getPatternComments', () => {
   it('returns full comments when use case returns success with comments', async () => {
     const comment1 = createCommentEntity(COMMENT_ID_1, 'First comment text for pattern.', 'user1');
     const comment2 = createCommentEntity(COMMENT_ID_2, 'Second comment supporting the pattern.', 'user2');
-    const getPatternCommentsUseCase: GetPatternCommentsUseCase = {
+    const getPatternCommentsUseCase: IGetPatternCommentsUseCase = {
       execute: vi.fn().mockResolvedValue(
         ResultEx.success({
           comments: [comment1, comment2],
@@ -156,7 +156,7 @@ describe('CommentController.getPatternComments', () => {
   });
 
   it('returns 404 when use case returns failure with "not available" message', async () => {
-    const getPatternCommentsUseCase: { execute: GetPatternCommentsUseCase['execute'] } = {
+    const getPatternCommentsUseCase: IGetPatternCommentsUseCase = {
       execute: vi.fn().mockResolvedValue(
         ResultEx.failure(new Error('Pattern analysis not available. Please run "Start Research" first.'))
       ),
@@ -175,7 +175,7 @@ describe('CommentController.getPatternComments', () => {
   });
 
   it('returns comments array and total 0 when use case returns success with empty comments', async () => {
-    const getPatternCommentsUseCase: GetPatternCommentsUseCase = {
+    const getPatternCommentsUseCase: IGetPatternCommentsUseCase = {
       execute: vi.fn().mockResolvedValue(
         ResultEx.success({
           comments: [],
@@ -202,7 +202,7 @@ describe('CommentController.getPatternComments', () => {
 
   it('uses patternIndex and commentIdsFromQuery when provided in query', async () => {
     const comment2 = createCommentEntity(COMMENT_ID_2, 'Second comment.', 'user2');
-    const getPatternCommentsUseCase: { execute: GetPatternCommentsUseCase['execute'] } = {
+    const getPatternCommentsUseCase: IGetPatternCommentsUseCase = {
       execute: vi.fn().mockResolvedValue(
         ResultEx.success({
           comments: [comment2],

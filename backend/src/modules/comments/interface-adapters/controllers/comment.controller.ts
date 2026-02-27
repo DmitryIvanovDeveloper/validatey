@@ -16,7 +16,7 @@ import { TYPES as PROJECT_TYPES } from '../../../projects/infrastructure/bootstr
 import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootstrap/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import type { ResearchDataRepositoryPort } from '../../../research/application/ports/research-data-repository.port';
-import type { GetPatternCommentsUseCase } from '../../application/use-cases/get-pattern-comments.use-case';
+import type { IGetPatternCommentsUseCase } from '../../application/use-cases/get-pattern-comments.use-case';
 
 @injectable()
 export class CommentController {
@@ -38,7 +38,7 @@ export class CommentController {
     @inject(COMMENT_TYPES.FetchCommentsUseCase)
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
     @inject(COMMENT_TYPES.GetPatternCommentsUseCase)
-    private readonly _getPatternCommentsUseCase: GetPatternCommentsUseCase,
+    private readonly _getPatternCommentsUseCase: IGetPatternCommentsUseCase,
     @inject(PROJECT_TYPES.ProjectRepository)
     private readonly _projectRepository: ProjectRepositoryPort,
     @inject(RESEARCH_TYPES.ResearchDataRepository)
