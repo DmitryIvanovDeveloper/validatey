@@ -125,6 +125,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
   },
   {
+    path: '/admin/wishlist',
+    name: 'admin-wishlist',
+    component: () => import('@/modules/admin/interface-adapters/ui/components/AdminWaitlistTab.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true, layout: 'admin' },
+  },
+  {
     path: '/integrations/hubspot/callback',
     name: 'hubspot-callback',
     component: () => import('@/modules/integrations/interface-adapters/ui/views/HubSpotCallbackView.vue'),

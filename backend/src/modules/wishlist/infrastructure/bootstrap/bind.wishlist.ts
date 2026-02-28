@@ -4,6 +4,7 @@ import { WishlistRepositoryPort } from '../../application/ports/wishlist-reposit
 import { SupabaseWishlistRepository } from '../repositories/supabase-wishlist.repository';
 import { AddToWishlistUseCase } from '../../application/use-cases/add-to-wishlist.usecase';
 import { GetWishlistCountUseCase } from '../../application/use-cases/get-wishlist-count.usecase';
+import { ListWishlistUseCase } from '../../application/use-cases/list-wishlist.use-case';
 import { WishlistController } from '../../interface-adapters/controllers/wishlist.controller';
 
 export function bindWishlist(container: Container): void {
@@ -13,6 +14,7 @@ export function bindWishlist(container: Container): void {
   // Use Cases
   container.bind<AddToWishlistUseCase>(TYPES.AddToWishlistUseCase).to(AddToWishlistUseCase);
   container.bind<GetWishlistCountUseCase>(TYPES.GetWishlistCountUseCase).to(GetWishlistCountUseCase);
+  container.bind<ListWishlistUseCase>(TYPES.ListWishlistUseCase).to(ListWishlistUseCase);
 
   // Controller
   container.bind<WishlistController>(TYPES.WishlistController).to(WishlistController);

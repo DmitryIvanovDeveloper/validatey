@@ -64,7 +64,7 @@
         <p class="feedback-list-view__empty-hint">Users can submit feedback via the "Share feedback" widget on app pages.</p>
       </div>
       <ul v-else class="feedback-list-view__list" role="list">
-        <li v-for="f in feedback" :key="f.id" class="feedback-card">
+        <li v-for="f in filteredAndSortedFeedback" :key="f.id" class="feedback-card">
           <div class="feedback-card__header">
             <span class="feedback-card__badge" :class="`feedback-card__badge--${f.type}`">
               {{ typeLabel(f.type) }}
@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import ErrorDisplay from '../../../../../shared/components/ErrorDisplay.vue';
 import { API_CONFIG } from '../../../../../infrastructure/config/api.config';

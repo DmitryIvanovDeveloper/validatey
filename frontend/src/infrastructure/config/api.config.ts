@@ -122,6 +122,7 @@ export const API_CONFIG = {
 
     // Admin
     ADMIN_USERS: '/admin/users',
+    ADMIN_WISHLIST: '/admin/wishlist',
     ADMIN_FEEDBACK: '/admin/feedback',
     ADMIN_FEEDBACK_ANALYZE: '/admin/feedback/analyze',
 

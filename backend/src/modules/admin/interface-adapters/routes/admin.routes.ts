@@ -7,6 +7,8 @@ import { SupabaseAuthProvider } from '../../../auth/infrastructure/supabase-auth
 import { ListFeedbackUseCase } from '../../../feedback/application/use-cases/list-feedback.use-case';
 import { AnalyzeFeedbackUseCase } from '../../../feedback/application/use-cases/analyze-feedback.use-case';
 import { TYPES as FEEDBACK_TYPES } from '../../../feedback/infrastructure/bootstrap/types';
+import { ListWishlistUseCase } from '../../../wishlist/application/use-cases/list-wishlist.use-case';
+import { TYPES as WISHLIST_TYPES } from '../../../wishlist/application/types';
 
 const router = Router();
 const authProvider = new SupabaseAuthProvider();
@@ -120,6 +122,35 @@ router.post('/feedback/analyze', async (req: Request, res: Response) => {
     }
 
     return res.json({ analysis: result.data.analysis });
+  } catch (e) {
+    return res.status(500).json({ error: e instanceof Error ? e.message : 'Unknown error' });
+  }
+});
+
+/** GET /api/admin/wishlist — list all wishlist entries (admin only). Session from cookie. */
+router.get('/wishlist', async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.[COOKIE_NAME];
+    if (!token) {
+      return res.status(401).json({ error: 'No session' });
+    }
+
+    const user = await authProvider.getUserFromAccessToken(token);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+
+    const listWishlistUseCase = container.get<ListWishlistUseCase>(WISHLIST_TYPES.ListWishlistUseCase);
+    const result = await listWishlistUseCase.execute({ callerUserId: user.id });
+
+    if (!result.isSuccess) {
+      if (result.error instanceof AdminAccessDeniedError) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      return res.status(500).json({ error: result.error instanceof Error ? result.error.message : 'Unknown error' });
+    }
+
+    return res.json({ wishlist: result.data.wishlist });
   } catch (e) {
     return res.status(500).json({ error: e instanceof Error ? e.message : 'Unknown error' });
   }

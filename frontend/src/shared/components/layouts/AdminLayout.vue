@@ -24,6 +24,12 @@
         </span>
         Users
       </router-link>
+      <router-link to="/admin/wishlist" class="admin-tab" active-class="admin-tab--active">
+        <span class="admin-tab__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c.552 0 1 .448 1 1v6c0 .552-.448 1-1 1H3c-.552 0-1-.448-1-1v-6c0-.552.448-1 1-1h7.5"/><circle cx="7.5" cy="12" r="1"/><circle cx="16.5" cy="12" r="1"/></svg>
+        </span>
+        Waitlist
+      </router-link>
       <router-link to="/admin/feedback" class="admin-tab" active-class="admin-tab--active">
         <span class="admin-tab__icon" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
