@@ -37,7 +37,8 @@ function buildInsight(template: string, count: number, total: number): string {
 function computeValidationScore(
   patterns: CommentPattern[],
   total: number,
-  weights: ScoreWeight[]
+  weights: ScoreWeight[],
+  recurrenceScore?: number
 ): number {
   if (total === 0) return 0;
 
@@ -60,6 +61,12 @@ function computeValidationScore(
 
   if (total >= 50) score = Math.min(100, score + globalBonus50);
   if (total >= 100) score = Math.min(100, score + globalBonus100);
+
+  // Recurrence bonus: same theme in multiple subreddits = strong signal (+5 to +15)
+  if (typeof recurrenceScore === 'number' && recurrenceScore > 0) {
+    const recurrenceBonus = Math.round(recurrenceScore * 15);
+    score = Math.min(100, score + recurrenceBonus);
+  }
 
   return Math.min(100, score);
 }
@@ -85,12 +92,32 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
       };
     }
 
+    // Subreddit distribution (Reddit subsourceName, e.g. r/startups)
+    const subredditDistribution: Record<string, number> = {};
+    for (const c of comments) {
+      const sub = c.subsourceName?.trim();
+      if (sub && (sub.startsWith('r/') || /^[a-zA-Z0-9_]+$/.test(sub))) {
+        const key = sub.startsWith('r/') ? sub : `r/${sub}`;
+        subredditDistribution[key] = (subredditDistribution[key] ?? 0) + 1;
+      }
+    }
+
     const patterns: CommentPattern[] = rules
       .reduce<CommentPattern[]>((acc, rule) => {
         const matched = comments.filter((c) => containsAny(c.content, rule.keywords));
         const count = matched.length;
 
         if (count === 0) return acc;
+
+        const uniqueSubreddits = new Set<string>();
+        for (const c of matched) {
+          const sub = c.subsourceName?.trim();
+          if (sub && (sub.startsWith('r/') || /^[a-zA-Z0-9_]+$/.test(sub))) {
+            uniqueSubreddits.add(sub.startsWith('r/') ? sub : `r/${sub}`);
+          }
+        }
+        const subredditCount = uniqueSubreddits.size;
+        const subredditNames = subredditCount > 0 ? [...uniqueSubreddits] : undefined;
 
         const examples: CommentPatternExample[] = matched
           .slice(0, rule.maxExamples)
@@ -102,10 +129,12 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
           insight: buildInsight(rule.insightTemplate, count, total),
           count,
           percentage: Math.round((count / total) * 100),
-          sentimentScore: this.estimateSentimentScore(rule.type), // Basic sentiment estimation
-          confidenceScore: Math.min(0.7, count / total + 0.3), // Basic confidence based on frequency
-          recencyScore: 0.5, // Default recency (can't determine from keywords)
-          commentIds: matched.slice(0, 100).map((c) => c.id), // So "Show N comments" can load them
+          sentimentScore: this.estimateSentimentScore(rule.type),
+          confidenceScore: Math.min(0.7, count / total + 0.3),
+          recencyScore: 0.5,
+          commentIds: matched.slice(0, 100).map((c) => c.id),
+          subredditCount: subredditCount || undefined,
+          subredditNames,
           examples,
         });
 
@@ -113,16 +142,23 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
       }, [])
       .sort((a, b) => b.count - a.count);
 
-    const validationScore = computeValidationScore(patterns, total, weights);
+    // Recurrence: share of patterns that appear in >= 2 subreddits (0–1)
+    const patternsWithRecurrence = patterns.filter((p) => (p.subredditCount ?? 0) >= 2).length;
+    const recurrenceScore = patterns.length > 0 ? patternsWithRecurrence / patterns.length : 0;
 
-    // Basic sentiment analysis from patterns
+    const validationScore = computeValidationScore(patterns, total, weights, recurrenceScore);
+
     const sentimentOverview = this.computeSentimentOverview(patterns, total);
 
-    // Basic platform insights (simplified)
+    const hasSubreddits = Object.keys(subredditDistribution).length > 0;
+    const platformDistribution: Record<string, number> = hasSubreddits ? { reddit: total } : { Mixed: total };
+    const platformSentiments: Record<string, number> = hasSubreddits ? { reddit: sentimentOverview.overall } : { Mixed: sentimentOverview.overall };
     const platformInsights = {
-      dominantPlatform: 'Mixed',
-      platformDistribution: { Mixed: total },
-      platformSentiments: { Mixed: sentimentOverview.overall }
+      dominantPlatform: hasSubreddits ? 'reddit' : 'Mixed',
+      platformDistribution,
+      platformSentiments,
+      ...(hasSubreddits && { subredditDistribution }),
+      ...(hasSubreddits && { recurrenceScore }),
     };
 
     // Basic temporal trends (can't determine from keywords)

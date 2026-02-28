@@ -26,7 +26,11 @@ export class CommentEntity {
     public readonly processedAt: Date | null,
     public readonly importOrigin: CommentImportOrigin | null,
     /** Reddit subreddit name or HN feed type; null for legacy/manual */
-    public readonly subsourceName: string | null
+    public readonly subsourceName: string | null,
+    /** Reddit upvotes (score/ups); null for HN/LinkedIn/manual */
+    public readonly score: number | null,
+    /** Reddit thread depth (nesting level); null for other sources */
+    public readonly depth: number | null
   ) {}
 
   static create(params: {
@@ -45,6 +49,8 @@ export class CommentEntity {
     processedAt?: Date | null;
     importOrigin?: CommentImportOrigin | null;
     subsourceName?: string | null;
+    score?: number | null;
+    depth?: number | null;
   }): CommentEntity {
     if (!params.content || params.content.trim().length === 0) {
       throw new Error('Comment content is required');
@@ -74,7 +80,9 @@ export class CommentEntity {
       params.isProcessed ?? false,
       params.processedAt ?? null,
       params.importOrigin ?? 'api_fetch',
-      params.subsourceName ?? null
+      params.subsourceName ?? null,
+      params.score ?? null,
+      params.depth ?? null
     );
   }
 
@@ -94,7 +102,9 @@ export class CommentEntity {
       true,
       processedAt,
       this.importOrigin,
-      this.subsourceName
+      this.subsourceName,
+      this.score,
+      this.depth
     );
   }
 
@@ -115,6 +125,8 @@ export class CommentEntity {
       processedAt: this.processedAt,
       importOrigin: this.importOrigin,
       subsourceName: this.subsourceName,
+      score: this.score,
+      depth: this.depth,
     };
   }
 

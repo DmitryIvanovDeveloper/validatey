@@ -3,8 +3,14 @@
     <!-- Header -->
     <div class="cpw-header">
           <h3 class="cpw-title">Comment Pattern Analysis</h3>
-      <div v-if="analysis" class="cpw-score-badge" :class="scoreBadgeClass">
-        {{ scoreLabel }}
+      <div v-if="analysis" class="cpw-header-badges">
+        <div class="cpw-score-badge" :class="scoreBadgeClass">
+          {{ scoreLabel }}
+        </div>
+        <template v-if="analysis.platformInsights">
+          <span v-if="recurrenceLabel" class="cpw-recurrence-badge" :title="'Same patterns appear across subreddits — strong validation signal'">{{ recurrenceLabel }}</span>
+          <span v-if="subredditSummary" class="cpw-subreddits-badge" :title="'Comments from these communities'">{{ subredditSummary }}</span>
+        </template>
       </div>
     </div>
 
@@ -39,6 +45,7 @@
             <span class="cpw-pattern-label">{{ pattern.label }}</span>
             <span class="cpw-pattern-count">{{ pattern.count }}</span>
             <span v-if="pattern.uniqueAuthorCount != null" class="cpw-pattern-authors" :title="'Unique authors: stronger validation signal'">{{ pattern.uniqueAuthorCount }} authors</span>
+            <span v-if="pattern.subredditCount != null && pattern.subredditCount > 0" class="cpw-pattern-subreddits" :title="pattern.subredditNames?.length ? pattern.subredditNames.join(', ') : 'In N subreddits'">in {{ pattern.subredditCount }} subreddit{{ pattern.subredditCount === 1 ? '' : 's' }}</span>
             <span class="cpw-pattern-pct">{{ pattern.percentage }}%</span>
           </div>
           <ProgressBar
@@ -79,9 +86,6 @@
             <div class="detail-header">
               <div class="header-info">
                 <h3>{{ sidebarPattern?.label }}</h3>
-                <div class="comment-count-badge">
-                  {{ sidebarComments.length }}
-                </div>
               </div>
               <button type="button" class="btn-close" aria-label="Close" @click="closeCommentsSidebar">
                 <svg viewBox="0 0 24 24" class="close-icon">
@@ -114,6 +118,10 @@
                       <span class="author-name">{{ comment.author || 'Anonymous' }}</span>
                       <span class="comment-separator">•</span>
                       <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
+                      <template v-if="comment.sourceType === 'reddit'">
+                        <span v-if="comment.score != null" class="comment-score-badge" :title="'Reddit score (upvotes)'">+{{ comment.score }}</span>
+                        <span v-if="comment.depth != null && comment.depth > 0" class="comment-depth-badge" :title="'Depth in thread'">depth {{ comment.depth }}</span>
+                      </template>
                     </div>
                   </div>
                   <div class="comment-content-sidebar">
@@ -208,6 +216,22 @@ const scoreLabel = computed(() => {
   if (score >= 70) return `Strong Evidence (${score}%)`;
   if (score >= 30) return `Moderate Evidence (${score}%)`;
   return `Early Stage (${score}%)`;
+});
+
+const recurrenceLabel = computed(() => {
+  const r = analysis.value?.platformInsights?.recurrenceScore;
+  if (r == null || r < 0) return '';
+  const pct = Math.round(r * 100);
+  if (pct === 0) return '';
+  return `Recurrence: ${pct}%`;
+});
+
+const subredditSummary = computed(() => {
+  const dist = analysis.value?.platformInsights?.subredditDistribution;
+  if (!dist || typeof dist !== 'object') return '';
+  const n = Object.keys(dist).length;
+  if (n === 0) return '';
+  return `${n} subreddit${n === 1 ? '' : 's'}`;
 });
 
 const sidebarHint = computed(() =>
@@ -363,6 +387,32 @@ defineExpose({
 .cpw-score--high { background: var(--color-success-bg); color: var(--color-success); }
 .cpw-score--medium { background: var(--color-warning-bg); color: var(--color-warning); }
 .cpw-score--low { background: var(--color-bg-subtle); color: var(--color-text-muted); }
+
+.cpw-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.cpw-recurrence-badge,
+.cpw-subreddits-badge {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+}
+.cpw-pattern-subreddits {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-left: 0.25rem;
+}
+.comment-score-badge,
+.comment-depth-badge {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-left: 0.35rem;
+}
 
 .cpw-loading {
   padding: 1.5rem 1.25rem;
@@ -603,20 +653,6 @@ defineExpose({
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--color-text);
-}
-
-.comment-count-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  background: var(--color-accent);
-  color: white;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0 0.5rem;
 }
 
 .btn-close {

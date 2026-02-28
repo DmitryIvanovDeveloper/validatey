@@ -37,6 +37,7 @@ CONCLUSION RULES (use when deciding verdict and assumptions):
 - If people complain about lack of tools or solutions — that is evidence of unmet need / demand.
 - If they actively respond to others' posts asking for advice or feedback — treat as an indirect signal of willingness to engage (not proof of willingness to pay or use a product).
 - Many unique authors (dozens) expressing the same pain = stronger validation than the same number of comments from few authors.
+- Recurrence: the same problem or theme appearing in multiple subreddits/communities is a STRONG validation signal — weight it positively when deciding verdict and assumptions.
 
 COMMENT PATTERN ANALYSIS:
 - Analyze all provided comments for recurring patterns and themes

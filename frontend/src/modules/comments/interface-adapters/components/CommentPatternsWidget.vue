@@ -70,9 +70,6 @@
             <div class="detail-header">
               <div class="header-info">
                 <h3>{{ sidebarPattern?.label }}</h3>
-                <div class="comment-count-badge">
-                  {{ sidebarComments.length }}
-                </div>
               </div>
               <button type="button" class="btn-close" aria-label="Close" @click="closeCommentsSidebar">
                 <svg viewBox="0 0 24 24" class="close-icon">
@@ -564,20 +561,6 @@ defineExpose({
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--color-text);
-}
-
-.comment-count-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  background: var(--color-accent);
-  color: white;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0 0.5rem;
 }
 
 .btn-close {

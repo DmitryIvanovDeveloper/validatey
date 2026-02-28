@@ -12,6 +12,10 @@ export interface FetchedCommentRaw {
   contextTitle: string | null;
   contextUrl: string | null;
   createdAt: Date;
+  /** Reddit upvotes (score/ups); undefined for HN/LinkedIn */
+  score?: number;
+  /** Reddit thread depth (nesting level); undefined for other sources */
+  depth?: number;
 }
 
 /** Reddit-specific fetch input */

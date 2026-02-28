@@ -40,6 +40,11 @@ interface RedditListingChild {
     url?: string;
     title?: string;
     replies?: string | RedditRepliesListing;
+    /** Reddit upvotes (score or legacy ups) */
+    score?: number;
+    ups?: number;
+    /** Nesting depth in thread */
+    depth?: number;
   };
 }
 
@@ -440,6 +445,8 @@ export class RedditFetcher implements CommentFetcherPort {
       const permalink = d.permalink ?? '';
       const url = permalink.startsWith('http') ? permalink : `${REDDIT_BASE}${permalink}`;
       const createdUtc = d.created_utc ?? d.created;
+      const score = typeof d.score === 'number' ? d.score : (typeof d.ups === 'number' ? d.ups : undefined);
+      const depth = typeof d.depth === 'number' ? d.depth : undefined;
       result.push({
         externalId: d.id,
         content: body,
@@ -448,6 +455,8 @@ export class RedditFetcher implements CommentFetcherPort {
         contextTitle: d.link_title ?? d.title ?? null,
         contextUrl: d.link_url ?? d.url ?? null,
         createdAt: createdUtc ? new Date(createdUtc * 1000) : new Date(),
+        ...(score !== undefined && { score }),
+        ...(depth !== undefined && { depth }),
       });
     }
     return result;

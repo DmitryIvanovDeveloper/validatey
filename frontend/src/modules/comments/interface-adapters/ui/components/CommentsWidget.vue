@@ -186,13 +186,13 @@ defineExpose({
 }
 
 .comments-total {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--color-text);
 }
 
 .comments-label {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--color-text-muted);
 }
 
@@ -216,13 +216,13 @@ defineExpose({
 }
 
 .comments-source-name {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--color-text);
 }
 
 .comments-source-count {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--color-text-muted);
 }
@@ -238,7 +238,7 @@ defineExpose({
 }
 
 .empty-text {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
   margin: 0;
 }
@@ -317,7 +317,7 @@ defineExpose({
 }
 
 .section-title {
-  font-size: var(--text-xl);
+  font-size: 0.9375rem;
   font-weight: var(--font-weight-semibold);
   line-height: var(--leading-snug);
   letter-spacing: var(--tracking-tight);

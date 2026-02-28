@@ -20,6 +20,10 @@ export interface CommentItem {
   importOrigin: string | null;
   subsourceName: string | null;
   sourceType: 'reddit' | 'hackernews' | 'linkedin';
+  /** Reddit upvotes (score). */
+  score?: number | null;
+  /** Reddit depth in thread. */
+  depth?: number | null;
 }
 
 export interface GetCommentsInput {
@@ -72,6 +76,8 @@ export class GetCommentsUseCase {
       importOrigin: comment.importOrigin,
       subsourceName: comment.subsourceName,
       sourceType: (comment.sourceType ?? 'reddit') as 'reddit' | 'hackernews' | 'linkedin',
+      score: comment.score ?? null,
+      depth: comment.depth ?? null,
     }));
 
     return Result.success({

@@ -23,6 +23,10 @@ export interface CommentPattern {
   readonly commentIds?: ReadonlyArray<string>; // IDs of all comments in this pattern (optional; filled by synthesis or enrichment)
   /** Number of unique authors in this pattern; many unique authors = stronger validation signal. Filled server-side when commentIds exist. */
   readonly uniqueAuthorCount?: number;
+  /** Number of unique subreddits (Reddit) where this pattern appears; recurrence across communities = strong signal. */
+  readonly subredditCount?: number;
+  /** Subreddit names where this pattern was found (Reddit only). */
+  readonly subredditNames?: ReadonlyArray<string>;
   readonly examples: ReadonlyArray<CommentPatternExample>;
 }
 
@@ -42,6 +46,10 @@ export interface CommentPatternAnalysis {
     readonly dominantPlatform: string; // platform with most comments
     readonly platformDistribution: Record<string, number>; // comments per platform
     readonly platformSentiments: Record<string, number>; // sentiment per platform
+    /** Reddit: comments per subreddit (subsourceName). */
+    readonly subredditDistribution?: Record<string, number>;
+    /** 0–1: how much the same patterns recur across subreddits (strong validation signal). */
+    readonly recurrenceScore?: number;
   };
   readonly temporalTrends: {
     readonly recentActivity: number; // 0-1: how active discussions are recently

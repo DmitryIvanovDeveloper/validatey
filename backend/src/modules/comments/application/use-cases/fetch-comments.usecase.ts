@@ -65,6 +65,8 @@ export class FetchCommentsUseCase {
           fetchedAt: new Date(),
           importOrigin: 'api_fetch',
           subsourceName: source.subredditName ?? source.getDisplayName(),
+          score: rawComment.score ?? null,
+          depth: rawComment.depth ?? null,
         });
       });
 

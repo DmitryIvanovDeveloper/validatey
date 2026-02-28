@@ -27,6 +27,10 @@ export interface CommentDTO {
   importOrigin: string | null;
   subsourceName: string | null;
   sourceType?: 'reddit' | 'hackernews' | 'linkedin';
+  /** Reddit upvotes (score). */
+  score?: number | null;
+  /** Reddit depth in thread. */
+  depth?: number | null;
 }
 
 export interface GetCommentsResponseDTO {

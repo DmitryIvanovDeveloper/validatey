@@ -251,10 +251,10 @@ export class GenerateAssumptionAssessmentsUseCase {
     // Extract all meaningful keywords from assumptions
     const assumptionKeywords = this.extractKeywordsFromAssumptions(assumptions);
 
-    // Score each comment by relevance
+    // Score each comment by relevance (includes Reddit score/depth bonus)
     const scoredComments = comments.map(comment => ({
       comment,
-      score: this.calculateCommentRelevanceScore(comment.content, assumptionKeywords)
+      score: this.calculateCommentRelevanceScore(comment, assumptionKeywords)
     }));
 
     // Sort by relevance score (highest first), then by recency
@@ -297,9 +297,10 @@ export class GenerateAssumptionAssessmentsUseCase {
   }
 
   /**
-   * Calculate relevance score for a comment based on keyword matches.
+   * Calculate relevance score for a comment based on keyword matches and Reddit signals (upvotes, depth).
    */
-  private calculateCommentRelevanceScore(content: string, keywords: string[]): number {
+  private calculateCommentRelevanceScore(comment: CommentEntity, keywords: string[]): number {
+    const content = comment.content;
     const text = content.toLowerCase();
     let score = 0;
 
@@ -317,8 +318,17 @@ export class GenerateAssumptionAssessmentsUseCase {
       score += 0.7; // Personal experience mentions
     }
 
+    // Reddit upvotes: high agreement signal (log scale to avoid dominance)
+    if (comment.score != null && comment.score > 0) {
+      score += Math.min(1.0, Math.log10(1 + comment.score) * 0.5);
+    }
+    // Reddit depth: deeper in thread = more engaged discussion
+    if (comment.depth != null && comment.depth >= 2) {
+      score += 0.2;
+    }
+
     // Recency bonus (newer comments slightly preferred)
-    const daysSincePost = (Date.now() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+    const daysSincePost = (Date.now() - comment.createdAt.getTime()) / (1000 * 60 * 60 * 24);
     if (daysSincePost < 30) score += 0.2;
 
     return score;

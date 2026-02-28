@@ -18,6 +18,10 @@ export interface CommentPatternSidebarItem {
   processedAt?: string | null;
   importOrigin?: string | null;
   subsourceName?: string | null;
+  /** Reddit: upvotes / score. */
+  score?: number | null;
+  /** Reddit: depth in thread (0 = top-level). */
+  depth?: number | null;
 }
 
 export interface PatternLike {

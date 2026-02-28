@@ -15,6 +15,8 @@ import type { SynthesisLlmPort } from '../ports/synthesis-llm.port';
 import { GenerateAssumptionAssessmentsUseCase } from './generate-assumption-assessments.use-case';
 import type { ResponseRepositoryPort } from '../../../responses/application/ports/response-repository.port';
 import type { CommentRepositoryPort } from '../../../comments/application/ports/comment-repository.port';
+import type { CommentPatternAnalyzerPort } from '../../../comments/application/ports/comment-pattern-analyzer.port';
+import type { PatternRulesRepositoryPort } from '../../../comments/application/ports/pattern-rules-repository.port';
 import { CalculateMetricsUseCase } from '../../../metrics/application/use-cases/calculate-metrics.use-case';
 import { ResearchNotFoundError } from '../../domain/errors/research.error';
 import type { SynthesisReport } from '../../domain/value-objects/synthesis-report.vo';
@@ -50,7 +52,11 @@ export class GenerateSynthesisUseCase {
     @inject(RESEARCH_TYPES.SynthesisLlm)
     private readonly _synthesisLlm: SynthesisLlmPort,
     @inject(RESEARCH_TYPES.GenerateAssumptionAssessmentsUseCase)
-    private readonly _generateAssumptionAssessmentsUseCase: GenerateAssumptionAssessmentsUseCase
+    private readonly _generateAssumptionAssessmentsUseCase: GenerateAssumptionAssessmentsUseCase,
+    @inject(COMMENT_TYPES.CommentPatternAnalyzer)
+    private readonly _commentPatternAnalyzer: CommentPatternAnalyzerPort,
+    @inject(COMMENT_TYPES.PatternRulesRepository)
+    private readonly _patternRulesRepository: PatternRulesRepositoryPort
   ) {}
 
   async execute(
@@ -197,6 +203,12 @@ export class GenerateSynthesisUseCase {
       if (synthesisPatternAnalysis && comments.length > 0) {
         synthesisPatternAnalysis = this.enrichPatternCommentIdsFromExamples(synthesisPatternAnalysis, comments);
         synthesisPatternAnalysis = this.enrichUniqueAuthorCounts(synthesisPatternAnalysis, comments);
+        synthesisPatternAnalysis = this.enrichSubredditCountsPerPattern(synthesisPatternAnalysis, comments);
+      }
+      // Enrich platformInsights with subreddit distribution and recurrence from keyword analyzer (Reddit signals)
+      if (synthesisPatternAnalysis && comments.length > 0) {
+        const enriched = await this.enrichPlatformInsightsWithSubredditSignals(synthesisPatternAnalysis, comments);
+        if (enriched) synthesisPatternAnalysis = enriched;
       }
 
       // Adjust verdict based on comment pattern validation score (Domain логика)
@@ -526,6 +538,71 @@ export class GenerateSynthesisUseCase {
     return { ...analysis, patterns };
   }
 
+  /**
+   * For each pattern, set subredditCount and subredditNames from comments (by commentIds and comment.subsourceName).
+   */
+  private enrichSubredditCountsPerPattern(
+    analysis: CommentPatternAnalysis,
+    comments: CommentEntity[]
+  ): CommentPatternAnalysis {
+    const idToSubsource = new Map<string, string>();
+    for (const c of comments) {
+      const sub = c.subsourceName && String(c.subsourceName).trim();
+      if (sub && (sub.startsWith('r/') || sub.includes('r/'))) idToSubsource.set(c.id, sub);
+    }
+    const patterns = analysis.patterns.map((p) => {
+      const ids = p.commentIds ?? [];
+      if (ids.length === 0) return p;
+      const subreddits = new Set<string>();
+      for (const id of ids) {
+        const sub = idToSubsource.get(id);
+        if (sub) subreddits.add(sub);
+      }
+      if (subreddits.size === 0) return p;
+      return {
+        ...p,
+        subredditCount: subreddits.size,
+        subredditNames: [...subreddits],
+      };
+    });
+    return { ...analysis, patterns };
+  }
+
+  /**
+   * Run keyword comment pattern analyzer and merge subredditDistribution + recurrenceScore into analysis.platformInsights.
+   */
+  private async enrichPlatformInsightsWithSubredditSignals(
+    analysis: CommentPatternAnalysis,
+    comments: CommentEntity[]
+  ): Promise<CommentPatternAnalysis | null> {
+    try {
+      const [rulesResult, weightsResult] = await Promise.all([
+        this._patternRulesRepository.getActiveRules(),
+        this._patternRulesRepository.getScoreWeights(),
+      ]);
+      if (!rulesResult.isSuccess || !weightsResult.isSuccess || rulesResult.data.length === 0) return null;
+      const keywordResult = this._commentPatternAnalyzer.analyze(comments, rulesResult.data, weightsResult.data);
+      const insights = keywordResult.platformInsights;
+      if (!insights?.subredditDistribution && insights?.recurrenceScore == null) return null;
+      const existing = analysis.platformInsights ?? {
+        dominantPlatform: 'Unknown',
+        platformDistribution: {},
+        platformSentiments: {},
+      };
+      const merged = {
+        ...existing,
+        ...(insights.subredditDistribution && Object.keys(insights.subredditDistribution).length > 0
+          ? { subredditDistribution: insights.subredditDistribution }
+          : {}),
+        ...(typeof insights.recurrenceScore === 'number' ? { recurrenceScore: insights.recurrenceScore } : {}),
+      };
+      return { ...analysis, platformInsights: merged };
+    } catch (e) {
+      this._logger.warn('enrichPlatformInsightsWithSubredditSignals.failed', { error: e });
+      return null;
+    }
+  }
+
   /** Max commentIds per pattern after merging batches (avoids one pattern dominating). */
   private static readonly MAX_COMMENT_IDS_PER_PATTERN = 80;
 
@@ -701,6 +778,16 @@ export class GenerateSynthesisUseCase {
     const parts: string[] = [];
     parts.push(`Comment validation score: ${analysis.validationScore}/100 (${analysis.totalComments} comments analyzed)`);
 
+    // Reddit recurrence: same theme in multiple subreddits = strong validation signal
+    const insights = analysis.platformInsights;
+    if (insights?.subredditDistribution && Object.keys(insights.subredditDistribution).length > 0) {
+      const subCount = Object.keys(insights.subredditDistribution).length;
+      parts.push(`Comments from ${subCount} subreddit(s): ${Object.entries(insights.subredditDistribution).map(([k, v]) => `${k}=${v}`).join(', ')}`);
+      if (typeof insights.recurrenceScore === 'number' && insights.recurrenceScore > 0) {
+        parts.push(`Recurrence score: ${(insights.recurrenceScore * 100).toFixed(0)}% (same patterns appearing across multiple communities = stronger signal)`);
+      }
+    }
+
     // Group patterns by type for better context
     const byType: Record<string, Array<typeof analysis.patterns[number]>> = {};
     for (const pattern of analysis.patterns) {
@@ -710,11 +797,14 @@ export class GenerateSynthesisUseCase {
       byType[pattern.type].push(pattern);
     }
 
-    // Add key insights from top patterns
+    // Add key insights from top patterns (include subreddit count when available)
     for (const [type, patterns] of Object.entries(byType)) {
       const topPattern = patterns[0]; // Most common pattern of this type
+      const subInfo = topPattern.subredditCount != null && topPattern.subredditCount > 0
+        ? `, in ${topPattern.subredditCount} subreddit(s)`
+        : '';
       parts.push(
-        `${type}: ${topPattern.label} (${topPattern.count} comments, ${topPattern.percentage}%) - ${topPattern.insight}`
+        `${type}: ${topPattern.label} (${topPattern.count} comments${subInfo}, ${topPattern.percentage}%) - ${topPattern.insight}`
       );
     }
 

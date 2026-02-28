@@ -348,9 +348,6 @@
                 <div class="detail-header">
                   <div class="header-info">
                     <h3>{{ commentsFilterUrl ? 'Comments' : 'All Comments' }}</h3>
-                    <div class="comment-count-badge">
-                      {{ filteredComments.length }}
-                    </div>
                   </div>
                   <button type="button" class="btn-close" aria-label="Close" @click="closeCommentsSidebar">
                     <svg viewBox="0 0 24 24" class="close-icon">
@@ -380,6 +377,10 @@
                           <span class="author-name">{{ comment.author || 'Anonymous' }}</span>
                           <span class="comment-separator">•</span>
                           <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
+                          <template v-if="comment.sourceType === 'reddit'">
+                            <span v-if="comment.score != null" class="comment-score-badge" :title="'Reddit score (upvotes)'">+{{ comment.score }}</span>
+                            <span v-if="comment.depth != null && comment.depth > 0" class="comment-depth-badge" :title="'Depth in thread'">depth {{ comment.depth }}</span>
+                          </template>
                         </div>
                       </div>
 
@@ -1794,20 +1795,6 @@ onMounted(async () => {
   color: var(--color-text);
 }
 
-.comment-count-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  background: var(--color-accent);
-  color: white;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0 0.5rem;
-}
-
 .header-actions {
   display: flex;
   gap: 0.5rem;
@@ -1953,6 +1940,13 @@ onMounted(async () => {
 .comment-time {
   font-size: 0.8rem;
   color: var(--color-text-muted);
+}
+
+.comment-score-badge,
+.comment-depth-badge {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-left: 0.25rem;
 }
 
 .comment-content-sidebar {

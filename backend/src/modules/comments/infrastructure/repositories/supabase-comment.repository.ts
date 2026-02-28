@@ -37,6 +37,8 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
           processed_at: commentData.processedAt?.toISOString() ?? null,
           import_origin: commentData.importOrigin,
           subsource_name: commentData.subsourceName,
+          score: commentData.score,
+          depth: commentData.depth,
         });
 
       if (error) {
@@ -139,6 +141,8 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
           processedAt: data.processed_at ? new Date(data.processed_at) : undefined,
           importOrigin: data.import_origin,
           subsourceName: data.subsource_name,
+          score: data.score ?? undefined,
+          depth: data.depth ?? undefined,
         });
 
         return ResultEx.success(comment);
@@ -250,6 +254,8 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
           processedAt: row.processed_at ? new Date(row.processed_at) : undefined,
           importOrigin: row.import_origin,
           subsourceName: row.subsource_name,
+          score: row.score ?? undefined,
+          depth: row.depth ?? undefined,
         }));
 
         return ResultEx.success(comments);
@@ -351,6 +357,8 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
           processedAt: row.processed_at ? new Date(row.processed_at) : undefined,
           importOrigin: row.import_origin,
           subsourceName: row.subsource_name,
+          score: row.score ?? undefined,
+          depth: row.depth ?? undefined,
         }));
 
         return ResultEx.success(comments);
@@ -404,6 +412,8 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
         processedAt: row.processed_at ? new Date(row.processed_at) : undefined,
         importOrigin: row.import_origin,
         subsourceName: row.subsource_name,
+        score: row.score ?? undefined,
+        depth: row.depth ?? undefined,
       }));
 
       return ResultEx.success(comments);
