@@ -92,6 +92,7 @@ export const API_CONFIG = {
 
     // Comments pattern analysis
     COMMENTS_PATTERNS: (projectId: string) => `/projects/${projectId}/comments/patterns`,
+    COMMENTS_SUGGESTED_OUTREACH: (projectId: string) => `/projects/${projectId}/comments/suggested-outreach`,
 
     // Overview (command center: executive summary, pulse, smart actions, research context, decision pathway)
     OVERVIEW: (projectId: string) => `/projects/${projectId}/overview`,

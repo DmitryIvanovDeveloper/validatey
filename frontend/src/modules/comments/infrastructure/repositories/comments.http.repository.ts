@@ -1,6 +1,7 @@
 import { injectable, inject } from 'inversify';
 import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import type {
   CommentsHttpRepositoryPort,
   CommentDTO,
@@ -132,7 +133,8 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
       const params = new URLSearchParams();
       if (options?.limit != null) params.set('limit', String(options.limit));
       const query = params.toString();
-      const url = query ? `/projects/${projectId}/comments/suggested-outreach?${query}` : `/projects/${projectId}/comments/suggested-outreach`;
+      const baseUrl = API_CONFIG.ENDPOINTS.COMMENTS_SUGGESTED_OUTREACH(projectId);
+      const url = query ? `${baseUrl}?${query}` : baseUrl;
       const data = await this._httpClient.get<{ commenters: SuggestedOutreachCommenterDTO[] }>(url);
       return Result.success({ commenters: data.commenters ?? [] });
     } catch (error) {
