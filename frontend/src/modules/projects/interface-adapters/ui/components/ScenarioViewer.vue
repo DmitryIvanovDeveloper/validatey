@@ -560,7 +560,6 @@ watch(() => props.content, (newContent) => {
 }
 
 .scenario-preview {
-  background: #f7fafc;
   border-radius: 0.5rem;
   padding: 1.5rem;
   min-width: 0;
@@ -574,7 +573,6 @@ watch(() => props.content, (newContent) => {
 }
 
 .question-card {
-  background: white;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   padding: 1.5rem;
