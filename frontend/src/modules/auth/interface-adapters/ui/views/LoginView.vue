@@ -81,6 +81,7 @@
           {{ labels.signInWithGoogle }}
         </template>
       </button>
+
     </div>
   </div>
 </template>
@@ -124,7 +125,10 @@ onMounted(async () => {
   unsubscribe = authPresenter.subscribeToAuthState(authViewModel);
 
   // Auto sign-in when credentials are provided via env (e.g. .env or .env.local)
-  if (envEmail && envPassword && !authViewModel.user.value) {
+  // Skip auto-login if user was just signed out
+  const wasSignedOut = router.currentRoute.value.query.signedOut === 'true';
+
+  if (envEmail && envPassword && !authViewModel.user.value && !wasSignedOut) {
     const ok = await authPresenter.signInWithEmail(authViewModel, envEmail, envPassword);
     if (ok && authViewModel.user.value) {
       let redirect = (router.currentRoute.value.query.redirect as string) || '/workspaces';
@@ -175,6 +179,7 @@ async function handleGoogleSignIn() {
   }
   await authPresenter.signInWithGoogle(authViewModel, redirect); // redirect stored in sessionStorage for callback
 }
+
 </script>
 
 <style scoped>
@@ -352,6 +357,7 @@ async function handleGoogleSignIn() {
 .auth-switch-link:hover {
   color: #0d9488;
 }
+
 
 .divider {
   display: flex;

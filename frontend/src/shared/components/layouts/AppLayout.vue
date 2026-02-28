@@ -160,7 +160,7 @@ async function handleSignOut() {
   // Sign out via auth presenter (clears cookies)
   await authPresenter.signOut();
 
-  await router.replace('/login');
+  await router.replace('/login?signedOut=true');
 }
 </script>
 

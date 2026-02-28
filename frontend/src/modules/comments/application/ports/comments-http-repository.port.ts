@@ -39,6 +39,15 @@ export interface GetCommentsResponseDTO {
   hasMore?: boolean;
 }
 
+export interface SuggestedOutreachCommenterDTO {
+  author: string;
+  sourceType: 'reddit' | 'hackernews';
+  commentCount: number;
+  supportingCount: number;
+  lastCommentAt: string;
+  profileUrl: string;
+}
+
 export interface CreateSourceInput {
   sourceType: 'reddit' | 'hackernews' | 'linkedin';
   redditUrl?: string;
@@ -95,6 +104,16 @@ export interface CommentsHttpRepositoryPort {
   getCommentsFreshness(
     projectId: string
   ): Promise<Result<{ oldestCommentAt: string; newestCommentAt: string; totalCount: number; isStale: boolean } | null, Error>>;
+
+  getSuggestedOutreach(
+    projectId: string,
+    options?: { limit?: number }
+  ): Promise<Result<{ commenters: SuggestedOutreachCommenterDTO[] }, Error>>;
+
+  getCommentsByAuthor(
+    projectId: string,
+    params: { author: string; sourceType?: 'reddit' | 'hackernews'; supportingOnly?: boolean; limit?: number }
+  ): Promise<Result<{ comments: CommentDTO[] }, Error>>;
 
   createSource(projectId: string, input: CreateSourceInput): Promise<Result<SourceDTO, Error>>;
 

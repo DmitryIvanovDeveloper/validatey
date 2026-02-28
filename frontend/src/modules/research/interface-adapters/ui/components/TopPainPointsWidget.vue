@@ -86,6 +86,10 @@ watch(() => props.projectId, (newProjectId) => {
     loadPainPoints();
   }
 }, { immediate: false });
+
+defineExpose({
+  reload: loadPainPoints
+});
 </script>
 
 <style scoped>
@@ -123,9 +127,16 @@ watch(() => props.projectId, (newProjectId) => {
 }
 
 .pain-point-item {
-  padding: 0.625rem;
   border-radius: 0.375rem;
-  border: var(--border-width) var(--border-style) var(--color-border, #e5e7eb);
+  border: none;
+  padding: 0;
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
+  padding-bottom: 0.75rem;
+}
+
+.pain-point-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .pain-point-text {

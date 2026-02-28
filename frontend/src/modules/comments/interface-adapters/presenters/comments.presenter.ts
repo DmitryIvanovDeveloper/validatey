@@ -4,6 +4,8 @@ import { GetFetchStatusUseCase } from '../../application/use-cases/get-fetch-sta
 import { GetCommentsUseCase, CommentItem } from '../../application/use-cases/get-comments.usecase';
 import { GetCommentsActivityUseCase } from '../../application/use-cases/get-comments-activity.usecase';
 import { GetCommentsFreshnessUseCase } from '../../application/use-cases/get-comments-freshness.usecase';
+import { GetSuggestedOutreachCommentersUseCase } from '../../application/use-cases/get-suggested-outreach.usecase';
+import { GetCommentsByAuthorUseCase } from '../../application/use-cases/get-comments-by-author.usecase';
 import { DeleteSourceUseCase } from '../../application/use-cases/delete-source.usecase';
 import { COMMENT_TYPES } from '../../types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
@@ -114,6 +116,10 @@ export class CommentsPresenter {
     private readonly _getCommentsActivityUseCase: GetCommentsActivityUseCase,
     @inject(COMMENT_TYPES.GetCommentsFreshnessUseCase)
     private readonly _getCommentsFreshnessUseCase: GetCommentsFreshnessUseCase,
+    @inject(COMMENT_TYPES.GetSuggestedOutreachCommentersUseCase)
+    private readonly _getSuggestedOutreachCommentersUseCase: GetSuggestedOutreachCommentersUseCase,
+    @inject(COMMENT_TYPES.GetCommentsByAuthorUseCase)
+    private readonly _getCommentsByAuthorUseCase: GetCommentsByAuthorUseCase,
     @inject(COMMENT_TYPES.DeleteSourceUseCase)
     private readonly _deleteSourceUseCase: DeleteSourceUseCase,
     @inject(COMMENT_TYPES.CommentsHttpRepository)
@@ -777,6 +783,38 @@ export class CommentsPresenter {
     } catch (error) {
       this._logger.error('Exception getting comments freshness', { projectId, error });
       return { error: error instanceof Error ? error.message : 'Failed to load freshness' };
+    }
+  }
+
+  async getSuggestedOutreach(projectId: string, limit?: number): Promise<{
+    data?: { commenters: Array<{ author: string; sourceType: 'reddit' | 'hackernews'; commentCount: number; supportingCount: number; lastCommentAt: string; profileUrl: string }> };
+    error?: string;
+  }> {
+    try {
+      const result = await this._getSuggestedOutreachCommentersUseCase.execute({ projectId, limit });
+      if (!result.isSuccess) {
+        return { error: result.error.message };
+      }
+      return { data: { commenters: result.data.commenters } };
+    } catch (error) {
+      this._logger.error('Exception getting suggested outreach', { projectId, error });
+      return { error: error instanceof Error ? error.message : 'Failed to load suggested outreach' };
+    }
+  }
+
+  async getCommentsByAuthor(
+    projectId: string,
+    params: { author: string; sourceType?: 'reddit' | 'hackernews'; supportingOnly?: boolean; limit?: number }
+  ): Promise<{ data?: { comments: Array<{ id: string; content: string; author: string | null; url: string; createdAt: string; sourceType?: string }> }; error?: string }> {
+    try {
+      const result = await this._getCommentsByAuthorUseCase.execute({ projectId, ...params });
+      if (!result.isSuccess) {
+        return { error: result.error.message };
+      }
+      return { data: { comments: result.data.comments } };
+    } catch (error) {
+      this._logger.error('Exception getting comments by author', { projectId, params, error });
+      return { error: error instanceof Error ? error.message : 'Failed to load comments' };
     }
   }
 }

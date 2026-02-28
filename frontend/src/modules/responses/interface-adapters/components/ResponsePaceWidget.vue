@@ -162,6 +162,10 @@ watch(() => props.projectId, (newProjectId) => {
     loadResponsePace();
   }
 }, { immediate: false });
+
+defineExpose({
+  reload: loadResponsePace
+});
 </script>
 
 <style scoped>

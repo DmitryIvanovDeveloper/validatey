@@ -62,71 +62,17 @@
       </div>
     </div>
 
-    <!-- Comments Right Sidebar (same as CommentsTab) -->
-    <Teleport to="body">
-      <Transition name="slide-panel">
-        <div v-if="showCommentsSidebar" class="detail-overlay" @click.self="closeCommentsSidebar">
-          <div class="detail-panel comments-panel">
-            <div class="detail-header">
-              <div class="header-info">
-                <h3>{{ sidebarPattern?.label }}</h3>
-              </div>
-              <button type="button" class="btn-close" aria-label="Close" @click="closeCommentsSidebar">
-                <svg viewBox="0 0 24 24" class="close-icon">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-            <div class="detail-body">
-              <div v-if="sidebarLoading" class="cpw-sidebar-loading">
-                <LoadingSpots message="Loading comments..." size="lg" />
-              </div>
-              <div v-else-if="sidebarComments.length === 0" class="comments-empty-state">
-                <div class="empty-comments-icon">💬</div>
-                <h4>No comments found</h4>
-                <p>No comments for this pattern yet.</p>
-              </div>
-              <div v-else class="comments-list-sidebar">
-                <div
-                  v-for="comment in sidebarComments"
-                  :key="comment.id"
-                  class="comment-item-sidebar"
-                >
-                  <div class="comment-header-sidebar">
-                    <div class="comment-author-section">
-                      <span class="source-badge" :class="comment.sourceType || 'other'">
-                        {{ comment.sourceType === 'reddit' ? 'R' : comment.sourceType === 'hackernews' ? 'HN' : '·' }}
-                      </span>
-                      <span class="author-name">{{ comment.author || 'Anonymous' }}</span>
-                      <span class="comment-separator">•</span>
-                      <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
-                    </div>
-                  </div>
-                  <div class="comment-content-sidebar">
-                    {{ truncateForFairUse(decodeHtmlEntities(comment.content)) }}
-                  </div>
-                  <div v-if="comment.contextTitle" class="comment-context-sidebar">
-                    From: {{ comment.contextTitle }}
-                  </div>
-                  <div class="comment-actions-sidebar">
-                    <a
-                      v-if="comment.url"
-                      :href="comment.url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="view-source-link"
-                    >
-                      View Source
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <!-- Comments Sidebar -->
+    <CommentsSidebar
+      :is-open="showCommentsSidebar"
+      :title="sidebarPattern?.label || 'Comments'"
+      :comments="sidebarComments"
+      :loading="sidebarLoading"
+      :error="sidebarError"
+      :empty-message="'No comments for this pattern yet.'"
+      :truncate-content="true"
+      @close="closeCommentsSidebar"
+    />
 
   </div>
 </template>
@@ -136,6 +82,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import LoadingSpots from '../../../../shared/components/LoadingSpots.vue';
 import ProgressBar from '@/shared/components/ProgressBar.vue';
 import { decodeHtmlEntities } from '../../../../shared/utils/text';
+import CommentsSidebar from './CommentsSidebar.vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { COMMENT_TYPES } from '../../types';
 import type { GetCommentPatternsUseCase } from '../../application/use-cases/get-comment-patterns.use-case';
@@ -156,6 +103,7 @@ const showCommentsSidebar = ref(false);
 const sidebarComments = ref<any[]>([]);
 const sidebarPattern = ref<any>(null);
 const sidebarLoading = ref(false);
+const sidebarError = ref<string | null>(null);
 
 const scoreBadgeClass = computed(() => {
   const score = analysis.value?.validationScore ?? 0;
@@ -251,6 +199,7 @@ async function showPatternInSidebar(pattern: any, patternIndex?: number): Promis
   showCommentsSidebar.value = true;
   sidebarPattern.value = pattern;
   sidebarComments.value = [];
+  sidebarError.value = null;
 
   if (hasIds) {
     try {
@@ -276,6 +225,7 @@ async function showPatternInSidebar(pattern: any, patternIndex?: number): Promis
       }
     } catch (error) {
       console.error('Exception loading pattern comments:', error);
+      sidebarError.value = 'Failed to load comments';
       sidebarComments.value = examplesToSidebarItems(pattern.examples || []);
     } finally {
       sidebarLoading.value = false;
@@ -289,6 +239,7 @@ function closeCommentsSidebar(): void {
   showCommentsSidebar.value = false;
   sidebarComments.value = [];
   sidebarPattern.value = null;
+  sidebarError.value = null;
 }
 
 async function loadPatterns(): Promise<void> {

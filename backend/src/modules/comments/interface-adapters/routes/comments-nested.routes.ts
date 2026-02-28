@@ -60,6 +60,18 @@ router.get('/patterns', async (req: Request, res: Response) => {
   await controller.analyzePatterns(req, res);
 });
 
+// GET /api/projects/:projectId/comments/suggested-outreach
+// Get commenters aligned with hypothesis for manual survey outreach
+router.get('/suggested-outreach', async (req: Request, res: Response) => {
+  await controller.getSuggestedOutreach(req, res);
+});
+
+// GET /api/projects/:projectId/comments/by-author?author=...&sourceType=reddit|hackernews&supportingOnly=true&limit=50
+// Get comments by author (for suggested outreach sidebar)
+router.get('/by-author', async (req: Request, res: Response) => {
+  await controller.getCommentsByAuthor(req, res);
+});
+
 // GET /api/projects/:projectId/comments/patterns/:patternType/comments
 // Get all comments belonging to a specific pattern
 router.get('/patterns/:patternType/comments', async (req: Request, res: Response) => {

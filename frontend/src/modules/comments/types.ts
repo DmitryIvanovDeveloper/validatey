@@ -6,6 +6,8 @@ export const COMMENT_TYPES = {
   GetCommentsUseCase: Symbol.for('GetCommentsUseCase'),
   GetCommentsActivityUseCase: Symbol.for('GetCommentsActivityUseCase'),
   GetCommentsFreshnessUseCase: Symbol.for('GetCommentsFreshnessUseCase'),
+  GetSuggestedOutreachCommentersUseCase: Symbol.for('GetSuggestedOutreachCommentersUseCase'),
+  GetCommentsByAuthorUseCase: Symbol.for('GetCommentsByAuthorUseCase'),
   DeleteSourceUseCase: Symbol.for('DeleteSourceUseCase'),
 
   // Presenters

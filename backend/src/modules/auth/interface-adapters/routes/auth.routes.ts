@@ -142,6 +142,10 @@ router.get('/session', async (req: Request, res: Response) => {
     }
 
     clearSessionCookies(res);
+    const reason = !token && !refreshToken ? 'no cookie sent' : token && !refreshToken ? 'access token invalid or expired (no refresh cookie)' : 'refresh failed or expired';
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[auth/session] 401 No session:', reason);
+    }
     return res.status(401).json({ error: 'No session' });
   } catch (e) {
     return res.status(500).json({ error: e instanceof Error ? e.message : 'Auth error' });

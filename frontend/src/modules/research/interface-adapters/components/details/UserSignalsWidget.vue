@@ -290,11 +290,18 @@ const props = defineProps<Props>();
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 1rem;
   border-radius: var(--radius-md);
-  border: var(--border-width) var(--border-style) var(--color-border-light);
+  border: none;
+  padding: 0;
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
+  padding-bottom: 0.75rem;
+}
+
+.pain-point-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .pain-point-item:hover {

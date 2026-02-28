@@ -3,10 +3,12 @@ import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type {
   CommentsHttpRepositoryPort,
+  CommentDTO,
   FetchJobStateDTO,
   GetCommentsResponseDTO,
   CreateSourceInput,
   SourceDTO,
+  SuggestedOutreachCommenterDTO,
 } from '../../application/ports/comments-http-repository.port';
 import Result from '../../../../infrastructure/result/result';
 
@@ -117,6 +119,40 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
         `/projects/${projectId}/comments/freshness`
       );
       return Result.success(data);
+    } catch (error) {
+      return Result.failure(error as Error);
+    }
+  }
+
+  async getSuggestedOutreach(
+    projectId: string,
+    options?: { limit?: number }
+  ): Promise<Result<{ commenters: SuggestedOutreachCommenterDTO[] }, Error>> {
+    try {
+      const params = new URLSearchParams();
+      if (options?.limit != null) params.set('limit', String(options.limit));
+      const query = params.toString();
+      const url = query ? `/projects/${projectId}/comments/suggested-outreach?${query}` : `/projects/${projectId}/comments/suggested-outreach`;
+      const data = await this._httpClient.get<{ commenters: SuggestedOutreachCommenterDTO[] }>(url);
+      return Result.success({ commenters: data.commenters ?? [] });
+    } catch (error) {
+      return Result.failure(error as Error);
+    }
+  }
+
+  async getCommentsByAuthor(
+    projectId: string,
+    params: { author: string; sourceType?: 'reddit' | 'hackernews'; supportingOnly?: boolean; limit?: number }
+  ): Promise<Result<{ comments: CommentDTO[] }, Error>> {
+    try {
+      const search = new URLSearchParams();
+      search.set('author', params.author);
+      if (params.sourceType) search.set('sourceType', params.sourceType);
+      if (params.supportingOnly === true) search.set('supportingOnly', 'true');
+      if (params.limit != null) search.set('limit', String(params.limit));
+      const url = `/projects/${projectId}/comments/by-author?${search.toString()}`;
+      const data = await this._httpClient.get<{ comments: CommentDTO[] }>(url);
+      return Result.success({ comments: data.comments ?? [] });
     } catch (error) {
       return Result.failure(error as Error);
     }

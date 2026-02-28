@@ -57,7 +57,8 @@ function createMockResponse(): Response {
 
 function createController(
   getPatternCommentsUseCase: IGetPatternCommentsUseCase,
-  commentRepository?: Partial<CommentRepositoryPort>
+  commentRepository?: Partial<CommentRepositoryPort>,
+  getSuggestedOutreachCommentersUseCase?: IGetSuggestedOutreachCommentersUseCase
 ): CommentController {
   const noop = vi.fn();
   const startFetch = { execute: noop };
@@ -86,6 +87,8 @@ function createController(
     ...commentRepository,
   } as any;
   const fetchCommentsUseCase = { execute: noop } as any;
+  const suggestedOutreachUseCase = getSuggestedOutreachCommentersUseCase ?? ({ execute: noop } as any);
+  const getCommentsByAuthorUseCase = { execute: noop } as any;
   const getCommentsActivityUseCase = { execute: noop } as any;
   const getCommentsFreshnessUseCase = { execute: noop } as any;
 
@@ -99,6 +102,8 @@ function createController(
     commentRepo,
     fetchCommentsUseCase,
     getPatternCommentsUseCase,
+    suggestedOutreachUseCase,
+    getCommentsByAuthorUseCase,
     getCommentsActivityUseCase,
     getCommentsFreshnessUseCase,
     projectRepo,
@@ -234,5 +239,70 @@ describe('CommentController.getPatternComments', () => {
         pattern: expect.objectContaining({ type: 'failure', label: 'Second' }),
       })
     );
+  });
+});
+
+describe('CommentController.getSuggestedOutreach', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns commenters when use case returns success', async () => {
+    const getPatternCommentsUseCase: IGetPatternCommentsUseCase = { execute: vi.fn() };
+    const getSuggestedOutreachCommentersUseCase: IGetSuggestedOutreachCommentersUseCase = {
+      execute: vi.fn().mockResolvedValue(
+        ResultEx.success({
+          commenters: [
+            {
+              author: 'alice',
+              sourceType: 'reddit',
+              commentCount: 5,
+              supportingCount: 3,
+              lastCommentAt: '2025-01-15T10:00:00Z',
+              profileUrl: 'https://www.reddit.com/user/alice',
+            },
+          ],
+        })
+      ),
+    };
+
+    const controller = createController(getPatternCommentsUseCase, undefined, getSuggestedOutreachCommentersUseCase);
+    const req = createMockRequest({ params: { projectId: PROJECT_ID }, query: {} }) as Request;
+    const res = createMockResponse();
+
+    await controller.getSuggestedOutreach(req, res);
+
+    expect(getSuggestedOutreachCommentersUseCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ projectId: PROJECT_ID, limit: 20 })
+    );
+    expect(res.status).not.toHaveBeenCalledWith(400);
+    expect(res.status).not.toHaveBeenCalledWith(404);
+    expect(res.status).not.toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commenters: [
+          expect.objectContaining({
+            author: 'alice',
+            sourceType: 'reddit',
+            commentCount: 5,
+            supportingCount: 3,
+            profileUrl: 'https://www.reddit.com/user/alice',
+          }),
+        ],
+      })
+    );
+  });
+
+  it('returns 400 when projectId is missing', async () => {
+    const getPatternCommentsUseCase: IGetPatternCommentsUseCase = { execute: vi.fn() };
+    const getSuggestedOutreachCommentersUseCase: IGetSuggestedOutreachCommentersUseCase = { execute: vi.fn() };
+    const controller = createController(getPatternCommentsUseCase, undefined, getSuggestedOutreachCommentersUseCase);
+    const req = createMockRequest({ params: {} }) as Request;
+    const res = createMockResponse();
+
+    await controller.getSuggestedOutreach(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(getSuggestedOutreachCommentersUseCase.execute).not.toHaveBeenCalled();
   });
 });

@@ -8,6 +8,8 @@ export const COMMENT_TYPES = {
   GetFetchStatusUseCase: Symbol.for('GetFetchStatusUseCase'),
   GetCommentByIdUseCase: Symbol.for('GetCommentByIdUseCase'),
   GetPatternCommentsUseCase: Symbol.for('GetPatternCommentsUseCase'),
+  GetSuggestedOutreachCommentersUseCase: Symbol.for('GetSuggestedOutreachCommentersUseCase'),
+  GetCommentsByAuthorUseCase: Symbol.for('GetCommentsByAuthorUseCase'),
 
   // Command Handlers
   StartFetchCommandHandler: Symbol.for('StartFetchCommandHandler'),

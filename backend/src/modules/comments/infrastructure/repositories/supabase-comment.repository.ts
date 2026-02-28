@@ -167,6 +167,7 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
       orderByCreatedAt?: boolean;
       fromDate?: Date;
       toDate?: Date;
+      author?: string;
     }
   ): Promise<ResultEx<CommentEntity[], CommentError>> {
     try {
@@ -190,6 +191,10 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
 
       if (options?.isProcessed !== undefined) {
         query = query.eq('is_processed', options.isProcessed);
+      }
+
+      if (options?.author != null && options.author.trim() !== '') {
+        query = query.eq('author', options.author.trim());
       }
 
       if (options?.limit) {

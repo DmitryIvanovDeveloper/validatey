@@ -13,6 +13,8 @@ export interface CommentRepositoryPort {
     orderByCreatedAt?: boolean;
     fromDate?: Date;
     toDate?: Date;
+    /** Filter by comment author (exact match). */
+    author?: string;
   }): Promise<ResultEx<CommentEntity[], CommentError>>;
   /** Find comments by project and list of ids (only returns comments that belong to the project). */
   findByProjectIdAndIds(projectId: string, ids: string[]): Promise<ResultEx<CommentEntity[], CommentError>>;

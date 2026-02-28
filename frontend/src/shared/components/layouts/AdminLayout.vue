@@ -50,7 +50,7 @@ const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
 
 async function handleSignOut() {
   await authPresenter.signOut(authViewModel);
-  await router.replace('/login');
+  await router.replace('/login?signedOut=true');
 }
 </script>
 

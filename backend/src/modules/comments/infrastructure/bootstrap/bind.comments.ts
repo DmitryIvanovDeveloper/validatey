@@ -15,6 +15,8 @@ import { GetCommentsQueryHandler } from '../../application/queries/get-comments.
 import { GetFetchStatusQueryHandler } from '../../application/queries/get-fetch-status.query-handler';
 import { GetCommentByIdQueryHandler } from '../../application/queries/get-comment-by-id.query-handler';
 import { GetPatternCommentsUseCase } from '../../application/use-cases/get-pattern-comments.use-case';
+import { GetSuggestedOutreachCommentersUseCase } from '../../application/use-cases/get-suggested-outreach-commenters.use-case';
+import { GetCommentsByAuthorUseCase } from '../../application/use-cases/get-comments-by-author.use-case';
 
 // Infrastructure
 import { SupabaseCommentRepository } from '../repositories/supabase-comment.repository';
@@ -45,6 +47,8 @@ export function bindComments(container: Container): void {
   container.bind<GetFetchStatusUseCase>(COMMENT_TYPES.GetFetchStatusUseCase).to(GetFetchStatusUseCase);
   container.bind<GetCommentByIdUseCase>(COMMENT_TYPES.GetCommentByIdUseCase).to(GetCommentByIdUseCase);
   container.bind<GetPatternCommentsUseCase>(COMMENT_TYPES.GetPatternCommentsUseCase).to(GetPatternCommentsUseCase);
+  container.bind<GetSuggestedOutreachCommentersUseCase>(COMMENT_TYPES.GetSuggestedOutreachCommentersUseCase).to(GetSuggestedOutreachCommentersUseCase);
+  container.bind<GetCommentsByAuthorUseCase>(COMMENT_TYPES.GetCommentsByAuthorUseCase).to(GetCommentsByAuthorUseCase);
 
   // Command Handlers
   container.bind<StartFetchCommandHandler>(COMMENT_TYPES.StartFetchCommandHandler).to(StartFetchCommandHandler);

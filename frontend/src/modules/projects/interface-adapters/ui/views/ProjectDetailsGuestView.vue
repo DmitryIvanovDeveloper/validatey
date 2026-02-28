@@ -71,6 +71,22 @@
           @show-details="handleShowDetails"
         />
 
+        <!-- Segment -->
+        <SectionCard v-if="getSegmentDescription() && getSegmentDescription() !== 'Not specified'">
+          <template #header>
+            <h3 class="section-title">Segment</h3>
+          </template>
+          <div class="segment-content formatted-text" v-html="formatMarkdown(getSegmentDescription())"></div>
+        </SectionCard>
+
+        <!-- Demographics -->
+        <SectionCard v-if="getDemographicsText() && getDemographicsText() !== 'Not specified'">
+          <template #header>
+            <h3 class="section-title">Demographics</h3>
+          </template>
+          <div class="demographics-content formatted-text" v-html="formatMarkdown(getDemographicsText())"></div>
+        </SectionCard>
+
         <!-- Hypothesis -->
         <SectionCard v-if="getHypothesisText() && getHypothesisText() !== 'Not specified'">
           <template #header>
@@ -126,6 +142,27 @@
                 </div>
               </li>
             </ul>
+          </div>
+        </SectionCard>
+
+        <!-- Market -->
+        <SectionCard v-if="hasMarketData()">
+          <template #header>
+            <h3 class="section-title">Market</h3>
+          </template>
+          <div class="market-content">
+            <div v-if="project?.marketContext?.marketPicture" class="market-section">
+              <h4 class="market-section-title">Market Picture</h4>
+              <div class="market-section-content formatted-text" v-html="formatMarkdown(project.marketContext.marketPicture)"></div>
+            </div>
+            <div v-if="project?.marketContext?.marketFit" class="market-section">
+              <h4 class="market-section-title">Market Fit</h4>
+              <div class="market-section-content formatted-text" v-html="formatMarkdown(project.marketContext.marketFit)"></div>
+            </div>
+            <div v-if="project?.marketContext?.differentiation" class="market-section">
+              <h4 class="market-section-title">Differentiation</h4>
+              <div class="market-section-content formatted-text" v-html="formatMarkdown(project.marketContext.differentiation)"></div>
+            </div>
           </div>
         </SectionCard>
 
@@ -237,6 +274,7 @@
 
         <!-- Comment Pattern Analysis -->
         <CommentPatternsWidget ref="commentPatternsRef" :project-id="projectId" />
+        <SuggestedOutreachWidget v-if="projectId" :project-id="projectId" />
 
         <!-- Learning Journey (hidden) -->
         <div v-if="false" class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
@@ -351,7 +389,7 @@ import { TYPES } from '../../../infrastructure/bootstrap/types';
 import { TYPES as INVITATION_TYPES } from '../../../../invitations/infrastructure/bootstrap/types';
 import type { InvitationPresenter } from '../../../../invitations/interface-adapters/presenters/invitation.presenter';
 import ResponsePaceWidget from '../../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
-import { CommentsWidget, CommentsFreshnessWidget, CommentsActivityWidget } from '../../../../comments/interface-adapters/components';
+import { CommentsWidget, CommentsFreshnessWidget, CommentsActivityWidget, SuggestedOutreachWidget } from '../../../../comments/interface-adapters/components';
 import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../../research/interface-adapters';
 import WishlistWidget from '@/modules/wishlist/interface-adapters/components/WishlistWidget.vue';
 import FeedbackWidget from '@/modules/feedback/interface-adapters/components/FeedbackWidget.vue';
@@ -527,6 +565,33 @@ function getHypothesisAssumptions(): Array<{ id: string; text: string }> {
   if (!Array.isArray(a) || a.length === 0) return [];
   if (typeof a[0] === 'string') return normalizeAssumptions(a as string[]);
   return a as Array<{ id: string; text: string }>;
+}
+
+function getSegmentDescription(): string {
+  if (!project.value?.segment?.description) return 'Not specified';
+  return project.value.segment.description;
+}
+
+function hasMarketData(): boolean {
+  const marketContext = project.value?.marketContext;
+  return !!(marketContext?.marketPicture || marketContext?.marketFit || marketContext?.differentiation);
+}
+
+function getDemographicsText(): string {
+  if (!project.value?.segment?.demographics) return 'Not specified';
+  const demographics = project.value.segment.demographics;
+  if (typeof demographics === 'string') return demographics;
+  if (typeof demographics === 'object') {
+    // If it's an object, format it nicely
+    try {
+      return Object.entries(demographics)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(' | ');
+    } catch {
+      return JSON.stringify(demographics, null, 2);
+    }
+  }
+  return 'Not specified';
 }
 
 function formatMarkdown(text: string): string {
@@ -2010,29 +2075,36 @@ watch(project, (p) => {
   margin: 0;
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
   gap: 0.375rem;
 }
 
 .assumption-card {
   border-radius: var(--radius-sm);
-  border: var(--border-width) var(--border-style) var(--color-border);
+  border: none;
   background: var(--color-bg);
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
+  padding-bottom: 0.75rem;
+}
+
+.assumption-card:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 .assumption-card--confirmed {
-  border-left: var(--border-width) var(--border-style) var(--color-success);
+  /* No border */
 }
 .assumption-card--need_more {
-  border-left: var(--border-width) var(--border-style) var(--color-warning);
+  /* No border */
 }
 .assumption-card--not_supported {
-  border-left: var(--border-width) var(--border-style) var(--color-error);
+  /* No border */
 }
 .assumption-card--pending {
-  border-left: var(--border-width) var(--border-style) var(--color-border);
+  /* No border */
 }
 
 .assumption-card-inner {
-  padding: 0.625rem 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
@@ -2048,7 +2120,7 @@ watch(project, (p) => {
 
 .assumption-label {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 400;
   color: var(--color-text);
   line-height: 1.5;
@@ -2101,7 +2173,7 @@ watch(project, (p) => {
 
 .assumption-evidence-text {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
   line-height: 1.5;
   word-break: break-word;
@@ -2265,8 +2337,11 @@ watch(project, (p) => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
+.demographics-content.formatted-text,
 .hypothesis-content.formatted-text,
-.segment-description.formatted-text {
+.segment-content.formatted-text,
+.segment-description.formatted-text,
+.market-section-content.formatted-text {
   background: none;
   padding: 0;
   border-radius: 0;
@@ -2724,10 +2799,39 @@ watch(project, (p) => {
   gap: 0.75rem;
 }
 
-.hypothesis-content {
+.demographics-content,
+.hypothesis-content,
+.segment-content {
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--color-text);
+}
+
+.market-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.market-section {
+  background: var(--color-bg-subtle, #f9fafb);
+  border-radius: var(--radius-md);
+  border: none;
+}
+
+.market-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.75rem 0;
+}
+
+.market-section-content {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  border: none;
+  background: none;
 }
 
 

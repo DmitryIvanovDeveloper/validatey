@@ -1,0 +1,154 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "Validatey home" [ref=e6] [cursor=pointer]:
+          - /url: /workspaces
+          - img [ref=e8]
+          - generic [ref=e11]: Validatey
+        - navigation "Main"
+        - generic [ref=e12]:
+          - generic "dmitry.ivanov.developer@gmail.com" [ref=e13]:
+            - generic [ref=e14]: D
+            - generic [ref=e15]: dmitry.ivanov.developer@gmail.com
+          - button "Sign out" [ref=e16] [cursor=pointer]
+    - generic [ref=e17]:
+      - complementary "Workspaces" [ref=e18]:
+        - generic [ref=e19]:
+          - heading "Workspaces" [level=2] [ref=e20]
+          - button "New workspace" [ref=e21] [cursor=pointer]:
+            - generic [ref=e22]: +
+            - text: New workspace
+          - link "All workspaces" [ref=e23] [cursor=pointer]:
+            - /url: /workspaces
+          - navigation "Workspace list" [ref=e24]:
+            - generic [ref=e25]:
+              - link "F Failure Patterns" [ref=e26] [cursor=pointer]:
+                - /url: /workspaces/c2a529a0-c6e7-42de-8cc8-4b09a8e33dc3/projects
+                - generic [ref=e27]: F
+                - generic [ref=e28]: Failure Patterns
+              - button "Manage Failure Patterns" [ref=e30] [cursor=pointer]:
+                - img [ref=e31]
+            - generic [ref=e35]:
+              - link "Brainstorm Brainstorm" [ref=e36] [cursor=pointer]:
+                - /url: /workspaces/00aabd14-611d-40d6-8466-ee69ed4bceee/projects
+                - img "Brainstorm" [ref=e38]
+                - generic [ref=e39]: Brainstorm
+              - button "Manage Brainstorm" [ref=e41] [cursor=pointer]:
+                - img [ref=e42]
+            - generic [ref=e46]:
+              - link "PII-Gurdian PII-Gurdian" [ref=e47] [cursor=pointer]:
+                - /url: /workspaces/dfe42c69-7742-47af-bde4-574b1e4320b0/projects
+                - img "PII-Gurdian" [ref=e49]
+                - generic [ref=e50]: PII-Gurdian
+              - button "Manage PII-Gurdian" [ref=e52] [cursor=pointer]:
+                - img [ref=e53]
+            - generic [ref=e57]:
+              - link "Validatey Validatey" [ref=e58] [cursor=pointer]:
+                - /url: /workspaces/023fc4d2-e85a-4c22-ae5b-ad10c473e8c3/projects
+                - img "Validatey" [ref=e60]
+                - generic [ref=e61]: Validatey
+              - button "Manage Validatey" [ref=e63] [cursor=pointer]:
+                - img [ref=e64]
+      - main [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - navigation "Breadcrumb" [ref=e71]:
+              - link "Projects" [ref=e72] [cursor=pointer]:
+                - /url: /workspaces/023fc4d2-e85a-4c22-ae5b-ad10c473e8c3/projects
+              - generic [ref=e73]: /
+              - generic [ref=e74]: Project
+            - tablist [ref=e75]:
+              - tab "Overview" [ref=e76] [cursor=pointer]
+              - tab "Invitations" [ref=e77] [cursor=pointer]
+              - tab "Responses" [ref=e78] [cursor=pointer]
+              - tab "Comments" [ref=e79] [cursor=pointer]
+          - main [ref=e80]:
+            - generic [ref=e82]:
+              - generic [ref=e83]:
+                - button "How to read this Overview — when is the hypothesis confirmed?" [ref=e85] [cursor=pointer]:
+                  - img [ref=e87]
+                  - generic [ref=e90]: How to read this Overview — when is the hypothesis confirmed?
+                  - img [ref=e92]
+                - generic [ref=e95]:
+                  - generic [ref=e97]:
+                    - heading "Executive Summary" [level=3] [ref=e98]
+                    - button "Details" [ref=e99] [cursor=pointer]:
+                      - generic [ref=e100]: Details
+                  - paragraph [ref=e102]: The product idea of creating a survey to gather insights from founders and indie hackers in relevant communities is validated by user feedback and comments. The survey's findings are expected to be significant, with at least 40 people completing the survey within 72 hours. A minimum of 60% of respondents are expected to confirm that they have experienced the problem of building a product that no one wanted. The comments and user feedback patterns show a strong validation signal, with a validation score of 75. The overall sentiment is positive, with 35% of comments being positive, 40% neutral, and 25% negative. The dominant platform is Reddit, with 120 comments, followed by Hacker News with 45 comments. The recent activity level is high, with a score of 0.8, and the trend direction is increasing.
+                - generic [ref=e103]:
+                  - generic [ref=e105]:
+                    - heading "Hypothesis" [level=3] [ref=e106]
+                    - generic [ref=e107]: Confirmed
+                  - generic [ref=e108]:
+                    - text: If we post in relevant communities, such as Reddit's r/startups, r/indiehackers, Hacker News, and the Indie Hackers forum, we can gather valuable insights from founders and indie hackers. These communities are active hubs where entrepreneurs share their experiences and seek validation.
+                    - text: We can gather this information by creating a short anonymous survey with 4-5 questions. The survey should ask respondents whether they have ever spent significant time or money building a product that no one wanted. This question is crucial in understanding the prevalence of this problem.
+                    - text: The survey's findings are likely to be significant, with at least 40 people completing the survey within 72 hours. A minimum of 60% of respondents are expected to confirm that they have experienced this problem, including those who have spent more than three months or over $1,000 on unvalidated products.
+                    - text: Many technical founders and solo entrepreneurs fall into the "build it and they'll come" trap. They are active in these communities, seeking validation insights and sharing lessons learned. By engaging with these entrepreneurs, we can gain a deeper understanding of the challenges they face and the strategies they use to overcome them.
+                - generic [ref=e109]:
+                  - heading "Key Assumptions" [level=3] [ref=e111]
+                  - 'region "Key Assumptions: status and evidence per assumption" [ref=e112]':
+                    - list [ref=e113]:
+                      - listitem [ref=e114]:
+                        - generic [ref=e116]:
+                          - paragraph [ref=e117]: "Problem Assumption: Many founders and indie hackers have built products (or features) that failed to gain traction, wasting time and money due to lack of proper validation before development."
+                          - generic [ref=e118]: Confirmed
+                      - listitem [ref=e119]:
+                        - generic [ref=e121]:
+                          - paragraph [ref=e122]: "Awareness Assumption: They recognize this failure but may not know how to validate properly or underestimate its importance."
+                          - generic [ref=e123]: Confirmed
+                      - listitem [ref=e124]:
+                        - generic [ref=e126]:
+                          - paragraph [ref=e127]: "Channel Assumption: They actively participate in online communities (forums, social media) where they share experiences and seek advice, making them accessible for surveys."
+                          - generic [ref=e128]: Confirmed
+                      - listitem [ref=e129]:
+                        - generic [ref=e131]:
+                          - paragraph [ref=e132]: "Behavior Assumption: They are willing to spend 3–5 minutes filling out an anonymous survey about their failures if it's framed as helpful for the community or offers insights in return."
+                          - generic [ref=e133]: Confirmed
+                      - listitem [ref=e134]:
+                        - generic [ref=e136]:
+                          - paragraph [ref=e137]: "Value Assumption: They would be interested in tools, methods, or services that help validate product ideas before building, provided it's simple and proven."
+                          - generic [ref=e138]: Confirmed
+              - generic [ref=e139]:
+                - button "Start Research" [ref=e141] [cursor=pointer]:
+                  - img [ref=e143]
+                  - text: Start Research
+                - generic [ref=e146]:
+                  - heading "Top Pain Points" [level=3] [ref=e148]
+                  - generic [ref=e150]:
+                    - paragraph [ref=e152]: Users have experienced failure and are seeking validation to avoid making the same mistakes again.
+                    - paragraph [ref=e154]: Users are aware of the 'build it and they'll come' myth and are seeking validation to avoid falling into this trap.
+                - generic [ref=e156]:
+                  - heading "Response Pace" [level=3] [ref=e158]
+                  - generic [ref=e159]:
+                    - generic [ref=e160]:
+                      - generic [ref=e161]:
+                        - generic [ref=e162]: Current
+                        - generic [ref=e163]: 0/day
+                      - generic [ref=e164]:
+                        - generic [ref=e165]: Target
+                        - generic [ref=e166]: 5/day
+                    - generic [ref=e168]:
+                      - generic [ref=e169]:
+                        - progressbar
+                      - generic [ref=e170]: 0%
+                    - generic [ref=e172]:
+                      - generic [ref=e173]:
+                        - generic [ref=e174]: "0"
+                        - generic [ref=e175]: Yesterday
+                      - generic [ref=e176]:
+                        - generic [ref=e177]: "0"
+                        - generic [ref=e178]: 7d avg
+                      - generic [ref=e179]:
+                        - generic [ref=e180]: "0"
+                        - generic [ref=e181]: This week
+                    - paragraph [ref=e184]: Response pace is below 50% of target. Consider sending reminders or extending the survey period.
+                - generic [ref=e186]:
+                  - heading "Comments Overview" [level=3] [ref=e188]
+                  - paragraph [ref=e195]: Loading comments...
+                - generic [ref=e196]:
+                  - heading "Comment Pattern Analysis" [level=3] [ref=e198]
+                  - paragraph [ref=e205]: Analyzing comment patterns…
+  - button "Share feedback" [ref=e207] [cursor=pointer]:
+    - img [ref=e209]
+    - generic [ref=e211]: Share feedback

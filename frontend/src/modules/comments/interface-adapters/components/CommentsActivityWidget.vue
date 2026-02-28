@@ -41,11 +41,11 @@ import { COMMENT_TYPES } from '../../types';
 
 const apexchart = VueApexCharts;
 
-/** Professional multicolor palette for time buckets (teal → blue → indigo → violet). */
+/** Professional multicolor palette for time buckets (teal → blue → sandy/beige). */
 const DONUT_PALETTE = [
   '#0d9488', '#0f766e', '#115e59', '#134e4a',
   '#0369a1', '#0284c7', '#0ea5e9', '#38bdf8',
-  '#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd',
+  '#b8860b', '#c9a227', '#d4a574', '#deb887',
 ];
 
 interface Props {

@@ -17,6 +17,8 @@ import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootst
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import type { ResearchDataRepositoryPort } from '../../../research/application/ports/research-data-repository.port';
 import type { IGetPatternCommentsUseCase } from '../../application/use-cases/get-pattern-comments.use-case';
+import type { IGetSuggestedOutreachCommentersUseCase } from '../../application/use-cases/get-suggested-outreach-commenters.use-case';
+import type { IGetCommentsByAuthorUseCase } from '../../application/use-cases/get-comments-by-author.use-case';
 import type { GetCommentsActivityUseCase } from '../../application/use-cases/get-comments-activity.usecase';
 import type { GetCommentsFreshnessUseCase } from '../../application/use-cases/get-comments-freshness.usecase';
 
@@ -41,6 +43,10 @@ export class CommentController {
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
     @inject(COMMENT_TYPES.GetPatternCommentsUseCase)
     private readonly _getPatternCommentsUseCase: IGetPatternCommentsUseCase,
+    @inject(COMMENT_TYPES.GetSuggestedOutreachCommentersUseCase)
+    private readonly _getSuggestedOutreachCommentersUseCase: IGetSuggestedOutreachCommentersUseCase,
+    @inject(COMMENT_TYPES.GetCommentsByAuthorUseCase)
+    private readonly _getCommentsByAuthorUseCase: IGetCommentsByAuthorUseCase,
     @inject(COMMENT_TYPES.GetCommentsActivityUseCase)
     private readonly _getCommentsActivityUseCase: GetCommentsActivityUseCase,
     @inject(COMMENT_TYPES.GetCommentsFreshnessUseCase)
@@ -677,6 +683,94 @@ export class CommentController {
         total: formattedComments.length,
         pattern,
       });
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
+
+  public async getSuggestedOutreach(req: Request, res: Response): Promise<void> {
+    try {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
+        res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
+        return;
+      }
+
+      const rawLimit = req.query.limit;
+      const limit =
+        typeof rawLimit === 'string' && /^\d+$/.test(rawLimit)
+          ? Math.min(100, Math.max(1, parseInt(rawLimit, 10)))
+          : 20;
+
+      const result = await this._getSuggestedOutreachCommentersUseCase.execute({
+        projectId,
+        limit,
+      });
+
+      if (!result.isSuccess) {
+        res.status(500).json({ error: result.error.message });
+        return;
+      }
+
+      res.setHeader('Cache-Control', 'no-store');
+      res.json(result.data);
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
+
+  public async getCommentsByAuthor(req: Request, res: Response): Promise<void> {
+    try {
+      const projectIdOrSlug = req.params.projectId;
+      const author = typeof req.query.author === 'string' ? req.query.author.trim() : '';
+      if (!projectIdOrSlug) {
+        res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+      if (!author) {
+        res.status(400).json({ error: 'Query parameter "author" is required' });
+        return;
+      }
+
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
+        return;
+      }
+
+      const sourceType = req.query.sourceType === 'hackernews' ? 'hackernews' : req.query.sourceType === 'reddit' ? 'reddit' : undefined;
+      const supportingOnly = req.query.supportingOnly === 'true' || req.query.supportingOnly === '1';
+      const rawLimit = req.query.limit;
+      const limit =
+        typeof rawLimit === 'string' && /^\d+$/.test(rawLimit)
+          ? Math.min(200, Math.max(1, parseInt(rawLimit, 10)))
+          : 50;
+
+      const result = await this._getCommentsByAuthorUseCase.execute({
+        projectId,
+        author,
+        sourceType,
+        supportingOnly,
+        limit,
+      });
+
+      if (!result.isSuccess) {
+        res.status(500).json({ error: result.error.message });
+        return;
+      }
+
+      res.setHeader('Cache-Control', 'no-store');
+      res.json(result.data);
     } catch (error) {
       res.status(500).json({
         error: error instanceof Error ? error.message : 'Internal server error',

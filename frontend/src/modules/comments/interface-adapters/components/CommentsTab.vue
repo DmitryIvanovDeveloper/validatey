@@ -341,72 +341,15 @@
     </div>
 
     <!-- Comments Sidebar -->
-        <Teleport to="body">
-          <Transition name="slide-panel">
-            <div v-if="showCommentsSidebar" class="detail-overlay" @click.self="closeCommentsSidebar">
-              <div class="detail-panel comments-panel">
-                <div class="detail-header">
-                  <div class="header-info">
-                    <h3>{{ commentsFilterUrl ? 'Comments' : 'All Comments' }}</h3>
-                  </div>
-                  <button type="button" class="btn-close" aria-label="Close" @click="closeCommentsSidebar">
-                    <svg viewBox="0 0 24 24" class="close-icon">
-                      <line x1="18" y1="6" x2="6" y2="18"/>
-                      <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>
-                </div>
-                <div class="detail-body">
-                  <div v-if="filteredComments.length === 0" class="comments-empty-state">
-                    <div class="empty-comments-icon">💬</div>
-                    <h4>No comments found</h4>
-                    <p>{{ commentsFilterUrl ? 'No comments available for this URL yet.' : 'No comments have been collected yet.' }}</p>
-                  </div>
-                  <div v-else class="comments-list-sidebar">
-                    <div
-                      v-for="comment in filteredComments"
-                      :key="comment.id"
-                      class="comment-item-sidebar"
-                    >
-                      <!-- Comment Header -->
-                      <div class="comment-header-sidebar">
-                        <div class="comment-author-section">
-                          <span class="source-badge" :class="comment.sourceType">
-                            {{ comment.sourceType === 'reddit' ? 'R' : 'HN' }}
-                          </span>
-                          <span class="author-name">{{ comment.author || 'Anonymous' }}</span>
-                          <span class="comment-separator">•</span>
-                          <span class="comment-time">{{ formatDate(comment.createdAt) }}</span>
-                          <template v-if="comment.sourceType === 'reddit'">
-                            <span v-if="comment.score != null" class="comment-score-badge" :title="'Reddit score (upvotes)'">+{{ comment.score }}</span>
-                            <span v-if="comment.depth != null && comment.depth > 0" class="comment-depth-badge" :title="'Depth in thread'">depth {{ comment.depth }}</span>
-                          </template>
-                        </div>
-                      </div>
-
-                      <!-- Comment Content -->
-                      <div class="comment-content-sidebar">
-                        {{ truncateForFairUse(decodeHtmlEntities(comment.content)) }}
-                      </div>
-
-                      <!-- Comment Actions -->
-                      <div class="comment-actions-sidebar">
-                        <a
-                          :href="comment.url"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="view-source-link"
-                        >
-                          View Source
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Transition>
-        </Teleport>
+    <CommentsSidebar
+      :is-open="showCommentsSidebar"
+      :title="commentsFilterUrl ? 'Comments' : 'All Comments'"
+      :comments="filteredComments"
+      :empty-message="commentsFilterUrl ? 'No comments available for this URL yet.' : 'No comments have been collected yet.'"
+      :show-reddit-metadata="true"
+      :truncate-content="true"
+      @close="closeCommentsSidebar"
+    />
 
         <!-- Error Message -->
         <div v-if="viewModel.error" class="error-message">
@@ -433,13 +376,13 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
-import { decodeHtmlEntities } from '../../../../shared/utils/text';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { CommentsPresenter } from '../presenters/comments.presenter';
 import { COMMENT_TYPES } from '../../types';
 import Card from '../../../../shared/components/Card.vue';
 import Button from '../../../../shared/components/atoms/Button.vue';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog.vue';
+import CommentsSidebar from './CommentsSidebar.vue';
 import { AlertTriangle, Trash2, ExternalLink } from 'lucide-vue-next';
 
 interface Props {
