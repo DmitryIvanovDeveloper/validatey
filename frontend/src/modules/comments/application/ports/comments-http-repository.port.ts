@@ -81,8 +81,20 @@ export interface CommentsHttpRepositoryPort {
       url?: string;
       isProcessed?: boolean;
       limit?: number;
+      periodMonths?: number;
+      fromDate?: string;
+      toDate?: string;
     }
   ): Promise<Result<GetCommentsResponseDTO, Error>>;
+
+  getCommentsActivity(
+    projectId: string,
+    params: { bucket: 'week' | 'month'; maxBuckets?: number }
+  ): Promise<Result<{ buckets: { bucket: string; count: number }[] }, Error>>;
+
+  getCommentsFreshness(
+    projectId: string
+  ): Promise<Result<{ oldestCommentAt: string; newestCommentAt: string; totalCount: number; isStale: boolean } | null, Error>>;
 
   createSource(projectId: string, input: CreateSourceInput): Promise<Result<SourceDTO, Error>>;
 

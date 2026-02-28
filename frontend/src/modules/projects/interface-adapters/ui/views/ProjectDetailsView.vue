@@ -222,6 +222,7 @@
         <ResponsePaceWidget ref="responsePaceRef" :project-id="projectId" :target-pace="5" :external-loading="widgetsLoading" />
 
         <!-- Comments Overview -->
+        <CommentsFreshnessWidget v-if="projectId" :project-id="projectId" />
         <CommentsWidget
           ref="commentsWidgetRef"
           :project-id="projectId"
@@ -231,6 +232,7 @@
 
         <!-- Comment Pattern Analysis -->
         <CommentPatternsWidget ref="commentPatternsRef" :project-id="projectId" />
+        <CommentsActivityWidget v-if="projectId" :project-id="projectId" />
 
         <!-- Learning Journey (hidden) -->
         <div v-if="false" class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
@@ -343,7 +345,7 @@ import { TYPES } from '../../../infrastructure/bootstrap/types';
 import { TYPES as INVITATION_TYPES } from '../../../../invitations/infrastructure/bootstrap/types';
 import type { InvitationPresenter } from '../../../../invitations/interface-adapters/presenters/invitation.presenter';
 import ResponsePaceWidget from '../../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
-import { CommentsWidget } from '../../../../comments/interface-adapters/components';
+import { CommentsWidget, CommentsFreshnessWidget, CommentsActivityWidget } from '../../../../comments/interface-adapters/components';
 import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../../research/interface-adapters';
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';

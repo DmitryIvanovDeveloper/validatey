@@ -66,6 +66,9 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
       url?: string;
       isProcessed?: boolean;
       limit?: number;
+      periodMonths?: number;
+      fromDate?: string;
+      toDate?: string;
     }
   ): Promise<Result<GetCommentsResponseDTO, Error>> {
     try {
@@ -75,6 +78,9 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
       if (options?.url) params.set('url', options.url);
       if (options?.isProcessed !== undefined) params.set('isProcessed', String(options.isProcessed));
       if (options?.limit) params.set('limit', String(options.limit));
+      if (options?.periodMonths != null) params.set('periodMonths', String(options.periodMonths));
+      if (options?.fromDate) params.set('fromDate', options.fromDate);
+      if (options?.toDate) params.set('toDate', options.toDate);
 
       const query = params.toString();
       const url = query ? `/projects/${projectId}/comments?${query}` : `/projects/${projectId}/comments`;
@@ -84,6 +90,35 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
       return Result.success<GetCommentsResponseDTO>(data);
     } catch (error) {
       return Result.failure<GetCommentsResponseDTO, Error>(error as Error);
+    }
+  }
+
+  async getCommentsActivity(
+    projectId: string,
+    params: { bucket: 'week' | 'month'; maxBuckets?: number }
+  ): Promise<Result<{ buckets: { bucket: string; count: number }[] }, Error>> {
+    try {
+      const search = new URLSearchParams();
+      search.set('bucket', params.bucket);
+      if (params.maxBuckets != null) search.set('maxBuckets', String(params.maxBuckets));
+      const url = `/projects/${projectId}/comments/activity?${search.toString()}`;
+      const data = await this._httpClient.get<{ buckets: { bucket: string; count: number }[] }>(url);
+      return Result.success(data);
+    } catch (error) {
+      return Result.failure(error as Error);
+    }
+  }
+
+  async getCommentsFreshness(
+    projectId: string
+  ): Promise<Result<{ oldestCommentAt: string; newestCommentAt: string; totalCount: number; isStale: boolean } | null, Error>> {
+    try {
+      const data = await this._httpClient.get<{ oldestCommentAt: string; newestCommentAt: string; totalCount: number; isStale: boolean } | null>(
+        `/projects/${projectId}/comments/freshness`
+      );
+      return Result.success(data);
+    } catch (error) {
+      return Result.failure(error as Error);
     }
   }
 

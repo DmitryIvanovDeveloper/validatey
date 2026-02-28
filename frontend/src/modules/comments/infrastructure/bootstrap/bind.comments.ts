@@ -5,6 +5,8 @@ import { COMMENT_TYPES } from '../../types';
 import { StartFetchAndWaitUseCase } from '../../application/use-cases/start-fetch-and-wait.usecase';
 import { GetFetchStatusUseCase } from '../../application/use-cases/get-fetch-status.usecase';
 import { GetCommentsUseCase } from '../../application/use-cases/get-comments.usecase';
+import { GetCommentsActivityUseCase } from '../../application/use-cases/get-comments-activity.usecase';
+import { GetCommentsFreshnessUseCase } from '../../application/use-cases/get-comments-freshness.usecase';
 import { DeleteSourceUseCase } from '../../application/use-cases/delete-source.usecase';
 import { ResearchStartedEventHandler } from '../../application/event-handlers/research-started-event.handler';
 
@@ -29,6 +31,8 @@ export function bindComments(container: Container): void {
   container.bind<StartFetchAndWaitUseCase>(COMMENT_TYPES.StartFetchAndWaitUseCase).to(StartFetchAndWaitUseCase);
   container.bind<GetFetchStatusUseCase>(COMMENT_TYPES.GetFetchStatusUseCase).to(GetFetchStatusUseCase);
   container.bind<GetCommentsUseCase>(COMMENT_TYPES.GetCommentsUseCase).to(GetCommentsUseCase);
+  container.bind<GetCommentsActivityUseCase>(COMMENT_TYPES.GetCommentsActivityUseCase).to(GetCommentsActivityUseCase);
+  container.bind<GetCommentsFreshnessUseCase>(COMMENT_TYPES.GetCommentsFreshnessUseCase).to(GetCommentsFreshnessUseCase);
   container.bind<DeleteSourceUseCase>(COMMENT_TYPES.DeleteSourceUseCase).to(DeleteSourceUseCase);
   container.bind<GetCommentPatternsUseCase>(COMMENT_TYPES.GetCommentPatternsUseCase).to(GetCommentPatternsUseCase);
   container.bind<GetPatternCommentsUseCase>(COMMENT_TYPES.GetPatternCommentsUseCase).to(GetPatternCommentsUseCase);

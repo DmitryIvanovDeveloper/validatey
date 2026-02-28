@@ -3,6 +3,8 @@ export const COMMENT_TYPES = {
   // Use Cases
   FetchCommentsUseCase: Symbol.for('FetchCommentsUseCase'),
   GetCommentsUseCase: Symbol.for('GetCommentsUseCase'),
+  GetCommentsActivityUseCase: Symbol.for('GetCommentsActivityUseCase'),
+  GetCommentsFreshnessUseCase: Symbol.for('GetCommentsFreshnessUseCase'),
   GetFetchStatusUseCase: Symbol.for('GetFetchStatusUseCase'),
   GetCommentByIdUseCase: Symbol.for('GetCommentByIdUseCase'),
   GetPatternCommentsUseCase: Symbol.for('GetPatternCommentsUseCase'),

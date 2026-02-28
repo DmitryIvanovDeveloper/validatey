@@ -164,7 +164,9 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
       limit?: number;
       offset?: number;
       isProcessed?: boolean;
-      orderByCreatedAt?: boolean; // New option to control sorting
+      orderByCreatedAt?: boolean;
+      fromDate?: Date;
+      toDate?: Date;
     }
   ): Promise<ResultEx<CommentEntity[], CommentError>> {
     try {
@@ -175,7 +177,13 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
         .select('*')
         .eq('project_id', projectId);
 
-      // Add sorting only if requested (can be slow for large datasets)
+      if (options?.fromDate) {
+        query = query.gte('created_at', options.fromDate.toISOString());
+      }
+      if (options?.toDate) {
+        query = query.lte('created_at', options.toDate.toISOString());
+      }
+
       if (options?.orderByCreatedAt) {
         query = query.order('created_at', { ascending: false });
       }
@@ -425,14 +433,22 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
     }
   }
 
-  async countByProjectId(projectId: string): Promise<ResultEx<number, CommentError>> {
+  async countByProjectId(projectId: string, options?: { fromDate?: Date; toDate?: Date }): Promise<ResultEx<number, CommentError>> {
     try {
       const supabase = getSupabaseClient();
-
-      const { count, error } = await supabase
+      let query = supabase
         .from('comments')
         .select('*', { count: 'exact', head: true })
         .eq('project_id', projectId);
+
+      if (options?.fromDate) {
+        query = query.gte('created_at', options.fromDate.toISOString());
+      }
+      if (options?.toDate) {
+        query = query.lte('created_at', options.toDate.toISOString());
+      }
+
+      const { count, error } = await query;
 
       if (error) {
         this._logger.error('comment.countByProjectId.error', { error, projectId });
@@ -442,6 +458,122 @@ export class SupabaseCommentRepository implements CommentRepositoryPort {
       return ResultEx.success(count || 0);
     } catch (error) {
       this._logger.error('comment.countByProjectId.exception', { error, projectId });
+      return ResultEx.failure(new CommentError(
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      ));
+    }
+  }
+
+  async getCommentCountsByBucket(
+    projectId: string,
+    options: { bucket: 'week' | 'month'; fromDate?: Date; toDate?: Date; maxBuckets?: number }
+  ): Promise<ResultEx<{ bucket: string; count: number }[], CommentError>> {
+    try {
+      const supabase = getSupabaseClient();
+      const trunc = options.bucket === 'month' ? 'month' : 'week';
+      let query = supabase
+        .from('comments')
+        .select('created_at')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true });
+
+      if (options.fromDate) {
+        query = query.gte('created_at', options.fromDate.toISOString());
+      }
+      if (options.toDate) {
+        query = query.lte('created_at', options.toDate.toISOString());
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        this._logger.error('comment.getCommentCountsByBucket.error', { error, projectId });
+        return ResultEx.failure(new CommentError(`Failed to get comment counts: ${error.message}`));
+      }
+
+      if (!data || data.length === 0) {
+        return ResultEx.success([]);
+      }
+
+      const map = new Map<string, number>();
+      for (const row of data as { created_at: string }[]) {
+        const at = new Date(row.created_at);
+        const key = trunc === 'month'
+          ? `${at.getUTCFullYear()}-${String(at.getUTCMonth() + 1).padStart(2, '0')}`
+          : (() => {
+              const start = new Date(at);
+              start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+              return `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}-${String(start.getUTCDate()).padStart(2, '0')}`;
+            })();
+        map.set(key, (map.get(key) ?? 0) + 1);
+      }
+
+      let buckets = Array.from(map.entries())
+        .map(([bucket, count]) => ({ bucket, count }))
+        .sort((a, b) => a.bucket.localeCompare(b.bucket));
+
+      if (options.maxBuckets && buckets.length > options.maxBuckets) {
+        buckets = buckets.slice(-options.maxBuckets);
+      }
+
+      return ResultEx.success(buckets);
+    } catch (error) {
+      this._logger.error('comment.getCommentCountsByBucket.exception', { error, projectId });
+      return ResultEx.failure(new CommentError(
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      ));
+    }
+  }
+
+  async getCommentDateRange(projectId: string): Promise<ResultEx<{ oldestCommentAt: Date; newestCommentAt: Date; totalCount: number } | null, CommentError>> {
+    try {
+      const supabase = getSupabaseClient();
+
+      const { data: rangeData, error: rangeError } = await supabase
+        .from('comments')
+        .select('created_at')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (rangeError) {
+        this._logger.error('comment.getCommentDateRange.error', { error: rangeError, projectId });
+        return ResultEx.failure(new CommentError(`Failed to get comment date range: ${rangeError.message}`));
+      }
+
+      if (!rangeData) {
+        return ResultEx.success(null);
+      }
+
+      const { data: latestData, error: latestError } = await supabase
+        .from('comments')
+        .select('created_at')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestError) {
+        this._logger.error('comment.getCommentDateRange.latestError', { error: latestError, projectId });
+        return ResultEx.failure(new CommentError(`Failed to get latest comment: ${latestError.message}`));
+      }
+
+      const countResult = await this.countByProjectId(projectId);
+      if (!countResult.isSuccess) {
+        return ResultEx.failure(countResult.error);
+      }
+
+      const oldest = new Date((rangeData as { created_at: string }).created_at);
+      const newest = latestData ? new Date((latestData as { created_at: string }).created_at) : oldest;
+
+      return ResultEx.success({
+        oldestCommentAt: oldest,
+        newestCommentAt: newest,
+        totalCount: countResult.data,
+      });
+    } catch (error) {
+      this._logger.error('comment.getCommentDateRange.exception', { error, projectId });
       return ResultEx.failure(new CommentError(
         error instanceof Error ? error.message : 'Unknown error occurred'
       ));

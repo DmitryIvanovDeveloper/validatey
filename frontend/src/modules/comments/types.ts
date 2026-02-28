@@ -4,6 +4,8 @@ export const COMMENT_TYPES = {
   StartFetchAndWaitUseCase: Symbol.for('StartFetchAndWaitUseCase'),
   GetFetchStatusUseCase: Symbol.for('GetFetchStatusUseCase'),
   GetCommentsUseCase: Symbol.for('GetCommentsUseCase'),
+  GetCommentsActivityUseCase: Symbol.for('GetCommentsActivityUseCase'),
+  GetCommentsFreshnessUseCase: Symbol.for('GetCommentsFreshnessUseCase'),
   DeleteSourceUseCase: Symbol.for('DeleteSourceUseCase'),
 
   // Presenters

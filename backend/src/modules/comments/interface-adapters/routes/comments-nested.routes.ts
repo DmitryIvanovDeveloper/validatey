@@ -24,6 +24,18 @@ router.get('/test-fetch', async (req: Request, res: Response) => {
   await controller.testFetch(req, res);
 });
 
+// GET /api/projects/:projectId/comments/activity
+// Get comment counts by time bucket (week/month) for chart
+router.get('/activity', async (req: Request, res: Response) => {
+  await controller.getCommentsActivity(req, res);
+});
+
+// GET /api/projects/:projectId/comments/freshness
+// Get oldest/newest comment dates and isStale for warning
+router.get('/freshness', async (req: Request, res: Response) => {
+  await controller.getCommentsFreshness(req, res);
+});
+
 // GET /api/projects/:projectId/comments
 // Get comments for a project with optional filters
 router.get('/', async (req: Request, res: Response) => {

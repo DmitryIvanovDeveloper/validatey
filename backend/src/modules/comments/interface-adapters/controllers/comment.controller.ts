@@ -17,6 +17,8 @@ import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootst
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import type { ResearchDataRepositoryPort } from '../../../research/application/ports/research-data-repository.port';
 import type { IGetPatternCommentsUseCase } from '../../application/use-cases/get-pattern-comments.use-case';
+import type { GetCommentsActivityUseCase } from '../../application/use-cases/get-comments-activity.usecase';
+import type { GetCommentsFreshnessUseCase } from '../../application/use-cases/get-comments-freshness.usecase';
 
 @injectable()
 export class CommentController {
@@ -39,6 +41,10 @@ export class CommentController {
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase,
     @inject(COMMENT_TYPES.GetPatternCommentsUseCase)
     private readonly _getPatternCommentsUseCase: IGetPatternCommentsUseCase,
+    @inject(COMMENT_TYPES.GetCommentsActivityUseCase)
+    private readonly _getCommentsActivityUseCase: GetCommentsActivityUseCase,
+    @inject(COMMENT_TYPES.GetCommentsFreshnessUseCase)
+    private readonly _getCommentsFreshnessUseCase: GetCommentsFreshnessUseCase,
     @inject(PROJECT_TYPES.ProjectRepository)
     private readonly _projectRepository: ProjectRepositoryPort,
     @inject(RESEARCH_TYPES.ResearchDataRepository)
@@ -263,13 +269,19 @@ export class CommentController {
       const url = req.query.url as string | undefined;
       const isProcessed = req.query.isProcessed === 'true' ? true : req.query.isProcessed === 'false' ? false : undefined;
       const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+      const periodMonths = req.query.periodMonths ? parseInt(String(req.query.periodMonths), 10) : undefined;
+      const fromDate = req.query.fromDate && typeof req.query.fromDate === 'string' ? new Date(req.query.fromDate) : undefined;
+      const toDate = req.query.toDate && typeof req.query.toDate === 'string' ? new Date(req.query.toDate) : undefined;
 
       const result = await this._getCommentsQueryHandler.execute({
         projectId,
         sourceId,
         url,
         isProcessed,
-        limit
+        limit,
+        ...(periodMonths != null && Number.isFinite(periodMonths) && { periodMonths }),
+        ...(fromDate && !isNaN(fromDate.getTime()) && { fromDate }),
+        ...(toDate && !isNaN(toDate.getTime()) && { toDate }),
       });
 
       if (!result.isSuccess) {
@@ -281,6 +293,71 @@ export class CommentController {
         comments: result.data.comments,
         totalCount: result.data.totalCount || result.data.comments.length,
         hasMore: result.data.hasMore || false,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
+
+  public async getCommentsActivity(req: Request, res: Response): Promise<void> {
+    try {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
+        res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
+        return;
+      }
+      const bucket = (req.query.bucket as 'week' | 'month') || 'month';
+      const maxBuckets = req.query.maxBuckets ? parseInt(String(req.query.maxBuckets), 10) : 12;
+      const result = await this._getCommentsActivityUseCase.execute({
+        projectId,
+        bucket,
+        maxBuckets: Number.isFinite(maxBuckets) ? maxBuckets : 12,
+      });
+      if (!result.isSuccess) {
+        res.status(400).json({ error: result.error.message });
+        return;
+      }
+      res.json({ buckets: result.data.buckets });
+    } catch (error) {
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Internal server error',
+      });
+    }
+  }
+
+  public async getCommentsFreshness(req: Request, res: Response): Promise<void> {
+    try {
+      const projectIdOrSlug = req.params.projectId;
+      if (!projectIdOrSlug) {
+        res.status(400).json({ error: 'Project ID is required' });
+        return;
+      }
+      const projectId = await this.resolveProjectId(projectIdOrSlug);
+      if (!projectId) {
+        res.status(404).json({ error: `Project not found: ${projectIdOrSlug}` });
+        return;
+      }
+      const result = await this._getCommentsFreshnessUseCase.execute({ projectId });
+      if (!result.isSuccess) {
+        res.status(400).json({ error: result.error.message });
+        return;
+      }
+      if (result.data === null) {
+        res.json(null);
+        return;
+      }
+      res.json({
+        oldestCommentAt: result.data.oldestCommentAt.toISOString(),
+        newestCommentAt: result.data.newestCommentAt.toISOString(),
+        totalCount: result.data.totalCount,
+        isStale: result.data.isStale,
       });
     } catch (error) {
       res.status(500).json({

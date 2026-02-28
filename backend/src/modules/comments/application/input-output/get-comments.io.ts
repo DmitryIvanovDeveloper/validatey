@@ -5,6 +5,10 @@ export interface GetCommentsRequest {
   isProcessed?: boolean;
   limit?: number;
   offset?: number;
+  /** Filter comments to those created within the last N months (from now). */
+  periodMonths?: number;
+  fromDate?: Date;
+  toDate?: Date;
 }
 
 export interface CommentItem {

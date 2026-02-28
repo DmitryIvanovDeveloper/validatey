@@ -71,10 +71,21 @@ export class GetCommentsUseCase {
 
       // Get comments by project ID if specified (when sourceId is not specified)
       else if (request.projectId) {
+        const now = new Date();
+        let fromDate = request.fromDate;
+        let toDate = request.toDate;
+        if (request.periodMonths != null && request.periodMonths > 0) {
+          const from = new Date(now);
+          from.setMonth(from.getMonth() - request.periodMonths);
+          fromDate = from;
+          toDate = now;
+        }
         const result = await this._commentRepository.findByProjectId(request.projectId, {
           limit: request.limit,
           offset: request.offset,
-          orderByCreatedAt: true, // Sort by date for UI display
+          orderByCreatedAt: true,
+          ...(fromDate && { fromDate }),
+          ...(toDate && { toDate }),
         });
 
         if (!result.isSuccess) {
@@ -117,10 +128,10 @@ export class GetCommentsUseCase {
         });
         totalCount = comments.length;
 
-        // If we have a limit and got exactly that many, there might be more
         const hasMore = request.limit ? comments.length === request.limit : false;
         if (hasMore) {
-          const countResult = await this._commentRepository.countByProjectId(request.projectId);
+          const countOpts = (fromDate || toDate) ? { fromDate, toDate } : undefined;
+          const countResult = await this._commentRepository.countByProjectId(request.projectId, countOpts);
           if (countResult.isSuccess) {
             totalCount = countResult.data;
           }

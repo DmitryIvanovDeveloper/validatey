@@ -98,9 +98,12 @@ const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
 const labels = authPresenter.labels;
 const authViewModel = new AuthViewModel();
 
+const envEmail = typeof import.meta.env.VITE_AUTH_EMAIL === 'string' ? import.meta.env.VITE_AUTH_EMAIL.trim() : '';
+const envPassword = typeof import.meta.env.VITE_AUTH_PASSWORD === 'string' ? import.meta.env.VITE_AUTH_PASSWORD : '';
+
 const isRegister = ref(false);
-const email = ref('');
-const password = ref('');
+const email = ref(envEmail);
+const password = ref(envPassword);
 const showPassword = ref(false);
 
 let unsubscribe: (() => void) | null = null;
@@ -119,6 +122,18 @@ onMounted(async () => {
     return;
   }
   unsubscribe = authPresenter.subscribeToAuthState(authViewModel);
+
+  // Auto sign-in when credentials are provided via env (e.g. .env or .env.local)
+  if (envEmail && envPassword && !authViewModel.user.value) {
+    const ok = await authPresenter.signInWithEmail(authViewModel, envEmail, envPassword);
+    if (ok && authViewModel.user.value) {
+      let redirect = (router.currentRoute.value.query.redirect as string) || '/workspaces';
+      if (redirect === '/projects' || redirect.startsWith('/projects')) {
+        redirect = '/workspaces';
+      }
+      await router.replace(redirect);
+    }
+  }
 });
 
 onUnmounted(() => {

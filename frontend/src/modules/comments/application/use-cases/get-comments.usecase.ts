@@ -32,6 +32,9 @@ export interface GetCommentsInput {
   url?: string;
   isProcessed?: boolean;
   limit?: number;
+  periodMonths?: number;
+  fromDate?: string;
+  toDate?: string;
 }
 
 export interface GetCommentsOutput {
@@ -53,6 +56,9 @@ export class GetCommentsUseCase {
       url: input.url,
       isProcessed: input.isProcessed,
       limit: input.limit,
+      periodMonths: input.periodMonths,
+      fromDate: input.fromDate,
+      toDate: input.toDate,
     });
 
     if (!result.isSuccess) {

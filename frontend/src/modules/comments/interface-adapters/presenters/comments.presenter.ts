@@ -2,6 +2,8 @@ import { injectable, inject } from 'inversify';
 import { StartFetchAndWaitUseCase } from '../../application/use-cases/start-fetch-and-wait.usecase';
 import { GetFetchStatusUseCase } from '../../application/use-cases/get-fetch-status.usecase';
 import { GetCommentsUseCase, CommentItem } from '../../application/use-cases/get-comments.usecase';
+import { GetCommentsActivityUseCase } from '../../application/use-cases/get-comments-activity.usecase';
+import { GetCommentsFreshnessUseCase } from '../../application/use-cases/get-comments-freshness.usecase';
 import { DeleteSourceUseCase } from '../../application/use-cases/delete-source.usecase';
 import { COMMENT_TYPES } from '../../types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
@@ -108,6 +110,10 @@ export class CommentsPresenter {
     private readonly _getFetchStatusUseCase: GetFetchStatusUseCase,
     @inject(COMMENT_TYPES.GetCommentsUseCase)
     private readonly _getCommentsUseCase: GetCommentsUseCase,
+    @inject(COMMENT_TYPES.GetCommentsActivityUseCase)
+    private readonly _getCommentsActivityUseCase: GetCommentsActivityUseCase,
+    @inject(COMMENT_TYPES.GetCommentsFreshnessUseCase)
+    private readonly _getCommentsFreshnessUseCase: GetCommentsFreshnessUseCase,
     @inject(COMMENT_TYPES.DeleteSourceUseCase)
     private readonly _deleteSourceUseCase: DeleteSourceUseCase,
     @inject(COMMENT_TYPES.CommentsHttpRepository)
@@ -725,6 +731,52 @@ export class CommentsPresenter {
         data: { sourceStats: [], totalComments: 0 },
         error: error instanceof Error ? error.message : this.labels.errorLoadOverview,
       };
+    }
+  }
+
+  async getCommentsActivity(projectId: string): Promise<{
+    data?: { buckets: { bucket: string; count: number }[] };
+    error?: string;
+  }> {
+    try {
+      const result = await this._getCommentsActivityUseCase.execute({
+        projectId,
+        bucket: 'month',
+        maxBuckets: 12,
+      });
+      if (!result.isSuccess) {
+        return { error: result.error.message };
+      }
+      return { data: { buckets: result.data.buckets } };
+    } catch (error) {
+      this._logger.error('Exception getting comments activity', { projectId, error });
+      return { error: error instanceof Error ? error.message : 'Failed to load activity' };
+    }
+  }
+
+  async getCommentsFreshness(projectId: string): Promise<{
+    data?: { oldestCommentAt: string; newestCommentAt: string; totalCount: number; isStale: boolean };
+    error?: string;
+  }> {
+    try {
+      const result = await this._getCommentsFreshnessUseCase.execute({ projectId });
+      if (!result.isSuccess) {
+        return { error: result.error.message };
+      }
+      if (result.data === null) {
+        return {};
+      }
+      return {
+        data: {
+          oldestCommentAt: result.data.oldestCommentAt,
+          newestCommentAt: result.data.newestCommentAt,
+          totalCount: result.data.totalCount,
+          isStale: result.data.isStale,
+        },
+      };
+    } catch (error) {
+      this._logger.error('Exception getting comments freshness', { projectId, error });
+      return { error: error instanceof Error ? error.message : 'Failed to load freshness' };
     }
   }
 }

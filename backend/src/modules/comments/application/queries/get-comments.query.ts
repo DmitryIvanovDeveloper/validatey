@@ -7,6 +7,9 @@ export interface GetCommentsQuery {
   url?: string;
   isProcessed?: boolean;
   limit?: number;
+  periodMonths?: number;
+  fromDate?: Date;
+  toDate?: Date;
 }
 
 export interface CommentListItemDTO {

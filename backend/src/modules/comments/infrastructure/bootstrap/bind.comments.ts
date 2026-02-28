@@ -5,6 +5,8 @@ import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootst
 // Application
 import { FetchCommentsUseCase } from '../../application/use-cases/fetch-comments.usecase';
 import { GetCommentsUseCase } from '../../application/use-cases/get-comments.usecase';
+import { GetCommentsActivityUseCase } from '../../application/use-cases/get-comments-activity.usecase';
+import { GetCommentsFreshnessUseCase } from '../../application/use-cases/get-comments-freshness.usecase';
 import { GetFetchStatusUseCase } from '../../application/use-cases/get-fetch-status.usecase';
 import { GetCommentByIdUseCase } from '../../application/use-cases/get-comment-by-id.usecase';
 import { StartFetchCommandHandler } from '../../application/commands/start-fetch.command-handler';
@@ -38,6 +40,8 @@ export function bindComments(container: Container): void {
   // Use Cases
   container.bind<FetchCommentsUseCase>(COMMENT_TYPES.FetchCommentsUseCase).to(FetchCommentsUseCase);
   container.bind<GetCommentsUseCase>(COMMENT_TYPES.GetCommentsUseCase).to(GetCommentsUseCase);
+  container.bind<GetCommentsActivityUseCase>(COMMENT_TYPES.GetCommentsActivityUseCase).to(GetCommentsActivityUseCase);
+  container.bind<GetCommentsFreshnessUseCase>(COMMENT_TYPES.GetCommentsFreshnessUseCase).to(GetCommentsFreshnessUseCase);
   container.bind<GetFetchStatusUseCase>(COMMENT_TYPES.GetFetchStatusUseCase).to(GetFetchStatusUseCase);
   container.bind<GetCommentByIdUseCase>(COMMENT_TYPES.GetCommentByIdUseCase).to(GetCommentByIdUseCase);
   container.bind<GetPatternCommentsUseCase>(COMMENT_TYPES.GetPatternCommentsUseCase).to(GetPatternCommentsUseCase);

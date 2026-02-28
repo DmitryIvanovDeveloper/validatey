@@ -227,6 +227,7 @@
         <ResponsePaceWidget ref="responsePaceRef" :project-id="projectId" :target-pace="5" :external-loading="widgetsLoading" />
 
         <!-- Comments Overview -->
+        <CommentsFreshnessWidget v-if="projectId" :project-id="projectId" />
         <CommentsWidget
           ref="commentsWidgetRef"
           :project-id="projectId"
@@ -350,7 +351,7 @@ import { TYPES } from '../../../infrastructure/bootstrap/types';
 import { TYPES as INVITATION_TYPES } from '../../../../invitations/infrastructure/bootstrap/types';
 import type { InvitationPresenter } from '../../../../invitations/interface-adapters/presenters/invitation.presenter';
 import ResponsePaceWidget from '../../../../responses/interface-adapters/components/ResponsePaceWidget.vue';
-import { CommentsWidget } from '../../../../comments/interface-adapters/components';
+import { CommentsWidget, CommentsFreshnessWidget, CommentsActivityWidget } from '../../../../comments/interface-adapters/components';
 import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../../research/interface-adapters';
 import WishlistWidget from '@/modules/wishlist/interface-adapters/components/WishlistWidget.vue';
 import FeedbackWidget from '@/modules/feedback/interface-adapters/components/FeedbackWidget.vue';

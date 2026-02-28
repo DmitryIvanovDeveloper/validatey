@@ -86,6 +86,8 @@ function createController(
     ...commentRepository,
   } as any;
   const fetchCommentsUseCase = { execute: noop } as any;
+  const getCommentsActivityUseCase = { execute: noop } as any;
+  const getCommentsFreshnessUseCase = { execute: noop } as any;
 
   return new CommentController(
     startFetch as any,
@@ -97,6 +99,8 @@ function createController(
     commentRepo,
     fetchCommentsUseCase,
     getPatternCommentsUseCase,
+    getCommentsActivityUseCase,
+    getCommentsFreshnessUseCase,
     projectRepo,
     researchDataRepo
   );
