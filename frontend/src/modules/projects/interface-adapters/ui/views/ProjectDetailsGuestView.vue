@@ -61,6 +61,9 @@
         <!-- How to read Overview (for beginners) -->
         <OverviewGuideWidget />
 
+        <!-- Tips: what comment analysis cannot validate -->
+        <TipsWidget />
+
         <!-- Executive Summary -->
         <ExecutiveSummaryWidget
           :summary="researchData?.synthesisReport?.summary || null"
@@ -354,6 +357,7 @@ import FeedbackWidget from '@/modules/feedback/interface-adapters/components/Fee
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
+import TipsWidget from '../../../../../shared/components/TipsWidget.vue';
 import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { normalizeAssumptions } from '../../../domain/value-objects/hypothesis.vo';

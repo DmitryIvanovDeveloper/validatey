@@ -78,11 +78,6 @@ const isOpen = ref(false);
   font-size: 0.9375rem;
   color: #0c4a6e;
   font-weight: 500;
-  transition: background 0.2s;
-}
-
-.guide-trigger:hover {
-  background: rgba(255, 255, 255, 0.6);
 }
 
 .guide-trigger-icon {

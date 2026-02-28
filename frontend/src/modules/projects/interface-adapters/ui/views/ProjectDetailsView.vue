@@ -52,6 +52,9 @@
         <!-- How to read Overview (for beginners) -->
         <OverviewGuideWidget />
 
+        <!-- Tips: what comment analysis cannot validate -->
+        <TipsWidget />
+
         <!-- Executive Summary -->
         <ExecutiveSummaryWidget
           :summary="researchData?.synthesisReport?.summary || null"
@@ -345,6 +348,7 @@ import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, St
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
+import TipsWidget from '../../../../../shared/components/TipsWidget.vue';
 import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { normalizeAssumptions } from '../../../domain/value-objects/hypothesis.vo';
 import type { OverviewPayload } from '../../../application/use-cases/input-output/get-project-overview.io';
