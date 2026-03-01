@@ -15,11 +15,13 @@ import type { RedditSearchCommentsCollectorPort } from '../../application/ports/
 import type { SearchPhrasesGeneratorPort } from '../../application/ports/search-phrases-generator.port';
 import type { AutocompleteApiPort } from '../../application/ports/autocomplete-api.port';
 import type { ResearchAssistantLlmPort } from '../../application/ports/research-assistant-llm.port';
+import type { UserStoriesLlmPort } from '../../application/ports/user-stories-llm.port';
 import type { ResponseRepositoryPort } from '../../../responses/application/ports/response-repository.port';
 import type { CommentRepositoryPort } from '../../../comments/application/ports/comment-repository.port';
 import { GetResearchCanvasUseCase } from '../../application/use-cases/get-research-canvas.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
 import { GenerateAssumptionAssessmentsUseCase } from '../../application/use-cases/generate-assumption-assessments.use-case';
+import { GenerateUserStoriesUseCase } from '../../application/use-cases/generate-user-stories.use-case';
 import { CheckResearchAvailabilityUseCase } from '../../application/use-cases/check-research-availability.use-case';
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
@@ -28,6 +30,7 @@ import { SynthesisLlmAdapter } from '../services/synthesis-llm.adapter';
 import { SynthesisLlmStubAdapter } from '../services/synthesis-llm-stub.adapter';
 import { AssumptionAssessmentLlmAdapter } from '../services/assumption-assessment-llm.adapter';
 import { ResearchAssistantLlmAdapter } from '../services/research-assistant-llm.adapter';
+import { UserStoriesLlmAdapter } from '../services/user-stories-llm.adapter';
 import { MarketDataProviderStubAdapter } from '../services/market-data-provider-stub.adapter';
 import { CompetitorDataProviderStubAdapter } from '../services/competitor-data-provider-stub.adapter';
 import { StubAcademicPapersProviderAdapter } from '../services/stub-academic-papers-provider.adapter';
@@ -60,6 +63,7 @@ export function bindResearch(container: Container): void {
   container.bind<SynthesisLlmPort>(TYPES.SynthesisLlm).to(SynthesisLlmAdapter);
   container.bind<AssumptionAssessmentLlmPort>(TYPES.AssumptionAssessmentLlm).to(AssumptionAssessmentLlmAdapter);
   container.bind<ResearchAssistantLlmPort>(TYPES.ResearchAssistantLlm).to(ResearchAssistantLlmAdapter);
+  container.bind<UserStoriesLlmPort>(TYPES.UserStoriesLlm).to(UserStoriesLlmAdapter);
   container
     .bind<MarketDataProviderPort>(TYPES.MarketDataProvider)
     .to(useLlmResearchProviders ? LlmMarketDataProviderAdapter : MarketDataProviderStubAdapter);
@@ -93,6 +97,7 @@ export function bindResearch(container: Container): void {
   container.bind<GetResearchCanvasUseCase>(TYPES.GetResearchCanvasUseCase).to(GetResearchCanvasUseCase);
   container.bind<GenerateSynthesisUseCase>(TYPES.GenerateSynthesisUseCase).to(GenerateSynthesisUseCase);
   container.bind<GenerateAssumptionAssessmentsUseCase>(TYPES.GenerateAssumptionAssessmentsUseCase).to(GenerateAssumptionAssessmentsUseCase);
+  container.bind<GenerateUserStoriesUseCase>(TYPES.GenerateUserStoriesUseCase).to(GenerateUserStoriesUseCase);
   container.bind<CheckResearchAvailabilityUseCase>(TYPES.CheckResearchAvailabilityUseCase).to(CheckResearchAvailabilityUseCase);
   container.bind<CollectResearchDataUseCase>(TYPES.CollectResearchDataUseCase).to(CollectResearchDataUseCase);
   container.bind<ResearchAssistantUseCase>(TYPES.ResearchAssistantUseCase).to(ResearchAssistantUseCase);

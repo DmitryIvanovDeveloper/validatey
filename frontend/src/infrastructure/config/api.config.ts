@@ -69,6 +69,7 @@ export const API_CONFIG = {
     RESEARCH_AVAILABILITY: (projectId: string) => `/projects/${projectId}/research/availability`,
     RESEARCH_COLLECT: (projectId: string) => `/projects/${projectId}/research/collect`,
     RESEARCH_ASSISTANT: (projectId: string) => `/projects/${projectId}/research/assistant`,
+    RESEARCH_USER_STORIES: (projectId: string) => `/projects/${projectId}/research/user-stories`,
 
     // Scraper (data sources: competitor sites, reviews, job market, etc.)
     SCRAPER_SOURCES: (projectId: string) => `/projects/${projectId}/scraper`,

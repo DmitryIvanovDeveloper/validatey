@@ -1,9 +1,11 @@
 import { injectable, inject } from 'inversify';
+import { reactive } from 'vue';
 import { GetResearchCanvasUseCase } from '../../application/use-cases/get-research-canvas.use-case';
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
 import { CheckResearchAvailabilityUseCase } from '../../application/use-cases/check-research-availability.use-case';
+import { GenerateUserStoriesUseCase } from '../../application/use-cases/generate-user-stories.use-case';
 import type { ResearchCanvas, SynthesisReport } from '../../domain/entities/research-canvas.entity';
 import type { ResearchIntent } from '../../domain/value-objects/research-intent.vo';
 import type {
@@ -11,13 +13,26 @@ import type {
   CollectResearchDataResponse,
   GenerateSynthesisResponse,
   AskAssistantResponse,
-  CheckResearchAvailabilityResponse
+  CheckResearchAvailabilityResponse,
 } from '../../domain/types/research.types';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import { ResearchRepositoryPort } from '../../application/ports/research-repository.port';
 import { ResearchCooldownError } from '../../domain/errors/research.error';
+
+// Define UserStory type locally to avoid circular imports
+export interface UserStory {
+  id: string;
+  role: string;
+  goal: string;
+  benefit: string;
+  priority: 'high' | 'medium' | 'low';
+  acceptanceCriteria: string[];
+  functionalArea: string;
+  /** Optional: how to address the need (from hypothesis/synthesis). */
+  solutionDirection?: string;
+}
 
 type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | null;
 
@@ -49,11 +64,16 @@ export class ResearchPresenter {
   private statusCache = new Map<string, HypothesisStatus>();
 
   // View model for reactive UI updates
-  viewModel = {
+  viewModel = reactive({
     commentsFetching: false,
     commentsOnlyLoading: false,
     researchLoading: false,
-  };
+    userStories: [] as UserStory[],
+    userStoriesGeneratedAt: null as Date | null,
+    isGeneratingUserStories: false,
+    userStoriesError: null as string | null,
+    userStoriesErrorPreview: null as string | null,
+  });
 
   constructor(
     @inject(TYPES.GetResearchCanvasUseCase)
@@ -66,6 +86,8 @@ export class ResearchPresenter {
     private readonly _researchAssistantUseCase: ResearchAssistantUseCase,
     @inject(TYPES.CheckResearchAvailabilityUseCase)
     private readonly _checkResearchAvailabilityUseCase: CheckResearchAvailabilityUseCase,
+    @inject(TYPES.GenerateUserStoriesUseCase)
+    private readonly _generateUserStoriesUseCase: GenerateUserStoriesUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort
   ) {}
@@ -73,6 +95,13 @@ export class ResearchPresenter {
   async getResearchCanvas(projectId: string): Promise<GetResearchCanvasResponse> {
     try {
       const result = await this._getResearchCanvasUseCase.execute({ projectId });
+
+      // Update user stories in view model if they exist
+      if (result.userStories) {
+        this.viewModel.userStories = result.userStories;
+        this.viewModel.userStoriesGeneratedAt = result.userStoriesGeneratedAt;
+      }
+
       return result;
     } catch (error) {
       this._logger.error('Failed to get research canvas', { projectId, error });
@@ -194,6 +223,53 @@ export class ResearchPresenter {
     } else {
       this.statusCache.clear();
     }
+  }
+
+  async generateUserStories(projectId: string): Promise<{ data?: UserStory[]; error?: string }> {
+    try {
+      this.viewModel.isGeneratingUserStories = true;
+      this.viewModel.userStoriesError = null;
+
+      const result = await this._generateUserStoriesUseCase.execute({ projectId });
+
+      if (!result.isSuccess) {
+        const error = result.error;
+        this.viewModel.userStoriesError = error.message;
+        this._logger.error('Failed to generate user stories', { projectId, error: error.message });
+        return { error: error.message };
+      }
+
+      const data = result.data;
+      this.viewModel.userStories = data.userStories;
+      this.viewModel.userStoriesGeneratedAt = data.generatedAt;
+
+      this._logger.info('Successfully generated user stories', {
+        projectId,
+        storiesCount: data.userStories.length
+      });
+
+      // Refresh research canvas to ensure all data is synchronized
+      await this.getResearchCanvas(projectId);
+
+      return { data: data.userStories };
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.viewModel.userStoriesError = errorMessage;
+      this.viewModel.userStoriesErrorPreview = null;
+      this._logger.error('Exception generating user stories', { projectId, error });
+      return { error: errorMessage };
+    } finally {
+      this.viewModel.isGeneratingUserStories = false;
+    }
+  }
+
+  async regenerateUserStories(projectId: string): Promise<{ data?: UserStory[]; error?: string }> {
+    // Clear existing data
+    this.viewModel.userStories = [];
+    this.viewModel.userStoriesGeneratedAt = null;
+
+    return this.generateUserStories(projectId);
   }
 
   private createEmptyCanvas(projectId: string): ResearchCanvas {

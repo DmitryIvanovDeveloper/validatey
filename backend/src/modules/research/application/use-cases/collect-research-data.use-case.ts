@@ -154,6 +154,8 @@ export class CollectResearchDataUseCase {
         commentPatternAnalysis: existing?.commentPatternAnalysis ?? null,
         academicPapers: academicPapers ?? existing?.academicPapers ?? null,
         productHunt: productHunt ?? existing?.productHunt ?? null,
+        userStories: existing?.userStories ?? null,
+        userStoriesGeneratedAt: existing?.userStoriesGeneratedAt ?? null,
         lastResearchRunAt: now,
         updatedAt: now,
         researchStatus: 'idle',

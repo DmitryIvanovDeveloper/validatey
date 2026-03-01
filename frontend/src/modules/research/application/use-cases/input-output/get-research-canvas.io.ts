@@ -22,4 +22,15 @@ export interface GetResearchCanvasResponse {
   /** Current research phase (for "in progress" restore after reload). */
   readonly researchStatus?: ResearchStatusDto;
   readonly researchStatusUpdatedAt?: string | null;
+  readonly userStories?: {
+    id: string;
+    role: string;
+    goal: string;
+    benefit: string;
+    priority: 'high' | 'medium' | 'low';
+    acceptanceCriteria: string[];
+    functionalArea: string;
+    solutionDirection?: string;
+  }[];
+  readonly userStoriesGeneratedAt?: Date | null;
 }

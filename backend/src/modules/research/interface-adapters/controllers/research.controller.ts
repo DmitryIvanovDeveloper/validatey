@@ -5,9 +5,11 @@ import { COMMENT_TYPES } from '../../../comments/types';
 import { ResearchCooldownError, ResearchNotFoundError } from '../../domain/errors/research.error';
 import { GetResearchCanvasUseCase } from '../../application/use-cases/get-research-canvas.use-case';
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
+import { GenerateUserStoriesUseCase } from '../../application/use-cases/generate-user-stories.use-case';
 import { CheckResearchAvailabilityUseCase } from '../../application/use-cases/check-research-availability.use-case';
 import type { GetResearchCanvasRequest, GetResearchCanvasResponse } from '../../application/use-cases/input-output/get-research-canvas.io';
 import type { GenerateSynthesisRequest, GenerateSynthesisResponse } from '../../application/use-cases/input-output/generate-synthesis.io';
+import type { GenerateUserStoriesRequest, GenerateUserStoriesResponse } from '../../application/use-cases/input-output/generate-user-stories.io';
 import type { CheckResearchAvailabilityRequest, CheckResearchAvailabilityResponse } from '../../application/use-cases/input-output/check-research-availability.io';
 import type { CollectResearchDataRequest, CollectResearchDataResponse } from '../../application/use-cases/input-output/collect-research-data.io';
 import { CollectResearchDataUseCase } from '../../application/use-cases/collect-research-data.use-case';
@@ -25,6 +27,8 @@ export class ResearchController {
 		private readonly _getResearchCanvasUseCase: GetResearchCanvasUseCase,
 		@inject(TYPES.GenerateSynthesisUseCase)
 		private readonly _generateSynthesisUseCase: GenerateSynthesisUseCase,
+		@inject(TYPES.GenerateUserStoriesUseCase)
+		private readonly _generateUserStoriesUseCase: GenerateUserStoriesUseCase,
 		@inject(TYPES.CheckResearchAvailabilityUseCase)
 		private readonly _checkResearchAvailabilityUseCase: CheckResearchAvailabilityUseCase,
 		@inject(TYPES.CollectResearchDataUseCase)
@@ -67,5 +71,10 @@ export class ResearchController {
 
 	public async sendAssistantMessage(request: ResearchAssistantRequest): Promise<ResultEx<ResearchAssistantResponse, Error>> {
 		return this._researchAssistantUseCase.execute(request);
+	}
+
+	public async generateUserStories(request: GenerateUserStoriesRequest): Promise<ResultEx<GenerateUserStoriesResponse, Error>> {
+		this._logger.info('research-controller.generate-user-stories', { projectId: request.projectId });
+		return this._generateUserStoriesUseCase.execute(request);
 	}
 }

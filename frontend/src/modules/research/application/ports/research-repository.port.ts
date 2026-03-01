@@ -16,6 +16,16 @@ export interface ResearchRepositoryPort {
     assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
     researchStatus?: 'idle' | 'collecting' | 'synthesizing';
     researchStatusUpdatedAt?: string | null;
+    userStories?: {
+      id: string;
+      role: string;
+      goal: string;
+      benefit: string;
+      priority: 'high' | 'medium' | 'low';
+      acceptanceCriteria: string[];
+      functionalArea: string;
+    }[];
+    userStoriesGeneratedAt?: Date | null;
   }>;
   collectResearchData(projectId: string, intent: ResearchIntent): Promise<{
     collected: boolean;
@@ -35,5 +45,17 @@ export interface ResearchRepositoryPort {
     reply: string;
     suggestedMethods?: string[];
     clarificationQuestions?: string[];
+  }>;
+  generateUserStories(projectId: string): Promise<{
+    userStories: {
+      id: string;
+      role: string;
+      goal: string;
+      benefit: string;
+      priority: 'high' | 'medium' | 'low';
+      acceptanceCriteria: string[];
+      functionalArea: string;
+    }[];
+    generatedAt: Date;
   }>;
 }

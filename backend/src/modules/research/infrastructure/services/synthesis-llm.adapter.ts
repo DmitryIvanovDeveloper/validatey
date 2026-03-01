@@ -15,7 +15,7 @@ const SYSTEM_PROMPT = `You are a research analyst specializing in product valida
 
 TASK:
 1. Synthesize all provided context: hypothesis, market, competitors, search intents, user insights, comments, early signals.
-2. Analyze comment patterns from the provided comments to identify themes, validation signals, myths, and user feedback patterns.
+2. Analyze comment patterns from the provided comments to identify themes, validation signals, myths, and user feedback patterns. Include platform insights (dominant platforms, sentiment distribution, subreddit analysis if applicable).
 3. Decide overall verdict: is the product idea validated, rejected, or does it need more data?
 4. Write a clear summary and actionable recommendations so that each Key Assumption can later be assessed against this synthesis.
 

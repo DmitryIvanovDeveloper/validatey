@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { createHash } from 'crypto';
 
 export type ProjectStatus = 'draft' | 'active' | 'completed' | 'archived';
 
@@ -59,6 +60,23 @@ export interface Hypothesis {
   readonly assumptions: AssumptionItem[];
 }
 
+/** Generate stable UUID based on text content. */
+function generateStableUUID(text: string): string {
+  const hash = createHash('sha256').update(text.trim()).digest('hex');
+  // Convert first 16 bytes of hash to UUID format
+  const bytes = Buffer.from(hash.slice(0, 32), 'hex');
+  // Set version (4) and variant bits
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 10
+  return [
+    bytes.slice(0, 4).toString('hex'),
+    bytes.slice(4, 6).toString('hex'),
+    bytes.slice(6, 8).toString('hex'),
+    bytes.slice(8, 10).toString('hex'),
+    bytes.slice(10, 16).toString('hex')
+  ].join('-');
+}
+
 /** Normalize assumptions from API/DB (string[] or {id?, text}[]) to AssumptionItem[]. */
 export function normalizeAssumptions(
   raw: readonly string[] | ReadonlyArray<{ id?: string; text: string }> | null | undefined
@@ -68,11 +86,11 @@ export function normalizeAssumptions(
   for (let i = 0; i < raw.length; i++) {
     const item = raw[i];
     if (typeof item === 'string') {
-      result.push({ id: randomUUID(), text: item.trim() });
+      result.push({ id: generateStableUUID(item), text: item.trim() });
     } else if (item && typeof item === 'object' && typeof (item as { text?: string }).text === 'string') {
       const o = item as { id?: string; text: string };
       result.push({
-        id: o.id && o.id.trim() ? o.id.trim() : randomUUID(),
+        id: o.id && o.id.trim() ? o.id.trim() : generateStableUUID(o.text),
         text: o.text.trim(),
       });
     }
@@ -126,6 +144,21 @@ export class ProjectEntity {
       throw new Error('Project name must be less than 255 characters');
     }
 
+    // Normalize hypothesis if it comes in legacy format with risks array
+    let normalizedHypothesis = hypothesis;
+    if (hypothesis && (!hypothesis.description || !hypothesis.assumptions)) {
+      // Check if it's the legacy format with risks array
+      const legacyHypothesis = hypothesis as any;
+      if (legacyHypothesis.problem || legacyHypothesis.solution || legacyHypothesis.risks) {
+        normalizedHypothesis = {
+          description: legacyHypothesis.problem && legacyHypothesis.solution
+            ? `${legacyHypothesis.problem}\n\n${legacyHypothesis.solution}`
+            : legacyHypothesis.problem || legacyHypothesis.solution || '',
+          assumptions: normalizeAssumptions(legacyHypothesis.risks || [])
+        };
+      }
+    }
+
     const now = new Date();
     return new ProjectEntity(
       this.generateId(),
@@ -134,7 +167,7 @@ export class ProjectEntity {
       name.trim(),
       'draft',
       segment || null,
-      hypothesis || null,
+      normalizedHypothesis || null,
       marketContext ?? null,
       targetAudience || null,
       cost || null,

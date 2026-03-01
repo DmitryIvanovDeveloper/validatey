@@ -43,6 +43,16 @@ export class ResearchRepository implements ResearchRepositoryPort {
     assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
     researchStatus?: 'idle' | 'collecting' | 'synthesizing';
     researchStatusUpdatedAt?: string | null;
+    userStories?: {
+      id: string;
+      role: string;
+      goal: string;
+      benefit: string;
+      priority: 'high' | 'medium' | 'low';
+      acceptanceCriteria: string[];
+      functionalArea: string;
+    }[];
+    userStoriesGeneratedAt?: Date | null;
   }> {
     try {
       const response = await this._httpClient.get<{
@@ -59,9 +69,25 @@ export class ResearchRepository implements ResearchRepositoryPort {
         assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
         researchStatus?: 'idle' | 'collecting' | 'synthesizing';
         researchStatusUpdatedAt?: string | null;
+        userStories?: {
+          id: string;
+          role: string;
+          goal: string;
+          benefit: string;
+          priority: 'high' | 'medium' | 'low';
+          acceptanceCriteria: string[];
+          functionalArea: string;
+        }[];
+        userStoriesGeneratedAt?: Date | null;
       }>(
         API_CONFIG.ENDPOINTS.RESEARCH_CANVAS(projectId)
       );
+
+      // Convert userStoriesGeneratedAt to Date if it's a string
+      if (response.userStoriesGeneratedAt && typeof response.userStoriesGeneratedAt === 'string') {
+        response.userStoriesGeneratedAt = new Date(response.userStoriesGeneratedAt);
+      }
+
       return response;
     } catch (error) {
       throw new ResearchNotFoundError(projectId);
@@ -170,5 +196,41 @@ export class ResearchRepository implements ResearchRepositoryPort {
         reply: 'I apologize, but I\'m unable to provide assistance at the moment. Please try again later.',
       };
     }
+  }
+
+  async generateUserStories(projectId: string): Promise<{
+    userStories: {
+      id: string;
+      role: string;
+      goal: string;
+      benefit: string;
+      priority: 'high' | 'medium' | 'low';
+      acceptanceCriteria: string[];
+      functionalArea: string;
+      solutionDirection?: string;
+    }[];
+    generatedAt: Date;
+  }> {
+    const response = await this._httpClient.post<{
+      userStories: {
+        id: string;
+        role: string;
+        goal: string;
+        benefit: string;
+        priority: 'high' | 'medium' | 'low';
+        acceptanceCriteria: string[];
+        functionalArea: string;
+        solutionDirection?: string;
+      }[];
+      generatedAt: string;
+    }>(
+      API_CONFIG.ENDPOINTS.RESEARCH_USER_STORIES(projectId),
+      {}
+    );
+
+    return {
+      userStories: response.userStories || [],
+      generatedAt: response.generatedAt ? new Date(response.generatedAt) : new Date(),
+    };
   }
 }

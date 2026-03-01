@@ -110,6 +110,8 @@ export class GetResearchCanvasUseCase {
         assumptionAssessments,
         researchStatus,
         researchStatusUpdatedAt,
+        userStories: stored?.userStories ?? null,
+        userStoriesGeneratedAt: stored?.userStoriesGeneratedAt ?? null,
       });
     } catch (error) {
       this._logger.error('get-research-canvas.exception', { projectId, error });

@@ -8,6 +8,8 @@ export const TYPES = {
   GenerateSynthesisUseCase: Symbol('GenerateSynthesisUseCase'),
   ResearchAssistantUseCase: Symbol('ResearchAssistantUseCase'),
   CheckResearchAvailabilityUseCase: Symbol('CheckResearchAvailabilityUseCase'),
+  GenerateUserStoriesUseCase: Symbol('GenerateUserStoriesUseCase'),
+  UserStoriesAiPort: Symbol('UserStoriesAiPort'),
   CommentsFetchStartedEventHandler: Symbol.for('IAsyncEventHandler<CommentsFetchStartedEvent>'),
   CommentsFetchCompletedEventHandler: Symbol.for('IAsyncEventHandler<CommentsFetchCompletedEvent>'),
   ResearchDataCollectionStartedEventHandler: Symbol.for('IAsyncEventHandler<ResearchDataCollectionStartedEvent>'),

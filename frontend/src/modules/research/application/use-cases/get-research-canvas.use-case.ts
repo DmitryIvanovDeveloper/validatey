@@ -30,6 +30,8 @@ export class GetResearchCanvasUseCase {
       assumptionAssessments: result.assumptionAssessments ?? null,
       researchStatus: result.researchStatus ?? 'idle',
       researchStatusUpdatedAt: result.researchStatusUpdatedAt ?? null,
+      userStories: result.userStories ?? null,
+      userStoriesGeneratedAt: result.userStoriesGeneratedAt ?? null,
     };
   }
 }

@@ -705,15 +705,8 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         workspaceId: (data.workspace_id ?? null) as string | null,
         name: String(data.name),
         status: String(data.status) as 'draft' | 'active' | 'completed' | 'archived',
-        segment: (data.segment || null) as Project['segment'],
-        hypothesis: data.hypothesis
-          ? {
-              description: String((data.hypothesis as { description?: string }).description ?? ''),
-              assumptions: normalizeAssumptions(
-                (data.hypothesis as { assumptions?: readonly string[] | ReadonlyArray<{ id?: string; text: string }> }).assumptions
-              ),
-            }
-          : null,
+        segment: this.mapSegment(data.segment),
+        hypothesis: this.mapHypothesis(data.hypothesis),
         marketContext: (data.market_context || null) as Project['marketContext'],
         targetAudience: (data.target_audience ?? null) as string | null,
         cost,
@@ -739,6 +732,79 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
       });
       throw error;
     }
+  }
+
+  private mapSegment(segmentData: unknown): Project['segment'] {
+    if (!segmentData || typeof segmentData !== 'object') {
+      return null;
+    }
+
+    const segment = segmentData as Record<string, unknown>;
+
+    // If it already has the expected format (description + demographics)
+    if (segment.description && typeof segment.description === 'string') {
+      return {
+        description: segment.description,
+        demographics: (segment.demographics as Record<string, any>) || {},
+      };
+    }
+
+    // If it has the new format (industry, company_size, target_market, business_model)
+    if (segment.industry || segment.company_size || segment.target_market || segment.business_model) {
+      const description = [
+        segment.industry && `Industry: ${segment.industry}`,
+        segment.company_size && `Company size: ${segment.company_size}`,
+        segment.target_market && `Target market: ${segment.target_market}`,
+        segment.business_model && `Business model: ${segment.business_model}`,
+      ].filter(Boolean).join(' | ') || 'Not specified';
+
+      return {
+        description,
+        demographics: {
+          industry: segment.industry,
+          company_size: segment.company_size,
+          target_market: segment.target_market,
+          business_model: segment.business_model,
+        },
+      };
+    }
+
+    return null;
+  }
+
+  private mapHypothesis(hypothesisData: unknown): Project['hypothesis'] {
+    if (!hypothesisData || typeof hypothesisData !== 'object') {
+      return null;
+    }
+
+    const hypothesis = hypothesisData as Record<string, unknown>;
+
+    // If it already has the expected format (description + assumptions)
+    if (hypothesis.description && typeof hypothesis.description === 'string') {
+      return {
+        description: hypothesis.description,
+        assumptions: normalizeAssumptions(hypothesis.assumptions as any),
+      };
+    }
+
+    // If it has the new format (problem, solution, risks, key_metrics)
+    if (hypothesis.problem || hypothesis.solution || hypothesis.risks || hypothesis.key_metrics) {
+      const description = [
+        hypothesis.problem && `Problem: ${hypothesis.problem}`,
+        hypothesis.solution && `Solution: ${hypothesis.solution}`,
+      ].filter(Boolean).join('\n\n') || 'Not specified';
+
+      const assumptions = Array.isArray(hypothesis.risks)
+        ? hypothesis.risks.map((risk: string) => risk)
+        : [];
+
+      return {
+        description,
+        assumptions: normalizeAssumptions(assumptions),
+      };
+    }
+
+    return null;
   }
 }
 

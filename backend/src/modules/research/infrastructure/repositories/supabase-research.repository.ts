@@ -7,6 +7,7 @@ import type { ResearchDataRepositoryPort } from '../../application/ports/researc
 import type { StoredResearchData, MarketDataBlock, CompetitorInfoBlock, SynthesisReport, AutocompleteInsights, UserInsightsBlock, AssumptionAssessment, AcademicPapersBlock, ProductHuntBlock } from '../../domain/value-objects';
 import type { ResearchStatus } from '../../domain/value-objects/research-status.vo';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
+import type { UserStory } from '../../application/ports/user-stories-llm.port';
 
 @injectable()
 export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
@@ -71,6 +72,8 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
         commentPatternAnalysis,
         academicPapers,
         productHunt,
+        userStories: (data.user_stories as UserStory[]) ?? null,
+        userStoriesGeneratedAt: data.user_stories_generated_at ? new Date(data.user_stories_generated_at) : null,
         lastResearchRunAt: data.last_research_run_at ? new Date(data.last_research_run_at) : null,
         updatedAt: new Date(data.updated_at),
         researchStatus: (data.research_status as ResearchStatus) ?? 'idle',
@@ -158,6 +161,35 @@ export class SupabaseResearchRepository implements ResearchDataRepositoryPort {
       return ResultEx.success(undefined);
     } catch (error) {
       this._logger.error('supabase-research-repository.update-status-exception', { projectId, status, error });
+      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async updateUserStories(projectId: string, userStories: UserStory[], generatedAt: Date): Promise<ResultEx<void, Error>> {
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase
+        .from('research_data')
+        .update({
+          user_stories: userStories,
+          user_stories_generated_at: generatedAt.toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('project_id', projectId);
+
+      if (error) {
+        this._logger.error('supabase-research-repository.update-user-stories-error', { projectId, error });
+        return ResultEx.failure(new Error(error.message));
+      }
+
+      this._logger.info('supabase-research-repository.update-user-stories-success', {
+        projectId,
+        storiesCount: userStories.length
+      });
+
+      return ResultEx.success(undefined);
+    } catch (error) {
+      this._logger.error('supabase-research-repository.update-user-stories-exception', { projectId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
     }
   }

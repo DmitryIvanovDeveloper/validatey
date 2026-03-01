@@ -7,6 +7,9 @@ import { CollectResearchDataUseCase } from '../../application/use-cases/collect-
 import { GenerateSynthesisUseCase } from '../../application/use-cases/generate-synthesis.use-case';
 import { ResearchAssistantUseCase } from '../../application/use-cases/research-assistant.use-case';
 import { CheckResearchAvailabilityUseCase } from '../../application/use-cases/check-research-availability.use-case';
+import { GenerateUserStoriesUseCase } from '../../application/use-cases/generate-user-stories.use-case';
+import { UserStoriesAiAdapter } from '../services/user-stories-ai.adapter';
+import type { UserStoriesAiPort } from '../../application/ports/user-stories-ai.port';
 import { ResearchPresenter } from '../../interface-adapters/presenters/research.presenter';
 import { CommentsFetchStartedEventHandler } from '../../application/event-handlers/comments-fetch-started-event.handler';
 import { CommentsFetchCompletedEventHandler } from '../../application/event-handlers/comments-fetch-completed-event.handler';
@@ -21,12 +24,16 @@ export function bindResearch(container: Container): void {
   // Repository
   container.bind<ResearchRepositoryPort>(TYPES.ResearchRepositoryPort).to(ResearchRepository);
 
+  // Ports
+  container.bind<UserStoriesAiPort>(TYPES.UserStoriesAiPort).to(UserStoriesAiAdapter);
+
   // Use Cases
   container.bind(TYPES.GetResearchCanvasUseCase).to(GetResearchCanvasUseCase);
   container.bind(TYPES.CollectResearchDataUseCase).to(CollectResearchDataUseCase);
   container.bind(TYPES.GenerateSynthesisUseCase).to(GenerateSynthesisUseCase);
   container.bind(TYPES.ResearchAssistantUseCase).to(ResearchAssistantUseCase);
   container.bind(TYPES.CheckResearchAvailabilityUseCase).to(CheckResearchAvailabilityUseCase);
+  container.bind(TYPES.GenerateUserStoriesUseCase).to(GenerateUserStoriesUseCase);
 
   // Presenters
   container.bind(TYPES.ResearchPresenter).to(ResearchPresenter);

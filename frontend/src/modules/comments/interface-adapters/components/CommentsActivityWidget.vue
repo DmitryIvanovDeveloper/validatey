@@ -136,6 +136,10 @@ watch(() => props.projectId, (id) => {
   buckets.value = [];
   if (id) load();
 });
+
+defineExpose({
+  reload: load
+});
 </script>
 
 <style scoped>

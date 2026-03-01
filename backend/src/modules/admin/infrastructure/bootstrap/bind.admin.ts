@@ -9,7 +9,8 @@ import { SupabaseAuthListUsersAdapter } from '../adapters/supabase-auth-list-use
 import { SupabaseWishlistListAdapter } from '../adapters/supabase-wishlist-list.adapter';
 import type { GetUserRolePort } from '../../../auth/application/ports/get-user-role.port';
 import { AUTH_TYPES } from '../../../auth/infrastructure/bootstrap/types';
-import { WISHLIST_TYPES } from '../../../wishlist/application/types';
+import { TYPES as WISHLIST_TYPES } from '../../../wishlist/application/types';
+import type { ListWishlistUseCase } from '../../../wishlist/application/use-cases/list-wishlist.use-case';
 
 export function bindAdmin(container: Container): void {
   container.bind<GetCallerRolePort>(TYPES.GetCallerRole).to(UserRoleRepository);
@@ -17,5 +18,5 @@ export function bindAdmin(container: Container): void {
   container.bind<ListUsersPort>(TYPES.ListUsers).to(SupabaseAuthListUsersAdapter);
   container.bind<ListUsersUseCase>(TYPES.ListUsersUseCase).to(ListUsersUseCase);
   container.bind<ListWishlistPort>(TYPES.ListWishlist).to(SupabaseWishlistListAdapter);
-  // ListWishlistUseCase is bound in wishlist module
+  // ListWishlistUseCase is bound in wishlist module, but we need to reference it
 }

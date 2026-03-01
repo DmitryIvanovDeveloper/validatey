@@ -8,6 +8,7 @@ import type { AcademicPapersBlock } from './academic-papers-block.vo';
 import type { ProductHuntBlock } from './product-hunt-block.vo';
 import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 import type { ResearchStatus } from './research-status.vo';
+import type { UserStory } from '../../application/ports/user-stories-llm.port';
 
 /** Data persisted by ResearchDataRepository (market + competitor + autocomplete + user insights + optional synthesis + assumption assessments + comment pattern analysis + academic papers). */
 export interface StoredResearchData {
@@ -21,6 +22,12 @@ export interface StoredResearchData {
 	readonly commentPatternAnalysis: CommentPatternAnalysis | null;
 	readonly academicPapers: AcademicPapersBlock | null;
 	readonly productHunt: ProductHuntBlock | null;
+	readonly userStories: UserStory[] | null;
+	readonly userStoriesGeneratedAt: Date | null;
+	readonly commentMetrics?: {
+		totalCount: number;
+		bySource: Record<string, number>;
+	};
 	readonly lastResearchRunAt: Date | null;
 	readonly updatedAt: Date;
 	/** Current research phase; used to restore "in progress" state after page reload. */

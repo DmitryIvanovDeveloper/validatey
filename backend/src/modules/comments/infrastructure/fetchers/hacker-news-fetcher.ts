@@ -46,48 +46,6 @@ export class HackerNewsFetcher implements CommentFetcherPort {
       return ResultEx.success({ comments: [], errors: [] });
     }
 
-    // For testing purposes, return mock data for feeds only (not specific posts)
-    if (!input.itemId && process.env.NODE_ENV === 'development' && !process.env.TEST_REAL_API) {
-      return ResultEx.success({
-        comments: [
-          {
-            externalId: 'mock_comment_1',
-            content: 'This is a mock comment from Hacker News. Great idea for AI-powered comment analysis!',
-            author: 'testuser1',
-            url: 'https://news.ycombinator.com/item?id=123456',
-            createdAt: new Date(),
-            contextTitle: 'Show HN: AI Comment Analyzer',
-            contextUrl: 'https://news.ycombinator.com/item?id=123456',
-            subsourceName: 'Top Stories',
-            importOrigin: 'hackernews'
-          },
-          {
-            externalId: 'mock_comment_2',
-            content: 'I\'ve been using similar tools for market research. The key is getting diverse perspectives from different communities.',
-            author: 'researcher42',
-            url: 'https://news.ycombinator.com/item?id=123456',
-            createdAt: new Date(Date.now() - 3600000), // 1 hour ago
-            contextTitle: 'Show HN: AI Comment Analyzer',
-            contextUrl: 'https://news.ycombinator.com/item?id=123456',
-            subsourceName: 'Top Stories',
-            importOrigin: 'hackernews'
-          },
-          {
-            externalId: 'mock_comment_3',
-            content: 'Privacy concerns aside, this could be very valuable for understanding user sentiment at scale.',
-            author: 'privacy_first',
-            url: 'https://news.ycombinator.com/item?id=123456',
-            createdAt: new Date(Date.now() - 7200000), // 2 hours ago
-            contextTitle: 'Show HN: AI Comment Analyzer',
-            contextUrl: 'https://news.ycombinator.com/item?id=123456',
-            subsourceName: 'Top Stories',
-            importOrigin: 'hackernews'
-          }
-        ],
-        errors: undefined
-      });
-    }
-
     const limitStories = input.limitStories ?? 30;
     const sinceDate = input.sinceDate;
     const sinceTs = sinceDate ? Math.floor(sinceDate.getTime() / 1000) : undefined;

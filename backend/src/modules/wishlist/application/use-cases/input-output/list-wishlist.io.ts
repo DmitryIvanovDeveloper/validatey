@@ -1,11 +1,11 @@
-export type ListWishlistUseCaseRequest = {
+export interface ListWishlistUseCaseRequest {
   callerUserId: string;
-};
+}
 
-export type ListWishlistUseCaseResponse = {
+export interface ListWishlistUseCaseResponse {
   wishlist: Array<{
     id: string;
     email: string;
     createdAt: Date;
   }>;
-};
+}

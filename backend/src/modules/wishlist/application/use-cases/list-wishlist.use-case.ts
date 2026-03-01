@@ -6,17 +6,17 @@ import type { GetCallerRolePort } from '../../../admin/application/ports/get-cal
 import type { ListWishlistPort } from '../../../admin/application/ports/list-wishlist.port';
 import { AdminAccessDeniedError } from '../../../admin/domain/errors/admin.error';
 import type { Role } from '../../../admin/domain/value-objects/role.vo';
-import { ListWishlistUseCaseRequest, ListWishlistUseCaseResponse } from '../../../admin/application/use-cases/input-output/list-wishlist.io';
-import { TYPES } from '../../../admin/infrastructure/bootstrap/types';
+import { ListWishlistUseCaseRequest, ListWishlistUseCaseResponse } from './input-output/list-wishlist.io';
+import { TYPES as ADMIN_TYPES } from '../../../admin/infrastructure/bootstrap/types';
 
 @injectable()
 export class ListWishlistUseCase {
   constructor(
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: LoggerPort,
-    @inject(TYPES.GetCallerRole)
+    @inject(ADMIN_TYPES.GetCallerRole)
     private readonly _getCallerRole: GetCallerRolePort,
-    @inject(TYPES.ListWishlist)
+    @inject(ADMIN_TYPES.ListWishlist)
     private readonly _listWishlist: ListWishlistPort
   ) {}
 

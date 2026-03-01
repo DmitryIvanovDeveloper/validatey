@@ -55,6 +55,9 @@
         <!-- Tips: what comment analysis cannot validate -->
         <TipsWidget />
 
+        <!-- AI-Generated User Stories -->
+        <UserStoriesWidget :project-id="projectId" />
+
         <!-- Executive Summary -->
         <ExecutiveSummaryWidget
           :summary="researchData?.synthesisReport?.summary || null"
@@ -271,7 +274,7 @@
 
         <!-- Comment Pattern Analysis -->
         <CommentPatternsWidget ref="commentPatternsRef" :project-id="projectId" />
-        <CommentsActivityWidget v-if="projectId" :project-id="projectId" />
+        <CommentsActivityWidget ref="commentsActivityRef" v-if="projectId" :project-id="projectId" />
         <!-- Suggested Outreach -->
         <SuggestedOutreachWidget ref="suggestedOutreachRef" v-if="projectId" :project-id="projectId" />
         <!-- Learning Journey (hidden) -->
@@ -389,6 +392,7 @@ import { CommentsWidget, CommentsFreshnessWidget, CommentsActivityWidget, Sugges
 import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../../research/interface-adapters';
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
+import UserStoriesWidget from '../../../../research/interface-adapters/components/UserStoriesWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
 import TipsWidget from '../../../../../shared/components/TipsWidget.vue';
 import Badge from '../../../../../shared/components/atoms/Badge.vue';
@@ -411,6 +415,7 @@ const responsePaceRef = ref();
 const suggestedOutreachRef = ref();
 const commentsWidgetRef = ref<{ reload?: () => Promise<void> } | null>(null);
 const commentPatternsRef = ref<{ reload?: () => void } | null>(null);
+const commentsActivityRef = ref<{ reload?: () => void } | null>(null);
 
 /** Overview data from presenter (viewModel.overview). Loaded via presenter.loadOverview(). */
 const overviewData = viewModel.overview;
@@ -468,6 +473,7 @@ const assumptionAssessmentsById = computed<Record<string, { status: string; evid
 
 /** Status for assumption by id: from assumptionAssessments, else legacy by index, else overall. */
 function getAssumptionStatus(assumptionId: string | number): HypothesisStatus | null {
+  // First try to get by ID if it's a string
   if (typeof assumptionId === 'string') {
     const assessment = assumptionAssessmentsById.value[assumptionId];
     if (assessment?.status) {
@@ -478,8 +484,11 @@ function getAssumptionStatus(assumptionId: string | number): HypothesisStatus | 
       return null;
     }
   }
+
+  // Fallback to legacy per-index statuses
   const per = assumptionStatuses.value;
   if (per && typeof assumptionId === 'number' && per[assumptionId] != null) return per[assumptionId];
+
   return hypothesisOverallStatus.value;
 }
 
@@ -879,6 +888,7 @@ async function handleResearchCompleted() {
   // Reload all widgets so UI updates reactively
   await commentsWidgetRef.value?.reload?.();
   commentPatternsRef.value?.reload?.();
+  commentsActivityRef.value?.reload?.();
   await painPointsRef.value?.reload?.();
   await responsePaceRef.value?.reload?.();
   await suggestedOutreachRef.value?.reload?.();
