@@ -13,6 +13,7 @@ import type { AutocompleteDataProviderPort } from '../ports/autocomplete-data-pr
 import type { AcademicPapersProviderPort } from '../ports/academic-papers-provider.port';
 import type { HnSearchCommentsCollectorPort } from '../ports/hn-search-comments-collector.port';
 import type { RedditSearchCommentsCollectorPort } from '../ports/reddit-search-comments-collector.port';
+import type { RedditSubredditsGeneratorPort } from '../ports/reddit-subreddits-generator.port';
 import type { ProductHuntProviderPort } from '../ports/product-hunt-provider.port';
 import { ResearchNotFoundError, ResearchCooldownError } from '../../domain/errors/research.error';
 import type { StoredResearchData } from '../../domain/value-objects/stored-research-data.vo';
@@ -70,6 +71,8 @@ export class CollectResearchDataUseCase {
     private readonly _hnSearchCollector: HnSearchCommentsCollectorPort,
     @inject(RESEARCH_TYPES.RedditSearchCommentsCollector)
     private readonly _redditSearchCollector: RedditSearchCommentsCollectorPort,
+    @inject(RESEARCH_TYPES.RedditSubredditsGenerator)
+    private readonly _redditSubredditsGenerator: RedditSubredditsGeneratorPort,
     @inject(RESEARCH_TYPES.ProductHuntProvider)
     private readonly _productHuntProvider: ProductHuntProviderPort
   ) {}
@@ -114,6 +117,15 @@ export class CollectResearchDataUseCase {
 
       const searchQuery = await this.buildSearchQuery(intent);
 
+      // Generate AI-powered subreddits for Reddit search
+      const subredditsResult = await this._redditSubredditsGenerator.generateSubreddits(intent);
+      const subreddits = subredditsResult.isSuccess ? subredditsResult.data : [];
+      if (subreddits.length > 0) {
+        this._logger.info('research.reddit-subreddits-generated', { subreddits: subreddits.length });
+      } else {
+        this._logger.warn('research.no-subreddits-generated', { fallback: true });
+      }
+
       const [marketResult, competitorResult, autocompleteResult, academicPapersResult, hnSearchResult, redditSearchResult, productHuntResult] =
         await Promise.all([
           this._marketDataProvider.fetchMarketData(projectId, intent),
@@ -123,8 +135,8 @@ export class CollectResearchDataUseCase {
           searchQuery
             ? this._hnSearchCollector.collect(projectId, searchQuery)
             : Promise.resolve(ResultEx.success({ count: 0 })),
-          searchQuery
-            ? this._redditSearchCollector.collect(projectId, searchQuery)
+          searchQuery && subreddits.length > 0
+            ? this._redditSearchCollector.collect(projectId, searchQuery, subreddits)
             : Promise.resolve(ResultEx.success({ count: 0 })),
           searchQuery
             ? this._productHuntProvider.fetchProductHunt(projectId, searchQuery)

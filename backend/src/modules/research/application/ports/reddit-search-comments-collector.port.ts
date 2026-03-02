@@ -5,5 +5,5 @@ import ResultEx from '../../../../infrastructure/result/result';
  * Used during research collect to auto-ingest Reddit comments matching the hypothesis topic.
  */
 export interface RedditSearchCommentsCollectorPort {
-  collect(projectId: string, searchQuery: string): Promise<ResultEx<{ count: number }, Error>>;
+  collect(projectId: string, searchQuery: string, subreddits?: string[]): Promise<ResultEx<{ count: number }, Error>>;
 }

@@ -7,6 +7,8 @@ export interface FetchCommentsUseCaseInput {
   redditUrls?: string[];
   /** When set with sourceType reddit, fetches comments via Reddit JSON search API (no URL needed). */
   redditSearchQuery?: string;
+  /** AI-generated subreddits to search in (Reddit search only). */
+  redditSubreddits?: string[];
   hnFeedType?: 'top' | 'new' | 'ask' | 'show' | 'jobs' | 'newcomments';
   /** When set with sourceType hackernews, fetches comments via Algolia search (no feed/URL needed). */
   hnSearchQuery?: string;

@@ -15,19 +15,17 @@ import ResultEx from '../../../../infrastructure/result/result';
 const REDDIT_BASE = 'https://www.reddit.com';
 const HITS_PER_PAGE = 100;
 /**
- * Subreddits relevant to startup/product validation — searched with restrict_sr=1.
- * Covers the main communities where founders discuss pain points and product ideas.
+ * Default subreddits used when AI doesn't provide specific ones.
+ * Used as fallback for general startup/product validation discussions.
  */
-const TARGET_SUBREDDITS = [
+const DEFAULT_SUBREDDITS = [
   'startups',
   'SaaS',
   'Entrepreneur',
   'indiehackers',
-  'roastmystartup',
   'buildinpublic',
   'ProductManagement',
-  'microsaas',
-].join('+');
+];
 
 const USER_AGENT = 'web:com.validatey.comments:v1.0.0 (by /u/validatey_bot)';
 const MIN_COMMENT_LENGTH = 30;
@@ -74,11 +72,16 @@ export class RedditSearchFetcher implements CommentFetcherPort {
     }
 
     const query = redditInput.searchQuery.trim();
-    this._logger.info('reddit-search-fetcher.start', { query });
+    const subreddits = redditInput.subreddits && redditInput.subreddits.length > 0
+      ? redditInput.subreddits
+      : DEFAULT_SUBREDDITS;
+
+    this._logger.info('reddit-search-fetcher.start', { query, subreddits: subreddits.length });
 
     try {
-      // Search globally (no restrict_sr) across Reddit — targeted subreddits may restrict search API.
+      // Search within specified subreddits using restrict_sr=on
       // type=comment,link returns both comments (t1) and posts (t3) which contain discussion text.
+      const subredditList = subreddits.join('+');
       const params = new URLSearchParams({
         q: query,
         sort: 'relevance',
@@ -86,7 +89,7 @@ export class RedditSearchFetcher implements CommentFetcherPort {
         limit: String(HITS_PER_PAGE),
       });
 
-      const url = `${REDDIT_BASE}/r/${TARGET_SUBREDDITS}/search.json?${params.toString()}&restrict_sr=on`;
+      const url = `${REDDIT_BASE}/r/${subredditList}/search.json?${params.toString()}&restrict_sr=on`;
 
       const response = await this._http.get<RedditSearchResponse>(url, {
         'User-Agent': USER_AGENT,

@@ -19,6 +19,7 @@ export const TYPES = {
   CollectResearchDataUseCase: Symbol.for('CollectResearchDataUseCase'),
   HnSearchCommentsCollector: Symbol.for('HnSearchCommentsCollector'),
   RedditSearchCommentsCollector: Symbol.for('RedditSearchCommentsCollector'),
+  RedditSubredditsGenerator: Symbol.for('RedditSubredditsGenerator'),
   ResearchAssistantUseCase: Symbol.for('ResearchAssistantUseCase'),
   ResearchController: Symbol.for('ResearchController'),
 } as const;

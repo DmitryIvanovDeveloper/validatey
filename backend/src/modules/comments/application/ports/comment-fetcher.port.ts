@@ -35,6 +35,8 @@ export interface FetchCommentsInputReddit {
   after?: string;
   /** When set, fetch comments via Reddit JSON search API instead of specific post/subreddit */
   searchQuery?: string;
+  /** AI-generated subreddits to search in (used with searchQuery) */
+  subreddits?: string[];
 }
 
 /** Hacker News-specific fetch input */

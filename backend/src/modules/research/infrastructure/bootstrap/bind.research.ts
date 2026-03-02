@@ -12,6 +12,7 @@ import type { AcademicPapersProviderPort } from '../../application/ports/academi
 import type { ProductHuntProviderPort } from '../../application/ports/product-hunt-provider.port';
 import type { HnSearchCommentsCollectorPort } from '../../application/ports/hn-search-comments-collector.port';
 import type { RedditSearchCommentsCollectorPort } from '../../application/ports/reddit-search-comments-collector.port';
+import type { RedditSubredditsGeneratorPort } from '../../application/ports/reddit-subreddits-generator.port';
 import type { SearchPhrasesGeneratorPort } from '../../application/ports/search-phrases-generator.port';
 import type { AutocompleteApiPort } from '../../application/ports/autocomplete-api.port';
 import type { ResearchAssistantLlmPort } from '../../application/ports/research-assistant-llm.port';
@@ -45,6 +46,7 @@ import { AutocompleteDataProviderAdapter } from '../services/autocomplete-data-p
 import { ResearchController } from '../../interface-adapters/controllers/research.controller';
 import { HnSearchCommentsCollectorAdapter } from '../../../comments/infrastructure/adapters/hn-search-comments-collector.adapter';
 import { RedditSearchCommentsCollectorAdapter } from '../../../comments/infrastructure/adapters/reddit-search-comments-collector.adapter';
+import { RedditSubredditsGeneratorAdapter } from '../services/reddit-subreddits-generator.adapter';
 import { ProductHuntAlgoliaProviderAdapter } from '../services/product-hunt-algolia-provider.adapter';
 
 // Enable real LLM providers for market and competitor research
@@ -91,6 +93,9 @@ export function bindResearch(container: Container): void {
   container
     .bind<RedditSearchCommentsCollectorPort>(TYPES.RedditSearchCommentsCollector)
     .to(RedditSearchCommentsCollectorAdapter);
+  container
+    .bind<RedditSubredditsGeneratorPort>(TYPES.RedditSubredditsGenerator)
+    .to(RedditSubredditsGeneratorAdapter);
   container
     .bind<ProductHuntProviderPort>(TYPES.ProductHuntProvider)
     .to(ProductHuntAlgoliaProviderAdapter);

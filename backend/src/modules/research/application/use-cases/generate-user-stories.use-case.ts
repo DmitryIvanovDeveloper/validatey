@@ -182,7 +182,7 @@ export class GenerateUserStoriesUseCase {
   }
 
   /** One short quote per pattern from examples — for grounding acceptance criteria in real comments. */
-  private buildPatternQuotes(commentPatternAnalysis: { patterns: readonly Array<{ label: string; examples?: readonly Array<{ content?: string }> }> } | null): UserStoriesInput['patternExampleQuotes'] {
+  private buildPatternQuotes(commentPatternAnalysis: { patterns: ReadonlyArray<{ label: string; examples?: ReadonlyArray<{ content?: string }> }> } | null): UserStoriesInput['patternExampleQuotes'] {
     const patterns = commentPatternAnalysis?.patterns?.slice(0, 8) ?? [];
     const quotes: Array<{ patternLabel: string; quote: string }> = [];
     const maxQuoteLen = 220;

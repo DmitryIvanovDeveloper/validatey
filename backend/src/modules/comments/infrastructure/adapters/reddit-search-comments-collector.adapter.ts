@@ -11,8 +11,13 @@ export class RedditSearchCommentsCollectorAdapter implements RedditSearchComment
     private readonly _fetchCommentsUseCase: FetchCommentsUseCase
   ) {}
 
-  async collect(projectId: string, searchQuery: string): Promise<ResultEx<{ count: number }, Error>> {
+  async collect(projectId: string, searchQuery: string, subreddits?: string[]): Promise<ResultEx<{ count: number }, Error>> {
     if (!searchQuery?.trim()) {
+      return ResultEx.success({ count: 0 });
+    }
+
+    // If no subreddits provided by AI, skip Reddit search entirely
+    if (!subreddits || subreddits.length === 0) {
       return ResultEx.success({ count: 0 });
     }
 
@@ -20,6 +25,7 @@ export class RedditSearchCommentsCollectorAdapter implements RedditSearchComment
       projectId,
       sourceType: 'reddit',
       redditSearchQuery: searchQuery.trim(),
+      redditSubreddits: subreddits, // Pass AI-generated subreddits
     });
 
     if (!result.isSuccess) {
