@@ -8,7 +8,6 @@ const mockLogger: LoggerPort = {
   warn: vi.fn(),
   error: vi.fn(),
   debug: vi.fn(),
-  child: vi.fn(() => mockLogger),
 };
 
 const validStories = [

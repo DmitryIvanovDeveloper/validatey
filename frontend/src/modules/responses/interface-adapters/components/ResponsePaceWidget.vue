@@ -2,7 +2,13 @@
   <div class="response-pace-widget">
     <div class="section-card signals-card">
       <div class="section-card-header">
+        <div class="section-title-row">
           <h3 class="section-title">Response Pace</h3>
+          <SectionHintButton
+            text="How fast responses are coming in; use to plan next steps and follow-ups."
+            aria-label="Hint: Response Pace"
+          />
+        </div>
       </div>
 
       <!-- Loading state -->
@@ -79,6 +85,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch, withDefaults } from 'vue';
 import ProgressBar from '@/shared/components/ProgressBar.vue';
+import SectionHintButton from '@/shared/components/SectionHintButton.vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { ResponsePresenter } from '../presenters/response.presenter';
 import type { ResponsePaceData } from '../presenters/response.presenter';
@@ -182,6 +189,12 @@ defineExpose({
 
 .section-card-header {
   margin-bottom: 1rem;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .section-title {

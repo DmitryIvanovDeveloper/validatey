@@ -11,6 +11,7 @@ import type { CommentRepositoryPort } from '../../../application/ports/comment-r
 import type { CommentSourceRepositoryPort } from '../../../application/ports/comment-source-repository.port';
 import type { ProjectRepositoryPort } from '../../../../projects/application/ports/project-repository.port';
 import type { IGetPatternCommentsUseCase } from '../../../application/use-cases/get-pattern-comments.use-case';
+import type { IGetSuggestedOutreachCommentersUseCase } from '../../../application/use-cases/get-suggested-outreach-commenters.use-case';
 import type { ResearchDataRepositoryPort } from '../../../../research/application/ports/research-data-repository.port';
 import ResultEx from '../../../../../infrastructure/result/result';
 import { CommentEntity } from '../../../domain/entities/comment.entity';

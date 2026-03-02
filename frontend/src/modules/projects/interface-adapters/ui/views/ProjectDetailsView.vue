@@ -61,6 +61,7 @@
         <!-- Executive Summary -->
         <ExecutiveSummaryWidget
           :summary="researchData?.synthesisReport?.summary || null"
+          :recommendations="researchData?.synthesisReport?.recommendations"
           :loading="executiveSummaryLoading"
           @show-details="handleShowDetails"
         />
@@ -68,7 +69,13 @@
         <!-- Segment -->
         <SectionCard v-if="getSegmentDescription() && getSegmentDescription() !== 'Not specified'">
           <template #header>
-            <h3 class="section-title">Segment</h3>
+            <div class="section-title-row">
+              <h3 class="section-title">Segment</h3>
+              <SectionHintButton
+                text="Target audience description; use to align messaging and outreach."
+                aria-label="Hint: Segment"
+              />
+            </div>
           </template>
           <div class="segment-content formatted-text" v-html="formatMarkdown(getSegmentDescription())"></div>
         </SectionCard>
@@ -85,7 +92,13 @@
         <SectionCard v-if="getHypothesisText() && getHypothesisText() !== 'Not specified'">
           <template #header>
             <div class="hypothesis-header">
-              <h3 class="section-title">Hypothesis</h3>
+              <div class="section-title-row">
+                <h3 class="section-title">Hypothesis</h3>
+                <SectionHintButton
+                  text="Your testable assumption; status shows validation level from comments."
+                  aria-label="Hint: Hypothesis"
+                />
+              </div>
               <HypothesisStatusWidget :status="hypothesisOverallStatus" />
             </div>
           </template>
@@ -142,7 +155,13 @@
         <!-- Market -->
         <SectionCard v-if="hasMarketData()">
           <template #header>
-            <h3 class="section-title">Market</h3>
+            <div class="section-title-row">
+              <h3 class="section-title">Market</h3>
+              <SectionHintButton
+                text="Market picture, fit, and differentiation; use for positioning and pitch."
+                aria-label="Hint: Market"
+              />
+            </div>
           </template>
           <div class="market-content">
             <div v-if="project?.marketContext?.marketPicture" class="market-section">
@@ -394,6 +413,7 @@ import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/co
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
 import UserStoriesWidget from '../../../../research/interface-adapters/components/UserStoriesWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
+import SectionHintButton from '../../../../../shared/components/SectionHintButton.vue';
 import TipsWidget from '../../../../../shared/components/TipsWidget.vue';
 import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { normalizeAssumptions } from '../../../domain/value-objects/hypothesis.vo';
@@ -2793,6 +2813,13 @@ watch(project, (p) => {
 
 .journey-empty p {
   margin-bottom: 1rem;
+}
+
+/* Section title row: title + hint (?) */
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 /* Hypothesis */

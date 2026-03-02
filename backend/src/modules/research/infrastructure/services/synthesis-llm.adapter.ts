@@ -48,8 +48,10 @@ COMMENT PATTERN ANALYSIS:
   - confidenceScore: 0-1 (AI confidence in pattern analysis)
   - recencyScore: 0-1 (how recent this pattern is)
 - A numbered list of comments is provided with format "N. [id: <uuid>] \"preview\"". For each pattern set commentIds to an array of those exact UUID strings (the <uuid> part).
-- Include in commentIds every comment from the list whose content clearly matches this pattern's label and insight. Do not add loosely related comments or ones that fit another pattern better. Prefer accuracy over quantity, but do not limit to 1–2: if many comments clearly support this pattern, include all of them.
+- Include in commentIds every comment from the list whose content clearly matches this pattern's label and insight and is clearly about the same topic/domain as the project Hypothesis (see Context below). Do not add loosely related comments or ones that fit another pattern better. Prefer accuracy over quantity, but do not limit to 1–2: if many comments clearly support this pattern, include all of them.
 - Each pattern has a label and insight: assign a comment only when the comment text clearly supports that label/insight (e.g. for label "Users are not willing to give feedback" the comment must express unwillingness to give feedback or that others don't).
+- commentIds must only contain comments that are ABOUT THE SAME DOMAIN as the Hypothesis (e.g. if the hypothesis is about climate risk assessment, do NOT include comments about job changes, interview tips, or generic "tools" in other contexts). The comment must directly discuss the problem or need stated in the pattern, in the domain of the hypothesis.
+- When in doubt whether a comment is about the hypothesis domain or only uses similar words (e.g. "tools", "cost"), leave that comment OUT of commentIds. Prefer empty commentIds for a pattern over including off-topic comments.
 - The number of unique authors is computed server-side from commentIds; many unique authors = stronger signal. Include all comment UUIDs that clearly belong to this pattern.
 - Extract top 5-7 most significant patterns
 - For each pattern include exactly ONE short example (max 120 chars). Do NOT include more than one example per pattern.
@@ -61,10 +63,20 @@ ADDITIONAL ANALYTICS:
 - Assess recent activity level (0-1) and trend direction (increasing/stable/decreasing)
 - Provide platform distribution and sentiments
 
-Respond with ONLY valid JSON, no markdown:
+STRATEGIC RECOMMENDATIONS RULES (recommendations must be project-specific and stage-appropriate):
+- Base every recommendation on the Context above: this project's hypothesis, segment, pain points, comment themes, and user insights. Do not output generic advice that could apply to any product.
+- Match recommendations to the verdict you return:
+  * If verdict is "needs-more-data": recommend validation steps that do NOT require building a product. Prefer: (1) surveys or short questionnaires on willingness/expectations, (2) 5–10 user interviews to test key assumptions, (3) concierge or manual test (you play the "product": e.g. broker feedback exchange by hand and measure who gives first), (4) landing page or fake-door (one page + "Sign up" / "I want in" to measure interest and optional 1–2 questions), (5) community experiment (e.g. post in a relevant forum offering a give-to-get exchange and observe who actually gives feedback first). Optionally add competitor/format research. Do NOT recommend building an MVP, prototype, or app until there is more validation.
+  * If verdict is "validated": you may recommend next product steps (e.g. MVP scope, beta, positioning) only when the summary and patterns clearly support it; cite which pain points or assumptions justify each step.
+  * If verdict is "rejected": recommend pivoting or re-scoping based on what the evidence showed (e.g. which assumption failed, what segment to try instead); do not recommend building the same idea.
+- Preconditions for "Create MVP" / "Build next": only suggest when (1) verdict is "validated" or (2) at least 2–3 key assumptions are clearly supported by comments/user insights and you state that in the summary. Otherwise recommend more validation first.
+- Phrase recommendations so they reference this project (e.g. "Given the demand for X in comments, consider a minimal MVP focused on Y" instead of "Create an MVP").
+- Prefer 2–4 recommendations; fewer is fine if the evidence only supports that many. Do not pad with generic items.
+
+Respond with ONLY valid JSON, no markdown. Use strictly valid JSON: no trailing commas in arrays or objects; escape any double quote inside a string with backslash (e.g. \\").
 {
   "summary": "2-4 sentence executive summary with concrete evidence",
-  "recommendations": ["2-5 actionable recommendations"],
+  "recommendations": ["2-5 actionable recommendations tied to this project and verdict"],
   "verdict": "validated"|"rejected"|"needs-more-data",
   "commentPatternAnalysis": {
     "totalComments": 184,
@@ -174,13 +186,34 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
     }
   }
 
+  /**
+   * Try to repair common LLM JSON mistakes (e.g. trailing commas) so that parse can succeed.
+   * Does not guarantee valid JSON; used before throwing on parse failure.
+   */
+  private repairJsonString(raw: string): string {
+    return raw
+      .replace(/,\s*(\]|\})/g, '$1'); // remove trailing commas before ] or }
+  }
+
   private parseJsonToReport(content: string): SynthesisReport {
     const match = content.match(/\{[\s\S]*\}/);
     if (!match) {
-      return { summary: content.slice(0, 500), recommendations: [], verdict: 'needs-more-data' };
+      throw new SynthesisGenerationError('LLM response contained no JSON object');
+    }
+    let jsonStr = match[0];
+    let obj: Record<string, unknown>;
+    try {
+      obj = JSON.parse(jsonStr) as Record<string, unknown>;
+    } catch (firstErr) {
+      jsonStr = this.repairJsonString(jsonStr);
+      try {
+        obj = JSON.parse(jsonStr) as Record<string, unknown>;
+      } catch (secondErr) {
+        const msg = firstErr instanceof Error ? firstErr.message : String(firstErr);
+        throw new SynthesisGenerationError(`Invalid JSON from LLM (repair attempted): ${msg}`);
+      }
     }
     try {
-      const obj = JSON.parse(match[0]) as Record<string, unknown>;
       const summary = typeof obj.summary === 'string' ? obj.summary : '';
       const recommendations = Array.isArray(obj.recommendations)
         ? (obj.recommendations as string[]).filter((r) => typeof r === 'string')
@@ -239,9 +272,9 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
         commentPatternAnalysis
       };
     } catch (err) {
-      // Log parse failure for diagnostics but don't crash — return safe fallback
-      console.error('[synthesis-llm] JSON parse failed:', err instanceof Error ? err.message : String(err));
-      return { summary: '', recommendations: [], verdict: 'needs-more-data' };
+      const msg = err instanceof Error ? err.message : String(err);
+      if (err instanceof SynthesisGenerationError) throw err;
+      throw new SynthesisGenerationError(`Synthesis report parse error: ${msg}`);
     }
   }
 }

@@ -50,7 +50,6 @@ export class RedditSubredditsGeneratorAdapter implements RedditSubredditsGenerat
       intent.productDescription ? `Product: ${intent.productDescription}` : '',
       intent.segment ? `Target Segment: ${intent.segment}` : '',
       intent.geography ? `Geography: ${intent.geography}` : '',
-      intent.industry ? `Industry: ${intent.industry}` : '',
     ]
       .filter(Boolean)
       .join('\n');

@@ -2,7 +2,13 @@
   <div class="comment-patterns-widget">
     <!-- Header -->
     <div class="cpw-header">
-          <h3 class="cpw-title">Comment Pattern Analysis</h3>
+      <div class="cpw-title-row">
+        <h3 class="cpw-title">Comment Pattern Analysis</h3>
+        <SectionHintButton
+          text="Patterns in comments and how much they support the hypothesis; use as signal of theme, not strict statistics."
+          aria-label="Hint: Comment Pattern Analysis"
+        />
+      </div>
       <div v-if="analysis" class="cpw-header-badges">
         <div class="cpw-score-badge" :class="scoreBadgeClass">
           {{ scoreLabel }}
@@ -98,6 +104,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import ProgressBar from '@/shared/components/ProgressBar.vue';
+import SectionHintButton from '@/shared/components/SectionHintButton.vue';
 import { decodeHtmlEntities } from '../../../../../shared/utils/text';
 import CommentsSidebar from '../../components/CommentsSidebar.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
@@ -315,6 +322,18 @@ defineExpose({
   justify-content: space-between;
   padding: 1rem 1.25rem;
   border-bottom: var(--border-width) var(--border-style) var(--color-border);
+}
+
+.cpw-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.cpw-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .cpw-title {

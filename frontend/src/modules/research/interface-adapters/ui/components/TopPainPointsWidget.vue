@@ -2,7 +2,13 @@
   <div class="top-pain-points-widget">
     <div class="section-card signals-card">
       <div class="section-card-header">
-        <h3 class="section-title">Top Pain Points</h3>
+        <div class="section-title-row">
+          <h3 class="section-title">Top Pain Points</h3>
+          <SectionHintButton
+            text="Quotes and pains from comments; use for landing copy and interviews."
+            aria-label="Hint: Top Pain Points"
+          />
+        </div>
       </div>
 
       <div v-if="loading" class="loading-state">
@@ -31,6 +37,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import SectionHintButton from '../../../../../shared/components/SectionHintButton.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../../presenters/research.presenter';
 import { TYPES } from '../../../infrastructure/bootstrap/types';
@@ -106,6 +113,12 @@ defineExpose({
 
 .section-card-header {
   margin-bottom: 1rem;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .section-title {

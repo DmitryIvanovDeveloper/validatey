@@ -2,7 +2,13 @@
   <div class="comments-widget">
     <div class="section-card signals-card">
       <div class="section-card-header">
-        <h3 class="section-title">Comments Overview</h3>
+        <div class="section-title-row">
+          <h3 class="section-title">Comments Overview</h3>
+          <SectionHintButton
+            text="Count and sources of comments; use to gauge data volume and coverage."
+            aria-label="Hint: Comments Overview"
+          />
+        </div>
       </div>
 
       <!-- Loading state -->

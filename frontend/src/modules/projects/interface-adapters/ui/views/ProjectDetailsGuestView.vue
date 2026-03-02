@@ -67,6 +67,7 @@
         <!-- Executive Summary -->
         <ExecutiveSummaryWidget
           :summary="researchData?.synthesisReport?.summary || null"
+          :recommendations="researchData?.synthesisReport?.recommendations"
           :loading="executiveSummaryLoading"
           @show-details="handleShowDetails"
         />

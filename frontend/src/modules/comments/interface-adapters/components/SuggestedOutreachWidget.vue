@@ -11,7 +11,13 @@
     </div>
     <div v-else class="section-card signals-card">
       <div class="section-card-header">
-        <h3 class="section-title">Suggested outreach</h3>
+        <div class="section-title-row">
+          <h3 class="section-title">Suggested outreach</h3>
+          <SectionHintButton
+            text="People whose comments align with the hypothesis; good candidates to message for feedback or beta."
+            aria-label="Hint: Suggested outreach"
+          />
+        </div>
         <p class="section-subtitle">Commenters whose feedback aligns with your hypothesis — good candidates for manual survey outreach.</p>
       </div>
       <div class="commenters-list">

@@ -3,8 +3,14 @@
     <div class="section-card signals-card">
       <div class="section-card-header">
         <div class="header-content">
-          <h3 class="section-title">Executive Summary</h3>
-          <button v-if="summary?.trim()" @click="handleShowDetails" class="show-details-btn">
+          <div class="section-title-row">
+            <h3 class="section-title">Executive Summary</h3>
+            <SectionHintButton
+              text="Short conclusion on the hypothesis from comments; use as the main takeaway; for details see below."
+              aria-label="Hint: Executive Summary"
+            />
+          </div>
+          <button v-if="(summary?.trim() || recommendations?.length)" @click="handleShowDetails" class="show-details-btn">
             <span class="btn-text">Details</span>
           </button>
         </div>
@@ -16,14 +22,30 @@
       </div>
 
       <!-- Empty state: no data in DB, loading finished -->
-      <div v-else-if="!summary?.trim()" class="empty-state">
+      <div v-else-if="!summary?.trim() && !(recommendations?.length)" class="empty-state">
         <p class="empty-text">No research insights available yet</p>
         <p class="empty-subtext">Run research and collect responses to see the executive summary here.</p>
       </div>
 
       <!-- Content -->
       <div v-else class="summary-content">
-        <p class="summary-text">{{ summary }}</p>
+        <p v-if="summary?.trim()" class="summary-text">{{ summary }}</p>
+        <!-- Strategic Recommendations (Overview) -->
+        <div v-if="recommendations?.length" class="strategic-recommendations">
+          <h5 class="strategic-recommendations-title">Strategic Recommendations</h5>
+          <ul class="strategic-recommendations-list">
+            <li
+              v-for="rec in recommendations"
+              :key="rec"
+              class="strategic-recommendation-item"
+            >
+              <span class="recommendation-check" aria-hidden="true">
+                <CheckCircle class="w-4 h-4" />
+              </span>
+              {{ rec }}
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -31,10 +53,13 @@
 
 <script setup lang="ts">
 import { watch } from 'vue';
-import { FileText } from 'lucide-vue-next';
+import { CheckCircle } from 'lucide-vue-next';
+import SectionHintButton from '../../../../shared/components/SectionHintButton.vue';
 
 interface Props {
   summary: string | null;
+  /** Strategic recommendations from synthesis (shown in Overview). */
+  recommendations?: string[];
   loading?: boolean;
 }
 
@@ -83,6 +108,12 @@ const emit = defineEmits<{
   justify-content: space-between;
   flex: 1;
   gap: 1rem;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .section-icon {
@@ -162,6 +193,44 @@ const emit = defineEmits<{
   font-weight: var(--font-weight-normal);
   color: var(--color-text);
   margin: 0;
+}
+
+.strategic-recommendations {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+
+.strategic-recommendations-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.5rem 0;
+}
+
+.strategic-recommendations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.strategic-recommendation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  margin-bottom: 0.375rem;
+}
+
+.strategic-recommendation-item:last-child {
+  margin-bottom: 0;
+}
+
+.recommendation-check {
+  flex-shrink: 0;
+  color: var(--color-success, #059669);
 }
 
 .loading-state {
