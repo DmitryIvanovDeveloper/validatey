@@ -15,16 +15,15 @@ import ResultEx from '../../../../infrastructure/result/result';
 const REDDIT_BASE = 'https://www.reddit.com';
 const HITS_PER_PAGE = 100;
 /**
- * Default subreddits used when AI doesn't provide specific ones.
- * Used as fallback for general startup/product validation discussions.
+ * Minimal fallback subreddits used only when FetchCommentsUseCase fails to provide
+ * AI-suggested ones. Keep generic so any topic finds something.
  */
-const DEFAULT_SUBREDDITS = [
+const FALLBACK_SUBREDDITS = [
   'startups',
   'SaaS',
   'Entrepreneur',
-  'indiehackers',
-  'buildinpublic',
-  'ProductManagement',
+  'productivity',
+  'software',
 ];
 
 const USER_AGENT = 'web:com.validatey.comments:v1.0.0 (by /u/validatey_bot)';
@@ -74,7 +73,7 @@ export class RedditSearchFetcher implements CommentFetcherPort {
     const query = redditInput.searchQuery.trim();
     const subreddits = redditInput.subreddits && redditInput.subreddits.length > 0
       ? redditInput.subreddits
-      : DEFAULT_SUBREDDITS;
+      : FALLBACK_SUBREDDITS;
 
     this._logger.info('reddit-search-fetcher.start', { query, subreddits: subreddits.length });
 

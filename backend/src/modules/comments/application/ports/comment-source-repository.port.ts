@@ -13,6 +13,8 @@ export interface CommentSource {
   hnItemId?: string;
   linkedinUrl?: string;
   linkedinPostId?: string;
+  /** AI-suggested subreddits for search sources, cached after first LLM call */
+  subreddits?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +30,7 @@ export interface CreateCommentSourceInput {
   hnItemId?: string;
   linkedinUrl?: string;
   linkedinPostId?: string;
+  subreddits?: string[];
 }
 
 export interface UpdateCommentSourceInput {
@@ -39,6 +42,7 @@ export interface UpdateCommentSourceInput {
   hnItemId?: string;
   linkedinUrl?: string;
   linkedinPostId?: string;
+  subreddits?: string[];
 }
 
 export interface CommentSourceRepositoryPort {

@@ -1,5 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { COMMENT_TYPES } from '../../types';
+import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { CommentFetcherPort, FetchCommentsInput } from '../ports/comment-fetcher.port';
 import { CommentRepositoryPort } from '../ports/comment-repository.port';
 import { CommentSourceRepositoryPort } from '../ports/comment-source-repository.port';
@@ -8,6 +9,12 @@ import { CommentSourceValueObject } from '../../domain/value-objects/comment-sou
 import ResultEx from '../../../../infrastructure/result/result';
 import { CommentFetchError } from '../../domain/errors/comment.error';
 import type { FetchCommentsUseCaseInput, FetchCommentsUseCaseOutput } from '../input-output/fetch-comments.io';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
+import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
+
+const SUBREDDIT_LLM_URL = process.env.SYNTHESIS_LLM_URL || 'https://cerebras-api.vercel.app/api/prompt';
+
+const FALLBACK_SUBREDDITS = ['startups', 'SaaS', 'Entrepreneur', 'productivity', 'software'];
 
 @injectable()
 export class FetchCommentsUseCase {
@@ -17,7 +24,9 @@ export class FetchCommentsUseCase {
     @inject(COMMENT_TYPES.CommentRepository)
     private readonly _commentRepository: CommentRepositoryPort,
     @inject(COMMENT_TYPES.CommentSourceRepository)
-    private readonly _sourceRepository: CommentSourceRepositoryPort
+    private readonly _sourceRepository: CommentSourceRepositoryPort,
+    @inject(ROOT_TYPES.HttpClient)
+    private readonly _http: HttpClientPort
   ) {}
 
   async execute(
@@ -31,10 +40,17 @@ export class FetchCommentsUseCase {
       if (!sourceResult.isSuccess) {
         return ResultEx.failure(sourceResult.error);
       }
-      const { id: sourceId, source } = sourceResult.data;
+      const { id: sourceId, source, cachedSubreddits } = sourceResult.data;
+
+      // For Reddit search sources: ensure AI-suggested subreddits are ready
+      let subreddits: string[] | undefined;
+      if (input.sourceType === 'reddit' && source.redditUrl?.startsWith('search:')) {
+        const searchQuery = source.redditUrl.slice(7).trim();
+        subreddits = await this._ensureSubreddits(sourceId, cachedSubreddits, searchQuery, input.projectId);
+      }
 
       // Prepare fetch input based on source type
-      const fetchInput: FetchCommentsInput = this._prepareFetchInput(input, source);
+      const fetchInput: FetchCommentsInput = this._prepareFetchInput(input, source, subreddits);
       onProgress?.({ commentsCountSoFar: 0, currentSourceName: source.getDisplayName() });
 
       // Fetch comments from external source
@@ -114,7 +130,7 @@ export class FetchCommentsUseCase {
     }
   }
 
-  private async _ensureCommentSource(input: FetchCommentsUseCaseInput): Promise<ResultEx<{ id: string; source: CommentSourceValueObject }, CommentFetchError>> {
+  private async _ensureCommentSource(input: FetchCommentsUseCaseInput): Promise<ResultEx<{ id: string; source: CommentSourceValueObject; cachedSubreddits?: string[] }, CommentFetchError>> {
     // If sourceId is provided, get existing source
     if (input.sourceId) {
       console.log(`[EnsureCommentSource] Getting existing source by ID: ${input.sourceId}`);
@@ -146,17 +162,23 @@ export class FetchCommentsUseCase {
           );
         } else {
           console.log(`[EnsureCommentSource] postId or subredditName missing in DB, parsing from URL: ${dbSource.redditUrl}`);
-          sourceValueObject = CommentSourceValueObject.createReddit(dbSource.redditUrl!);
-          
-          // Update DB with extracted values
-          if (sourceValueObject.postId && sourceValueObject.subredditName) {
-            console.log(`[EnsureCommentSource] Updating source ${dbSource.id} with extracted postId/subredditName`);
-            const updateResult = await this._sourceRepository.update(dbSource.id, {
-              postId: sourceValueObject.postId,
-              subredditName: sourceValueObject.subredditName,
-            });
-            if (!updateResult.isSuccess) {
-              console.warn(`[EnsureCommentSource] Failed to update source: ${updateResult.error.message}`);
+          // Search sources have redditUrl = "search:<query>" — must use createRedditSearch, not createReddit
+          if (dbSource.redditUrl!.startsWith('search:')) {
+            const query = dbSource.redditUrl!.slice(7).trim();
+            sourceValueObject = CommentSourceValueObject.createRedditSearch(query);
+          } else {
+            sourceValueObject = CommentSourceValueObject.createReddit(dbSource.redditUrl!);
+            
+            // Update DB with extracted values
+            if (sourceValueObject.postId && sourceValueObject.subredditName) {
+              console.log(`[EnsureCommentSource] Updating source ${dbSource.id} with extracted postId/subredditName`);
+              const updateResult = await this._sourceRepository.update(dbSource.id, {
+                postId: sourceValueObject.postId,
+                subredditName: sourceValueObject.subredditName,
+              });
+              if (!updateResult.isSuccess) {
+                console.warn(`[EnsureCommentSource] Failed to update source: ${updateResult.error.message}`);
+              }
             }
           }
         }
@@ -181,7 +203,7 @@ export class FetchCommentsUseCase {
         hnUrl: sourceValueObject.hnUrl
       });
 
-      return ResultEx.success({ id: dbSource.id, source: sourceValueObject });
+      return ResultEx.success({ id: dbSource.id, source: sourceValueObject, cachedSubreddits: dbSource.subreddits });
     }
 
     // For Reddit (auto-search by query via Reddit JSON search API)
@@ -335,7 +357,7 @@ export class FetchCommentsUseCase {
     return ResultEx.failure(new CommentFetchError('Unsupported source type'));
   }
 
-  private _prepareFetchInput(input: FetchCommentsUseCaseInput, source: CommentSourceValueObject): FetchCommentsInput {
+  private _prepareFetchInput(input: FetchCommentsUseCaseInput, source: CommentSourceValueObject, subreddits?: string[]): FetchCommentsInput {
     console.log(`[PrepareFetchInput] Input:`, input);
     console.log(`[PrepareFetchInput] Source:`, {
       type: source.type,
@@ -352,12 +374,13 @@ export class FetchCommentsUseCase {
       // Reddit Search source: redditUrl stores "search:<query>"
       if (source.redditUrl?.startsWith('search:')) {
         const searchQuery = source.redditUrl.slice(7).trim();
-        console.log(`[PrepareFetchInput] Reddit Search input: query="${searchQuery}"`);
+        console.log(`[PrepareFetchInput] Reddit Search input: query="${searchQuery}", subreddits=${JSON.stringify(subreddits)}`);
         return {
           ...baseInput,
           sourceType: 'reddit',
           subredditNames: [],
           searchQuery,
+          subreddits: subreddits && subreddits.length > 0 ? subreddits : undefined,
         };
       }
 
@@ -403,6 +426,81 @@ export class FetchCommentsUseCase {
         searchQuery,
         limitStories: 50,
       };
+    }
+  }
+
+  /**
+   * Always asks LLM for fresh subreddit suggestions based on current project hypotheses.
+   * Result is also persisted to DB for visibility/debugging.
+   */
+  private async _ensureSubreddits(_sourceId: string, _cached: string[] | undefined, searchQuery: string, projectId: string): Promise<string[]> {
+    console.log(`[EnsureSubreddits] Asking LLM for fresh subreddits (source ${_sourceId})`);
+    const suggested = await this._suggestSubreddits(searchQuery, projectId);
+
+    // Persist for visibility/debugging (best-effort)
+    this._sourceRepository.update(_sourceId, { subreddits: suggested }).catch(err => {
+      console.warn(`[EnsureSubreddits] Failed to persist subreddits:`, err);
+    });
+
+    return suggested;
+  }
+
+  /**
+   * Calls LLM to suggest relevant subreddits for a Reddit search source.
+   * Uses project hypotheses as context.
+   */
+  private async _suggestSubreddits(searchQuery: string, projectId: string): Promise<string[]> {
+    try {
+      // Fetch project assumptions for context
+      const supabase = getSupabaseClient();
+      const { data: assumptions } = await supabase
+        .from('assumptions')
+        .select('title, description')
+        .eq('project_id', projectId)
+        .limit(5);
+
+      const hypothesisContext = assumptions && assumptions.length > 0
+        ? assumptions.map((a: { title: string; description?: string }) =>
+            `- ${a.title}${a.description ? ': ' + a.description : ''}`
+          ).join('\n')
+        : 'No hypothesis available';
+
+      const prompt = `You are a Reddit research assistant. Given a startup hypothesis and a search query, return the 6 most relevant subreddits where real users discuss this topic.
+
+Hypothesis:
+${hypothesisContext}
+
+Search query: "${searchQuery}"
+
+Rules:
+- Return ONLY a valid JSON array of subreddit names (without r/ prefix), e.g. ["startups","SaaS","productivity"]
+- Choose subreddits where the TARGET USERS (not founders/builders) discuss this problem
+- Include niche subreddits specific to the domain, not just generic ones
+- No explanations, no markdown, only the JSON array`;
+
+      const response = await this._http.post<{ response?: string }>(
+        SUBREDDIT_LLM_URL,
+        { prompt, model: 'llama3.3-70b', max_tokens: 256 },
+        { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)' }
+      );
+
+      const content = (response?.response ?? '').trim();
+      const match = content.match(/\[[\s\S]*\]/);
+      if (!match) throw new Error('No JSON array in LLM response');
+
+      const parsed: unknown = JSON.parse(match[0]);
+      if (!Array.isArray(parsed)) throw new Error('LLM response is not an array');
+
+      const subreddits = parsed
+        .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+        .map(s => s.replace(/^r\//, '').trim())
+        .slice(0, 8);
+
+      console.log(`[SuggestSubreddits] LLM suggested: ${subreddits.join(', ')}`);
+      return subreddits.length > 0 ? subreddits : FALLBACK_SUBREDDITS;
+    } catch (err) {
+      console.warn(`[SuggestSubreddits] LLM call failed, using fallback:`, err instanceof Error ? err.message : err);
+      return FALLBACK_SUBREDDITS;
     }
   }
 }
