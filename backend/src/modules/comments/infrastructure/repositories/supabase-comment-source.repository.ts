@@ -38,6 +38,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
       if (input.linkedinUrl !== undefined) insertData.linkedin_url = input.linkedinUrl;
       if (input.linkedinPostId !== undefined) insertData.linkedin_post_id = input.linkedinPostId;
       if (input.subreddits !== undefined) insertData.subreddits = input.subreddits;
+      if (input.aiSearchQuery !== undefined) insertData.ai_search_query = input.aiSearchQuery;
       
       console.log(`[CommentSource Create] Inserting data:`, JSON.stringify(insertData, null, 2));
       console.log(`[CommentSource Create] Input values:`, {
@@ -106,6 +107,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         hnItemId: data.hn_item_id,
         linkedinUrl: data.linkedin_url,
         subreddits: Array.isArray(data.subreddits) ? data.subreddits : undefined,
+        aiSearchQuery: data.ai_search_query ?? undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       };
@@ -163,6 +165,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         linkedinUrl: data.linkedin_url,
         linkedinPostId: data.linkedin_post_id,
         subreddits: Array.isArray(data.subreddits) ? data.subreddits : undefined,
+        aiSearchQuery: data.ai_search_query ?? undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       };
@@ -215,6 +218,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
           linkedinUrl: row.linkedin_url,
           linkedinPostId: row.linkedin_post_id,
           subreddits: Array.isArray(row.subreddits) ? row.subreddits : undefined,
+          aiSearchQuery: row.ai_search_query ?? undefined,
           createdAt: new Date(row.created_at),
           updatedAt: new Date(row.updated_at),
         };
@@ -269,6 +273,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         hnItemId: row.hn_item_id,
         linkedinUrl: row.linkedin_url,
         subreddits: Array.isArray(row.subreddits) ? row.subreddits : undefined,
+          aiSearchQuery: row.ai_search_query ?? undefined,
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
       }));
@@ -300,6 +305,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
       if (input.linkedinUrl !== undefined) updateData.linkedin_url = input.linkedinUrl;
       if (input.linkedinPostId !== undefined) updateData.linkedin_post_id = input.linkedinPostId;
       if (input.subreddits !== undefined) updateData.subreddits = input.subreddits;
+      if (input.aiSearchQuery !== undefined) updateData.ai_search_query = input.aiSearchQuery;
 
       const { data, error } = await supabase
         .from('comment_sources')
@@ -329,6 +335,7 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
         hnItemId: data.hn_item_id,
         linkedinUrl: data.linkedin_url,
         subreddits: Array.isArray(data.subreddits) ? data.subreddits : undefined,
+        aiSearchQuery: data.ai_search_query ?? undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       };
@@ -365,3 +372,4 @@ export class SupabaseCommentSourceRepository implements CommentSourceRepositoryP
     }
   }
 }
+

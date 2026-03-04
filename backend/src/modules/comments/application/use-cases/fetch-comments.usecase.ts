@@ -42,15 +42,18 @@ export class FetchCommentsUseCase {
       }
       const { id: sourceId, source, cachedSubreddits } = sourceResult.data;
 
-      // For Reddit search sources: ensure AI-suggested subreddits are ready
+      // For Reddit search sources: AI generates both optimal search query and subreddits
       let subreddits: string[] | undefined;
+      let aiSearchQuery: string | undefined;
       if (input.sourceType === 'reddit' && source.redditUrl?.startsWith('search:')) {
-        const searchQuery = source.redditUrl.slice(7).trim();
-        subreddits = await this._ensureSubreddits(sourceId, cachedSubreddits, searchQuery, input.projectId);
+        const humanQuery = source.redditUrl.slice(7).trim();
+        const config = await this._suggestRedditSearchConfig(sourceId, humanQuery, input.projectId);
+        subreddits = config.subreddits;
+        aiSearchQuery = config.searchQuery;
       }
 
       // Prepare fetch input based on source type
-      const fetchInput: FetchCommentsInput = this._prepareFetchInput(input, source, subreddits);
+      const fetchInput: FetchCommentsInput = this._prepareFetchInput(input, source, subreddits, aiSearchQuery);
       onProgress?.({ commentsCountSoFar: 0, currentSourceName: source.getDisplayName() });
 
       // Fetch comments from external source
@@ -357,7 +360,7 @@ export class FetchCommentsUseCase {
     return ResultEx.failure(new CommentFetchError('Unsupported source type'));
   }
 
-  private _prepareFetchInput(input: FetchCommentsUseCaseInput, source: CommentSourceValueObject, subreddits?: string[]): FetchCommentsInput {
+  private _prepareFetchInput(input: FetchCommentsUseCaseInput, source: CommentSourceValueObject, subreddits?: string[], aiSearchQuery?: string): FetchCommentsInput {
     console.log(`[PrepareFetchInput] Input:`, input);
     console.log(`[PrepareFetchInput] Source:`, {
       type: source.type,
@@ -373,8 +376,10 @@ export class FetchCommentsUseCase {
     if (input.sourceType === 'reddit') {
       // Reddit Search source: redditUrl stores "search:<query>"
       if (source.redditUrl?.startsWith('search:')) {
-        const searchQuery = source.redditUrl.slice(7).trim();
-        console.log(`[PrepareFetchInput] Reddit Search input: query="${searchQuery}", subreddits=${JSON.stringify(subreddits)}`);
+        const humanQuery = source.redditUrl.slice(7).trim();
+        // Prefer AI-generated query; fall back to human-written one
+        const searchQuery = aiSearchQuery?.trim() || humanQuery;
+        console.log(`[PrepareFetchInput] Reddit Search: ai_query="${aiSearchQuery ?? 'none'}", human_query="${humanQuery}", using="${searchQuery}", subreddits=${JSON.stringify(subreddits)}`);
         return {
           ...baseInput,
           sourceType: 'reddit',
@@ -430,28 +435,15 @@ export class FetchCommentsUseCase {
   }
 
   /**
-   * Always asks LLM for fresh subreddit suggestions based on current project hypotheses.
-   * Result is also persisted to DB for visibility/debugging.
+   * Calls LLM to generate both an optimized search query AND relevant subreddits
+   * based on current project hypotheses. Both are persisted to DB for visibility.
    */
-  private async _ensureSubreddits(_sourceId: string, _cached: string[] | undefined, searchQuery: string, projectId: string): Promise<string[]> {
-    console.log(`[EnsureSubreddits] Asking LLM for fresh subreddits (source ${_sourceId})`);
-    const suggested = await this._suggestSubreddits(searchQuery, projectId);
-
-    // Persist for visibility/debugging (best-effort)
-    this._sourceRepository.update(_sourceId, { subreddits: suggested }).catch(err => {
-      console.warn(`[EnsureSubreddits] Failed to persist subreddits:`, err);
-    });
-
-    return suggested;
-  }
-
-  /**
-   * Calls LLM to suggest relevant subreddits for a Reddit search source.
-   * Uses project hypotheses as context.
-   */
-  private async _suggestSubreddits(searchQuery: string, projectId: string): Promise<string[]> {
+  private async _suggestRedditSearchConfig(
+    sourceId: string,
+    humanQuery: string,
+    projectId: string
+  ): Promise<{ searchQuery: string; subreddits: string[] }> {
     try {
-      // Fetch project assumptions for context
       const supabase = getSupabaseClient();
       const { data: assumptions } = await supabase
         .from('assumptions')
@@ -465,42 +457,64 @@ export class FetchCommentsUseCase {
           ).join('\n')
         : 'No hypothesis available';
 
-      const prompt = `You are a Reddit research assistant. Given a startup hypothesis and a search query, return the 6 most relevant subreddits where real users discuss this topic.
+      const prompt = `You are a Reddit research assistant. Given a startup hypothesis and a human-written search hint, generate the optimal Reddit search query and relevant subreddits.
 
 Hypothesis:
 ${hypothesisContext}
 
-Search query: "${searchQuery}"
+Human search hint: "${humanQuery}"
 
-Rules:
-- Return ONLY a valid JSON array of subreddit names (without r/ prefix), e.g. ["startups","SaaS","productivity"]
-- Choose subreddits where the TARGET USERS (not founders/builders) discuss this problem
-- Include niche subreddits specific to the domain, not just generic ones
-- No explanations, no markdown, only the JSON array`;
+Return ONLY valid JSON in this exact format (no markdown, no explanation):
+{
+  "searchQuery": "2-5 word query that finds real user discussions about this problem",
+  "subreddits": ["sub1","sub2","sub3","sub4","sub5","sub6"]
+}
+
+Rules for searchQuery:
+- Short and specific (2-5 words)
+- Use terms TARGET USERS would write, not startup/founder jargon
+- Avoid words like "app", "saas", "tool" unless that's how users talk
+- Focus on the PAIN or BEHAVIOR described in the hypothesis
+
+Rules for subreddits:
+- 6 names without r/ prefix
+- Where TARGET USERS (not builders/founders) discuss this pain
+- Mix niche + broad communities`;
 
       const response = await this._http.post<{ response?: string }>(
         SUBREDDIT_LLM_URL,
-        { prompt, model: 'llama3.3-70b', max_tokens: 256 },
+        { prompt, model: 'llama3.3-70b', max_tokens: 300 },
         { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)' }
       );
 
       const content = (response?.response ?? '').trim();
-      const match = content.match(/\[[\s\S]*\]/);
-      if (!match) throw new Error('No JSON array in LLM response');
+      const match = content.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('No JSON object in LLM response');
 
-      const parsed: unknown = JSON.parse(match[0]);
-      if (!Array.isArray(parsed)) throw new Error('LLM response is not an array');
+      const parsed = JSON.parse(match[0]) as { searchQuery?: unknown; subreddits?: unknown };
 
-      const subreddits = parsed
-        .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
-        .map(s => s.replace(/^r\//, '').trim())
-        .slice(0, 8);
+      const searchQuery = typeof parsed.searchQuery === 'string' && parsed.searchQuery.trim()
+        ? parsed.searchQuery.trim()
+        : humanQuery;
 
-      console.log(`[SuggestSubreddits] LLM suggested: ${subreddits.join(', ')}`);
-      return subreddits.length > 0 ? subreddits : FALLBACK_SUBREDDITS;
+      const subreddits = Array.isArray(parsed.subreddits)
+        ? (parsed.subreddits as unknown[])
+            .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+            .map(s => s.replace(/^r\//, '').trim())
+            .slice(0, 8)
+        : FALLBACK_SUBREDDITS;
+
+      console.log(`[SuggestRedditConfig] query="${searchQuery}", subreddits=${subreddits.join(', ')}`);
+
+      // Persist for visibility/debugging (best-effort)
+      this._sourceRepository.update(sourceId, { subreddits, aiSearchQuery: searchQuery }).catch(err => {
+        console.warn(`[SuggestRedditConfig] Failed to persist config:`, err);
+      });
+
+      return { searchQuery, subreddits: subreddits.length > 0 ? subreddits : FALLBACK_SUBREDDITS };
     } catch (err) {
-      console.warn(`[SuggestSubreddits] LLM call failed, using fallback:`, err instanceof Error ? err.message : err);
-      return FALLBACK_SUBREDDITS;
+      console.warn(`[SuggestRedditConfig] LLM failed, using human query as fallback:`, err instanceof Error ? err.message : err);
+      return { searchQuery: humanQuery, subreddits: FALLBACK_SUBREDDITS };
     }
   }
 }

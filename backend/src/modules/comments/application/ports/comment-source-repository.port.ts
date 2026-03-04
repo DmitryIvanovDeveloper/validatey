@@ -15,6 +15,8 @@ export interface CommentSource {
   linkedinPostId?: string;
   /** AI-suggested subreddits for search sources, cached after first LLM call */
   subreddits?: string[];
+  /** AI-generated search query used at fetch time (overrides human-written query) */
+  aiSearchQuery?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +33,7 @@ export interface CreateCommentSourceInput {
   linkedinUrl?: string;
   linkedinPostId?: string;
   subreddits?: string[];
+  aiSearchQuery?: string;
 }
 
 export interface UpdateCommentSourceInput {
@@ -43,6 +46,7 @@ export interface UpdateCommentSourceInput {
   linkedinUrl?: string;
   linkedinPostId?: string;
   subreddits?: string[];
+  aiSearchQuery?: string;
 }
 
 export interface CommentSourceRepositoryPort {
