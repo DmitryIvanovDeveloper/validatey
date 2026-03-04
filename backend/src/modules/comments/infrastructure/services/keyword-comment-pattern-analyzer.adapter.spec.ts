@@ -68,12 +68,13 @@ describe('KeywordCommentPatternAnalyzerAdapter', () => {
       ];
       const result = analyzer.analyze(comments, rules, weights);
 
-      expect(result.platformInsights.subredditDistribution).toBeDefined();
-      expect(result.platformInsights.subredditDistribution!['r/startups']).toBe(3);
-      expect(result.platformInsights.subredditDistribution!['r/SaaS']).toBe(2);
-      expect(result.platformInsights.recurrenceScore).toBeDefined();
+      expect(result.platformInsights).toBeDefined();
+      expect(result.platformInsights!.subredditDistribution).toBeDefined();
+      expect(result.platformInsights!.subredditDistribution!['r/startups']).toBe(3);
+      expect(result.platformInsights!.subredditDistribution!['r/SaaS']).toBe(2);
+      expect(result.platformInsights!.recurrenceScore).toBeDefined();
       // Both patterns (validation + advice) appear in 2 subreddits => recurrenceScore = 1
-      expect(result.platformInsights.recurrenceScore).toBe(1);
+      expect(result.platformInsights!.recurrenceScore).toBe(1);
     });
 
     it('should add subredditCount and subredditNames to each pattern when from Reddit', () => {
@@ -103,8 +104,10 @@ describe('KeywordCommentPatternAnalyzerAdapter', () => {
       const resultOne = analyzer.analyze(commentsOneSub, rules, weights);
       const resultTwo = analyzer.analyze(commentsTwoSubs, rules, weights);
 
-      expect(resultTwo.platformInsights.recurrenceScore).toBeGreaterThan(0);
-      expect(resultOne.platformInsights.recurrenceScore).toBe(0);
+      expect(resultTwo.platformInsights).toBeDefined();
+      expect(resultOne.platformInsights).toBeDefined();
+      expect(resultTwo.platformInsights!.recurrenceScore).toBeGreaterThan(0);
+      expect(resultOne.platformInsights!.recurrenceScore).toBe(0);
       // With recurrence, validation score gets +recurrenceBonus (up to 15)
       expect(resultTwo.validationScore).toBeGreaterThanOrEqual(resultOne.validationScore);
     });
@@ -118,8 +121,9 @@ describe('KeywordCommentPatternAnalyzerAdapter', () => {
       ];
       const result = analyzer.analyze(comments, rules, weights);
 
-      expect(result.platformInsights.subredditDistribution).toBeUndefined();
-      expect(result.platformInsights.recurrenceScore).toBeUndefined();
+      expect(result.platformInsights).toBeDefined();
+      expect(result.platformInsights!.subredditDistribution).toBeUndefined();
+      expect(result.platformInsights!.recurrenceScore).toBeUndefined();
       expect(result.patterns.every((p) => p.subredditCount == null)).toBe(true);
     });
   });

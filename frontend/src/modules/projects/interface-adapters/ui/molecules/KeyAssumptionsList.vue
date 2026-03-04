@@ -20,7 +20,7 @@ import AssumptionCard from './AssumptionCard.vue';
 
 defineProps<{
   assumptions: ReadonlyArray<{ id: string; text: string }>;
-  getStatus: (id: string) => 'confirmed' | 'need_more' | 'not_supported' | null;
+  getStatus: (id: string) => 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven' | null;
   getEvidence: (id: string) => string | null;
   getEvidenceLabel: (id: string) => string;
   expandedIds: Set<string>;

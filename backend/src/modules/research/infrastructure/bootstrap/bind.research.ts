@@ -34,7 +34,6 @@ import { ResearchAssistantLlmAdapter } from '../services/research-assistant-llm.
 import { UserStoriesLlmAdapter } from '../services/user-stories-llm.adapter';
 import { MarketDataProviderStubAdapter } from '../services/market-data-provider-stub.adapter';
 import { CompetitorDataProviderStubAdapter } from '../services/competitor-data-provider-stub.adapter';
-import { StubAcademicPapersProviderAdapter } from '../services/stub-academic-papers-provider.adapter';
 import { SemanticScholarPapersProviderAdapter } from '../services/semantic-scholar-papers-provider.adapter';
 import { OpenAlexPapersProviderAdapter } from '../services/open-alex-papers-provider.adapter';
 import { CorePapersProviderAdapter } from '../services/core-papers-provider.adapter';
@@ -51,13 +50,11 @@ import { ProductHuntAlgoliaProviderAdapter } from '../services/product-hunt-algo
 
 // Enable real LLM providers for market and competitor research
 const useLlmResearchProviders = true;
-// Academic paper search provider priority: Semantic Scholar > OpenAlex (free) > CORE > Stub
-// SEMANTIC_SCHOLAR_ENABLED=true activates academic search.
-// OpenAlex needs no key and has better relevance/citation data than CORE.
-// CORE is kept as a fallback only if OpenAlex is explicitly disabled.
-const useAcademicPapers = process.env.SEMANTIC_SCHOLAR_ENABLED === 'true';
-const useSemanticScholar = useAcademicPapers && !!process.env.SEMANTIC_SCHOLAR_API_KEY?.trim();
-const useCoreOnly = useAcademicPapers && !useSemanticScholar && process.env.ACADEMIC_PROVIDER === 'core';
+// Academic paper search: real providers only (no stub). Priority: Semantic Scholar > OpenAlex (free, no key) > CORE.
+// SEMANTIC_SCHOLAR_ENABLED=true + SEMANTIC_SCHOLAR_API_KEY = use Semantic Scholar; else OpenAlex (default); ACADEMIC_PROVIDER=core = CORE.
+const useSemanticScholar = process.env.SEMANTIC_SCHOLAR_ENABLED === 'true' && !!process.env.SEMANTIC_SCHOLAR_API_KEY?.trim();
+const useCoreOnly = process.env.ACADEMIC_PROVIDER === 'core';
+const useAcademicPapers = true; // Always use real data (OpenAlex when no Semantic Scholar key)
 
 export function bindResearch(container: Container): void {
   container.bind<ResearchDataRepositoryPort>(TYPES.ResearchDataRepository).to(SupabaseResearchRepository);
@@ -75,7 +72,7 @@ export function bindResearch(container: Container): void {
   container.bind<SearchPhrasesGeneratorPort>(TYPES.SearchPhrasesGenerator).to(LlmSearchPhrasesGeneratorAdapter);
   container.bind<AutocompleteApiPort>(TYPES.AutocompleteApi).to(GooglePlaceAutocompleteAdapter);
   container.bind<AutocompleteDataProviderPort>(TYPES.AutocompleteDataProvider).to(AutocompleteDataProviderAdapter);
-  // Priority: Semantic Scholar (best, needs key) > OpenAlex (free, best quality) > CORE (fallback) > Stub
+  // Real providers only: Semantic Scholar (needs key) > OpenAlex (free, default) > CORE
   container
     .bind<AcademicPapersProviderPort>(TYPES.AcademicPapersProvider)
     .to(
@@ -83,9 +80,7 @@ export function bindResearch(container: Container): void {
         ? SemanticScholarPapersProviderAdapter
         : useCoreOnly
           ? CorePapersProviderAdapter
-          : useAcademicPapers
-            ? OpenAlexPapersProviderAdapter
-            : StubAcademicPapersProviderAdapter
+          : OpenAlexPapersProviderAdapter
     );
   container
     .bind<HnSearchCommentsCollectorPort>(TYPES.HnSearchCommentsCollector)

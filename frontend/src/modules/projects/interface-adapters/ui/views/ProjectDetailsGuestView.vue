@@ -452,7 +452,7 @@ const commentsCount = ref<number>(0);
 const hasCommentsData = computed(() => commentsCount.value > 0);
 
 /** Overall hypothesis status from research synthesis (fallback when no per-assumption data). */
-type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | null;
+type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven' | null;
 const hypothesisOverallStatus = computed<HypothesisStatus>(() => {
   const report = researchData.value?.synthesisReport;
   if (!report?.verdict) return null;
@@ -478,16 +478,24 @@ const assumptionAssessmentsById = computed<Record<string, { status: string; evid
   return Object.fromEntries(list.map((a) => [a.assumptionId, { status: a.status, evidence: a.evidence ?? null }]));
 });
 
+/** Normalize backend/LLM status string to canonical HypothesisStatus. */
+function normalizeAssumptionStatus(raw: string): HypothesisStatus | null {
+  const s = String(raw).toLowerCase().trim().replace(/-/g, '_');
+  if (s === 'confirmed' || s.startsWith('support')) return 'confirmed';
+  if (s === 'need_more' || s === 'needs_more_data' || s.includes('need_more') || s.includes('more data')) return 'need_more';
+  if (s === 'not_supported' || s === 'rejected' || s.includes('not_support') || s.includes('not support')) return 'not_supported';
+  if (s === 'not_testable' || s.includes('not_testable') || s.includes('not testable')) return 'not_testable';
+  if (s === 'disproven' || s.includes('disproven')) return 'disproven';
+  return null;
+}
+
 /** Status for assumption by id: from assumptionAssessments, else legacy by index, else overall. */
 function getAssumptionStatus(assumptionId: string | number): HypothesisStatus | null {
   if (typeof assumptionId === 'string') {
     const assessment = assumptionAssessmentsById.value[assumptionId];
     if (assessment?.status) {
-      const s = String(assessment.status).toLowerCase();
-      if (s === 'confirmed') return 'confirmed';
-      if (s === 'need_more' || s === 'needs_more_data') return 'need_more';
-      if (s === 'not_supported' || s === 'rejected') return 'not_supported';
-      return null;
+      const normalized = normalizeAssumptionStatus(assessment.status);
+      if (normalized) return normalized;
     }
   }
   const per = assumptionStatuses.value;
@@ -507,6 +515,8 @@ function getEvidenceLabel(assumptionId: string): string {
   if (status === 'confirmed') return 'Evidence';
   if (status === 'need_more') return 'Why more data is needed';
   if (status === 'not_supported') return 'Why not supported';
+  if (status === 'not_testable') return 'Why not testable on this data';
+  if (status === 'disproven') return 'Why disproven';
   return 'Explanation';
 }
 
@@ -578,18 +588,54 @@ function hasMarketData(): boolean {
   return !!(marketContext?.marketPicture || marketContext?.marketFit || marketContext?.differentiation);
 }
 
+/** Преобразует объект/массив в читаемый текст для пользователя (без сырого JSON). */
+function objectToReadableText(value: unknown): string {
+  if (value == null) return '—';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) {
+    return value.map((item) => objectToReadableText(item)).join(', ');
+  }
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    if (typeof obj.text === 'string') return obj.text;
+    if (typeof obj.label === 'string') return obj.label;
+    return Object.entries(obj)
+      .filter(([, v]) => v != null && v !== '')
+      .map(([k, v]) => `${k}: ${objectToReadableText(v)}`)
+      .join('; ');
+  }
+  return String(value);
+}
+
+function formatDemographicsValue(value: unknown): string {
+  return objectToReadableText(value);
+}
+
 function getDemographicsText(): string {
   if (!project.value?.segment?.demographics) return 'Not specified';
-  const demographics = project.value.segment.demographics;
-  if (typeof demographics === 'string') return demographics;
-  if (typeof demographics === 'object') {
-    // If it's an object, format it nicely
+  const raw = project.value.segment.demographics as Record<string, unknown> | string;
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      try {
+        const parsed = JSON.parse(trimmed) as Record<string, unknown> | unknown[];
+        if (Array.isArray(parsed)) return parsed.map((item) => formatDemographicsValue(item)).join(', ');
+        return Object.entries(parsed)
+          .map(([key, value]) => `${key}: ${formatDemographicsValue(value)}`)
+          .join(' | ');
+      } catch {
+        return raw;
+      }
+    }
+    return raw;
+  }
+  if (typeof raw === 'object' && raw !== null) {
     try {
-      return Object.entries(demographics)
-        .map(([key, value]) => `${key}: ${value}`)
+      return Object.entries(raw)
+        .map(([key, value]) => `${key}: ${formatDemographicsValue(value)}`)
         .join(' | ');
     } catch {
-      return JSON.stringify(demographics, null, 2);
+      return objectToReadableText(raw);
     }
   }
   return 'Not specified';

@@ -87,7 +87,7 @@ export type DecisionPathway = {
 };
 
 /** Per-assumption status for Key Assumptions (same order as project.hypothesis.assumptions). */
-export type OverviewAssumptionStatus = 'confirmed' | 'need_more' | 'not_supported';
+export type OverviewAssumptionStatus = 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven';
 
 /** Per-assumption assessment for Key Assumptions (status + evidence). */
 export type OverviewAssumptionAssessment = {

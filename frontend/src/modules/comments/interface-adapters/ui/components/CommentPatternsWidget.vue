@@ -1,18 +1,20 @@
 <template>
-  <div class="comment-patterns-widget">
+  <div id="comment-pattern-analysis-section" class="comment-patterns-widget">
     <!-- Header -->
     <div class="cpw-header">
       <div class="cpw-title-row">
         <h3 class="cpw-title">Comment Pattern Analysis</h3>
         <SectionHintButton
-          text="Patterns in comments and how much they support the hypothesis; use as signal of theme, not strict statistics."
+          text="Patterns in comments and how much they support the hypothesis. Score is computed from real matched comments, not an LLM estimate. Unique author counts per pattern indicate diversity (higher = stronger signal)."
           aria-label="Hint: Comment Pattern Analysis"
         />
       </div>
       <div v-if="analysis" class="cpw-header-badges">
-        <div class="cpw-score-badge" :class="scoreBadgeClass">
+        <div class="cpw-score-badge" :class="scoreBadgeClass" :title="scoreTooltip">
           {{ scoreLabel }}
         </div>
+        <span v-if="coverageLabel" class="cpw-coverage-badge" :title="coverageTooltip">{{ coverageLabel }}</span>
+        <span v-if="analysis?.patterns?.length" class="cpw-diversity-hint" title="See unique authors per pattern below">Diversity: per-pattern authors below</span>
         <template v-if="analysis.platformInsights">
           <span v-if="recurrenceLabel" class="cpw-recurrence-badge" :title="'Same patterns appear across subreddits — strong validation signal'">{{ recurrenceLabel }}</span>
           <span v-if="subredditSummary" class="cpw-subreddits-badge" :title="'Comments from these communities'">{{ subredditSummary }}</span>
@@ -25,9 +27,11 @@
       <LoadingSpots message="Analyzing comment patterns…" size="sm" />
     </div>
 
-    <!-- Error -->
+    <!-- Error: show CTA when pattern analysis not available (e.g. run Research first) -->
     <div v-else-if="error" class="cpw-empty">
-      <p>{{ error }}</p>
+      <p v-if="isRunResearchError" class="cpw-empty-title">Comment Pattern Analysis not available yet</p>
+      <p v-else>{{ error }}</p>
+      <p v-if="isRunResearchError" class="cpw-empty-hint">Run <strong>Start Research</strong> (Collect + Synthesis) to classify comments and see Supporting Evidence, Contradictions, and Alternative Approaches with &quot;Show comments&quot; links.</p>
     </div>
 
     <!-- No data -->
@@ -39,49 +43,105 @@
       <p class="cpw-empty-hint">Add Reddit or HackerNews sources in the Comments tab to collect data.</p>
     </div>
 
-    <!-- Patterns list (preview: 3, then Show more) -->
+    <!-- Patterns grouped by evidence type -->
     <div v-else class="cpw-patterns">
-      <div
-        v-for="(pattern, idx) in visiblePatterns"
-        :key="patternIndexFor(idx)"
-        class="cpw-pattern-card"
-      >
-        <div class="cpw-pattern-header">
-          <div class="cpw-pattern-label-row">
-            <span class="cpw-pattern-label">{{ pattern.label }}</span>
-            <span class="cpw-pattern-count">{{ pattern.count }}</span>
-            <span v-if="pattern.uniqueAuthorCount != null" class="cpw-pattern-authors" :title="'Unique authors: stronger validation signal'">{{ pattern.uniqueAuthorCount }} authors</span>
-            <span v-if="pattern.subredditCount != null && pattern.subredditCount > 0" class="cpw-pattern-subreddits" :title="pattern.subredditNames?.length ? pattern.subredditNames.join(', ') : 'In N subreddits'">in {{ pattern.subredditCount }} subreddit{{ pattern.subredditCount === 1 ? '' : 's' }}</span>
-            <span class="cpw-pattern-pct">{{ pattern.percentage }}%</span>
-          </div>
-          <ProgressBar
-              :percentage="pattern.percentage"
-              :fill-color="patternFillColor(pattern.type)"
-              size="sm"
-            />
+      <!-- Supporting Evidence -->
+      <template v-if="directPatterns.length > 0">
+        <div class="cpw-section-header cpw-section--direct">
+          <span class="cpw-section-dot cpw-dot--direct"></span>Supporting Evidence
+          <span class="cpw-section-count">{{ directPatterns.length }}</span>
         </div>
-
-        <button
-          v-if="presenter.hasPatternContent(pattern)"
-          class="cpw-toggle-btn cpw-show-comments-btn"
-          @click="showPatternInSidebar(pattern, patternIndexFor(idx))"
-          type="button"
+        <div
+          v-for="(pattern, idx) in visibleDirectPatterns"
+          :key="`direct-${idx}`"
+          class="cpw-pattern-card"
         >
-          Show {{ presenter.getPatternButtonLabel(pattern) }}
-          <svg class="cpw-toggle-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-        </button>
-      </div>
+          <PatternCardContent
+            :pattern="pattern"
+            :pattern-index="allPatterns.indexOf(pattern)"
+            :presenter="presenter"
+            @show="showPatternInSidebar(pattern, allPatterns.indexOf(pattern))"
+          />
+        </div>
+        <div v-if="directPatterns.length > PREVIEW_PATTERNS_COUNT && !directExpanded" class="cpw-show-more-wrap">
+          <button type="button" class="cpw-show-more-btn" @click="directExpanded = true">
+            Show more ({{ directPatterns.length - PREVIEW_PATTERNS_COUNT }} more)
+            <svg class="cpw-show-more-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      </template>
 
-      <div v-if="hasMorePatterns" class="cpw-show-more-wrap">
-        <button type="button" class="cpw-show-more-btn" @click="patternsExpanded = !patternsExpanded">
-          {{ patternsExpanded ? 'Show less' : `Show more (${remainingPatternsCount} more)` }}
-          <svg class="cpw-show-more-icon" :class="{ expanded: patternsExpanded }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-      </div>
+      <!-- Alternative Approaches (ways users solve the problem without your product) -->
+      <template v-if="alternativePatterns.length > 0">
+        <div class="cpw-section-header cpw-section--alternative">
+          <span class="cpw-section-dot cpw-dot--alternative"></span>Alternative Approaches
+          <span class="cpw-section-count">{{ alternativePatterns.length }}</span>
+        </div>
+        <p class="cpw-section-subtitle cpw-section-subtitle--alternative">Ways users solve the problem without your product.</p>
+        <div
+          v-for="(pattern, idx) in alternativePatterns"
+          :key="`alt-${idx}`"
+          class="cpw-pattern-card"
+        >
+          <PatternCardContent
+            :pattern="pattern"
+            :pattern-index="allPatterns.indexOf(pattern)"
+            :presenter="presenter"
+            @show="showPatternInSidebar(pattern, allPatterns.indexOf(pattern))"
+          />
+        </div>
+      </template>
+
+      <!-- Contradictions (always show block when we have any patterns, so skepticism is visible) -->
+      <template v-if="allPatterns.length > 0">
+        <div class="cpw-section-header cpw-section--contradictory">
+          <span class="cpw-section-dot cpw-dot--contradictory"></span>Contradictions
+          <span class="cpw-section-count">{{ contradictoryPatterns.length }}</span>
+        </div>
+        <p v-if="contradictoryPatterns.length === 0" class="cpw-section-subtitle cpw-section-subtitle--contradictory">No contradictory patterns identified in this sample.</p>
+        <div
+          v-for="(pattern, idx) in contradictoryPatterns"
+          :key="`contra-${idx}`"
+          class="cpw-pattern-card"
+        >
+          <PatternCardContent
+            :pattern="pattern"
+            :pattern-index="allPatterns.indexOf(pattern)"
+            :presenter="presenter"
+            @show="showPatternInSidebar(pattern, allPatterns.indexOf(pattern))"
+          />
+        </div>
+      </template>
+
+      <!-- Context / Neutral -->
+      <template v-if="neutralPatterns.length > 0">
+        <div class="cpw-section-header cpw-section--neutral">
+          <span class="cpw-section-dot cpw-dot--neutral"></span>Context
+          <span class="cpw-section-count">{{ neutralPatterns.length }}</span>
+        </div>
+        <div
+          v-for="(pattern, idx) in visibleNeutralPatterns"
+          :key="`neutral-${idx}`"
+          class="cpw-pattern-card"
+        >
+          <PatternCardContent
+            :pattern="pattern"
+            :pattern-index="allPatterns.indexOf(pattern)"
+            :presenter="presenter"
+            @show="showPatternInSidebar(pattern, allPatterns.indexOf(pattern))"
+          />
+        </div>
+        <div v-if="neutralPatterns.length > PREVIEW_PATTERNS_COUNT && !neutralExpanded" class="cpw-show-more-wrap">
+          <button type="button" class="cpw-show-more-btn" @click="neutralExpanded = true">
+            Show more ({{ neutralPatterns.length - PREVIEW_PATTERNS_COUNT }} more)
+            <svg class="cpw-show-more-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      </template>
     </div>
 
     <!-- Comments Sidebar -->
@@ -107,6 +167,7 @@ import ProgressBar from '@/shared/components/ProgressBar.vue';
 import SectionHintButton from '@/shared/components/SectionHintButton.vue';
 import { decodeHtmlEntities } from '../../../../../shared/utils/text';
 import CommentsSidebar from '../../components/CommentsSidebar.vue';
+import PatternCardContent from './PatternCard.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { COMMENT_TYPES } from '../../../types';
 import type { CommentPatternsPresenter } from '../../presenters/comment-patterns.presenter';
@@ -134,22 +195,40 @@ const showingOnlyExamples = ref(false);
 
 const PREVIEW_PATTERNS_COUNT = 3;
 const patternsExpanded = ref(false);
+const directExpanded = ref(false);
+const neutralExpanded = ref(false);
 
+const allPatterns = computed(() => analysis.value?.patterns ?? []);
+
+const directPatterns = computed(() =>
+  allPatterns.value.filter((p) => !p.evidenceType || p.evidenceType === 'direct')
+);
+const alternativePatterns = computed(() =>
+  allPatterns.value.filter((p) => p.evidenceType === 'alternative')
+);
+const contradictoryPatterns = computed(() =>
+  allPatterns.value.filter((p) => p.evidenceType === 'contradictory')
+);
+const neutralPatterns = computed(() =>
+  allPatterns.value.filter((p) => p.evidenceType === 'neutral')
+);
+
+const visibleDirectPatterns = computed(() =>
+  directExpanded.value ? directPatterns.value : directPatterns.value.slice(0, PREVIEW_PATTERNS_COUNT)
+);
+const visibleNeutralPatterns = computed(() =>
+  neutralExpanded.value ? neutralPatterns.value : neutralPatterns.value.slice(0, PREVIEW_PATTERNS_COUNT)
+);
+
+// Legacy computed (kept for non-grouped fallback)
 const visiblePatterns = computed(() => {
-  const patterns = analysis.value?.patterns ?? [];
+  const patterns = allPatterns.value;
   if (patternsExpanded.value || patterns.length <= PREVIEW_PATTERNS_COUNT) return patterns;
   return patterns.slice(0, PREVIEW_PATTERNS_COUNT);
 });
 
-const hasMorePatterns = computed(() => {
-  const patterns = analysis.value?.patterns ?? [];
-  return patterns.length > PREVIEW_PATTERNS_COUNT;
-});
-
-const remainingPatternsCount = computed(() => {
-  const patterns = analysis.value?.patterns ?? [];
-  return Math.max(0, patterns.length - PREVIEW_PATTERNS_COUNT);
-});
+const hasMorePatterns = computed(() => allPatterns.value.length > PREVIEW_PATTERNS_COUNT);
+const remainingPatternsCount = computed(() => Math.max(0, allPatterns.value.length - PREVIEW_PATTERNS_COUNT));
 
 function patternIndexFor(idx: number): number {
   return idx;
@@ -183,6 +262,34 @@ const subredditSummary = computed(() => {
   const n = Object.keys(dist).length;
   if (n === 0) return '';
   return `${n} subreddit${n === 1 ? '' : 's'}`;
+});
+
+const coverageLabel = computed(() => {
+  const a = analysis.value;
+  if (!a || a.totalComments === 0) return '';
+  if (a.classifiedComments == null) return '';
+  return `${a.classifiedComments} / ${a.totalComments} comments classified`;
+});
+
+const coverageTooltip = computed(() => {
+  const a = analysis.value;
+  if (!a || a.classifiedComments == null) return '';
+  const pct = Math.round((a.classifiedComments / a.totalComments) * 100);
+  return `${a.totalComments} comments analysed. ${a.classifiedComments} unique comments matched at least one pattern (${pct}%). Counts per pattern may sum to more than ${a.classifiedComments} because one comment can match several patterns.`;
+});
+
+const scoreTooltip = computed(() => {
+  const a = analysis.value;
+  if (!a) return '';
+  return `Score is computed deterministically from ${a.classifiedComments ?? '?'} real matched comments (unique author diversity weighted). Not an LLM estimate.`;
+});
+
+/** True when error indicates user should run Research (404 / pattern analysis not available). */
+const isRunResearchError = computed(() => {
+  const e = error.value;
+  if (!e) return false;
+  const lower = e.toLowerCase();
+  return lower.includes('pattern analysis not available') || lower.includes('run') && lower.includes('research') || lower.includes('not available');
 });
 
 const sidebarHint = computed(() =>
@@ -318,8 +425,9 @@ defineExpose({
 
 .cpw-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
   padding: 1rem 1.25rem;
   border-bottom: var(--border-width) var(--border-style) var(--color-border);
 }
@@ -361,12 +469,14 @@ defineExpose({
   flex-wrap: wrap;
 }
 .cpw-recurrence-badge,
-.cpw-subreddits-badge {
+.cpw-subreddits-badge,
+.cpw-coverage-badge {
   font-size: 0.7rem;
   color: var(--color-text-muted);
   padding: 0.2rem 0.4rem;
   border-radius: var(--radius-sm);
   background: var(--color-bg-subtle);
+  cursor: default;
 }
 .cpw-pattern-subreddits {
   font-size: 0.7rem;
@@ -409,6 +519,66 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+/* Evidence-type section headers */
+.cpw-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: 0.25rem 0 0.1rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.1rem;
+}
+
+.cpw-section-count {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  border-radius: 999px;
+  padding: 0.1rem 0.35rem;
+}
+
+.cpw-section-dot {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cpw-dot--direct      { background: var(--color-success); }
+.cpw-dot--alternative { background: var(--color-text-muted); }
+.cpw-dot--contradictory { background: var(--color-error); }
+.cpw-dot--neutral     { background: var(--color-accent); }
+
+.cpw-section-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin: -0.2rem 0 0.5rem 0;
+  padding: 0;
+}
+
+.cpw-section-subtitle--contradictory {
+  margin-bottom: 0.5rem;
+}
+
+.cpw-diversity-hint {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.cpw-empty-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
 }
 
 .cpw-show-more-wrap {
@@ -461,7 +631,8 @@ defineExpose({
 
 .cpw-pattern-label-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -470,7 +641,6 @@ defineExpose({
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text);
-  flex: 1;
 }
 
 .cpw-pattern-count {

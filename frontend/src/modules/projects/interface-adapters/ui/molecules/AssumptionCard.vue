@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import AssumptionStatusBadge from '../atoms/AssumptionStatusBadge.vue';
 
-type Status = 'confirmed' | 'need_more' | 'not_supported' | null;
+type Status = 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven' | null;
 
 defineProps<{
   labelHtml: string;

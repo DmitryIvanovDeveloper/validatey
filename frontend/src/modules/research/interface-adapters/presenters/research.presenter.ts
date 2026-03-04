@@ -34,7 +34,7 @@ export interface UserStory {
   solutionDirection?: string;
 }
 
-type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | null;
+type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven' | null;
 
 @injectable()
 export class ResearchPresenter {

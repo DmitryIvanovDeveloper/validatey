@@ -77,7 +77,7 @@ const props = defineProps<Props>();
 
 const loading = ref(false);
 const error = ref<string | null>(null);
-const assumptionStatuses = ref<('confirmed' | 'need_more' | 'not_supported')[] | null>(null);
+const assumptionStatuses = ref<('confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven')[] | null>(null);
 
 const researchPresenter = container.get<ResearchPresenter>(RESEARCH_TYPES.ResearchPresenter);
 
@@ -85,7 +85,8 @@ const totalCount = computed(() => assumptionStatuses.value?.length ?? 0);
 
 const unassessedCount = computed(() => {
   if (!statusCounts.value) return totalCount.value;
-  return Math.max(0, totalCount.value - statusCounts.value.confirmed - statusCounts.value.need_more - statusCounts.value.not_supported);
+  const assessed = statusCounts.value.confirmed + statusCounts.value.need_more + statusCounts.value.not_supported + statusCounts.value.not_testable + statusCounts.value.disproven;
+  return Math.max(0, totalCount.value - assessed);
 });
 
 const statusBarTitle = computed(() => {
@@ -94,6 +95,8 @@ const statusBarTitle = computed(() => {
   if (statusCounts.value.confirmed > 0) parts.push(`${statusCounts.value.confirmed} confirmed`);
   if (statusCounts.value.need_more > 0) parts.push(`${statusCounts.value.need_more} need more data`);
   if (statusCounts.value.not_supported > 0) parts.push(`${statusCounts.value.not_supported} not supported`);
+  if (statusCounts.value.not_testable > 0) parts.push(`${statusCounts.value.not_testable} not testable`);
+  if (statusCounts.value.disproven > 0) parts.push(`${statusCounts.value.disproven} disproven`);
   if (unassessedCount.value > 0) parts.push(`${unassessedCount.value} not assessed`);
   return parts.join(' · ');
 });
@@ -105,6 +108,8 @@ const statusCounts = computed(() => {
     confirmed: assumptionStatuses.value.filter(s => s === 'confirmed').length,
     need_more: assumptionStatuses.value.filter(s => s === 'need_more').length,
     not_supported: assumptionStatuses.value.filter(s => s === 'not_supported').length,
+    not_testable: assumptionStatuses.value.filter(s => s === 'not_testable').length,
+    disproven: assumptionStatuses.value.filter(s => s === 'disproven').length,
   };
   
   // Детальная отладочная информация
@@ -132,7 +137,7 @@ const statusCounts = computed(() => {
 
 const hasStatuses = computed(() => {
   if (!statusCounts.value) return false;
-  return statusCounts.value.confirmed > 0 || statusCounts.value.need_more > 0 || statusCounts.value.not_supported > 0;
+  return statusCounts.value.confirmed > 0 || statusCounts.value.need_more > 0 || statusCounts.value.not_supported > 0 || statusCounts.value.not_testable > 0 || statusCounts.value.disproven > 0;
 });
 
 // Проверяем, что все массивы чарта согласованы и готовы
@@ -171,16 +176,12 @@ const chartSeries = computed(() => {
 
   const series: number[] = [];
   
-  // Порядок важен: сначала confirmed, потом need_more, потом not_supported
-  if (statusCounts.value.confirmed > 0) {
-    series.push(statusCounts.value.confirmed);
-  }
-  if (statusCounts.value.need_more > 0) {
-    series.push(statusCounts.value.need_more);
-  }
-  if (statusCounts.value.not_supported > 0) {
-    series.push(statusCounts.value.not_supported);
-  }
+  // Порядок: confirmed, need_more, not_supported, not_testable, disproven
+  if (statusCounts.value.confirmed > 0) series.push(statusCounts.value.confirmed);
+  if (statusCounts.value.need_more > 0) series.push(statusCounts.value.need_more);
+  if (statusCounts.value.not_supported > 0) series.push(statusCounts.value.not_supported);
+  if (statusCounts.value.not_testable > 0) series.push(statusCounts.value.not_testable);
+  if (statusCounts.value.disproven > 0) series.push(statusCounts.value.disproven);
 
   console.log('AssumptionsWidget chartSeries:', {
     series,
@@ -210,16 +211,11 @@ const chartLabels = computed(() => {
   }
 
   const labels: string[] = [];
-  
-  if (statusCounts.value.confirmed > 0) {
-    labels.push('Confirmed');
-  }
-  if (statusCounts.value.need_more > 0) {
-    labels.push('NeedMore'); // Убираем пробел для ApexCharts
-  }
-  if (statusCounts.value.not_supported > 0) {
-    labels.push('NotSupported'); // Убираем пробел для ApexCharts
-  }
+  if (statusCounts.value.confirmed > 0) labels.push('Confirmed');
+  if (statusCounts.value.need_more > 0) labels.push('NeedMore');
+  if (statusCounts.value.not_supported > 0) labels.push('NotSupported');
+  if (statusCounts.value.not_testable > 0) labels.push('NotTestable');
+  if (statusCounts.value.disproven > 0) labels.push('Disproven');
 
   console.log('AssumptionsWidget chartLabels:', {
     labels,
@@ -236,15 +232,11 @@ const chartColors = computed(() => {
 
   const colors: string[] = [];
   
-  if (statusCounts.value.confirmed > 0) {
-    colors.push('#059669'); // success color - зеленый
-  }
-  if (statusCounts.value.need_more > 0) {
-    colors.push('#d97706'); // warning color - оранжевый
-  }
-  if (statusCounts.value.not_supported > 0) {
-    colors.push('#dc2626'); // error color - красный
-  }
+  if (statusCounts.value.confirmed > 0) colors.push('#059669');
+  if (statusCounts.value.need_more > 0) colors.push('#d97706');
+  if (statusCounts.value.not_supported > 0) colors.push('#dc2626');
+  if (statusCounts.value.not_testable > 0) colors.push('#6b7280'); // muted
+  if (statusCounts.value.disproven > 0) colors.push('#b91c1c'); // darker red
 
   const mapping = chartLabels.value.map((label, idx) => ({
     label,

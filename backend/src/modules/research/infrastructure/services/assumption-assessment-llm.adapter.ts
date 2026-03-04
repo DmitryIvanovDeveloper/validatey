@@ -14,23 +14,37 @@ const ANALYSIS_MODEL = process.env.ANALYSIS_MODEL || 'llama3.3-70b';
 
 const SYSTEM_PROMPT = `You are a product research analyst. Your output appears in a product dashboard under "Key Assumptions". Each assumption gets a status and an evidence sentence shown directly to the founder.
 
+CRITICAL — You MUST use these five statuses. No other values allowed:
+- "confirmed" = direct evidence from data supports the assumption
+- "need_more" = attitudinal assumption with no or insufficient evidence yet (more research can help)
+- "not_supported" = evidence contradicts the assumption
+- "not_testable" = this assumption CANNOT be validated from forum/comment data (e.g. retention, conversion, return behavior). Use this for behavioral assumptions. Never use "confirmed" for behavioral claims based only on comments.
+- "disproven" = evidence clearly contradicts the assumption (stronger than not_supported when data explicitly refutes)
+
 Process EVERY assumption using the following 4 steps. Output ONLY the final JSON — do not output step-by-step reasoning.
 
 STEP 1 — Identify audience groups from the hypothesis.
 Read the "Project hypothesis". Extract every distinct audience the user mentions (e.g. "entrepreneurs", "potential users", "investors", "B2B buyers", "teachers", "developers" — whatever the hypothesis says). These are SEPARATE groups; data from one cannot confirm claims about another. If the hypothesis does not name any audience, treat the product as having one audience (e.g. "users" or "customers") and use that as the single group.
 
-STEP 2 — For each assumption, identify the ACTOR GROUP and BEHAVIOR.
+STEP 2 — For each assumption, identify the ACTOR GROUP, BEHAVIOR TYPE, and EVIDENCE REQUIREMENTS.
   ACTOR GROUP = the human audience group that performs the action or holds the belief.
     - ACTOR must always be a group of people (e.g. "founders", "users", "investors") — NEVER a topic, a fear, or an abstract concept (e.g. "fear of idea theft" is NOT an actor; the actor is "founders" who fear it).
     - Match ACTOR to one of the groups from STEP 1. Use the STEP 1 list as canonical; do NOT invent new group names.
     - Strip all qualifiers: "Entrepreneurs in indie communities" → "entrepreneurs"; "Early-stage investors" → "investors".
-  BEHAVIOR = what specific action or belief is being claimed about that ACTOR GROUP?
+
+  BEHAVIOR TYPE = classify each assumption:
+    - ATTITUDINAL: beliefs, preferences, pain points, willingness to pay, feature preferences
+    - BEHAVIORAL: actual actions (retention, conversion, return usage, engagement patterns)
+
+  EVIDENCE REQUIREMENTS:
+    - ATTITUDINAL: can be validated from forum comments, surveys, interviews
+    - BEHAVIORAL: requires behavioral data (analytics, A/B tests, retention metrics) — forum comments are INSUFFICIENT
 
 STEP 3 — Check audience coverage, then check behavior evidence.
 The "Data sources" section starts with "Total comments in this analysis: N" and then "AUDIENCE COVERAGE". Read both.
-- The "THEMATIC COUNTS" block gives you pre-computed, keyword-based counts of how many comments match each assumption's core topic across ALL collected comments. Use these as hard facts in your evidence: "Of [total] comments, ~N match the topic of this assumption" — where N comes from THEMATIC COUNTS, NOT from your own estimate. The total is in "Total comments in this analysis: N".
-- Comments block shows filtered, relevant comments (up to 25 per source) — do NOT estimate counts from the sample; always use THEMATIC COUNTS.
-- Do NOT cite only a subset of sources (e.g. "6 from r/X, r/Y") — cite the thematic count and total.
+      - The "THEMATIC COUNTS" block gives rough keyword-proximity estimates of how many comments may relate to each assumption. These are NOT semantic matches — they use multi-word phrase proximity and may include false positives. Use them as approximate context ("roughly N of [total] comments may touch this topic"), NOT as definitive facts.
+      - Comments block shows filtered, relevant comments (up to 25 per source). If the sample shows that most comments are clearly about unrelated topics (e.g. job postings, unrelated tech debates), report that and set status = "need_more" — the thematic count is unreliable in that case.
+      - Do NOT cite only a subset of sources (e.g. "6 from r/X, r/Y") — cite the thematic count and total, with the caveat that counts are estimates.
 
   3a. SOURCE audience match — check the ACTOR GROUP against the AUDIENCE COVERAGE table.
       The table uses slash-separated labels, e.g.:
@@ -41,12 +55,39 @@ The "Data sources" section starts with "Total comments in this analysis: N" and 
       Only if NO line in the whole table contains the ACTOR word → status = "need_more",
         evidence = "No comments collected about [ACTOR GROUP] — data covers [list ✓ labels]. Need [research type] with [ACTOR GROUP]."
 
-  3b. BEHAVIOR evidence — what do the matched comments say about the BEHAVIOR?
-      Direct evidence = people explicitly stating intent, describing actions, A/B results, beta feedback.
-      NOT direct evidence = pain-point complaints, general frustrations, problem descriptions.
-      If direct behavioral evidence found → status = "confirmed", cite the specific data.
-      If NOT found → status = "need_more",
-        evidence = "[ACTOR] context IS confirmed — of [total] comments, ~[N from THEMATIC COUNTS] match the topic of this assumption; sample comments show [one sentence on the dominant theme from the Comments sample]. But behavioral evidence that [BEHAVIOR] occurs is missing — need [specific research: e.g. beta test / user interviews / A/B experiment]."
+  SURVEY DATA INTERPRETATION: If "User insights" contains survey data, apply these rules STRICTLY:
+
+  For PAIN/PROBLEM assumptions (e.g. "professionals spend significant time searching"):
+  - Average severity >= 7/10 → evidence SUPPORTS the assumption → status may be "confirmed"
+  - Average severity 4–6/10 → weak signal → status = "need_more"
+  - Average severity <= 3/10 → evidence CONTRADICTS the assumption → status = "not_supported"
+
+  For WILLINGNESS TO PAY assumptions:
+  - Average WTP >= $5/month → evidence SUPPORTS → status may be "confirmed"
+  - Average WTP $1–4/month → weak signal → status = "need_more"
+  - Average WTP = $0 OR users explicitly say they would not pay → status = "not_supported"
+
+  For BEHAVIORAL WILLINGNESS (e.g. "willing to configure", "willing to set up preferences"):
+  - Look at text responses directly. If users say "yes I would configure" / "I would set up keywords" → supports
+  - If users say "no I would not configure" / "too much effort" / "not interested" → contradicts → "not_supported"
+  - WTP score alone does NOT confirm willingness to configure — these are different assumptions
+
+  DATA RELEVANCE WARNING: If the data source summary includes a LOW_RELEVANCE WARNING flag for COMMENTS, treat the COMMENT-BASED thematic counts as unreliable. However, SURVEY RESPONSES in the "User insights" field are INDEPENDENT evidence — they are direct first-person answers from real users and MUST be evaluated separately using the thresholds above.
+
+  3b. BEHAVIOR vs ATTITUDE evidence — distinguish between what people SAY and what they DO.
+      ATTITUDE evidence (what people think/feel): pain complaints, frustrations, opinions, preferences.
+      BEHAVIOR evidence (what people actually do): usage patterns, return rates, conversion actions, A/B results, beta feedback.
+
+      For BEHAVIORAL assumptions (retention, engagement, conversion):
+      - If direct behavioral evidence found → status = "confirmed"
+      - If only attitude evidence → status = "not_testable"
+      - If no evidence → status = "not_testable"
+      - Forum comments CANNOT validate behavioral assumptions
+
+      For ATTITUDINAL assumptions (preferences, pain points, willingness):
+      - If attitude evidence found → status = "confirmed"
+      - If no evidence → status = "need_more"
+      - Contradictory evidence → status = "disproven"
 
 STEP 4 — Check for contradictions.
 If comments or insights directly contradict the assumption → status = "not_supported", explain what the data says instead.
@@ -65,7 +106,7 @@ RULES:
 
 
 
-const OUTPUT_SCHEMA = `Output format: JSON array only. Each element: {"assumptionId":"<exact id from input>","status":"confirmed"|"need_more"|"not_supported","evidence":"<required: 1-2 sentences explaining the status>"}.`;
+const OUTPUT_SCHEMA = `Output format: JSON array only. Each element: {"assumptionId":"<exact id from input>","status":"confirmed"|"need_more"|"not_supported"|"not_testable"|"disproven","evidence":"<required: 1-2 sentences explaining the status>"}.`;
 
 @injectable()
 export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPort {
@@ -91,12 +132,12 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
       'Research context:',
       `Synthesis: ${context.synthesisSummary}`,
       `Verdict: ${context.verdict}`,
-      `User insights: ${context.userInsightsSummary}`,
+      `User insights (SURVEY DATA — primary evidence for attitudinal assumptions; takes priority over comment data when present): ${context.userInsightsSummary}`,
       context.dataSourcesSummary ? `Data sources:\n${context.dataSourcesSummary}` : '',
       context.thematicCounts
-        ? `THEMATIC COUNTS (pre-computed keyword matches from ALL ${Object.values(context.thematicCounts).reduce((a, b) => Math.max(a, b), 0) > 0 ? 'comments' : 'comments'}, hard facts — use these as the on-topic count in evidence):\n${
-            assumptions.map(a => `  Assumption ${a.assumptionId}: ~${context.thematicCounts![a.assumptionId] ?? 0} comments match its core keywords`).join('\n')
-          }`
+        ? `THEMATIC COUNTS (pre-computed multi-word phrase matches from ALL comments — rough estimates based on keyword proximity, NOT semantic analysis; may include false positives from unrelated contexts; treat as order-of-magnitude guidance only, NOT as hard facts):\n${
+            assumptions.map(a => `  Assumption ${a.assumptionId}: ~${context.thematicCounts![a.assumptionId] ?? 0} comments match its core phrases`).join('\n')
+          }\nIMPORTANT: If the comment sample shows fewer clearly relevant comments than the thematic count suggests, trust the sample — the count may contain false matches from generic vocabulary.`
         : '',
       `Comments (filtered by relevance to assumptions, up to 25 per source — see THEMATIC COUNTS above for full-corpus numbers):\n${context.commentsSummary}`,
       context.commentPatternSummary ? `Comment patterns: ${context.commentPatternSummary}` : '',
@@ -152,7 +193,7 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
       if (!Array.isArray(arr)) return this.fallbackAssessments(assumptions, '');
 
       const idSet = new Set(assumptions.map((a) => a.assumptionId));
-      const statusSet = new Set<AssumptionStatus>(['confirmed', 'need_more', 'not_supported']);
+      const statusSet = new Set<AssumptionStatus>(['confirmed', 'need_more', 'not_supported', 'not_testable', 'disproven']);
       const resultMap = new Map<string, AssumptionAssessment>();
 
       for (const item of arr) {

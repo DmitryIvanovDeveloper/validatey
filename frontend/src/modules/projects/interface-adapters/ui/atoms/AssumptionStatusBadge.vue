@@ -11,7 +11,7 @@
 import { computed } from 'vue';
 import Badge from '@/shared/components/atoms/Badge.vue';
 
-type Status = 'confirmed' | 'need_more' | 'not_supported';
+type Status = 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven';
 
 const props = withDefaults(
   defineProps<{
@@ -28,6 +28,8 @@ const defaultLabels: Record<Status, string> = {
   confirmed: 'Confirmed',
   need_more: 'Need more',
   not_supported: 'Not supported',
+  not_testable: 'Not testable on this data',
+  disproven: 'Disproven',
 };
 
 const label = computed(() => {

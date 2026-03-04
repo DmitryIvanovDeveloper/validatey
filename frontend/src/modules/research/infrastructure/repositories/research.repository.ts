@@ -39,7 +39,7 @@ export class ResearchRepository implements ResearchRepositoryPort {
       slug: string;
       description: string;
     };
-    assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported')[] | null;
+    assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven')[] | null;
     assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
     researchStatus?: 'idle' | 'collecting' | 'synthesizing';
     researchStatusUpdatedAt?: string | null;
@@ -65,7 +65,7 @@ export class ResearchRepository implements ResearchRepositoryPort {
           slug: string;
           description: string;
         };
-        assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported')[] | null;
+        assumptionStatuses?: ('confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven')[] | null;
         assumptionAssessments?: Array<{ assumptionId: string; status: string; evidence: string | null }> | null;
         researchStatus?: 'idle' | 'collecting' | 'synthesizing';
         researchStatusUpdatedAt?: string | null;

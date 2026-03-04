@@ -181,14 +181,15 @@ Respond with ONLY a valid JSON object (no markdown, no extra text):
 {"size":"<actual market size from snippets, e.g. $2.5 billion or 500K active users>","growth":"<actual growth rate from snippets, e.g. 18% CAGR 2024-2030>","trends":["trend 1","trend 2","trend 3"]}
 
 Rules:
-- Use only information from the snippets. If something is missing, use "Unknown" or an empty array.
-- size: one short sentence or number.
-- growth: one short sentence or percentage.
-- trends: 0-5 short trend phrases.
+- Use only information from the snippets. If something is missing or snippets are insufficient, use undefined/null instead of "Unknown".
+- size: one short sentence or number, or undefined if not available.
+- growth: one short sentence or percentage, or undefined if not available.
+- trends: 0-5 short trend phrases, or undefined if not available.
 - Use English.
 - RELEVANCE CHECK: If the snippets are about ML/AI model validation, software testing, data quality validation,
-  or any technical validation unrelated to startup/founder tools — output {"size":"Unknown","growth":"Unknown","trends":[]}.
+  or any technical validation unrelated to startup/founder tools — output {"size":null,"growth":null,"trends":null}.
   Only summarize if snippets clearly describe the market for startup tools, customer discovery, or founder feedback platforms.
+  If no relevant data found, return all fields as null/undefined.
 
 Context:
 ${context}`;
@@ -201,12 +202,12 @@ ${context}`;
     }
     try {
       const obj = JSON.parse(match[0]) as Record<string, unknown>;
-      const size = typeof obj.size === 'string' ? obj.size : undefined;
-      const growth = typeof obj.growth === 'string' ? obj.growth : undefined;
+      const size = (typeof obj.size === 'string' && obj.size.trim()) ? obj.size.trim() : undefined;
+      const growth = (typeof obj.growth === 'string' && obj.growth.trim()) ? obj.growth.trim() : undefined;
       const trends = Array.isArray(obj.trends)
-        ? (obj.trends as unknown[]).filter((t): t is string => typeof t === 'string')
-        : [];
-      return { size, growth, trends: trends.length > 0 ? trends : undefined };
+        ? (obj.trends as unknown[]).filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
+        : undefined;
+      return { size, growth, trends };
     } catch {
       throw new ResearchDataCollectionError('Market data collection failed: could not parse LLM JSON');
     }

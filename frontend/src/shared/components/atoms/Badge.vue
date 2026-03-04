@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-type Variant = 'confirmed' | 'need_more' | 'not_supported' | 'neutral' | null;
+type Variant = 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven' | 'neutral' | null;
 type Size = 'sm' | 'md' | 'lg';
 
 interface Props {
@@ -46,6 +46,10 @@ const displayText = computed(() => {
       return 'Need more';
     case 'not_supported':
       return 'Not supported';
+    case 'not_testable':
+      return 'Not testable on this data';
+    case 'disproven':
+      return 'Disproven';
     case null:
     case 'neutral':
     default:
@@ -92,6 +96,14 @@ const displayText = computed(() => {
 }
 
 .badge--not_supported {
+  color: var(--color-error);
+}
+
+.badge--not_testable {
+  color: var(--color-text-muted);
+}
+
+.badge--disproven {
   color: var(--color-error);
 }
 

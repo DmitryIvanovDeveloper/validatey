@@ -286,8 +286,9 @@ defineExpose({
 
 .cpw-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
   padding: 1rem 1.25rem;
   border-bottom: var(--border-width) var(--border-style) var(--color-border);
 }
@@ -354,7 +355,8 @@ defineExpose({
 
 .cpw-pattern-label-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -363,7 +365,6 @@ defineExpose({
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text);
-  flex: 1;
 }
 
 .cpw-pattern-count {

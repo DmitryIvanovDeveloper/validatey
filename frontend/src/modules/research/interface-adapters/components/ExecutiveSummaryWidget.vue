@@ -30,6 +30,7 @@
       <!-- Content -->
       <div v-else class="summary-content">
         <p v-if="summary?.trim()" class="summary-text">{{ summary }}</p>
+        <a v-if="summary?.trim()" href="#comment-pattern-analysis-section" class="executive-summary-view-patterns" @click.prevent="scrollToCommentPatterns">View comment patterns and evidence</a>
         <!-- Strategic Recommendations (Overview) -->
         <div v-if="recommendations?.length" class="strategic-recommendations">
           <h5 class="strategic-recommendations-title">Strategic Recommendations</h5>
@@ -77,6 +78,10 @@ console.log('ExecutiveSummaryWidget props:', {
 const handleShowDetails = () => {
   emit('show-details');
 };
+
+function scrollToCommentPatterns(): void {
+  document.getElementById('comment-pattern-analysis-section')?.scrollIntoView({ behavior: 'smooth' });
+}
 
 const emit = defineEmits<{
   'show-details': [];
@@ -163,6 +168,19 @@ const emit = defineEmits<{
 
 .btn-text {
   display: inline;
+}
+
+.executive-summary-view-patterns {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.executive-summary-view-patterns:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 640px) {

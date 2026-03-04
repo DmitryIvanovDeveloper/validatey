@@ -81,7 +81,7 @@ export interface CommentsHttpRepositoryPort {
     }
   ): Promise<Result<{ started: boolean }, Error>>;
 
-  getFetchStatus(): Promise<Result<FetchJobStateDTO, Error>>;
+  getFetchStatus(projectId: string): Promise<Result<FetchJobStateDTO, Error>>;
 
   getComments(
     projectId: string,

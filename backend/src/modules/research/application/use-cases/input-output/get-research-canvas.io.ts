@@ -13,7 +13,7 @@ export type RecommendedTemplate = {
 };
 
 /** Per-assumption validation status (legacy; also derivable from assumptionAssessments). */
-export type AssumptionStatus = 'confirmed' | 'need_more' | 'not_supported';
+export type AssumptionStatus = 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven';
 
 export type ResearchStatusDto = 'idle' | 'collecting' | 'synthesizing';
 

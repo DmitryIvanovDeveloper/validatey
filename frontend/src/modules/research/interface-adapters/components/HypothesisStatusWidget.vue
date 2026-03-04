@@ -14,7 +14,7 @@ import { ResearchPresenter } from '../presenters/research.presenter';
 import { TYPES as RESEARCH_TYPES } from '../../infrastructure/bootstrap/types';
 import Badge from '@/shared/components/atoms/Badge.vue';
 
-type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | null;
+type HypothesisStatus = 'confirmed' | 'need_more' | 'not_supported' | 'not_testable' | 'disproven' | null;
 
 interface Props {
   // Либо передаем готовый статус

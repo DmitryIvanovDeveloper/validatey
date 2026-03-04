@@ -52,7 +52,11 @@ export class CheckResearchAvailabilityUseCase {
       }
 
       const now: Date = new Date();
-      const cooldownMs: number = 24 * 60 * 60 * 1000; // 24 часа в миллисекундах
+      // Allow override for testing: RESEARCH_COOLDOWN_MINUTES=0 or 1 to shorten cooldown
+      const cooldownMinutes = process.env.RESEARCH_COOLDOWN_MINUTES != null
+        ? Math.max(0, parseInt(process.env.RESEARCH_COOLDOWN_MINUTES, 10) || 0)
+        : 24 * 60;
+      const cooldownMs: number = cooldownMinutes * 60 * 1000;
       const nextAvailable: Date = new Date(lastRun.getTime() + cooldownMs);
       const timeUntilNext: number = Math.max(0, nextAvailable.getTime() - now.getTime());
 

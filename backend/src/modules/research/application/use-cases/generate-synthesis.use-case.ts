@@ -25,7 +25,7 @@ import type {
 } from './input-output/generate-synthesis.io';
 import type { Response } from '../../../responses/domain/entities/response.entity';
 import { CommentEntity } from '../../../comments/domain/entities/comment.entity';
-import type { CommentPatternAnalysis } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
+import type { CommentPatternAnalysis, EvidenceType, DataConfidence } from '../../../comments/domain/value-objects/comment-pattern-analysis.vo';
 import type { AcademicPapersBlock } from '../../domain/value-objects/academic-papers-block.vo';
 import type { ProductHuntBlock, ProductHuntPost } from '../../domain/value-objects/product-hunt-block.vo';
 import type { CommentMetrics } from '../ports/synthesis-llm.port';
@@ -137,38 +137,72 @@ export class GenerateSynthesisUseCase {
             commentMetrics: { totalCount: comments.length, bySource: commentMetrics.bySource },
           });
           if (batchResult.isSuccess && batchResult.data.commentPatternAnalysis) {
-            batchAnalyses.push(batchResult.data.commentPatternAnalysis);
+            const validated = this.validatePatternExamples(batchResult.data.commentPatternAnalysis, batch);
+            batchAnalyses.push(validated);
           }
         }
         if (batchAnalyses.length === 0) {
-          return ResultEx.failure(new Error('Synthesis batch mode: no pattern analysis from any batch'));
+          // Fallback: one LLM call with a sample of comments (avoids rate limit and yields pattern analysis)
+          const SINGLE_PASS_SAMPLE = 80;
+          const sample = comments.slice(0, SINGLE_PASS_SAMPLE);
+          const sampleSummary = this.summarizeComments(sample);
+          const sampleNumbered = this.buildNumberedCommentsWithIds(sample);
+          this._logger.info('generate-synthesis.batch-fallback-single-pass', {
+            projectId,
+            totalComments: comments.length,
+            sampleSize: sample.length,
+          });
+          const fallbackResult = await this._synthesisLlm.generateSynthesis({
+            projectName: project.name,
+            hypothesisSummary,
+            marketSummary,
+            competitorSummary,
+            autocompleteSummary,
+            userInsightsSummary,
+            commentsSummary: sampleSummary,
+            commentsNumberedWithIds: sampleNumbered || undefined,
+            earlySignalsSummary,
+            academicPapersSummary,
+            productHuntSummary,
+            commentMetrics,
+          });
+          if (!fallbackResult.isSuccess) {
+            return ResultEx.failure(fallbackResult.error);
+          }
+          report = fallbackResult.data;
+          synthesisPatternAnalysis = fallbackResult.data.commentPatternAnalysis ?? null;
+          if (synthesisPatternAnalysis) {
+            synthesisPatternAnalysis = this.validatePatternExamples(synthesisPatternAnalysis, sample);
+            // Enrich and merge will run below on full comments
+          }
+        } else {
+          const merged = this.mergePatternAnalyses(batchAnalyses, comments.length);
+          synthesisPatternAnalysis = this.enrichPatternCommentIdsFromExamples(merged, comments);
+          synthesisPatternAnalysis = this.enrichUniqueAuthorCounts(synthesisPatternAnalysis, comments);
+          const mergedSummary = this.formatMergedPatternSummary(synthesisPatternAnalysis);
+          const finalResult = await this._synthesisLlm.generateSynthesis({
+            projectName: project.name,
+            hypothesisSummary,
+            marketSummary,
+            competitorSummary,
+            autocompleteSummary,
+            userInsightsSummary,
+            commentsSummary: `Merged from ${comments.length} comments (${batchAnalyses.length} batches). Use pattern summary for verdict.`,
+            commentPatternSummary: mergedSummary,
+            earlySignalsSummary,
+            academicPapersSummary,
+            productHuntSummary,
+            commentMetrics,
+          });
+          if (!finalResult.isSuccess) return ResultEx.failure(finalResult.error);
+          report = {
+            summary: finalResult.data.summary,
+            recommendations: finalResult.data.recommendations ?? [],
+            verdict: finalResult.data.verdict,
+            sections: finalResult.data.sections,
+            commentPatternAnalysis: synthesisPatternAnalysis,
+          };
         }
-        const merged = this.mergePatternAnalyses(batchAnalyses, comments.length);
-        synthesisPatternAnalysis = this.enrichPatternCommentIdsFromExamples(merged, comments);
-        synthesisPatternAnalysis = this.enrichUniqueAuthorCounts(synthesisPatternAnalysis, comments);
-        const mergedSummary = this.formatMergedPatternSummary(synthesisPatternAnalysis);
-        const finalResult = await this._synthesisLlm.generateSynthesis({
-          projectName: project.name,
-          hypothesisSummary,
-          marketSummary,
-          competitorSummary,
-          autocompleteSummary,
-          userInsightsSummary,
-          commentsSummary: `Merged from ${comments.length} comments (${batchAnalyses.length} batches). Use pattern summary for verdict.`,
-          commentPatternSummary: mergedSummary,
-          earlySignalsSummary,
-          academicPapersSummary,
-          productHuntSummary,
-          commentMetrics,
-        });
-        if (!finalResult.isSuccess) return ResultEx.failure(finalResult.error);
-        report = {
-          summary: finalResult.data.summary,
-          recommendations: finalResult.data.recommendations ?? [],
-          verdict: finalResult.data.verdict,
-          sections: finalResult.data.sections,
-          commentPatternAnalysis: synthesisPatternAnalysis,
-        };
       } else {
         const commentsSummary = this.summarizeComments(comments);
         const commentsNumberedWithIds = this.buildNumberedCommentsWithIds(comments);
@@ -192,14 +226,21 @@ export class GenerateSynthesisUseCase {
         synthesisPatternAnalysis = report.commentPatternAnalysis ?? commentPatternAnalysis;
       }
 
-      // Use comment pattern analysis from synthesis report, or fall back to stored
-      // When LLM returns patterns without commentIds (or empty), fill from example content match so UI can show "Show N comments"
+      // Enrich and finalize pattern analysis.
+      // IMPORTANT: this must happen BEFORE building adjustedReport so that synthesis_report column
+      // also stores the finalized patterns (evidenceType, dataConfidence, deterministic score).
       if (synthesisPatternAnalysis && comments.length > 0) {
+        synthesisPatternAnalysis = this.validatePatternExamples(synthesisPatternAnalysis, comments);
+        // Keyword-based matching (primary): uses LLM-provided pattern keywords for precise comment attribution
+        synthesisPatternAnalysis = this.matchCommentsByKeywords(synthesisPatternAnalysis, comments);
+        // Example-based matching (fallback for patterns that got no commentIds from keywords)
         synthesisPatternAnalysis = this.enrichPatternCommentIdsFromExamples(synthesisPatternAnalysis, comments);
         synthesisPatternAnalysis = this.enrichUniqueAuthorCounts(synthesisPatternAnalysis, comments);
         synthesisPatternAnalysis = this.enrichSubredditCountsPerPattern(synthesisPatternAnalysis, comments);
+        synthesisPatternAnalysis = this.finalizePatternAnalysis(synthesisPatternAnalysis);
+        // Propagate finalized CPA back into the report so synthesis_report column is consistent
+        report = { ...report, commentPatternAnalysis: synthesisPatternAnalysis };
       }
-      // Platform insights are now handled by LLM analysis only
 
       // Adjust verdict based on comment pattern validation score (Domain логика)
       const adjustedReport = this.adjustVerdictByCommentPatterns(report, synthesisPatternAnalysis, comments.length);
@@ -255,6 +296,120 @@ export class GenerateSynthesisUseCase {
     } finally {
       await this._researchDataRepository.updateResearchStatus(projectId, 'idle');
     }
+  }
+
+  /**
+   * Validate that examples in each pattern are actual verbatim substrings of batch comments.
+   * Filters out fabricated quotes to prevent misleading citations.
+   */
+  private validatePatternExamples(
+    analysis: CommentPatternAnalysis,
+    batchComments: CommentEntity[]
+  ): CommentPatternAnalysis {
+    if (!batchComments || batchComments.length === 0) return analysis;
+    const normalize = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
+    const commentTexts = batchComments.map((c) => normalize(c.content));
+
+    const patterns = analysis.patterns.map((p) => {
+      if (!p.examples || p.examples.length === 0) return p;
+      const verified = p.examples.filter((ex) => {
+        const needle = normalize(ex.content).slice(0, 150);
+        if (!needle || needle.length < 10) return false;
+        return commentTexts.some((text) => text.includes(needle));
+      });
+      if (verified.length === p.examples.length) return p;
+      return { ...p, examples: verified };
+    });
+
+    return { ...analysis, patterns };
+  }
+
+  /**
+   * Post-enrichment finalization: derive evidenceType, dataConfidence, compute
+   * deterministic validationScore, classifiedComments and coverageRatio.
+   * Must be called AFTER enrichUniqueAuthorCounts.
+   */
+  private finalizePatternAnalysis(analysis: CommentPatternAnalysis): CommentPatternAnalysis {
+    const total = analysis.totalComments;
+
+    // Step 1: derive evidenceType and dataConfidence per pattern
+    const patterns = analysis.patterns.map((p) => {
+      const evidenceType = this.deriveEvidenceType(p);
+      const dataConfidence = this.deriveDataConfidence(p);
+      return { ...p, evidenceType, dataConfidence };
+    });
+
+    // Step 2: deterministic validationScore from real commentIds
+    const validationScore = this.computeDeterministicScore(patterns, total);
+
+    // Step 3: coverage stats
+    const allClassified = new Set<string>();
+    for (const p of patterns) {
+      for (const id of p.commentIds ?? []) allClassified.add(id);
+    }
+    const classifiedComments = allClassified.size;
+    const coverageRatio = total > 0 ? Math.round((classifiedComments / total) * 100) / 100 : 0;
+
+    return { ...analysis, patterns, validationScore, classifiedComments, coverageRatio };
+  }
+
+  private deriveEvidenceType(pattern: CommentPatternAnalysis['patterns'][number]): EvidenceType {
+    const alternativeTypes = new Set(['comparison', 'workaround']);
+    if (pattern.supportsHypothesis === false) {
+      return alternativeTypes.has(pattern.type) ? 'alternative' : 'contradictory';
+    }
+    if (pattern.supportsHypothesis === true) return 'direct';
+    if (alternativeTypes.has(pattern.type)) return 'alternative';
+    return 'neutral';
+  }
+
+  private deriveDataConfidence(pattern: CommentPatternAnalysis['patterns'][number]): DataConfidence {
+    const ids = pattern.commentIds?.length ?? 0;
+    if (ids === 0) return 'none';
+    if (ids >= 5) return 'high';
+    if (ids >= 2) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Deterministic validation score based on real comment coverage and author diversity.
+   * Formula: supportRatio * 100 * diversityFactor - contradictPenalty
+   * This replaces the LLM-estimated score which was inconsistent.
+   */
+  private computeDeterministicScore(
+    patterns: ReadonlyArray<CommentPatternAnalysis['patterns'][number]>,
+    totalComments: number
+  ): number {
+    if (totalComments === 0) return 0;
+
+    const supportIds = new Set<string>();
+    const contradictIds = new Set<string>();
+    let supportAuthorSum = 0;
+    let supportPatternCount = 0;
+
+    for (const p of patterns) {
+      const ids = p.commentIds ?? [];
+      const isSupporting = p.supportsHypothesis === true || (p.supportsHypothesis == null && p.type !== 'comparison' && p.type !== 'workaround');
+      const isContra = p.supportsHypothesis === false;
+
+      if (isSupporting) {
+        for (const id of ids) supportIds.add(id);
+        if (ids.length > 0) {
+          supportAuthorSum += p.uniqueAuthorCount ?? ids.length;
+          supportPatternCount++;
+        }
+      } else if (isContra) {
+        for (const id of ids) contradictIds.add(id);
+      }
+    }
+
+    const supportRatio = supportIds.size / totalComments;
+    const contradictRatio = contradictIds.size / totalComments;
+    const avgAuthors = supportPatternCount > 0 ? supportAuthorSum / supportPatternCount : 0;
+    const diversityFactor = Math.min(1, avgAuthors / 10);
+
+    const raw = supportRatio * 100 * (0.6 + 0.4 * diversityFactor) - contradictRatio * 50;
+    return Math.min(100, Math.max(0, Math.round(raw)));
   }
 
   private summarizeUserInsights(responses: Response[]): string {
@@ -452,6 +607,179 @@ export class GenerateSynthesisUseCase {
    * When LLM returns patterns with examples but empty commentIds, resolve comment IDs by
    * matching example content to project comments so the UI can show "Show N comments" and load from API.
    */
+  /**
+   * Deterministic comment matching based on LLM-provided keywords.
+   * For each pattern that has keywords, scans every comment and assigns it when
+   * the comment contains >= minMatches of the pattern keywords (case-insensitive substring).
+   *
+   * We intentionally do NOT apply a hypothesis-derived domain filter here: we don't know the
+   * user's domain vocabulary in advance, and a poorly-worded hypothesis would either over-block
+   * valid comments or pass everything through. Domain relevance is instead achieved by requiring
+   * the LLM to supply specific, pattern-level keywords (not generic terms like "tool" or "user").
+   */
+  private matchCommentsByKeywords(
+    analysis: CommentPatternAnalysis,
+    comments: CommentEntity[],
+  ): CommentPatternAnalysis {
+    const MAX_IDS_PER_PATTERN = 100;
+
+    const patterns = analysis.patterns.map((p) => {
+      const kws = p.keywords;
+      if (!kws || kws.length === 0) return p;
+
+      const normalizedKws = kws.map((k) => k.toLowerCase().trim()).filter((k) => k.length > 1);
+      if (normalizedKws.length === 0) return p;
+
+      /**
+       * Build a whole-word regex for a keyword.
+       * Handles single words ("honest" → /\bhonest\b/i) and multi-word phrases
+       * ("data leak" → /\bdata\s+leak\b/i).
+       * Word boundaries prevent "honestly" matching "honest", "giving" matching "give", etc.
+       */
+      const buildWordRegex = (kw: string): RegExp => {
+        const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+        return new RegExp(`\\b${escaped}\\b`, 'i');
+      };
+      const kwRegexes = normalizedKws.map((kw) => ({ kw, re: buildWordRegex(kw) }));
+
+      // Pre-compute per-keyword frequency using word-boundary matching.
+      // Keywords appearing in >40% of comments are "common" — they need a "rare" partner.
+      const COMMON_THRESHOLD = 0.4;
+      const kwFrequency = new Map<string, number>();
+      for (const { kw, re } of kwRegexes) {
+        const freq = comments.filter((c) => re.test(c.content)).length / Math.max(1, comments.length);
+        kwFrequency.set(kw, freq);
+      }
+      const rareEntries = kwRegexes.filter(({ kw }) => (kwFrequency.get(kw) ?? 0) < COMMON_THRESHOLD);
+      const commonEntries = kwRegexes.filter(({ kw }) => (kwFrequency.get(kw) ?? 0) >= COMMON_THRESHOLD);
+
+      /**
+       * PASS 1 — strict: ≥2 rare keywords, OR ≥1 rare + ≥1 common, OR ≥2 common (all-common list).
+       * This keeps false positives low when the LLM provides good discriminating phrases.
+       */
+      const matchedIds: string[] = [];
+      for (const comment of comments) {
+        if (matchedIds.length >= MAX_IDS_PER_PATTERN) break;
+        const rareMatches = rareEntries.filter(({ re }) => re.test(comment.content)).length;
+        const commonMatches = commonEntries.filter(({ re }) => re.test(comment.content)).length;
+        const qualifies = rareMatches >= 2
+          || (rareMatches >= 1 && commonMatches >= 1)
+          || (rareEntries.length === 0 && commonMatches >= 2);
+        if (qualifies) matchedIds.push(comment.id);
+      }
+
+      /**
+       * PASS 2 — fallback (any single keyword match) when strict pass found < 2 comments.
+       * This handles cases where: the LLM used single-word keywords, the corpus is small,
+       * or the hypothesis is in a niche domain with rare vocabulary.
+       * Lower precision but ensures SOME evidence for each pattern.
+       */
+      if (matchedIds.length < 2) {
+        const fallbackIds = new Set(matchedIds);
+        for (const comment of comments) {
+          if (fallbackIds.size >= MAX_IDS_PER_PATTERN) break;
+          if (fallbackIds.has(comment.id)) continue;
+          const anyMatch = rareEntries.some(({ re }) => re.test(comment.content))
+            || commonEntries.some(({ re }) => re.test(comment.content));
+          if (anyMatch) fallbackIds.add(comment.id);
+        }
+        if (fallbackIds.size > matchedIds.length) {
+          matchedIds.length = 0;
+          fallbackIds.forEach((id) => matchedIds.push(id));
+        }
+      }
+
+      if (matchedIds.length === 0) return p;
+
+      // Generate a server-side example from the best-matching comment.
+      // This replaces any LLM-provided examples so the displayed quote is always from a
+      // verified, domain-relevant comment — not an off-topic one the LLM happened to quote.
+      const idSet = new Set(matchedIds);
+      const matchedComments = comments.filter((c) => idSet.has(c.id));
+      const bestExample = this.extractBestExample(matchedComments, kwRegexes.map(({ re }) => re));
+
+      return {
+        ...p,
+        commentIds: matchedIds,
+        examples: bestExample ? [bestExample] : [],
+      };
+    });
+
+    return { ...analysis, patterns };
+  }
+
+  /**
+   * Find the comment with the most keyword matches and extract a 120-char window
+   * centred on the first keyword hit. This produces a tight, relevant snippet.
+   */
+  private extractBestExample(
+    matchedComments: CommentEntity[],
+    kwRegexes: RegExp[],
+  ): { content: string; author: string; source: string } | null {
+    if (matchedComments.length === 0) return null;
+
+    // Score each comment by keyword matches + a bonus for shorter (more focused) comments.
+    // Shorter comments tend to be more on-topic; very long technical discussions often contain
+    // the keywords incidentally.
+    const MAX_LEN_FOR_BONUS = 500;
+    const scored = matchedComments.map((c) => ({
+      comment: c,
+      score: kwRegexes.filter((re) => re.test(c.content)).length
+        + (c.content.length <= MAX_LEN_FOR_BONUS ? 0.5 : 0),
+    }));
+    scored.sort((a, b) => b.score - a.score);
+    const best = scored[0].comment;
+
+    // Decode common HTML entities so the snippet is human-readable
+    const decodeHtml = (s: string) =>
+      s.replace(/&#x27;/g, "'").replace(/&amp;/g, '&').replace(/&quot;/g, '"')
+       .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#x2F;/g, '/');
+
+    const text = decodeHtml(best.content);
+
+    // Find the position of the first keyword hit to centre the snippet there
+    let hitPos = 0;
+    for (const re of kwRegexes) {
+      const m = re.exec(text);
+      if (m) { hitPos = m.index; break; }
+    }
+
+    // Extract ≤120 chars around the hit; start at a word boundary to avoid mid-word cuts
+    const SNIPPET = 120;
+    const rawStart = Math.max(0, hitPos - 20);
+    // Advance to the next space so we don't start mid-word (unless at the very beginning)
+    const wordStart = rawStart > 0 ? (text.indexOf(' ', rawStart) + 1 || rawStart) : 0;
+    const slice = text.slice(wordStart, wordStart + SNIPPET).replace(/\s+/g, ' ').trim();
+    // Trim to last full word and add ellipsis if truncated
+    const isPartial = wordStart > 0 || (wordStart + SNIPPET) < text.length;
+    const trimmed = isPartial ? slice.replace(/\s\S*$/, '') : slice;
+    const content = isPartial && trimmed.length < slice.length ? trimmed + '…' : trimmed;
+
+    // Derive a human-readable source name.
+    // subsourceName for Reddit contains the subreddit (e.g. "indiebiz" or "r/indiebiz").
+    // For Hacker News it contains things like "Hacker News Search" — don't prepend "r/" there.
+    const sub = best.subsourceName ?? '';
+    let source: string;
+    if (!sub) {
+      source = 'Community';
+    } else if (sub.startsWith('r/')) {
+      source = sub;
+    } else if (/hacker|hackernews|hn\b/i.test(sub)) {
+      source = 'Hacker News';
+    } else if (/reddit/i.test(sub)) {
+      source = sub;
+    } else {
+      // Looks like a bare subreddit name (e.g. "indiebiz") — add "r/" prefix
+      source = sub.includes('/') ? sub : `r/${sub}`;
+    }
+
+    return {
+      content,
+      author: best.author ?? 'Anonymous',
+      source,
+    };
+  }
+
   private enrichPatternCommentIdsFromExamples(
     analysis: CommentPatternAnalysis,
     comments: CommentEntity[]
@@ -587,6 +915,7 @@ export class GenerateSynthesisUseCase {
         (acc, { pattern }) => ((pattern.count ?? 0) > (acc.count ?? 0) ? pattern : acc),
         items[0].pattern
       );
+      // Union commentIds from all batches (legacy LLM UUIDs; may be empty post-keyword migration)
       const allIds = new Set<string>();
       for (const { pattern } of items) {
         for (const id of pattern.commentIds ?? []) {
@@ -594,12 +923,21 @@ export class GenerateSynthesisUseCase {
         }
       }
       const ids = Array.from(allIds).slice(0, GenerateSynthesisUseCase.MAX_COMMENT_IDS_PER_PATTERN);
+      // Union keywords from all batches so cross-batch patterns get complete keyword coverage
+      const allKeywords = new Set<string>();
+      for (const { pattern } of items) {
+        for (const kw of pattern.keywords ?? []) {
+          allKeywords.add(kw.toLowerCase().trim());
+        }
+      }
+      const mergedKeywords = allKeywords.size > 0 ? Array.from(allKeywords) : undefined;
       const count = ids.length > 0 ? ids.length : (best.count ?? 0);
       mergedPatterns.push({
         ...best,
         count,
         percentage: totalComments > 0 ? Math.round((count / totalComments) * 100) : 0,
         commentIds: ids.length > 0 ? ids : undefined,
+        keywords: mergedKeywords,
       });
     }
     mergedPatterns.sort((a: { count: number }, b: { count: number }) => b.count - a.count);
@@ -607,9 +945,10 @@ export class GenerateSynthesisUseCase {
     return {
       totalComments,
       patterns: mergedPatterns,
-      validationScore: first?.validationScore ?? 50,
+      // validationScore will be recomputed deterministically in finalizePatternAnalysis
+      validationScore: 0,
       sentimentOverview: first?.sentimentOverview ?? { overall: 0, distribution: { positive: 33, neutral: 34, negative: 33 } },
-      platformInsights: first?.platformInsights ?? { dominantPlatform: 'Unknown', platformDistribution: {}, platformSentiments: {} },
+      platformInsights: first?.platformInsights,
       temporalTrends: first?.temporalTrends ?? { recentActivity: 0.5, trendDirection: 'stable' },
       analyzedAt: new Date(),
     };

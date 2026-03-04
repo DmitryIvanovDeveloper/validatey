@@ -69,7 +69,7 @@ export class StartFetchAndWaitUseCase {
     while (Date.now() - startTime < StartFetchAndWaitUseCase.MAX_WAIT_TIME_MS) {
       await delay(pollIntervalMs);
 
-      const statusResult = await this._repository.getFetchStatus();
+      const statusResult = await this._repository.getFetchStatus(input.projectId);
 
       if (!statusResult.isSuccess) {
         return Result.failure<FetchJobStateDTO, Error>(statusResult.error ?? new Error('Failed to get status'));
@@ -92,7 +92,7 @@ export class StartFetchAndWaitUseCase {
     }
 
     // Timeout reached - return the last known state
-    const finalStatusResult = await this._repository.getFetchStatus();
+    const finalStatusResult = await this._repository.getFetchStatus(input.projectId);
     if (finalStatusResult.isSuccess) {
       const state = finalStatusResult.data;
       if (state.status === 'completed') {

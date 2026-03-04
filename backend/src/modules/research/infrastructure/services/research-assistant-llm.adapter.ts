@@ -56,7 +56,9 @@ export class ResearchAssistantLlmAdapter implements ResearchAssistantLlmPort {
 
       // Overall sentiment and platform insights
       userContent += `Overall Sentiment: ${analysis.sentimentOverview.overall > 0.1 ? 'Positive' : analysis.sentimentOverview.overall < -0.1 ? 'Negative' : 'Neutral'} (${analysis.sentimentOverview.distribution.positive}% positive, ${analysis.sentimentOverview.distribution.negative}% negative)\n`;
-      userContent += `Dominant Platform: ${analysis.platformInsights.dominantPlatform}\n`;
+      if (analysis.platformInsights) {
+        userContent += `Dominant Platform: ${analysis.platformInsights.dominantPlatform}\n`;
+      }
       userContent += `Recent Activity: ${analysis.temporalTrends.recentActivity > 0.7 ? 'High' : analysis.temporalTrends.recentActivity > 0.3 ? 'Medium' : 'Low'} (${analysis.temporalTrends.trendDirection} trend)\n\n`;
 
       // Individual patterns with enhanced metrics

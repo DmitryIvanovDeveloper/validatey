@@ -50,10 +50,10 @@ export class CommentsHttpRepository implements CommentsHttpRepositoryPort {
     }
   }
 
-  async getFetchStatus(): Promise<Result<FetchJobStateDTO, Error>> {
+  async getFetchStatus(projectId: string): Promise<Result<FetchJobStateDTO, Error>> {
     try {
       const data = await this._httpClient.get<FetchJobStateDTO>(
-        '/projects/dummy/comments/fetch/status' // Using dummy projectId since endpoint is global
+        `/projects/${projectId}/comments/fetch/status`
       );
 
       return Result.success<FetchJobStateDTO>(data);

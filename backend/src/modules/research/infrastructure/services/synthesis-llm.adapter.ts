@@ -16,8 +16,12 @@ const SYSTEM_PROMPT = `You are a research analyst specializing in product valida
 TASK:
 1. Synthesize all provided context: hypothesis, market, competitors, search intents, user insights, comments, early signals.
 2. Analyze comment patterns from the provided comments to identify themes, validation signals, myths, and user feedback patterns. Include platform insights (dominant platforms, sentiment distribution, subreddit analysis if applicable).
-3. Decide overall verdict: is the product idea validated, rejected, or does it need more data?
-4. Write a clear summary and actionable recommendations so that each Key Assumption can later be assessed against this synthesis.
+3. SEPARATE Problem Validation from Solution Validation:
+   - Problem Validation: Evidence that the stated problem exists and users suffer from it
+   - Solution Validation: Evidence that users would adopt the proposed solution approach
+   - Do NOT confuse pain point complaints with solution validation
+4. Decide overall verdict: is the product idea validated, rejected, or does it need more data?
+5. Write a clear summary and actionable recommendations so that each Key Assumption can later be assessed against this synthesis.
 
 VALIDATION RULES:
 - Hypothesis and comments are the MINIMUM sufficient input: you MUST always output a verdict and a short summary based on them, even when market/competitors/user insights are empty or "No ... yet".
@@ -42,19 +46,21 @@ CONCLUSION RULES (use when deciding verdict and assumptions):
 COMMENT PATTERN ANALYSIS:
 - Analyze all provided comments for recurring patterns and themes
 - Identify: myths/beliefs, failures/frustrations, advice/suggestions, validation signals, feature requests, comparisons, workarounds, and emotions (disappointment, fear, hope — use type "emotion" when the main theme is emotional)
-- Calculate validation score (0-100): higher score = stronger evidence of real user problems and validation signals
+- Actively search for CONTRADICTORY evidence: skepticism, negative experiences, preference for alternatives, concerns about implementation
+- Actively search for ALTERNATIVE APPROACHES (type "comparison" or "workaround"): how users already solve the problem without the product — e.g. "I just post in r/roastmystartup", "I pay experts on Fiverr", "we use internal reviews", "I ask friends". These show competitive context and workarounds; use type "comparison" or "workaround" and supportsHypothesis: false so they appear in "Alternative Approaches".
+- Calculate validation score (0-100): higher score = stronger evidence of real user problems and validation signals, but REDUCED if contradictory evidence is found
 - For each pattern include:
   - sentimentScore: -1 (very negative) to +1 (very positive), 0 = neutral
   - confidenceScore: 0-1 (AI confidence in pattern analysis)
   - recencyScore: 0-1 (how recent this pattern is)
-- A numbered list of comments is provided with format "N. [id: <uuid>] \"preview\"". For each pattern set commentIds to an array of those exact UUID strings (the <uuid> part).
-- Include in commentIds every comment from the list whose content clearly matches this pattern's label and insight and is clearly about the same topic/domain as the project Hypothesis (see Context below). Do not add loosely related comments or ones that fit another pattern better. Prefer accuracy over quantity, but do not limit to 1–2: if many comments clearly support this pattern, include all of them.
-- Each pattern has a label and insight: assign a comment only when the comment text clearly supports that label/insight (e.g. for label "Users are not willing to give feedback" the comment must express unwillingness to give feedback or that others don't).
-- commentIds must only contain comments that are ABOUT THE SAME DOMAIN as the Hypothesis (e.g. if the hypothesis is about climate risk assessment, do NOT include comments about job changes, interview tips, or generic "tools" in other contexts). The comment must directly discuss the problem or need stated in the pattern, in the domain of the hypothesis.
-- When in doubt whether a comment is about the hypothesis domain or only uses similar words (e.g. "tools", "cost"), leave that comment OUT of commentIds. Prefer empty commentIds for a pattern over including off-topic comments.
-- The number of unique authors is computed server-side from commentIds; many unique authors = stronger signal. Include all comment UUIDs that clearly belong to this pattern.
+- For each pattern provide a "keywords" array: 6–10 short phrases (ideally 2–3 words) that APPEAR in the comment texts you were given and specifically identify this pattern. PREFER PHRASES over single words because single words are ambiguous ("give", "exchange", "return", "honest" appear in many unrelated contexts). Good keywords for a feedback-seeking pattern: "honest feedback", "need feedback", "feedback on my", "roast my", "give critique", "constructive review". Bad keywords: "give", "honest", "feedback" (too common alone).
+- CRITICAL — use phrases from actual comment text, not conceptual labels. Scan the comments and extract 2–3 word sequences that recur specifically in the comments matching this pattern.
+- Each keyword phrase should distinguish THIS pattern from the others; a phrase appearing in every comment is useless.
+- DO NOT include "commentIds" in your response; the server derives them automatically from keywords.
+- The number of unique authors is computed server-side; higher keyword quality = more accurate results.
 - Extract top 5-7 most significant patterns
 - For each pattern include exactly ONE short example (max 120 chars). Do NOT include more than one example per pattern.
+- CRITICAL u{2014} examples must be verbatim: the "content" in each example MUST be a direct substring copied from one of the numbered comments provided. DO NOT invent, paraphrase, or fabricate quotes. If no comment text matches this pattern, set "examples": []. The server validates every example against the comment list and discards any that do not match.
 - Focus on patterns that are relevant to the hypothesis validation
 
 ADDITIONAL ANALYTICS:
@@ -91,7 +97,7 @@ Respond with ONLY valid JSON, no markdown. Use strictly valid JSON: no trailing 
         "confidenceScore": 0.85,
         "recencyScore": 0.7,
         "supportsHypothesis": true,
-        "commentIds": ["uuid-from-list-1", "uuid-from-list-2"],
+        "keywords": ["honest feedback", "need feedback", "feedback on my", "give feedback", "roast my startup"],
         "examples": [{"content": "one short quote max 120 chars", "author": "Anonymous", "source": "Reddit"}]
       }
     ],
@@ -108,13 +114,11 @@ Respond with ONLY valid JSON, no markdown. Use strictly valid JSON: no trailing 
       "dominantPlatform": "Reddit",
       "platformDistribution": {
         "Reddit": 120,
-        "HackerNews": 45,
-        "LinkedIn": 19
+        "HackerNews": 45
       },
       "platformSentiments": {
         "Reddit": 0.1,
-        "HackerNews": 0.4,
-        "LinkedIn": 0.0
+        "HackerNews": 0.4
       }
     },
     "temporalTrends": {
@@ -152,7 +156,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `User insights: ${input.userInsightsSummary}`,
       `Comments: ${input.commentsSummary}`,
       input.commentsNumberedWithIds
-        ? `Comments numbered list (use the [id: <uuid>] values in commentIds for each pattern):\n${input.commentsNumberedWithIds}`
+        ? `Comments numbered list (provide specific keywords per pattern so the server can match relevant comments):\n${input.commentsNumberedWithIds}`
         : '',
       `Early signals: ${input.earlySignalsSummary}`,
       input.academicPapersSummary ? `Academic research:\n${input.academicPapersSummary}` : '',
@@ -162,28 +166,44 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
 
     const fullPrompt = `${SYSTEM_PROMPT}\n\n---\nContext:\n${userContent}`;
 
-    try {
-      const response = await this._http.post<{ response?: string }>(
-        AI_PROXY_URL,
-        {
-          prompt: fullPrompt,
-          model: 'llama3.3-70b',
-          max_tokens: 8192,
-        },
-        { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)' }
-      );
+    const maxRetries = 3;
+    const baseDelayMs = 5000;
 
-      const content = (response?.response ?? '').trim();
-      if (!content) {
-        return ResultEx.failure(new SynthesisGenerationError('Empty response from LLM'));
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await this._http.post<{ response?: string }>(
+          AI_PROXY_URL,
+          {
+            prompt: fullPrompt,
+            model: 'llama3.3-70b',
+            max_tokens: 8192,
+          },
+          { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (compatible; Validatey/1.0)' }
+        );
+
+        const content = (response?.response ?? '').trim();
+        if (!content) {
+          return ResultEx.failure(new SynthesisGenerationError('Empty response from LLM'));
+        }
+
+        const report = this.parseJsonToReport(content);
+        return ResultEx.success(report);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const isRateLimit =
+          message.includes('429') ||
+          /rate\s*limit|too\s*many\s*requests|quota\s*exceeded/i.test(message);
+
+        if (isRateLimit && attempt < maxRetries) {
+          const delayMs = baseDelayMs * Math.pow(2, attempt);
+          await new Promise((r) => setTimeout(r, delayMs));
+          continue;
+        }
+        return ResultEx.failure(new SynthesisGenerationError(`Synthesis failed: ${message}`));
       }
-
-      const report = this.parseJsonToReport(content);
-      return ResultEx.success(report);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      return ResultEx.failure(new SynthesisGenerationError(`Synthesis failed: ${message}`));
     }
+
+    return ResultEx.failure(new SynthesisGenerationError('Synthesis failed after retries'));
   }
 
   /**
@@ -235,12 +255,11 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
             confidenceScore: typeof p.confidenceScore === 'number' ? Math.max(0, Math.min(1, p.confidenceScore)) : 0.5,
             recencyScore: typeof p.recencyScore === 'number' ? Math.max(0, Math.min(1, p.recencyScore)) : 0.5,
             supportsHypothesis: typeof p.supportsHypothesis === 'boolean' ? p.supportsHypothesis : undefined,
-            commentIds: Array.isArray(p.commentIds)
-              ? p.commentIds
-                  .filter((id: any) => typeof id === 'string' && id.length > 10)
-                  .map((id: string) => String(id).replace(/^\s*id:\s*/i, '').trim())
-                  .filter((id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
-              : [],
+            // keywords provided by LLM; server uses them for deterministic comment matching
+            keywords: Array.isArray(p.keywords)
+              ? (p.keywords as unknown[]).filter((k): k is string => typeof k === 'string' && k.trim().length > 1).map((k) => k.toLowerCase().trim())
+              : undefined,
+            // commentIds intentionally not parsed from LLM; filled server-side via keyword matching
           }));
 
           commentPatternAnalysis = {
@@ -251,11 +270,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
               overall: 0,
               distribution: { positive: 33, neutral: 34, negative: 33 }
             },
-            platformInsights: patternObj.platformInsights || {
-              dominantPlatform: 'Unknown',
-              platformDistribution: {},
-              platformSentiments: {}
-            },
+            platformInsights: patternObj.platformInsights || undefined,
             temporalTrends: patternObj.temporalTrends || {
               recentActivity: 0.5,
               trendDirection: 'stable' as const

@@ -149,6 +149,8 @@ export class GetOverviewUseCase {
     if (v === 'confirmed') return 'confirmed';
     if (v === 'not_supported' || v === 'rejected') return 'not_supported';
     if (v === 'need_more' || v === 'needs_more_data') return 'need_more';
+    if (v === 'not_testable') return 'not_testable';
+    if (v === 'disproven') return 'disproven';
     return 'need_more';
   }
 

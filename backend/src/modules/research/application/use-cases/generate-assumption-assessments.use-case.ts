@@ -116,8 +116,22 @@ export class GenerateAssumptionAssessmentsUseCase {
         }`;
       }
 
+      // Check data relevance before running LLM — prevents inflated assessments from irrelevant data
+      const relevanceCheck = this.checkDataRelevance(comments, project.hypothesis?.description ?? project.name ?? '');
+      this._logger.info('generate-assumption-assessments.data-relevance', {
+        projectId,
+        relevanceRatio: relevanceCheck.ratio,
+        isLowRelevance: relevanceCheck.isLowRelevance,
+        totalComments: comments.length,
+        relevantComments: relevanceCheck.relevantCount,
+      });
+
       // Build factual data sources metadata from actual comment metadata
-      const dataSourcesSummary = this.buildDataSourcesSummary(comments);
+      // Append LOW_RELEVANCE warning if comment quality is insufficient
+      const rawDataSourcesSummary = this.buildDataSourcesSummary(comments);
+      const dataSourcesSummary = relevanceCheck.isLowRelevance
+        ? `${rawDataSourcesSummary}\n\n⚠️ LOW_RELEVANCE WARNING (COMMENTS ONLY): Only ~${Math.round(relevanceCheck.ratio * 100)}% of ${comments.length} comments appear related to the hypothesis topic. The comment data may be from unrelated discussions. Treat all comment-based thematic counts as unreliable for assumption evidence. NOTE: Survey responses (see "User insights" field) are INDEPENDENT from this warning — if survey data is present, use it as primary evidence for attitudinal assumptions regardless of comment relevance.`
+        : rawDataSourcesSummary;
 
       // Pre-compute per-assumption thematic counts from full comment set
       const thematicCounts = this.buildThematicCounts(assumptions, comments);
@@ -335,87 +349,71 @@ export class GenerateAssumptionAssessmentsUseCase {
   }
 
   /**
-   * Pre-compute per-assumption comment counts using keyword matching.
-   * Returns a map: assumptionId → number of comments that match the assumption's core keywords.
-   * These are rough keyword-based counts, not semantic analysis, but they give LLM a factual
-   * baseline instead of forcing it to estimate from a tiny sample.
+   * Check if collected comments are sufficiently relevant to the hypothesis.
+   * Extracts key topic phrases from the hypothesis and checks what fraction of
+   * comments contain at least one of them.
+   *
+   * Returns { ratio, relevantCount, isLowRelevance }.
+   * isLowRelevance = true when fewer than 20% of comments touch the hypothesis topic.
+   */
+  private checkDataRelevance(
+    comments: CommentEntity[],
+    hypothesisText: string
+  ): { ratio: number; relevantCount: number; isLowRelevance: boolean } {
+    if (comments.length === 0) {
+      return { ratio: 0, relevantCount: 0, isLowRelevance: true };
+    }
+
+    // Extract core topic phrases (bigrams) from the hypothesis — same logic as thematic phrases
+    // but applied to the full hypothesis description to get the general topic vocabulary
+    const topicPhrases = this.extractThematicPhrases(hypothesisText);
+
+    if (topicPhrases.length === 0) {
+      return { ratio: 1, relevantCount: comments.length, isLowRelevance: false };
+    }
+
+    const relevantCount = comments.filter(c => {
+      const text = c.content.toLowerCase();
+      return topicPhrases.some(phrase => this.matchesPhrase(text, phrase));
+    }).length;
+
+    const ratio = relevantCount / comments.length;
+    const LOW_RELEVANCE_THRESHOLD = 0.15; // less than 15% relevant → low quality data
+
+    return {
+      ratio,
+      relevantCount,
+      isLowRelevance: ratio < LOW_RELEVANCE_THRESHOLD,
+    };
+  }
+
+  /**
+   * Pre-compute per-assumption comment counts using multi-word phrase matching.
+   * Returns a map: assumptionId → number of comments that match the assumption's core phrases.
+   *
+   * Design principles to prevent inflated counts:
+   * 1. Uses multi-word phrases (bigrams/trigrams), never single words — reduces false positives
+   * 2. Requires ALL words of a phrase to appear within the same 150-char window (proximity check)
+   * 3. If no phrase-based matches found → returns 0 (no fallback to single-word search)
+   * 4. Phrases are derived dynamically from assumption text — no hardcoded assumption IDs
    */
   private buildThematicCounts(
     assumptions: { id: string; text: string }[],
     comments: CommentEntity[]
   ): Record<string, number> {
-    // Keyword sets per assumption — tuned to match meaningful signal, not broad noise.
-    // Each set has core keywords that are likely to appear in on-topic comments.
-    const ASSUMPTION_KEYWORDS: Record<string, string[][]> = {
-      // a1: founders recognize lack of quality feedback
-      a1: [
-        ['need feedback', 'want feedback', 'looking for feedback', 'honest feedback'],
-        ['quality feedback', 'valuable feedback', 'lack of feedback', 'hard to get feedback'],
-        ['existing channels', 'friends don', 'nobody gives', 'struggle.*feedback'],
-      ],
-      // a2: willing to write feedback for others (give-to-get mechanic)
-      a2: [
-        ['give feedback', 'gave feedback', 'giving feedback', 'write feedback', 'provide feedback'],
-        ['reciproc', 'in exchange', 'give.*get', 'pay it forward', 'mutual'],
-        ['spend time.*review', 'review.*others', 'willing to help', 'happy to review'],
-      ],
-      // a3: quality of feedback given will be high
-      a3: [
-        ['superficial', 'shallow', 'generic comment', 'low quality', 'useless feedback'],
-        ['quality of feedback', 'detailed feedback', 'actionable', 'in-depth', 'constructive'],
-        ['bad feedback', 'not helpful', 'thoughtful review'],
-      ],
-      // a4: giver/taker balance
-      a4: [
-        ['free rider', 'freerider', 'freeload', 'takers', 'only take'],
-        ['imbalance', 'unbalanced', 'abuse', 'game the system', 'exploit'],
-        ['80.*20', '20.*80', 'cheating', 'unfair exchange'],
-      ],
-      // a5: retention / users return
-      a5: [
-        ['came back', 'coming back', 'return to', 'keep using', 'use it again'],
-        ['retention', 'churn', 'sticky', 'habit', 'long.term use'],
-        ['one-time', 'abandoned', 'never returned', 'still use'],
-      ],
-      // a6: fear of idea theft not a blocker
-      a6: [
-        ['steal.*idea', 'idea.*steal', 'copy.*idea', 'idea.*theft'],
-        ['afraid to share', 'scared to share', 'fear of sharing', 'worry.*sharing'],
-        ['nda', 'confidential', 'secret.*idea', 'sharing.*risk'],
-      ],
-    };
-
     const result: Record<string, number> = {};
 
     for (const assumption of assumptions) {
-      const keywordGroups = ASSUMPTION_KEYWORDS[assumption.id];
-      if (!keywordGroups) {
-        // Unknown assumption id — do a broad text search using assumption text words
-        const words = assumption.text.toLowerCase().match(/\b\w{5,}\b/g) ?? [];
-        const topWords = words.slice(0, 5);
-        const count = comments.filter(c => {
-          const text = c.content.toLowerCase();
-          return topWords.some(w => text.includes(w));
-        }).length;
-        result[assumption.id] = count;
+      const phrases = this.extractThematicPhrases(assumption.text);
+
+      if (phrases.length === 0) {
+        result[assumption.id] = 0;
         continue;
       }
 
-      // Count comments matching at least one keyword from any group
       const count = comments.filter(c => {
         const text = c.content.toLowerCase();
-        return keywordGroups.some(group =>
-          group.some(kw => {
-            // Support simple regex-like patterns with .*
-            if (kw.includes('.*')) {
-              const [a, b] = kw.split('.*');
-              const idx = text.indexOf(a);
-              if (idx === -1) return false;
-              return text.indexOf(b, idx) !== -1;
-            }
-            return text.includes(kw);
-          })
-        );
+        return phrases.some(phrase => this.matchesPhrase(text, phrase));
       }).length;
 
       result[assumption.id] = count;
@@ -425,18 +423,99 @@ export class GenerateAssumptionAssessmentsUseCase {
   }
 
   /**
+   * Extract meaningful multi-word phrases from assumption text.
+   * Strips markdown, extracts 2–4 word collocations likely to appear verbatim in comments.
+   * Single words are excluded to prevent false positives from generic vocabulary.
+   */
+  private extractThematicPhrases(assumptionText: string): string[] {
+    // Strip markdown bold/italic markers
+    const cleaned = assumptionText.replace(/\*\*[^*]+\*\*/g, m => m.replace(/\*\*/g, '')).toLowerCase();
+
+    const STOP_WORDS = new Set([
+      'the', 'and', 'for', 'that', 'this', 'with', 'will', 'have', 'are', 'they',
+      'their', 'there', 'these', 'those', 'which', 'while', 'would', 'could', 'should',
+      'about', 'after', 'again', 'being', 'between', 'during', 'other', 'under', 'until',
+      'using', 'within', 'without', 'from', 'into', 'through', 'than', 'when', 'where',
+      'what', 'such', 'each', 'been', 'also', 'more', 'most', 'some', 'them',
+      'very', 'even', 'just', 'only', 'well', 'both', 'does', 'then', 'them',
+      'make', 'made', 'many', 'like', 'can', 'not', 'but', 'get', 'set', 'new',
+    ]);
+
+    const words = (cleaned.match(/\b[a-z][a-z'-]{2,}\b/g) ?? [])
+      .filter(w => !STOP_WORDS.has(w) && w.length > 3);
+
+    const phrases: string[] = [];
+
+    // Build bigrams and trigrams from consecutive meaningful words
+    for (let i = 0; i < words.length - 1; i++) {
+      // Bigram
+      const bigram = `${words[i]} ${words[i + 1]}`;
+      if (!phrases.includes(bigram)) phrases.push(bigram);
+
+      // Trigram (only when both extra words are meaningful)
+      if (i < words.length - 2) {
+        const trigram = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
+        if (!phrases.includes(trigram)) phrases.push(trigram);
+      }
+    }
+
+    // Deduplicate and keep only phrases with at least one "rare" word
+    // (longer words are more specific and less likely to cause false positives)
+    return phrases.filter(phrase => phrase.split(' ').some(w => w.length >= 6));
+  }
+
+  /**
+   * Check if a phrase matches in text using proximity-based matching.
+   * All words of the phrase must appear within a 200-char sliding window.
+   * This prevents false positives from words that appear far apart in unrelated contexts.
+   */
+  private matchesPhrase(text: string, phrase: string): boolean {
+    const phraseWords = phrase.split(' ');
+
+    // Fast path: exact substring match
+    if (text.includes(phrase)) return true;
+
+    // For multi-word phrases: check proximity — all words within 200 chars
+    if (phraseWords.length >= 2) {
+      const WINDOW = 200;
+      const firstWord = phraseWords[0];
+      let idx = text.indexOf(firstWord);
+      while (idx !== -1) {
+        const window = text.slice(idx, idx + WINDOW);
+        if (phraseWords.every(w => window.includes(w))) return true;
+        idx = text.indexOf(firstWord, idx + 1);
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Maps a source name to a pre-classified audience label.
    * Taxonomy is fixed (entrepreneurs, investors, potential users, other, unknown).
    * For hypotheses with different audiences (e.g. teachers, B2B buyers), sources
    * will fall into "other" or "unknown" — the LLM will still correctly report
    * "no data for [that audience]" and ask for the right research.
+   *
+   * NOTE: Generic search sources (Reddit Search, HN Search, HN feeds) are NOT classified as
+   * "entrepreneurs" because they return results from ANY community — the audience is unknown
+   * until the actual thread topics are inspected. Only named subreddit/community sources are
+   * classified as entrepreneurs or other specific audiences.
    */
   private classifySourceAudience(source: string): string {
     const s = source.toLowerCase();
-    // Search across startup/founder communities — treat as entrepreneurs for AUDIENCE COVERAGE
-    if ((s.includes('reddit') && s.includes('search')) || (s.includes('hacker') && s.includes('news'))) {
-      return 'entrepreneurs';
+
+    // Reddit generic search — returns results from mixed communities, audience unknown
+    if (s.includes('reddit') && s.includes('search')) {
+      return 'mixed / unknown (Reddit search — results from multiple communities)';
     }
+
+    // Hacker News — general tech community, not specifically entrepreneurs
+    // HN has founders but also students, developers, academics, hobbyists, etc.
+    if (s.includes('hacker news') || s.includes('hackernews') || s.includes('hn ') || s === 'hn') {
+      return 'other (general tech community — Hacker News; includes developers, students, academics, not exclusively entrepreneurs)';
+    }
+
     // Entrepreneur/founder communities — label matches hypothesis term "entrepreneurs"
     if (s.includes('entrepreneur') || s.includes('startup') || s.includes('indiehacker') ||
         s.includes('indie_hacker') || s.includes('founderblock') || s.includes('imadethis') ||
@@ -769,20 +848,24 @@ export class GenerateAssumptionAssessmentsUseCase {
     const statusCounts = {
       confirmed: statuses.filter(s => s === 'confirmed').length,
       need_more: statuses.filter(s => s === 'need_more').length,
-      not_supported: statuses.filter(s => s === 'not_supported').length
+      not_supported: statuses.filter(s => s === 'not_supported').length,
+      not_testable: statuses.filter(s => s === 'not_testable').length,
+      disproven: statuses.filter(s => s === 'disproven').length,
     };
 
     const totalBatches = statuses.length;
 
-    // If majority of batches confirm and we have thematic evidence, confirm
+    // Strongest negative first: any disproven or not_supported wins
+    if (statusCounts.disproven > 0) return 'disproven';
+    if (statusCounts.not_supported > 0) return 'not_supported';
+
+    // If majority confirm and we have thematic evidence, confirm
     if (statusCounts.confirmed > totalBatches * 0.6 && thematicCount > 5) {
       return 'confirmed';
     }
 
-    // If any batch shows contradiction, mark as not supported
-    if (statusCounts.not_supported > 0) {
-      return 'not_supported';
-    }
+    // If any batch says not_testable (e.g. behavioral assumption), prefer not_testable
+    if (statusCounts.not_testable > 0) return 'not_testable';
 
     // Default to need_more for deeper analysis
     return 'need_more';
@@ -825,19 +908,6 @@ export class GenerateAssumptionAssessmentsUseCase {
             theme: questionLabel.toLowerCase(),
             quote: answer.trim()
           });
-
-          // Try to extract numbers from text answers
-          const numMatch = answer.match(/(\d+(\.\d+)?)/);
-          if (numMatch) {
-            const numValue = parseFloat(numMatch[1]);
-            if (!isNaN(numValue) && numValue > 0) {
-              numericAnswers.push({
-                theme: questionLabel.toLowerCase(),
-                value: numValue,
-                questionId
-              });
-            }
-          }
         } else if (typeof answer === 'number') {
           numericAnswers.push({
             theme: questionLabel.toLowerCase(),
@@ -862,11 +932,13 @@ export class GenerateAssumptionAssessmentsUseCase {
         n.theme.includes('pain') || n.theme.includes('annoying')
       );
 
+      const severityIds = new Set(severityScores.map(n => n.questionId));
       const pricingAnswers = numericAnswers.filter(n =>
-        n.questionId === 'q_5' ||
-        n.theme.includes('price') || n.theme.includes('pay') ||
-        n.theme.includes('cost') || n.theme.includes('willing') ||
-        n.value <= 300
+        !severityIds.has(n.questionId) && (
+          n.questionId === 'q_5' ||
+          n.theme.includes('price') || n.theme.includes('pay') ||
+          n.theme.includes('cost') || n.theme.includes('willing')
+        )
       );
 
       if (severityScores.length > 0) {

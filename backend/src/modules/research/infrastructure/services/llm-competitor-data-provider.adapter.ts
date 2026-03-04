@@ -189,16 +189,15 @@ Respond with ONLY a valid JSON object (no markdown, no extra text):
 {"competitors":["Competitor A","Competitor B","Competitor C"],"priceRange":"e.g. $10-50/mo or Free - $100","rating":"e.g. 4.2/5 or N/A"}
 
 Rules:
-- Use only information from the snippets. If something is missing, use empty array or "Unknown".
-- competitors: 0-8 competitor names that are DIRECT alternatives for founders/entrepreneurs.
-- priceRange: one short summary of typical pricing.
-- rating: aggregate or typical rating if mentioned, else "N/A".
+- Use only information from the snippets. If something is missing or snippets are insufficient, use null/undefined instead of "Unknown".
+- competitors: 0-8 competitor names that are DIRECT alternatives for founders/entrepreneurs, or null if none found.
+- priceRange: one short summary of typical pricing, or null if not available.
+- rating: aggregate or typical rating if mentioned, or null if not available.
 - Use English.
 - RELEVANCE CHECK: Only include tools that serve founders, entrepreneurs, or early-stage startups.
   Do NOT list: project management tools (Trello, Basecamp), design tools (Figma, Sketch),
-  code editors, e-commerce platforms (Shopify), or content agencies — unless the snippets
-  explicitly identify them as competitors to startup validation/feedback tools.
-  If no relevant competitors found in snippets, return {"competitors":[],"priceRange":"Unknown","rating":"N/A"}.
+  code editors, e-commerce platforms (Shopify), content agencies, or generic communities (Reddit, Indie Hackers, Facebook groups) — unless the snippets explicitly identify them as a dedicated feedback/validation product for founders.
+  If no relevant competitors found in snippets, return {"competitors":null,"priceRange":null,"rating":null}.
 
 Context:
 ${context}`;
@@ -214,12 +213,12 @@ ${context}`;
     try {
       const obj = JSON.parse(match[0]) as Record<string, unknown>;
       const competitors = Array.isArray(obj.competitors)
-        ? (obj.competitors as unknown[]).filter((c): c is string => typeof c === 'string')
-        : [];
-      const priceRange = typeof obj.priceRange === 'string' ? obj.priceRange : undefined;
-      const rating = typeof obj.rating === 'string' ? obj.rating : undefined;
+        ? (obj.competitors as unknown[]).filter((c): c is string => typeof c === 'string' && c.trim().length > 0)
+        : undefined;
+      const priceRange = (typeof obj.priceRange === 'string' && obj.priceRange.trim()) ? obj.priceRange.trim() : undefined;
+      const rating = (typeof obj.rating === 'string' && obj.rating.trim()) ? obj.rating.trim() : undefined;
       return {
-        competitors: competitors.length > 0 ? competitors : undefined,
+        competitors: competitors && competitors.length > 0 ? competitors : undefined,
         priceRange,
         rating,
       };

@@ -20,7 +20,7 @@ Respond with ONLY a valid JSON object in this exact format (no markdown, no extr
 - marketFit: How the product fits the market — what share of paying audience it can get, positioning (2-3 sentences).
 - differentiation: How the product differs from others — what qualities attract audience and can win new buyers who did not buy from competitors (2-3 sentences).
 
-Keep each field under 600 characters. Use the search results to ground your answer; if snippets are missing or irrelevant, use general knowledge.`;
+Keep each field under 600 characters. Use ONLY the search results to ground your answer. If snippets are missing, irrelevant, or insufficient, return empty strings for all fields. Do NOT use general knowledge or make assumptions.`;
 
 @injectable()
 export class MarketContextLlmAdapter implements MarketContextLlmPort {

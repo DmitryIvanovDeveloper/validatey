@@ -86,7 +86,6 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
         patterns: [],
         validationScore: 0,
         sentimentOverview: { overall: 0, distribution: { positive: 0, neutral: 100, negative: 0 } },
-        platformInsights: { dominantPlatform: 'None', platformDistribution: {}, platformSentiments: {} },
         temporalTrends: { recentActivity: 0, trendDirection: 'stable' },
         analyzedAt: new Date()
       };
@@ -150,12 +149,35 @@ export class KeywordCommentPatternAnalyzerAdapter implements CommentPatternAnaly
 
     const sentimentOverview = this.computeSentimentOverview(patterns, total);
 
+    // Detect actual platforms from subsourceName instead of assuming Reddit/Mixed
+    const platformCounts: Record<string, number> = {};
+    for (const c of comments) {
+      const sub = c.subsourceName?.toLowerCase() ?? '';
+      let platform: string;
+      if (sub.includes('hacker news') || sub.includes('hackernews') || sub.startsWith('hn')) {
+        platform = 'HackerNews';
+      } else if (Object.keys(subredditDistribution).length > 0 || sub.startsWith('r/') || sub.includes('reddit')) {
+        platform = 'Reddit';
+      } else if (sub.includes('product hunt') || sub.includes('producthunt')) {
+        platform = 'ProductHunt';
+      } else if (sub.includes('linkedin')) {
+        platform = 'LinkedIn';
+      } else {
+        platform = sub || 'Unknown';
+      }
+      platformCounts[platform] = (platformCounts[platform] ?? 0) + 1;
+    }
+
+    const dominantPlatform = Object.entries(platformCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Unknown';
+    const platformSentiments: Record<string, number> = {};
+    for (const platform of Object.keys(platformCounts)) {
+      platformSentiments[platform] = sentimentOverview.overall;
+    }
+
     const hasSubreddits = Object.keys(subredditDistribution).length > 0;
-    const platformDistribution: Record<string, number> = hasSubreddits ? { reddit: total } : { Mixed: total };
-    const platformSentiments: Record<string, number> = hasSubreddits ? { reddit: sentimentOverview.overall } : { Mixed: sentimentOverview.overall };
     const platformInsights = {
-      dominantPlatform: hasSubreddits ? 'reddit' : 'Mixed',
-      platformDistribution,
+      dominantPlatform,
+      platformDistribution: platformCounts,
       platformSentiments,
       ...(hasSubreddits && { subredditDistribution }),
       ...(hasSubreddits && { recurrenceScore }),
