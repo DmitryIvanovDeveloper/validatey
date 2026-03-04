@@ -104,7 +104,7 @@ export class GenerateSynthesisUseCase {
       const academicPapersSummary = this.summarizeAcademicPapers(stored?.academicPapers ?? null);
       const productHuntSummary = this.summarizeProductHunt(stored?.productHunt ?? null);
 
-      const SYNTHESIS_BATCH_SIZE = 60;
+      const SYNTHESIS_BATCH_SIZE = 40;
       const useBatchSynthesis = comments.length > SYNTHESIS_BATCH_SIZE;
 
       let report: SynthesisReport;
@@ -592,8 +592,8 @@ export class GenerateSynthesisUseCase {
   private buildNumberedCommentsWithIds(comments: CommentEntity[]): string {
     if (!comments || comments.length === 0) return '';
     // Keep prompt under LLM context limit (~8k tokens): cap comments and preview length (aligned with batch size)
-    const maxComments = 60;
-    const previewLen = 220;
+    const maxComments = 40;
+    const previewLen = 160;
     const slice = comments.slice(0, maxComments);
     const lines = slice.map((c, i) => {
       const preview = c.content.replace(/\s+/g, ' ').trim().substring(0, previewLen);
