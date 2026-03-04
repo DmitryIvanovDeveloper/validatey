@@ -146,13 +146,17 @@
                       <p class="assumption-evidence-text formatted-text" v-html="formatMarkdown(getAssumptionEvidence(assumption.id)!)"></p>
                     </div>
                   </div>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </SectionCard>
+                  </div>
+                </li>
+              </ul>
+              <ValidationInsightBanner
+                :project-id="projectId"
+                :assumption-assessments="researchData?.assumptionAssessments"
+              />
+            </div>
+          </SectionCard>
 
-        <!-- Market -->
+          <!-- Market -->
         <SectionCard v-if="hasMarketData()">
           <template #header>
             <div class="section-title-row">
@@ -410,6 +414,7 @@ import ResponsePaceWidget from '../../../../responses/interface-adapters/compone
 import { CommentsWidget, CommentsFreshnessWidget, CommentsActivityWidget, SuggestedOutreachWidget } from '../../../../comments/interface-adapters/components';
 import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, StartResearchWidget, ShowDetailsWidget, ResearchOverviewWidget } from '../../../../research/interface-adapters';
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
+import ValidationInsightBanner from '../../../../research/interface-adapters/components/ValidationInsightBanner.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
 import UserStoriesWidget from '../../../../research/interface-adapters/components/UserStoriesWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';

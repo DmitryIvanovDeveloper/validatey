@@ -143,6 +143,10 @@
                 </div>
               </li>
             </ul>
+            <ValidationInsightBanner
+              :project-id="projectId"
+              :assumption-assessments="researchData?.assumptionAssessments"
+            />
           </div>
         </SectionCard>
 
@@ -395,6 +399,7 @@ import { ExecutiveSummaryWidget, HypothesisStatusWidget, OverviewGuideWidget, Sh
 import WishlistWidget from '@/modules/wishlist/interface-adapters/components/WishlistWidget.vue';
 import FeedbackWidget from '@/modules/feedback/interface-adapters/components/FeedbackWidget.vue';
 import CommentPatternsWidget from '../../../../comments/interface-adapters/ui/components/CommentPatternsWidget.vue';
+import ValidationInsightBanner from '../../../../research/interface-adapters/components/ValidationInsightBanner.vue';
 import TopPainPointsWidget from '../../../../research/interface-adapters/ui/components/TopPainPointsWidget.vue';
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
 import TipsWidget from '../../../../../shared/components/TipsWidget.vue';
