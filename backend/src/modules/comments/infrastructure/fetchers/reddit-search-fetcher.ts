@@ -79,7 +79,8 @@ export class RedditSearchFetcher implements CommentFetcherPort {
 
     try {
       // Search within specified subreddits using restrict_sr=on
-      // type=comment,link returns both comments (t1) and posts (t3) which contain discussion text.
+      // Reddit JSON API does not support comment-type search — type=comment is a UI-only feature.
+      // We use restrict_sr=on to limit results to the AI-selected subreddits (user communities).
       const subredditList = subreddits.join('+');
       const params = new URLSearchParams({
         q: query,

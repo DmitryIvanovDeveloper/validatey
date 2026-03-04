@@ -457,7 +457,9 @@ export class FetchCommentsUseCase {
           ).join('\n')
         : 'No hypothesis available';
 
-      const prompt = `You are a Reddit research assistant. Given a startup hypothesis and a human-written search hint, generate the optimal Reddit search query and relevant subreddits.
+      const prompt = `You are a Reddit research assistant. Given a startup hypothesis, generate Reddit search queries that find REAL USER COMMENTS about this problem.
+
+IMPORTANT: We search Reddit with type=comment, so queries must match text that users actually WRITE IN COMMENTS when expressing a need or frustration.
 
 Hypothesis:
 ${hypothesisContext}
@@ -466,20 +468,22 @@ Human search hint: "${humanQuery}"
 
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
 {
-  "searchQuery": "2-5 word query that finds real user discussions about this problem",
-  "subreddits": ["sub1","sub2","sub3","sub4","sub5","sub6"]
+  "searchQuery": "phrase users write when asking for tool recommendations",
+  "subreddits": ["sub1","sub2","sub3","sub4","sub5","sub6","sub7","sub8"]
 }
 
-Rules for searchQuery:
-- Short and specific (2-5 words)
-- Use terms TARGET USERS would write, not startup/founder jargon
-- Avoid words like "app", "saas", "tool" unless that's how users talk
-- Focus on the PAIN or BEHAVIOR described in the hypothesis
+Rules for searchQuery (CRITICAL):
+- Must start with an INTENT phrase that real users type: "looking for", "recommend", "what do you use for", "how do you find", "any tool that", "searching for", "need help finding"
+- Follow with 2-3 specific words from the hypothesis domain
+- Example: "looking for software to discover new tools" or "recommend app for finding SaaS alternatives"
+- NOT startup jargon, NOT generic ("productivity", "efficiency") — must reflect actual user search behavior
 
 Rules for subreddits:
-- 6 names without r/ prefix
-- Where TARGET USERS (not builders/founders) discuss this pain
-- Mix niche + broad communities`;
+- 8 names without r/ prefix
+- FORBIDDEN (dominated by founders/builders, not users): SaaS, startups, Entrepreneur, indiehackers, webdev, programming, learnprogramming
+- PREFERRED: findareddit, software, productivity, apps, androidapps, iosapps, techsupport, MacApps, windows, pcgaming (where USERS ask for recommendations)
+- Include niche communities specific to the hypothesis domain
+- Goal: find subreddits where target USERS (not builders) congregate and ask for help`;
 
       const response = await this._http.post<{ response?: string }>(
         SUBREDDIT_LLM_URL,
