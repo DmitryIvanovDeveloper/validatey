@@ -480,10 +480,22 @@ Rules for searchQuery (CRITICAL):
 
 Rules for subreddits:
 - 8 names without r/ prefix
-- FORBIDDEN (dominated by founders/builders, not users): SaaS, startups, Entrepreneur, indiehackers, webdev, programming, learnprogramming
-- PREFERRED: findareddit, software, productivity, apps, androidapps, iosapps, techsupport, MacApps, windows, pcgaming (where USERS ask for recommendations)
-- Include niche communities specific to the hypothesis domain
-- Goal: find subreddits where target USERS (not builders) congregate and ask for help`;
+- KEY QUESTION: "Who experiences the problem in the hypothesis, and where do they post about their own frustrations?"
+
+BUILDER/FOUNDER communities (r/SaaS, r/startups, r/Entrepreneur, r/indiehackers, r/buildinpublic):
+- In these communities "looking for" almost always means: a founder looking for users/feedback/co-founder
+- INCLUDE ONLY IF the hypothesis target user IS explicitly a founder, developer, or builder
+- e.g. "developers spend time on code review" → r/programming OK; "founders struggle with fundraising" → r/startups OK
+
+USER/CONSUMER communities (r/productivity, r/software, r/apps, r/findareddit, r/techsupport, r/MacApps):
+- In these communities "looking for" means: a user looking for a tool to solve a real problem
+- INCLUDE when the hypothesis target user is a professional, knowledge worker, or consumer
+
+DEVELOPER communities (r/programming, r/webdev, r/devops, r/learnprogramming):
+- INCLUDE when the product is a developer tool or the target audience is software engineers
+
+- Mix: 2-3 large relevant communities + 3-5 niche domain-specific communities
+- Always choose communities where people EXPRESS their own pain, not communities where people PITCH solutions`;
 
       const response = await this._http.post<{ response?: string }>(
         SUBREDDIT_LLM_URL,
