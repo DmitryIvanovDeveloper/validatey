@@ -11,6 +11,7 @@ import consentsNestedRoutes from '../../../consents/interface-adapters/routes/co
 import roundsNestedRoutes from '../../../rounds/interface-adapters/routes/rounds-nested.routes';
 import overviewNestedRoutes from '../../../overview/interface-adapters/routes/overview-nested.routes';
 import commentsNestedRoutes from '../../../comments/interface-adapters/routes/comments-nested.routes';
+import wishlistNestedRoutes from '../../../wishlist/interface-adapters/routes/wishlist-nested.routes';
 
 const router = Router({ mergeParams: true });
 
@@ -49,6 +50,9 @@ router.use('/:projectId/overview', overviewNestedRoutes);
 
 // Nested routes: /projects/:projectId/comments
 router.use('/:projectId/comments', commentsNestedRoutes);
+
+// Nested routes: /projects/:projectId/wishlist
+router.use('/:projectId/wishlist', wishlistNestedRoutes);
 
 export default router;
 

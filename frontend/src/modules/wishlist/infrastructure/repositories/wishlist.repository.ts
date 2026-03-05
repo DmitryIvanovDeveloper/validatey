@@ -47,4 +47,23 @@ export class WishlistRepository implements WishlistRepositoryPort {
       return Result.failure(new WishlistError(error.message || 'Failed to get wishlist count'));
     }
   }
+
+  async findAllByProject(projectId: string): Promise<Result<WishlistEntry[], WishlistError>> {
+    try {
+      const response = await this._httpClient.get<{ entries: Array<{ id: string; email: string; projectId: string | null; createdAt: string }> }>(
+        API_CONFIG.ENDPOINTS.WISHLIST_BY_PROJECT(projectId)
+      );
+      const entries = (response?.entries ?? []).map((e) =>
+        WishlistEntry.fromData({
+          id: e.id,
+          email: e.email,
+          createdAt: e.createdAt,
+          projectId: e.projectId ?? null,
+        })
+      );
+      return Result.success(entries);
+    } catch (error: any) {
+      return Result.failure(new WishlistError(error.message || 'Failed to load waitlist'));
+    }
+  }
 }

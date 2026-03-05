@@ -112,8 +112,8 @@ export class UploadLandingUseCase {
         return ResultEx.failure(saveLandingResult.error);
       }
 
-      // Update landing with database-generated id
-      landing = saveLandingResult.data;
+      // Use saved landing with database-generated id
+      const savedLanding = saveLandingResult.data;
 
       // Save all files
       const savedFiles: string[] = [];
@@ -132,7 +132,7 @@ export class UploadLandingUseCase {
 
           // Save file metadata to database
           const landingFile = LandingFileEntity.create(
-            landing.id,
+            savedLanding.id,
             file.filename,
             file.contentType,
             file.size,
@@ -163,21 +163,25 @@ export class UploadLandingUseCase {
       }
 
       this._logger.info('upload-landing.success', {
-        landingId: landing.id,
+        landingId: savedLanding.id,
         projectId: request.projectId,
         fileCount: files.length,
         totalSize
       });
 
+      const landingBaseUrl = (process.env.PUBLIC_BACKEND_URL || `http://localhost:${process.env.PORT || '8080'}`).replace(/\/$/, '');
+      const landingUrl = `${landingBaseUrl}/l/${encodeURIComponent(savedLanding.slug)}`;
+
       return ResultEx.success({
         landing: {
-          id: landing.id,
-          projectId: landing.projectId,
-          slug: landing.slug,
-          archiveFilename: landing.archiveFilename,
-          uploadedAt: landing.uploadedAt.toISOString(),
-          fileCount: landing.fileCount,
-          totalSizeBytes: landing.totalSizeBytes,
+          id: savedLanding.id,
+          projectId: savedLanding.projectId,
+          slug: savedLanding.slug,
+          archiveFilename: savedLanding.archiveFilename,
+          uploadedAt: savedLanding.uploadedAt.toISOString(),
+          fileCount: savedLanding.fileCount,
+          totalSizeBytes: savedLanding.totalSizeBytes,
+          url: landingUrl,
         }
       });
     } catch (error) {

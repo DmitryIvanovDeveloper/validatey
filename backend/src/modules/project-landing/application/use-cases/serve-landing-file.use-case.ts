@@ -61,17 +61,41 @@ export class ServeLandingFileUseCase {
         return ResultEx.failure(new LandingFileNotFoundError(request.filepath));
       }
 
+      let buffer = fileResult.data;
+      const contentType = file.contentType;
+      const filename = file.filename;
+
+      // Inject waitlist widget into index.html (external script to avoid CSP blocking inline scripts)
+      const isIndexHtml = /^index\.html?$/i.test(request.filepath);
+      if (isIndexHtml && landing && /text\/html/i.test(contentType)) {
+        const html = buffer.toString('utf8');
+        const closeBody = '</body>';
+        const idx = html.lastIndexOf(closeBody);
+        if (idx !== -1) {
+          const pid = landing.projectId.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+          const snippet = [
+            '<section class="validatey-waitlist-section" aria-label="Join waitlist" style="margin-top:2rem;padding:1.5rem;border-top:1px solid #e5e7eb;">',
+            '<h2 style="font-size:1.25rem;margin-bottom:1rem;">Get notified when we launch</h2>',
+            '<div id="validatey-waitlist"></div>',
+            '<script src="/embed/waitlist.js" data-project-id="' + pid + '" data-target="validatey-waitlist"><\/script>',
+            '</section>',
+            closeBody
+          ].join('\n');
+          buffer = Buffer.from(html.slice(0, idx) + '\n' + snippet + html.slice(idx + closeBody.length), 'utf8');
+        }
+      }
+
       this._logger.info('serve-landing-file.success', {
         slug: request.slug,
         filepath: request.filepath,
-        contentType: file.contentType,
-        size: file.sizeBytes
+        contentType,
+        size: buffer.length
       });
 
       return ResultEx.success({
-        buffer: fileResult.data,
-        contentType: file.contentType,
-        filename: file.filename,
+        buffer,
+        contentType,
+        filename,
       });
     } catch (error) {
       this._logger.error('serve-landing-file.error', {

@@ -1,10 +1,7 @@
 <template>
   <div class="project-landing-widget">
 
-    <div class="landing-header">
-      <h3 class="landing-title">{{ presenter.labels.title }}</h3>
-      <p class="landing-description">{{ presenter.labels.description }}</p>
-    </div>
+  
 
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
@@ -44,39 +41,43 @@
     </div>
 
     <div v-else class="landing-info">
-      <div class="landing-details">
-        <div class="detail-row">
-          <span class="label">URL:</span>
+      <header class="preview-header">
+        <div class="landing-details">
           <a :href="landing?.url" target="_blank" class="landing-url">{{ landing?.url }}</a>
+          <span class="detail-meta">{{ landing?.fileCount }} files · {{ landing?.getFormattedSize() }} · {{ landing?.getUploadedAtFormatted() }}</span>
         </div>
-        <div class="detail-row">
-          <span class="label">Files:</span>
-          <span>{{ landing?.fileCount }}</span>
+        <div class="landing-actions">
+          <button
+            type="button"
+            class="action-button icon-button"
+            @click="copyLandingUrl"
+            :title="copyLinkTitle"
+            aria-label="Copy link"
+          >
+            <svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+          <button @click="confirmDelete" :disabled="loading" class="action-button danger">{{ presenter.labels.deleteButton }}</button>
         </div>
-        <div class="detail-row">
-          <span class="label">Size:</span>
-          <span>{{ landing?.getFormattedSize() }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">Uploaded:</span>
-          <span>{{ landing?.getUploadedAtFormatted() }}</span>
-        </div>
+      </header>
+
+      <div class="landing-preview-section" v-if="previewUrl">
+        <h4 class="landing-preview-title">Preview</h4>
+        <iframe
+          :src="previewUrl"
+          class="landing-preview-iframe"
+          title="Landing preview"
+        />
       </div>
 
-      <div class="landing-actions">
-        <button
-          @click="viewLanding"
-          class="action-button secondary"
-        >
-          {{ presenter.labels.viewButton }}
+      <div class="embed-section">
+        <button type="button" class="embed-toggle" :aria-expanded="showEmbed" @click="showEmbed = !showEmbed">
+          Add waitlist to your landing
         </button>
-        <button
-          @click="confirmDelete"
-          :disabled="loading"
-          class="action-button danger"
-        >
-          {{ presenter.labels.deleteButton }}
-        </button>
+        <div v-show="showEmbed" class="embed-snippet-wrap">
+          <p class="embed-hint">Add this to your landing page HTML so visitors can join the project waitlist.</p>
+          <pre class="embed-snippet"><code>{{ embedSnippet }}</code></pre>
+          <button type="button" class="copy-button" @click="copyEmbedSnippet">Copy</button>
+        </div>
       </div>
     </div>
 
@@ -99,6 +100,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { ProjectLandingPresenter } from '../../presenters/project-landing.presenter';
 import { TYPES } from '../../../infrastructure/bootstrap/types';
+import { API_CONFIG } from '../../../../../infrastructure/config/api.config';
 
 interface Props {
   projectId: string;
@@ -143,9 +145,30 @@ try {
 
 const fileInput = ref<HTMLInputElement>();
 const showDeleteConfirm = ref(false);
+const showEmbed = ref(false);
+
+const apiBaseForEmbed = computed(() => API_CONFIG.BASE_URL.replace(/\/api\/?$/, ''));
+const embedSnippet = computed(() => {
+  const api = apiBaseForEmbed.value;
+  return `<div id="validatey-waitlist"></div>
+<script src="${api}/embed/waitlist.js" data-api="${api}" data-target="validatey-waitlist" data-project-id="${props.projectId}"><\\/script>`;
+});
+
+async function copyEmbedSnippet() {
+  try {
+    await navigator.clipboard.writeText(embedSnippet.value);
+  } catch (_) {}
+}
 
 // Reactive bindings
 const landing = computed(() => presenter.landing.value);
+/** Preview URL: same host as API so iframe works when backend is on localhost. */
+const previewUrl = computed(() => {
+  const slug = landing.value?.slug;
+  if (!slug) return '';
+  const base = apiBaseForEmbed.value;
+  return `${base.replace(/\/$/, '')}/l/${encodeURIComponent(slug)}/`;
+});
 const loading = computed(() => presenter.loading.value);
 const uploading = computed(() => presenter.uploading.value);
 const error = computed(() => presenter.error.value);
@@ -168,11 +191,16 @@ const onFileSelected = async (event: Event) => {
 };
 
 
-const viewLanding = () => {
-  if (landing.value?.url) {
-    window.open(landing.value.url, '_blank');
-  }
-};
+const copyLinkTitle = ref('Copy link');
+async function copyLandingUrl() {
+  const url = landing.value?.url;
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    copyLinkTitle.value = 'Copied!';
+    setTimeout(() => { copyLinkTitle.value = 'Copy link'; }, 1500);
+  } catch (_) {}
+}
 
 const confirmDelete = () => {
   showDeleteConfirm.value = true;
@@ -202,7 +230,6 @@ watch(() => props.projectId, () => {
 
 <style scoped>
 .project-landing-widget {
-  background: white;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   padding: 24px;
@@ -331,46 +358,79 @@ watch(() => props.projectId, () => {
   color: #9ca3af;
 }
 
-.landing-details {
-  margin-bottom: 24px;
-}
-
-.detail-row {
+.preview-header {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 16px;
 }
 
-.detail-row .label {
-  font-weight: 500;
-  color: #374151;
+.landing-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  font-size: 13px;
 }
 
 .landing-url {
   color: #2563eb;
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .landing-url:hover {
+  text-decoration: underline;
   color: #1e40af;
+}
+
+.detail-meta {
+  color: #6b7280;
+  flex-shrink: 0;
 }
 
 .landing-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .action-button {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 6px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
   transition: all 0.2s;
   border: none;
   cursor: pointer;
+}
+
+.action-button.icon-button {
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.action-button.icon-button:hover {
+  background: #e5e7eb;
+}
+
+.action-button.icon-button .icon-copy {
+  display: block;
 }
 
 .action-button.secondary {
@@ -395,6 +455,86 @@ watch(() => props.projectId, () => {
   background: #d1d5db;
   cursor: not-allowed;
   color: #9ca3af;
+}
+
+.landing-preview-section {
+  margin-top: 16px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.landing-preview-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px;
+}
+
+.landing-preview-iframe {
+  width: 100%;
+  height: 480px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: block;
+}
+
+.embed-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.embed-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.embed-toggle:hover {
+  text-decoration: underline;
+}
+
+.embed-snippet-wrap {
+  margin-top: 12px;
+}
+
+.embed-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.embed-snippet {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0 0 8px 0;
+}
+
+.embed-snippet code {
+  font-family: ui-monospace, monospace;
+}
+
+.copy-button {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  background: #f9fafb;
 }
 
 /* Modal styles */

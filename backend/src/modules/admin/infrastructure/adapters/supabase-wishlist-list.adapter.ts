@@ -15,7 +15,7 @@ export class SupabaseWishlistListAdapter implements ListWishlistPort {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from('wishlist')
-      .select('id, email, created_at')
+      .select('id, email, project_id, created_at')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -26,6 +26,7 @@ export class SupabaseWishlistListAdapter implements ListWishlistPort {
     return (data || []).map((entry) => ({
       id: entry.id,
       email: entry.email,
+      projectId: entry.project_id ?? null,
       createdAt: new Date(entry.created_at),
     }));
   }

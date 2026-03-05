@@ -10,6 +10,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import type { EventBusPort } from '../../../../infrastructure/event-bus/ports/event-bus.port';
 import { ResearchStartedEvent } from '../../domain/events/research-started.event';
 import { ResearchDataCollectionStartedEvent } from '../../domain/events/research-data-collection-started.event';
+import { ResearchCooldownError } from '../../domain/errors/research.error';
 
 @injectable()
 export class CollectResearchDataUseCase {
@@ -35,6 +36,12 @@ export class CollectResearchDataUseCase {
         error: undefined
       };
     } catch (error) {
+      if (error instanceof ResearchCooldownError) {
+        return {
+          canvas: this.createEmptyCanvas(request.projectId),
+          error: error.toDetails(),
+        };
+      }
       return {
         canvas: this.createEmptyCanvas(request.projectId),
         error: error instanceof Error ? error.message : 'Failed to collect research data',

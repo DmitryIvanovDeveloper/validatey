@@ -4,6 +4,7 @@
 export interface ListWishlistItemDTO {
   id: string;
   email: string;
+  projectId: string | null;
   createdAt: Date;
 }
 

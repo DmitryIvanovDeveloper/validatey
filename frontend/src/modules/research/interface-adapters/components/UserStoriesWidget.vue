@@ -65,7 +65,7 @@
     </div>
 
     <div v-if="presenter.viewModel.userStories.length" class="user-stories-success-and-carousel">
-      <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
+      <div class="mt-4 p-4 border border-green-200 rounded-md">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -334,7 +334,7 @@ const copyToClipboard = async () => {
 
 .user-stories-widget {
   position: relative;
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+  @apply rounded-lg shadow-sm border border-gray-200 p-6;
 }
 
 .user-stories-success-and-carousel {

@@ -40,6 +40,9 @@ export class GetProjectLandingUseCase {
         projectId: request.projectId
       });
 
+      const landingBaseUrl = (process.env.PUBLIC_BACKEND_URL || `http://localhost:${process.env.PORT || '8080'}`).replace(/\/$/, '');
+      const landingUrl = `${landingBaseUrl}/l/${encodeURIComponent(landing.slug)}`;
+
       return ResultEx.success({
         landing: {
           id: landing.id,
@@ -49,7 +52,7 @@ export class GetProjectLandingUseCase {
           uploadedAt: landing.uploadedAt.toISOString(),
           fileCount: landing.fileCount,
           totalSizeBytes: landing.totalSizeBytes,
-          url: `https://${landing.slug}.validatey.com`,
+          url: landingUrl,
         }
       });
     } catch (error) {

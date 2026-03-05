@@ -7,11 +7,13 @@ import ResultEx from '../../../../infrastructure/result/result';
 
 export interface AddToWishlistInput {
   email: string;
+  projectId?: string | null;
 }
 
 export interface AddToWishlistOutput {
   id: string;
   email: string;
+  projectId: string | null;
   createdAt: Date;
 }
 
@@ -26,25 +28,26 @@ export class AddToWishlistUseCase {
 
   async execute(input: AddToWishlistInput): Promise<ResultEx<AddToWishlistOutput, Error>> {
     const email = input.email.trim().toLowerCase();
+    const projectId = input.projectId?.trim() || null;
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return ResultEx.failure(new Error('Invalid email address'));
     }
 
-    const result = await this._wishlistRepository.create({ email });
+    const result = await this._wishlistRepository.create({ email, projectId });
 
     if (!result.isSuccess) {
-      this._logger.warn('add-to-wishlist.failed', { email, error: result.error.message });
+      this._logger.warn('add-to-wishlist.failed', { email, projectId, error: result.error.message });
       return ResultEx.failure(result.error);
     }
 
-    this._logger.info('add-to-wishlist.success', { email, id: result.data.id });
+    this._logger.info('add-to-wishlist.success', { email, projectId, id: result.data.id });
 
     return ResultEx.success({
       id: result.data.id,
       email: result.data.email,
+      projectId: result.data.projectId,
       createdAt: result.data.createdAt,
     });
   }

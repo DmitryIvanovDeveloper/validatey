@@ -116,7 +116,7 @@ defineExpose({
 @reference "tailwindcss";
 
 .research-overview-widget {
-  @apply bg-white rounded-lg border border-gray-200 p-6;
+  @apply rounded-lg border border-gray-200 p-6;
 }
 
 .loading-state, .error-state, .no-research {

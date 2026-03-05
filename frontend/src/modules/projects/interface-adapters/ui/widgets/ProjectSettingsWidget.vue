@@ -116,7 +116,7 @@ watch(() => props.projectId, () => {
 @reference "tailwindcss";
 
 .project-settings-widget {
-  @apply bg-white rounded-lg border border-gray-200 p-6;
+  @apply rounded-lg border border-gray-200 p-6;
 }
 
 .settings-header {

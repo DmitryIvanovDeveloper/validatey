@@ -13,5 +13,6 @@ export interface UploadLandingUseCaseResponse {
     uploadedAt: string;
     fileCount: number;
     totalSizeBytes: number;
+    url: string;
   };
 }

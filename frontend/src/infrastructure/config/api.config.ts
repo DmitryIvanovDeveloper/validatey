@@ -137,6 +137,8 @@ export const API_CONFIG = {
     // Wishlist
     WISHLIST: '/wishlist',
     WISHLIST_COUNT: '/wishlist/count',
+    /** GET /projects/:projectId/wishlist — list waitlist entries for project */
+    WISHLIST_BY_PROJECT: (projectId: string) => `/projects/${projectId}/wishlist`,
   },
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,

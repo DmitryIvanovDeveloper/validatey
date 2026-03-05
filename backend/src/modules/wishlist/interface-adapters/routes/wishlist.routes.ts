@@ -6,15 +6,16 @@ import { WishlistController } from '../controllers/wishlist.controller';
 const router = Router();
 const controller = container.get<WishlistController>(TYPES.WishlistController);
 
-/** POST /api/wishlist - Add email to wishlist */
+/** POST /api/wishlist - Add email to wishlist (optional projectId for landing embed) */
 router.post('/', async (req: Request, res: Response) => {
   try {
     const email = req.body?.email as string | undefined;
     if (!email || typeof email !== 'string' || !email.trim()) {
       return res.status(400).json({ error: 'Email is required' });
     }
+    const projectId = (req.body?.projectId as string | undefined)?.trim() || undefined;
 
-    const result = await controller.addToWishlist({ email });
+    const result = await controller.addToWishlist({ email, projectId });
 
     if (!result.isSuccess) {
       if (result.error.message.includes('already exists')) {
@@ -26,6 +27,7 @@ router.post('/', async (req: Request, res: Response) => {
     return res.status(201).json({
       id: result.data.id,
       email: result.data.email,
+      projectId: result.data.projectId ?? null,
       createdAt: result.data.createdAt.toISOString(),
     });
   } catch (error) {

@@ -269,6 +269,9 @@
         <!-- Research Overview -->
         <ResearchOverviewWidget :project-id="projectId" />
 
+        <!-- Waitlist (subscribers for this project) -->
+        <WaitListWidget v-if="projectId" :project-id="projectId" />
+
         <!-- Show Details -->
         <ShowDetailsWidget
           :project-id="projectId"
@@ -422,6 +425,7 @@ import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { normalizeAssumptions } from '../../../domain/value-objects/hypothesis.vo';
 import type { OverviewPayload } from '../../../application/use-cases/input-output/get-project-overview.io';
 import ProjectLandingWidget from '@/modules/project-landing/interface-adapters/ui/widgets/ProjectLandingWidget.vue';
+import WaitListWidget from '@/modules/wishlist/interface-adapters/ui/widgets/WaitListWidget.vue';
 
 const route = useRoute();
 const router = useRouter();

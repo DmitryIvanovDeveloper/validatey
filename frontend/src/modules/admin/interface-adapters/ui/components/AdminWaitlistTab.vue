@@ -12,6 +12,7 @@
           <tr>
             <th scope="col">ID</th>
             <th scope="col">Email</th>
+            <th scope="col">Project</th>
             <th scope="col">Added</th>
           </tr>
         </thead>
@@ -19,6 +20,7 @@
           <tr v-for="entry in wishlist" :key="entry.id">
             <td class="wishlist-table__id">{{ idShort(entry.id) }}</td>
             <td>{{ entry.email }}</td>
+            <td>{{ entry.projectId ? idShort(entry.projectId) : '—' }}</td>
             <td>{{ formatDate(entry.createdAt) }}</td>
           </tr>
         </tbody>
@@ -38,6 +40,7 @@ import { API_CONFIG } from '../../../../../infrastructure/config/api.config';
 interface WishlistEntry {
   id: string;
   email: string;
+  projectId?: string | null;
   createdAt: string;
 }
 

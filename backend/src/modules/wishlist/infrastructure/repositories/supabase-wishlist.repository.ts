@@ -8,9 +8,9 @@ export class SupabaseWishlistRepository implements WishlistRepositoryPort {
   async create(input: CreateWishlistEntryInput): Promise<ResultEx<WishlistEntry, Error>> {
     try {
       const email = input.email.trim().toLowerCase();
-      
-      // Check if email already exists
-      const existing = await this.findByEmail(email);
+      const projectId = input.projectId?.trim() || null;
+
+      const existing = await this.findByEmailAndProject(email, projectId);
       if (existing.isSuccess && existing.data) {
         return ResultEx.failure(new Error('Email already exists in wishlist'));
       }
@@ -20,6 +20,7 @@ export class SupabaseWishlistRepository implements WishlistRepositoryPort {
         .from('wishlist')
         .insert({
           email,
+          project_id: projectId,
         })
         .select()
         .single();
@@ -35,6 +36,7 @@ export class SupabaseWishlistRepository implements WishlistRepositoryPort {
       return ResultEx.success({
         id: data.id,
         email: data.email,
+        projectId: data.project_id ?? null,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       });
@@ -43,18 +45,22 @@ export class SupabaseWishlistRepository implements WishlistRepositoryPort {
     }
   }
 
-  async findByEmail(email: string): Promise<ResultEx<WishlistEntry | null, Error>> {
+  async findByEmailAndProject(email: string, projectId: string | null): Promise<ResultEx<WishlistEntry | null, Error>> {
     try {
       const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      let q = supabase
         .from('wishlist')
         .select('*')
-        .eq('email', email.trim().toLowerCase())
-        .single();
+        .eq('email', email.trim().toLowerCase());
+      if (projectId === null || projectId === undefined) {
+        q = q.is('project_id', null);
+      } else {
+        q = q.eq('project_id', projectId);
+      }
+      const { data, error } = await q.single();
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // No rows returned
           return ResultEx.success(null);
         }
         return ResultEx.failure(new Error(`Failed to find wishlist entry: ${error.message}`));
@@ -67,6 +73,7 @@ export class SupabaseWishlistRepository implements WishlistRepositoryPort {
       return ResultEx.success({
         id: data.id,
         email: data.email,
+        projectId: data.project_id ?? null,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       });
@@ -75,31 +82,41 @@ export class SupabaseWishlistRepository implements WishlistRepositoryPort {
     }
   }
 
-  async count(): Promise<ResultEx<number, Error>> {
+  async count(projectId?: string | null): Promise<ResultEx<number, Error>> {
     try {
       const supabase = getSupabaseClient();
-      const { count, error } = await supabase
-        .from('wishlist')
-        .select('*', { count: 'exact', head: true });
+      let q = supabase.from('wishlist').select('*', { count: 'exact', head: true });
+      if (projectId !== undefined && projectId !== null) {
+        q = q.eq('project_id', projectId);
+      } else if (projectId === null) {
+        q = q.is('project_id', null);
+      }
+      const { count, error } = await q;
 
       if (error) {
         return ResultEx.failure(new Error(`Failed to count wishlist entries: ${error.message}`));
       }
 
-      return ResultEx.success(count || 0);
+      return ResultEx.success(count ?? 0);
     } catch (error) {
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error counting wishlist entries'));
     }
   }
 
-  async findAll(limit: number = 100, offset: number = 0): Promise<ResultEx<WishlistEntry[], Error>> {
+  async findAll(limit: number = 100, offset: number = 0, projectId?: string | null): Promise<ResultEx<WishlistEntry[], Error>> {
     try {
       const supabase = getSupabaseClient();
-      const { data, error } = await supabase
+      let q = supabase
         .from('wishlist')
         .select('*')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
+      if (projectId !== undefined && projectId !== null) {
+        q = q.eq('project_id', projectId);
+      } else if (projectId === null) {
+        q = q.is('project_id', null);
+      }
+      const { data, error } = await q;
 
       if (error) {
         return ResultEx.failure(new Error(`Failed to find wishlist entries: ${error.message}`));
@@ -109,6 +126,7 @@ export class SupabaseWishlistRepository implements WishlistRepositoryPort {
         (data || []).map((entry) => ({
           id: entry.id,
           email: entry.email,
+          projectId: entry.project_id ?? null,
           createdAt: new Date(entry.created_at),
           updatedAt: new Date(entry.updated_at),
         }))

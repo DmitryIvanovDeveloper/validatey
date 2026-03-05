@@ -6,7 +6,14 @@ export interface CollectResearchDataRequest {
   readonly intent: ResearchIntent;
 }
 
+export type CooldownErrorDetails = {
+  readonly type: 'COOLDOWN';
+  readonly nextAvailableAt: string;
+  readonly timeUntilNext: number;
+  readonly formattedTimeRemaining: string;
+};
+
 export interface CollectResearchDataResponse {
   readonly canvas: ResearchCanvas;
-  readonly error?: string;
+  readonly error?: string | CooldownErrorDetails;
 }

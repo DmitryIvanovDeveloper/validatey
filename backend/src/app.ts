@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 // .env loaded before container so process.env is set for all modules (same as painkiller-assistent)
 import 'dotenv/config';
+import path from 'path';
 import './infrastructure/bootstrap/container';
 import express, { Request, Response } from 'express';
 import { getEnvStatus } from './infrastructure/config/env-check';
@@ -35,12 +36,33 @@ app.use(
 );
 app.use(cookieParser());
 
-// Middleware
-app.use(helmet());
+// Middleware: allow frontend to embed landing pages in iframe (preview)
+// Disable X-Frame-Options so CSP frame-ancestors applies (same-origin would block localhost:5173 embedding localhost:8080)
+app.use(
+  helmet({
+    frameguard: false,
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'frame-ancestors': ["'self'", ...allowedOrigins],
+      },
+    },
+  })
+);
 app.use(compression());
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Embeddable waitlist script for project landings (no auth)
+app.use('/embed', express.static(path.join(__dirname, '..', 'embed'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=300');
+    }
+  },
+}));
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
@@ -90,6 +112,8 @@ import commentsRoutes from './modules/comments/interface-adapters/routes/comment
 import workspacesRoutes from './modules/workspaces/interface-adapters/routes/workspaces.routes';
 import wishlistRoutes from './modules/wishlist/interface-adapters/routes/wishlist.routes';
 import publicProjectsRoutes from './modules/projects/interface-adapters/routes/public-projects.routes';
+import projectLandingRoutes from './modules/project-landing/interface-adapters/routes/project-landing.routes';
+import publicLandingRoutes from './modules/project-landing/interface-adapters/routes/public-landing.routes';
 
 app.use('/api/projects', projectsRoutes);
 app.use('/api/projects', projectsNestedRoutes); // Nested routes: /projects/:projectId/scenarios, /invitations, /report
@@ -114,6 +138,8 @@ app.use('/api/comments', commentsRoutes);
 app.use('/api/workspaces', workspacesRoutes); // Flat routes: /comments/:id
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/public/projects', publicProjectsRoutes);
+app.use('/api/project-landings', projectLandingRoutes);
+app.use('/l', publicLandingRoutes); // Public landing pages by slug: /l/:slug, /l/:slug/*
 app.use('/survey', surveyRoutes);
 
 app.get('/api', (req: Request, res: Response) => {
