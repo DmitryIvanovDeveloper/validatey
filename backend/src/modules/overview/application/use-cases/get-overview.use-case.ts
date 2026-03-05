@@ -421,6 +421,7 @@ export class GetOverviewUseCase {
       marketSnippet: d.researchMarketSnippet,
       competitorsSnippet: d.researchCompetitorsSnippet,
       hasData,
+      waitlistSubscribersCount: d.waitlistSubscribersCount,
     };
   }
 

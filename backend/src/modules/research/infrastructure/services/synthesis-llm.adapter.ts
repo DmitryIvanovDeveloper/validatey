@@ -36,7 +36,14 @@ VALIDATION RULES:
 - "needs-more-data" = more research needed before a decision can be made.
 - Summary should cite specific evidence (e.g. comment themes, pain points, market signals) so that per-assumption assessment can refer to it. Never leave summary empty when comments or hypothesis are provided.
 
+WAITLIST / LANDING SIGNUPS (use in the overall analysis, not just mention):
+- When "Waitlist / landing signups" is provided in Context, treat it as SOLUTION VALIDATION evidence: real people chose to leave contact info for this idea. In the summary you MUST write the actual number from Context (e.g. if Context says "Waitlist / landing signups: 10", write "10 waitlist signups" or "10 signups" — never write the letter N or 0 unless that is the real number in Context).
+  * When the number is > 0: counts as early interest and supports the hypothesis. Factor it into your verdict: e.g. if comments are mixed or "needs-more-data" but there are signups, the summary should state that waitlist signups are a positive early signal (citing the exact number) and weigh them in the conclusion. Do not ignore signups when deciding between "needs-more-data" and "validated" — they can tip the balance when other evidence is supportive.
+  * When the count is 0 or not provided: if you would recommend "create a landing page", say so; if the project already has a landing but 0 signups, that can be a weak negative signal and can be noted in the summary.
+- You MUST reflect waitlist in the executive summary as part of the evidence, using the exact number from Context (e.g. "…; the project has 10 waitlist signups, indicating early interest" or "…; no waitlist signups yet"). Do not recommend "create a landing page to measure interest" when signups already exist — instead recommend next steps that build on the existing signups (e.g. short survey to signups, interviews, or more traffic to the landing).
+
 CONCLUSION RULES (use when deciding verdict and assumptions):
+- Waitlist/landing signups (when provided and > 0) are early solution validation: they support the hypothesis that some people are interested. Weigh them together with comments and user insights when deciding verdict and when writing the summary; they can reinforce "validated" or make "needs-more-data" more optimistic.
 - If the problem is widely discussed (many comments and/or many unique authors mentioning it) — treat as support for the relevant assumption (e.g. A1 confirmed).
 - If people complain about lack of tools or solutions — that is evidence of unmet need / demand.
 - If they actively respond to others' posts asking for advice or feedback — treat as an indirect signal of willingness to engage (not proof of willingness to pay or use a product).
@@ -147,6 +154,11 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
         ].join('\n')
       : '';
 
+    const waitlistSection =
+      input.waitlistSubscribersCount !== undefined && input.waitlistSubscribersCount !== null
+        ? `Waitlist / landing signups: ${input.waitlistSubscribersCount}`
+        : '';
+
     const userContent = [
       `Project: ${input.projectName}`,
       `Hypothesis: ${input.hypothesisSummary}`,
@@ -161,6 +173,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `Early signals: ${input.earlySignalsSummary}`,
       input.academicPapersSummary ? `Academic research:\n${input.academicPapersSummary}` : '',
       input.productHuntSummary ? `Product Hunt:\n${input.productHuntSummary}` : '',
+      waitlistSection,
       commentMetricsSection,
     ].filter(Boolean).join('\n\n');
 

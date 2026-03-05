@@ -49,6 +49,8 @@ export type ResearchContext = {
   marketSnippet: string | null;
   competitorsSnippet: string | null;
   hasData: boolean;
+  /** Number of waitlist/landing signups for this project (optional). */
+  waitlistSubscribersCount?: number;
 };
 
 export type LearningJourneyRound = {

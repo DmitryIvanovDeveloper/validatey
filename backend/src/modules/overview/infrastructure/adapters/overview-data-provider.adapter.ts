@@ -7,6 +7,7 @@ import { TYPES as RESEARCH_TYPES } from '../../../research/infrastructure/bootst
 import { TYPES as ROUNDS_TYPES } from '../../../rounds/infrastructure/bootstrap/types';
 import { TYPES as RESPONSES_TYPES } from '../../../responses/infrastructure/bootstrap/types';
 import { TYPES as METRICS_TYPES } from '../../../metrics/infrastructure/bootstrap/types';
+import { TYPES as WISHLIST_TYPES } from '../../../wishlist/application/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import type { InvitationRepositoryPort } from '../../../invitations/application/ports/invitation-repository.port';
 import type { EarlySignalsRepositoryPort } from '../../../signals/application/ports/early-signals-repository.port';
@@ -14,6 +15,7 @@ import type { ResearchDataRepositoryPort } from '../../../research/application/p
 import type { RoundRepositoryPort } from '../../../rounds/application/ports/round-repository.port';
 import type { ResponseRepositoryPort } from '../../../responses/application/ports/response-repository.port';
 import type { MetricsRepositoryPort } from '../../../metrics/application/ports/metrics-repository.port';
+import type { WishlistRepositoryPort } from '../../../wishlist/application/ports/wishlist-repository.port';
 import type { OverviewRawData } from '../../application/ports/overview-data-provider.port';
 import type { OverviewDataProviderPort } from '../../application/ports/overview-data-provider.port';
 
@@ -33,12 +35,14 @@ export class OverviewDataProviderAdapter implements OverviewDataProviderPort {
     @inject(RESPONSES_TYPES.ResponseRepository)
     private readonly _responseRepository: ResponseRepositoryPort,
     @inject(METRICS_TYPES.MetricsRepository)
-    private readonly _metricsRepository: MetricsRepositoryPort
+    private readonly _metricsRepository: MetricsRepositoryPort,
+    @inject(WISHLIST_TYPES.WishlistRepository)
+    private readonly _wishlistRepository: WishlistRepositoryPort
   ) {}
 
   async getData(projectId: string): Promise<ResultEx<OverviewRawData, Error>> {
     try {
-      const [projectResult, invitationsResult, signalsResult, researchResult, roundsResult, responsesResult, metricsResult] =
+      const [projectResult, invitationsResult, signalsResult, researchResult, roundsResult, responsesResult, metricsResult, wishlistCountResult] =
         await Promise.all([
           this._projectRepository.findById(projectId),
           this._invitationRepository.findByProjectId(projectId),
@@ -47,6 +51,7 @@ export class OverviewDataProviderAdapter implements OverviewDataProviderPort {
           this._roundRepository.findByProjectId(projectId),
           this._responseRepository.findByProjectId(projectId),
           this._metricsRepository.getMetricsData(projectId),
+          this._wishlistRepository.count(projectId),
         ]);
 
       if (!projectResult.isSuccess) {
@@ -60,6 +65,7 @@ export class OverviewDataProviderAdapter implements OverviewDataProviderPort {
       const rounds = roundsResult.isSuccess ? roundsResult.data : [];
       const responses = responsesResult.isSuccess ? responsesResult.data : [];
       const metricsData = metricsResult.isSuccess ? metricsResult.data : null;
+      const waitlistSubscribersCount = wishlistCountResult.isSuccess ? wishlistCountResult.data : undefined;
 
       const researchSummary =
         stored?.synthesisReport?.summary ??
@@ -127,6 +133,7 @@ export class OverviewDataProviderAdapter implements OverviewDataProviderPort {
               problemSeverityScores: metricsData.problemSeverityScores,
             }
           : null,
+        waitlistSubscribersCount,
       };
 
       return ResultEx.success(raw);

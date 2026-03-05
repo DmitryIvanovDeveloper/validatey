@@ -7,7 +7,9 @@ import { TYPES as SIGNALS_TYPES } from '../../../signals/infrastructure/bootstra
 import { TYPES as RESPONSES_TYPES } from '../../../responses/infrastructure/bootstrap/types';
 import { TYPES as RESEARCH_TYPES } from '../../infrastructure/bootstrap/types';
 import { COMMENT_TYPES } from '../../../comments/types';
+import { TYPES as WISHLIST_TYPES } from '../../../wishlist/application/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
+import type { WishlistRepositoryPort } from '../../../wishlist/application/ports/wishlist-repository.port';
 import type { EarlySignalsRepositoryPort } from '../../../signals/application/ports/early-signals-repository.port';
 import type { ResponseRepositoryPort } from '../../../responses/application/ports/response-repository.port';
 import type { ResearchDataRepositoryPort } from '../ports/research-data-repository.port';
@@ -52,7 +54,9 @@ export class GenerateAssumptionAssessmentsUseCase {
     @inject(RESEARCH_TYPES.AssumptionAssessmentLlm)
     private readonly _assessmentLlm: AssumptionAssessmentLlmPort,
     @inject(COMMENT_TYPES.CommentRepository)
-    private readonly _commentRepository: CommentRepositoryPort
+    private readonly _commentRepository: CommentRepositoryPort,
+    @inject(WISHLIST_TYPES.WishlistRepository)
+    private readonly _wishlistRepository: WishlistRepositoryPort
   ) {}
 
   async execute(request: GenerateAssumptionAssessmentsRequest): Promise<ResultEx<AssumptionAssessment[] | null, Error>> {
@@ -66,8 +70,12 @@ export class GenerateAssumptionAssessmentsUseCase {
       }
       const project = projectResult.data;
 
-      const storedResult = await this._researchDataRepository.findByProjectId(projectId);
+      const [storedResult, wishlistCountResult] = await Promise.all([
+        this._researchDataRepository.findByProjectId(projectId),
+        this._wishlistRepository.count(projectId),
+      ]);
       const stored = storedResult.isSuccess ? storedResult.data : null;
+      const waitlistSubscribersCount = wishlistCountResult.isSuccess ? wishlistCountResult.data : undefined;
 
       // Run when synthesis exists (summary or verdict) so AI can output per-assumption verdicts
       const hasSynthesis = stored?.synthesisReport && (
@@ -186,6 +194,7 @@ export class GenerateAssumptionAssessmentsUseCase {
         earlySignalsSummary,
         academicPapersSummary,
         thematicCounts,
+        waitlistSubscribersCount,
       };
 
       // Batch assumptions: max 5 per LLM call to avoid token limit and JSON truncation issues

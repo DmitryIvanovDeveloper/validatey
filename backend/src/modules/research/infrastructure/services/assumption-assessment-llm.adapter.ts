@@ -97,6 +97,7 @@ CONCLUSION RULES:
 - If people complain about lack of tools/solutions — that is evidence of unmet need (you may cite it as context; it does not by itself confirm willingness to use a specific product).
 - If they actively respond to others asking for advice — treat as an indirect signal of engagement, not proof of behavior.
 - When comment patterns include unique author counts: many unique authors (e.g. dozens) expressing the same pain = stronger validation than the same number of comments from few people.
+- WAITLIST / LANDING SIGNUPS: When "Waitlist / landing signups" is provided in the Research context, treat it as early interest evidence. For ATTITUDINAL assumptions about interest, willingness to engage, or demand (e.g. "target audience would be interested", "users would sign up"), N > 0 signups can support "confirmed" or strengthen evidence (cite the number in evidence). Do not use waitlist to confirm BEHAVIORAL assumptions (retention, conversion) — only attitudinal. Use the exact number from context in your evidence when citing waitlist.
 
 RULES:
 - Evidence is REQUIRED for every assumption — never output null.
@@ -122,6 +123,11 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
     const assumptionsBlock = assumptions
       .map((a) => `[${a.assumptionId}] ${a.text}`)
       .join('\n');
+    const waitlistLine =
+      context.waitlistSubscribersCount !== undefined && context.waitlistSubscribersCount !== null
+        ? `Waitlist / landing signups: ${context.waitlistSubscribersCount} (use as early interest evidence for attitudinal assumptions)`
+        : '';
+
     const userContent = [
       // Hypothesis first — so LLM can identify audience groups before reading assumptions
       `Project hypothesis (read this first to identify audience groups):\n${context.hypothesisSummary}`,
@@ -132,6 +138,7 @@ export class AssumptionAssessmentLlmAdapter implements AssumptionAssessmentLlmPo
       'Research context:',
       `Synthesis: ${context.synthesisSummary}`,
       `Verdict: ${context.verdict}`,
+      waitlistLine,
       `User insights (SURVEY DATA — primary evidence for attitudinal assumptions; takes priority over comment data when present): ${context.userInsightsSummary}`,
       context.dataSourcesSummary ? `Data sources:\n${context.dataSourcesSummary}` : '',
       context.thematicCounts

@@ -27,6 +27,8 @@ export interface AssumptionAssessmentContext {
 	 * These are hard facts — LLM must use them in evidence instead of estimating "~0".
 	 */
 	readonly thematicCounts?: Record<string, number>;
+	/** Number of waitlist/landing signups for this project. Use as early interest evidence for attitudinal assumptions (e.g. willingness to engage, interest in the idea). */
+	readonly waitlistSubscribersCount?: number;
 }
 
 export interface AssumptionAssessmentLlmPort {

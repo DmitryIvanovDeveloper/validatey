@@ -51,6 +51,8 @@ export interface OverviewRawData {
     wtpValues: number[];
     problemSeverityScores: number[];
   } | null;
+  /** Number of waitlist/landing signups for this project (optional, from wishlist module). */
+  waitlistSubscribersCount?: number;
 }
 
 export interface OverviewDataProviderPort {

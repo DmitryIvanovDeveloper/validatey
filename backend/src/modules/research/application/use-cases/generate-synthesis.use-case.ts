@@ -8,7 +8,9 @@ import { TYPES as METRICS_TYPES } from '../../../metrics/infrastructure/bootstra
 import { TYPES as RESEARCH_TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as RESPONSES_TYPES } from '../../../responses/infrastructure/bootstrap/types';
 import { COMMENT_TYPES } from '../../../comments/types';
+import { TYPES as WISHLIST_TYPES } from '../../../wishlist/application/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
+import type { WishlistRepositoryPort } from '../../../wishlist/application/ports/wishlist-repository.port';
 import type { EarlySignalsRepositoryPort } from '../../../signals/application/ports/early-signals-repository.port';
 import type { ResearchDataRepositoryPort } from '../ports/research-data-repository.port';
 import type { SynthesisLlmPort } from '../ports/synthesis-llm.port';
@@ -51,6 +53,8 @@ export class GenerateSynthesisUseCase {
     private readonly _synthesisLlm: SynthesisLlmPort,
     @inject(RESEARCH_TYPES.GenerateAssumptionAssessmentsUseCase)
     private readonly _generateAssumptionAssessmentsUseCase: GenerateAssumptionAssessmentsUseCase,
+    @inject(WISHLIST_TYPES.WishlistRepository)
+    private readonly _wishlistRepository: WishlistRepositoryPort,
   ) {}
 
   async execute(
@@ -71,12 +75,14 @@ export class GenerateSynthesisUseCase {
       }
       const project = projectResult.data;
 
-      const [storedResult, signalsResult] = await Promise.all([
+      const [storedResult, signalsResult, wishlistCountResult] = await Promise.all([
         this._researchDataRepository.findByProjectId(projectId),
         this._signalsRepository.findByProjectId(projectId),
+        this._wishlistRepository.count(projectId),
       ]);
       const stored = storedResult.isSuccess ? storedResult.data : null;
       const signals = signalsResult.isSuccess ? signalsResult.data : [];
+      const waitlistSubscribersCount = wishlistCountResult.isSuccess ? wishlistCountResult.data : undefined;
 
       const hypothesisSummary = project.hypothesis?.description ?? project.name ?? 'No hypothesis';
       const marketSummary = this.summarizeMarket(project.marketContext, stored?.marketData ?? null);
@@ -135,6 +141,7 @@ export class GenerateSynthesisUseCase {
             academicPapersSummary,
             productHuntSummary,
             commentMetrics: { totalCount: comments.length, bySource: commentMetrics.bySource },
+            waitlistSubscribersCount,
           });
           if (batchResult.isSuccess && batchResult.data.commentPatternAnalysis) {
             const validated = this.validatePatternExamples(batchResult.data.commentPatternAnalysis, batch);
@@ -165,6 +172,7 @@ export class GenerateSynthesisUseCase {
             academicPapersSummary,
             productHuntSummary,
             commentMetrics,
+            waitlistSubscribersCount,
           });
           if (!fallbackResult.isSuccess) {
             return ResultEx.failure(fallbackResult.error);
@@ -193,6 +201,7 @@ export class GenerateSynthesisUseCase {
             academicPapersSummary,
             productHuntSummary,
             commentMetrics,
+            waitlistSubscribersCount,
           });
           if (!finalResult.isSuccess) return ResultEx.failure(finalResult.error);
           report = {
@@ -220,6 +229,7 @@ export class GenerateSynthesisUseCase {
           academicPapersSummary: academicPapersSummary || undefined,
           productHuntSummary: productHuntSummary || undefined,
           commentMetrics,
+          waitlistSubscribersCount,
         });
         if (!llmResult.isSuccess) return ResultEx.failure(llmResult.error);
         report = llmResult.data;

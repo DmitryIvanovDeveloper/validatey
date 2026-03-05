@@ -27,6 +27,8 @@ export interface SynthesisInput {
   productHuntSummary?: string;
   /** Hard factual comment metrics passed directly to LLM to ground its verdict decision. */
   commentMetrics?: CommentMetrics;
+  /** Number of waitlist/landing signups for this project (optional). Use for verdict and recommendations. */
+  waitlistSubscribersCount?: number;
 }
 
 export interface SynthesisLlmPort {
