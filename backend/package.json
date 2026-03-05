@@ -61,6 +61,7 @@
     "@types/node": "^24.3.1",
     "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.10.9",
+    "@types/uuid": "^10.0.0",
     "@vitest/ui": "^3.2.4",
     "form-data": "^4.0.5",
     "kill-port": "^2.0.1",

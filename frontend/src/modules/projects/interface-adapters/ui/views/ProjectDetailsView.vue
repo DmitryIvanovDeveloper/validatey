@@ -284,8 +284,6 @@
         <!-- Response Pace -->
         <ResponsePaceWidget ref="responsePaceRef" :project-id="projectId" :target-pace="5" :external-loading="widgetsLoading" />
 
-
-
         <!-- Comments Overview -->
         <CommentsFreshnessWidget v-if="projectId" :project-id="projectId" />
         <CommentsWidget
@@ -423,6 +421,7 @@ import TipsWidget from '../../../../../shared/components/TipsWidget.vue';
 import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { normalizeAssumptions } from '../../../domain/value-objects/hypothesis.vo';
 import type { OverviewPayload } from '../../../application/use-cases/input-output/get-project-overview.io';
+import ProjectLandingWidget from '@/modules/project-landing/interface-adapters/ui/widgets/ProjectLandingWidget.vue';
 
 const route = useRoute();
 const router = useRouter();

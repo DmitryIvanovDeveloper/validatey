@@ -113,6 +113,8 @@ defineExpose({
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .research-overview-widget {
   @apply bg-white rounded-lg border border-gray-200 p-6;
 }

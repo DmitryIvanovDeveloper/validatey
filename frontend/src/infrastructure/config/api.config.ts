@@ -25,6 +25,9 @@ export const API_CONFIG = {
     /** Guest view: append ?guestSlug= to project or overview URL. */
     PROJECT_WITH_GUEST: (id: string, slug: string) => `/projects/${id}?guestSlug=${encodeURIComponent(slug)}`,
     OVERVIEW_WITH_GUEST: (id: string, slug: string) => `/projects/${id}/overview?guestSlug=${encodeURIComponent(slug)}`,
+
+    // Project Landings
+    PROJECT_LANDINGS: '/project-landings',
     PROJECTS_OVERVIEW: '/projects/overview',
     PROJECTS_ASSESS_RISK: '/projects/assess-risk',
     

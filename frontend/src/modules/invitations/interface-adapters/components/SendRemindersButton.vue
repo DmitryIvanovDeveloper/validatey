@@ -71,6 +71,8 @@ const handleSendReminders = async () => {
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .smart-action-btn {
   @apply w-full flex items-center p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
 }

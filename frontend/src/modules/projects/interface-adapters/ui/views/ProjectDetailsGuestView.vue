@@ -243,6 +243,9 @@
           </div>
         </SectionCard>
 
+        <!-- Project Landing -->
+        <ProjectLandingWidget v-if="!isGuest" :project-id="projectId" />
+
       </div>
 
       <!-- Sidebar -->
@@ -404,6 +407,7 @@ import TopPainPointsWidget from '../../../../research/interface-adapters/ui/comp
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
 import TipsWidget from '../../../../../shared/components/TipsWidget.vue';
 import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
+import ProjectLandingWidget from '../../../../../project-landing/interface-adapters/ui/widgets/ProjectLandingWidget.vue';
 import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { normalizeAssumptions } from '../../../domain/value-objects/hypothesis.vo';
 import type { OverviewPayload } from '../../../application/use-cases/input-output/get-project-overview.io';

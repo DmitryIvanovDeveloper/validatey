@@ -106,6 +106,11 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/modules/comments/interface-adapters/ui/views/CommentsView.vue'),
       },
       {
+        path: 'landing',
+        name: 'project-landing',
+        component: () => import('@/modules/project-landing/interface-adapters/ui/views/ProjectLandingView.vue'),
+      },
+      {
         path: 'rounds/:roundId',
         name: 'round-detail',
         component: () => import('@/modules/rounds/interface-adapters/ui/views/RoundDetailView.vue'),

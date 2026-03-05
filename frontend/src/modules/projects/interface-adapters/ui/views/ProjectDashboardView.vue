@@ -49,6 +49,14 @@
           {{ presenter.labels.dashboardTabComments }}
         </router-link>
         <router-link
+          :to="`${projectBase}/landing`"
+          class="tab-link"
+          :class="{ active: isTabActive('landing') }"
+          role="tab"
+        >
+          Landing Page
+        </router-link>
+        <router-link
           v-if="false"
           :to="`${projectBase}/report`"
           class="tab-link"
@@ -83,20 +91,22 @@ const route = useRoute();
 const workspaceId = computed(() => route.params.workspaceId as string);
 const projectId = computed(() => route.params.projectId as string);
 const projectBase = computed(() => `/workspaces/${workspaceId.value}/projects/${projectId.value}`);
+const currentRouteName = computed(() => route.name as string);
 const viewModel = new ProjectViewModel();
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 
 const projectName = computed(() => viewModel.project.value?.name ?? presenter.labels.dashboardDefaultProjectName);
 
-function isTabActive(tab: string): boolean {
-  const name = route.name as string;
+const isTabActive = (tab: string): boolean => {
+  const name = currentRouteName.value;
   if (tab === 'overview') return name === 'project-details' || name === 'project-overview';
   if (tab === 'invitations') return name === 'project-invitations';
   if (tab === 'responses') return name === 'project-responses';
   if (tab === 'comments') return name === 'project-comments';
+  if (tab === 'landing') return name === 'project-landing';
   if (tab === 'round') return name === 'round-detail';
   return false;
-}
+};
 
 onMounted(() => {
   if (projectId.value) {

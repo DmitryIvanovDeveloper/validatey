@@ -113,6 +113,8 @@ watch(() => props.projectId, () => {
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .project-settings-widget {
   @apply bg-white rounded-lg border border-gray-200 p-6;
 }

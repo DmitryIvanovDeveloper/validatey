@@ -330,6 +330,8 @@ const copyToClipboard = async () => {
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .user-stories-widget {
   position: relative;
   @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
