@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Landing Preview</title>
+</head>
+<body>
+    <h1>Test Landing Preview</h1>
+    <h2>Preview (iframe):</h2>
+    <iframe
+        src="http://localhost:8080/l/project-44f2f181/"
+        style="width: 800px; height: 600px; border: 1px solid #ccc;"
+        title="Landing preview"
+    ></iframe>
+
+    <h2>Full landing link:</h2>
+    <a href="http://localhost:8080/l/project-44f2f181/" target="_blank">
+        Open full landing in new tab
+    </a>
+
+    <h2>Direct content check:</h2>
+    <div id="content"></div>
+
+    <script>
+        // Check direct content
+        fetch('http://localhost:8080/l/project-44f2f181/')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const title = doc.querySelector('title')?.textContent;
+                const h1 = doc.querySelector('h1')?.textContent;
+                document.getElementById('content').innerHTML = `
+                    <strong>Title:</strong> ${title}<br>
+                    <strong>H1:</strong> ${h1}
+                `;
+            })
+            .catch(error => {
+                document.getElementById('content').innerHTML = `<strong>Error:</strong> ${error.message}`;
+            });
+    </script>
+</body>
+</html>
