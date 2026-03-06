@@ -6,12 +6,15 @@ export const TYPES = {
   LandingFileStorage: Symbol('LandingFileStorage'),
   ArchiveExtractor: Symbol('ArchiveExtractor'),
   LandingSlugGenerator: Symbol('LandingSlugGenerator'),
+  LandingGenerationLLM: Symbol('LandingGenerationLLM'),
+  ZipArchiveCreator: Symbol('ZipArchiveCreator'),
 
   // Use Cases
   UploadLandingUseCase: Symbol('UploadLandingUseCase'),
   GetProjectLandingUseCase: Symbol('GetProjectLandingUseCase'),
   DeleteLandingUseCase: Symbol('DeleteLandingUseCase'),
   ServeLandingFileUseCase: Symbol('ServeLandingFileUseCase'),
+  GenerateLandingUseCase: Symbol('GenerateLandingUseCase'),
 
   // Controllers
   ProjectLandingController: Symbol('ProjectLandingController'),

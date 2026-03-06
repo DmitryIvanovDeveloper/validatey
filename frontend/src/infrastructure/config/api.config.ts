@@ -20,16 +20,6 @@ export const API_CONFIG = {
     // Projects
     PROJECTS: '/projects',
     PROJECT: (id: string) => `/projects/${id}`,
-    /** Guest view: project by slug (no auth). */
-    PUBLIC_PROJECT_BY_SLUG: (slug: string) => `/public/projects/by-slug/${encodeURIComponent(slug)}`,
-    /** Guest view: append ?guestSlug= to project or overview URL. */
-    PROJECT_WITH_GUEST: (id: string, slug: string) => `/projects/${id}?guestSlug=${encodeURIComponent(slug)}`,
-    OVERVIEW_WITH_GUEST: (id: string, slug: string) => `/projects/${id}/overview?guestSlug=${encodeURIComponent(slug)}`,
-
-    // Project Landings
-    PROJECT_LANDINGS: '/project-landings',
-    PROJECTS_OVERVIEW: '/projects/overview',
-    PROJECTS_ASSESS_RISK: '/projects/assess-risk',
     
     // Scenarios
     SCENARIOS: (projectId: string) => `/projects/${projectId}/scenarios`,
@@ -47,7 +37,6 @@ export const API_CONFIG = {
     INVITATIONS: (projectId: string) => `/projects/${projectId}/invitations`,
     INVITATION: (projectId: string, invitationId: string) => `/projects/${projectId}/invitations/${invitationId}`,
     SEND_INVITATIONS: (projectId: string) => `/projects/${projectId}/invitations/send`,
-    /** POST - suggest survey distribution platforms for project */
     SUGGEST_PLATFORMS: (projectId: string) => `/projects/${projectId}/invitations/suggest-platforms`,
     
     // Responses
@@ -66,13 +55,12 @@ export const API_CONFIG = {
     // Early Signals
     EARLY_SIGNALS: (projectId: string) => `/projects/${projectId}/early-signals`,
 
-    // Research (Canvas, Assistant, Collect, Synthesis)
+    // Research (Canvas, Assistant, Collect, Synthesis, Availability/Cooldown)
     RESEARCH_CANVAS: (projectId: string) => `/projects/${projectId}/research/canvas`,
-    RESEARCH_SYNTHESIS: (projectId: string) => `/projects/${projectId}/research/synthesis`,
     RESEARCH_AVAILABILITY: (projectId: string) => `/projects/${projectId}/research/availability`,
+    RESEARCH_SYNTHESIS: (projectId: string) => `/projects/${projectId}/research/synthesis`,
     RESEARCH_COLLECT: (projectId: string) => `/projects/${projectId}/research/collect`,
     RESEARCH_ASSISTANT: (projectId: string) => `/projects/${projectId}/research/assistant`,
-    RESEARCH_USER_STORIES: (projectId: string) => `/projects/${projectId}/research/user-stories`,
 
     // Scraper (data sources: competitor sites, reviews, job market, etc.)
     SCRAPER_SOURCES: (projectId: string) => `/projects/${projectId}/scraper`,
@@ -92,14 +80,16 @@ export const API_CONFIG = {
     // Rounds (iterative validation rounds per project)
     ROUNDS: (projectId: string) => `/projects/${projectId}/rounds`,
     ROUND: (projectId: string, roundId: string) => `/projects/${projectId}/rounds/${roundId}`,
-    ROUND_FINALIZE: (projectId: string, roundId: string) => `/projects/${projectId}/rounds/${roundId}/finalize`,
-
-    // Comments pattern analysis
-    COMMENTS_PATTERNS: (projectId: string) => `/projects/${projectId}/comments/patterns`,
-    COMMENTS_SUGGESTED_OUTREACH: (projectId: string) => `/projects/${projectId}/comments/suggested-outreach`,
 
     // Overview (command center: executive summary, pulse, smart actions, research context, decision pathway)
     OVERVIEW: (projectId: string) => `/projects/${projectId}/overview`,
+
+    // Comments (patterns, suggested outreach, etc.)
+    COMMENTS_PATTERNS: (projectId: string) => `/projects/${projectId}/comments/patterns`,
+    COMMENTS_SUGGESTED_OUTREACH: (projectId: string) => `/projects/${projectId}/comments/suggested-outreach`,
+
+    // Project Landings
+    PROJECT_LANDINGS: '/project-landings',
 
     // Survey (Respondent UI) - Note: /survey route is mounted directly, not under /api
     SURVEY_BY_TOKEN: (token: string) => `${getSurveyBaseUrl()}/survey/${token}`,
@@ -123,21 +113,20 @@ export const API_CONFIG = {
     AUTH_REGISTER: '/auth/register',
     AUTH_LOGIN: '/auth/login',
     AUTH_SESSION: '/auth/session',
+    AUTH_LINK_PREVIOUS_USER: '/auth/link-previous-user',
     AUTH_SIGN_OUT: '/auth/sign-out',
 
     // Admin
     ADMIN_USERS: '/admin/users',
-    ADMIN_WISHLIST: '/admin/wishlist',
     ADMIN_FEEDBACK: '/admin/feedback',
     ADMIN_FEEDBACK_ANALYZE: '/admin/feedback/analyze',
 
     // Feedback (widget submit)
     FEEDBACK: '/feedback',
 
-    // Wishlist
+    // Wishlist (waitlist for landing pages)
     WISHLIST: '/wishlist',
     WISHLIST_COUNT: '/wishlist/count',
-    /** GET /projects/:projectId/wishlist — list waitlist entries for project */
     WISHLIST_BY_PROJECT: (projectId: string) => `/projects/${projectId}/wishlist`,
   },
   TIMEOUT: 30000, // 30 seconds

@@ -8,17 +8,14 @@ class UserContextService {
   private sessionReady = false;
 
   constructor() {
-    console.log('🔍 USER CONTEXT: UserContextService constructor called');
     // Load user ID from localStorage on initialization
     this.loadUserId();
-    console.log('🔍 USER CONTEXT: Constructor completed, current userId:', this.userId);
   }
 
   /**
    * Get current user ID
    */
   getUserId(): string | null {
-    console.log('🔍 USER CONTEXT: getUserId called, current userId:', this.userId);
     return this.userId;
   }
 
@@ -26,11 +23,10 @@ class UserContextService {
    * Set user ID
    */
   setUserId(userId: string): void {
-    console.log('🔍 USER CONTEXT: setUserId called with:', userId);
     // Validate UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(userId)) {
-      console.error('🔍 USER CONTEXT: invalid UUID format for userId:', userId);
+      console.error('Invalid UUID format for userId:', userId);
       return;
     }
     this.userId = userId;
@@ -44,23 +40,18 @@ class UserContextService {
    * Load user ID from localStorage
    */
   private loadUserId(): void {
-    console.log('🔍 USER CONTEXT: loadUserId called');
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(UserContextService.USER_ID_KEY);
-      console.log('🔍 USER CONTEXT: loaded from localStorage:', stored);
       if (stored) {
         // Validate that the stored userId is a valid UUID format
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (uuidRegex.test(stored)) {
           this.userId = stored;
-          console.log('🔍 USER CONTEXT: set userId to:', this.userId);
         } else {
-          console.log('🔍 USER CONTEXT: invalid UUID format, clearing localStorage');
+          // Invalid format, clear it
           localStorage.removeItem(UserContextService.USER_ID_KEY);
           this.userId = null;
         }
-      } else {
-        console.log('🔍 USER CONTEXT: no userId in localStorage');
       }
     }
   }
@@ -69,7 +60,6 @@ class UserContextService {
    * Clear user ID (on logout)
    */
   clearUserId(): void {
-    console.log('🔍 USER CONTEXT: clearUserId called, clearing userId:', this.userId);
     this.userId = null;
     if (typeof window !== 'undefined') {
       localStorage.removeItem(UserContextService.USER_ID_KEY);
@@ -81,7 +71,6 @@ class UserContextService {
    * Used until authentication
    */
   generateTemporaryUserId(): string {
-    console.log('🔍 USER CONTEXT: generateTemporaryUserId called');
     // Generate UUID v4
     const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = (Math.random() * 16) | 0;
@@ -89,7 +78,6 @@ class UserContextService {
       return v.toString(16);
     });
 
-    console.log('🔍 USER CONTEXT: generated UUID:', uuid);
     this.setUserId(uuid);
     return uuid;
   }
@@ -98,24 +86,11 @@ class UserContextService {
    * Get user ID, creating a temporary one if it doesn't exist
    */
   getOrCreateUserId(): string {
-    console.log('🔍 USER CONTEXT: getOrCreateUserId called');
     let id = this.getUserId();
-    console.log('🔍 USER CONTEXT: existing userId:', id);
     if (!id) {
-      console.log('🔍 USER CONTEXT: generating new userId');
       id = this.generateTemporaryUserId();
-      this.setUserId(id);
     }
-    console.log('🔍 USER CONTEXT: returning userId:', id);
     return id;
-  }
-
-  /**
-   * Получить текущий user ID без генерации нового
-   */
-  getCurrentUserId(): string | null {
-    console.log('🔍 USER CONTEXT: getCurrentUserId called');
-    return this.getUserId();
   }
 
   /** Session has been loaded (auth state known). Used to avoid loading projects with stale userId. */
@@ -129,9 +104,7 @@ class UserContextService {
 }
 
 // Singleton instance
-console.log('🔍 USER CONTEXT: Creating singleton instance');
 export const userContextService = new UserContextService();
-console.log('🔍 USER CONTEXT: Singleton instance created');
 
 
 

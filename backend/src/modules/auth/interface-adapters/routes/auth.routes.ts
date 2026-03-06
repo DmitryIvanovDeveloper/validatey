@@ -142,16 +142,41 @@ router.get('/session', async (req: Request, res: Response) => {
     }
 
     clearSessionCookies(res);
-    const reason = !token && !refreshToken ? 'no cookie sent' : token && !refreshToken ? 'access token invalid or expired (no refresh cookie)' : 'refresh failed or expired';
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[auth/session] 401 No session:', reason);
-    }
     return res.status(401).json({ error: 'No session' });
   } catch (e) {
     return res.status(500).json({ error: e instanceof Error ? e.message : 'Auth error' });
   }
 });
 
+/** POST /api/auth/link-previous-user { previousUserId } → reassign projects from anonymous id to current user (requires session) */
+router.post('/link-previous-user', async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.[COOKIE_NAME];
+    if (!token) {
+      return res.status(401).json({ error: 'No session' });
+    }
+    const user = await authProvider.getUserFromAccessToken(token);
+    if (!user) {
+      res.clearCookie(COOKIE_NAME, { path: '/', sameSite: COOKIE_OPTS.sameSite, secure: COOKIE_OPTS.secure });
+      return res.status(401).json({ error: 'Invalid session' });
+    }
+    const previousUserId = (req.body?.previousUserId as string)?.trim();
+    if (!previousUserId) {
+      return res.status(400).json({ error: 'previousUserId is required' });
+    }
+    if (previousUserId === user.id) {
+      return res.json({ linked: 0 });
+    }
+    const projectRepo = container.get<ProjectRepositoryPort>(PROJECT_TYPES.ProjectRepository);
+    const result = await projectRepo.reassignUserId(previousUserId, user.id);
+    if (!result.isSuccess) {
+      return res.status(500).json({ error: result.error.message });
+    }
+    return res.json({ linked: result.data });
+  } catch (e) {
+    return res.status(500).json({ error: e instanceof Error ? e.message : 'Auth error' });
+  }
+});
 
 /** POST /api/auth/sign-out → clear cookies */
 router.post('/sign-out', (_req: Request, res: Response) => {

@@ -1,5 +1,5 @@
 <template>
-      <ProjectLandingWidget :project-id="projectId" />
+      <ProjectLandingWidget v-if="projectId" :key="projectId" :project-id="projectId" />
 </template>
 
 <script setup lang="ts">
@@ -8,7 +8,7 @@ import { useRoute } from 'vue-router';
 import ProjectLandingWidget from '../widgets/ProjectLandingWidget.vue';
 
 const route = useRoute();
-const projectId = computed(() => route.params.projectId as string);
+const projectId = computed(() => (route.params.projectId as string) ?? '');
 </script>
 
 <style scoped>

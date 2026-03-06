@@ -5,7 +5,7 @@ import { API_CONFIG } from '../../../../infrastructure/config/api.config';
 import Result from '../../../../infrastructure/result/result';
 import { ProjectLandingEntity } from '../../domain/entities/project-landing.entity';
 import { LandingUploadError, LandingNotFoundError } from '../../domain/errors/landing.error';
-import type { ProjectLandingRepositoryPort, UploadLandingData } from '../../application/ports/project-landing-repository.port';
+import type { ProjectLandingRepositoryPort, UploadLandingData, GenerateLandingData } from '../../application/ports/project-landing-repository.port';
 
 @injectable()
 export class HttpProjectLandingRepository implements ProjectLandingRepositoryPort {
@@ -39,6 +39,37 @@ export class HttpProjectLandingRepository implements ProjectLandingRepositoryPor
       return Result.success(landing);
     } catch (error: any) {
       const message = error.response?.data?.error || error.message || 'Upload failed';
+      return Result.failure(new LandingUploadError(message));
+    }
+  }
+
+  async generateWithAI(data: GenerateLandingData): Promise<Result<ProjectLandingEntity, LandingUploadError>> {
+    try {
+      const requestBody: any = {};
+      if (data.customPrompt?.trim()) {
+        requestBody.customPrompt = data.customPrompt.trim();
+      }
+
+      const response = await this._httpClient.post<{
+        landing: {
+          id: string;
+          projectId: string;
+          slug: string;
+          archiveFilename: string;
+          uploadedAt: string;
+          fileCount: number;
+          totalSizeBytes: number;
+          url: string;
+        };
+      }>(
+        `${API_CONFIG.ENDPOINTS.PROJECT_LANDINGS}/${data.projectId}/generate-ai`,
+        requestBody
+      );
+
+      const landing = ProjectLandingEntity.fromApiResponse(response.landing);
+      return Result.success(landing);
+    } catch (error: any) {
+      const message = error.response?.data?.error || error.message || 'Generation failed';
       return Result.failure(new LandingUploadError(message));
     }
   }

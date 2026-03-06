@@ -6,6 +6,7 @@ export const TYPES = {
   UploadLandingUseCase: Symbol('UploadLandingUseCase'),
   GetProjectLandingUseCase: Symbol('GetProjectLandingUseCase'),
   DeleteLandingUseCase: Symbol('DeleteLandingUseCase'),
+  GenerateLandingUseCase: Symbol('GenerateLandingUseCase'),
 
   // Presenters
   ProjectLandingPresenter: Symbol('ProjectLandingPresenter'),

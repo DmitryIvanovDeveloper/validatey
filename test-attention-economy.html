@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Attention Economy</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        input, textarea { padding: 8px; margin: 5px 0; width: 100%; max-width: 400px; }
+        .result { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>🧠 Attention Economy Test</h1>
+
+    <div class="section">
+        <h2>1. Login Test</h2>
+        <input type="email" id="email" placeholder="Email" value="test@example.com">
+        <input type="password" id="password" placeholder="Password" value="password123">
+        <button onclick="testLogin()">Test Login</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Load Projects</h2>
+        <button onclick="loadProjects()">Load My Projects</button>
+        <div id="projectsResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Create Attention Economy Project</h2>
+        <input type="text" id="projectName" placeholder="Project Name" value="Attention Economy Validation">
+        <textarea id="hypothesis" rows="3" placeholder="Hypothesis">Credit-based peer feedback exchange will motivate indie creators to participate actively</textarea>
+        <textarea id="segment" rows="2" placeholder="Target Segment">Solo developers, indie founders, side project creators</textarea>
+        <button onclick="createProject()">Create Project</button>
+        <div id="createResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Generate AI Questions</h2>
+        <button onclick="generateAIQuestions()">Generate AI Questions</button>
+        <div id="aiResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. Test Survey</h2>
+        <button onclick="testSurvey()">Test Survey Flow</button>
+        <div id="surveyResult" class="result"></div>
+    </div>
+
+    <script>
+        let authToken = null;
+        let currentProjectId = null;
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+                return { status: response.status, data };
+            } catch (error) {
+                return { error: error.message };
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const result = await makeRequest('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password })
+            });
+
+            const resultDiv = document.getElementById('loginResult');
+            if (result.error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${result.error}`;
+            } else if (result.status === 200) {
+                authToken = result.data.token || result.data.accessToken;
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Login successful! User: ${result.data.user?.email}`;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Login failed: ${result.data?.error || 'Unknown error'}`;
+            }
+        }
+
+        async function loadProjects() {
+            if (!authToken) {
+                alert('Please login first!');
+                return;
+            }
+
+            const result = await makeRequest('http://localhost:8080/api/projects');
+
+            const resultDiv = document.getElementById('projectsResult');
+            if (result.error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${result.error}`;
+            } else if (result.status === 200) {
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Projects loaded: ${result.data.length} projects\n${result.data.map(p => `- ${p.name} (${p.status})`).join('\n')}`;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Failed to load projects: ${result.status}`;
+            }
+        }
+
+        async function createProject() {
+            if (!authToken) {
+                alert('Please login first!');
+                return;
+            }
+
+            const name = document.getElementById('projectName').value;
+            const hypothesisText = document.getElementById('hypothesis').value;
+            const segmentText = document.getElementById('segment').value;
+
+            const projectData = {
+                name,
+                segment: {
+                    description: segmentText,
+                    demographics: { text: segmentText }
+                },
+                hypothesis: {
+                    description: hypothesisText,
+                    assumptions: [
+                        'Users will pay time for quality feedback',
+                        'Peer feedback is valuable for early-stage validation',
+                        'Credit system reduces friction in feedback exchange'
+                    ]
+                }
+            };
+
+            const result = await makeRequest('http://localhost:8080/api/projects', {
+                method: 'POST',
+                body: JSON.stringify(projectData)
+            });
+
+            const resultDiv = document.getElementById('createResult');
+            if (result.error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${result.error}`;
+            } else if (result.status === 201) {
+                currentProjectId = result.data.id;
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Project created: ${result.data.name} (ID: ${result.data.id})`;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Failed to create project: ${result.data?.error || 'Unknown error'}`;
+            }
+        }
+
+        async function generateAIQuestions() {
+            if (!authToken) {
+                alert('Please login first!');
+                return;
+            }
+            if (!currentProjectId) {
+                alert('Please create a project first!');
+                return;
+            }
+
+            const result = await makeRequest(`http://localhost:8080/api/projects/${currentProjectId}/scenarios/generate`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    prompt: 'Generate questions to validate if indie creators would participate in a credit-based attention economy',
+                    templateSlug: 'wtp'
+                })
+            });
+
+            const resultDiv = document.getElementById('aiResult');
+            if (result.error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${result.error}`;
+            } else if (result.status === 200) {
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ AI questions generated!\nQuestions: ${JSON.stringify(result.data, null, 2)}`;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ AI generation failed: ${result.data?.error || 'Unknown error'}`;
+            }
+        }
+
+        async function testSurvey() {
+            const resultDiv = document.getElementById('surveyResult');
+            if (!currentProjectId) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Please create a project first!';
+                return;
+            }
+
+            resultDiv.className = 'result';
+            resultDiv.textContent = `🔗 Survey URL would be: http://localhost:5174/survey/${generateToken()}`;
+        }
+
+        function generateToken() {
+            return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        }
+    </script>
+</body>
+</html>

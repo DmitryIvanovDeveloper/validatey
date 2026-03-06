@@ -682,16 +682,20 @@ export class GenerateSynthesisUseCase {
        * PASS 2 — fallback (any single keyword match) when strict pass found < 2 comments.
        * This handles cases where: the LLM used single-word keywords, the corpus is small,
        * or the hypothesis is in a niche domain with rare vocabulary.
-       * Lower precision but ensures SOME evidence for each pattern.
+       * For contradictory patterns (supportsHypothesis: false), require at least 2 keyword
+       * matches in fallback to reduce off-topic comments (e.g. single "feedback" or "problem").
        */
       if (matchedIds.length < 2) {
         const fallbackIds = new Set(matchedIds);
+        const isContradictory = p.supportsHypothesis === false;
         for (const comment of comments) {
           if (fallbackIds.size >= MAX_IDS_PER_PATTERN) break;
           if (fallbackIds.has(comment.id)) continue;
-          const anyMatch = rareEntries.some(({ re }) => re.test(comment.content))
-            || commonEntries.some(({ re }) => re.test(comment.content));
-          if (anyMatch) fallbackIds.add(comment.id);
+          const rareMatches = rareEntries.filter(({ re }) => re.test(comment.content)).length;
+          const commonMatches = commonEntries.filter(({ re }) => re.test(comment.content)).length;
+          const matchCount = rareMatches + commonMatches;
+          const qualifies = isContradictory ? matchCount >= 2 : matchCount >= 1;
+          if (qualifies) fallbackIds.add(comment.id);
         }
         if (fallbackIds.size > matchedIds.length) {
           matchedIds.length = 0;

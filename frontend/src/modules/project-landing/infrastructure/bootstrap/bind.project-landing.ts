@@ -5,6 +5,7 @@ import { TYPES } from './types';
 import { UploadLandingUseCase } from '../../application/use-cases/upload-landing.use-case';
 import { GetProjectLandingUseCase } from '../../application/use-cases/get-project-landing.use-case';
 import { DeleteLandingUseCase } from '../../application/use-cases/delete-landing.use-case';
+import { GenerateLandingUseCase } from '../../application/use-cases/generate-landing.use-case';
 import { ProjectLandingRepositoryPort } from '../../application/ports/project-landing-repository.port';
 
 // Infrastructure
@@ -21,6 +22,7 @@ export function bindProjectLanding(container: Container): void {
   container.bind<UploadLandingUseCase>(TYPES.UploadLandingUseCase).to(UploadLandingUseCase);
   container.bind<GetProjectLandingUseCase>(TYPES.GetProjectLandingUseCase).to(GetProjectLandingUseCase);
   container.bind<DeleteLandingUseCase>(TYPES.DeleteLandingUseCase).to(DeleteLandingUseCase);
+  container.bind<GenerateLandingUseCase>(TYPES.GenerateLandingUseCase).to(GenerateLandingUseCase);
 
   // Presenters
   container.bind<ProjectLandingPresenter>(TYPES.ProjectLandingPresenter).to(ProjectLandingPresenter);

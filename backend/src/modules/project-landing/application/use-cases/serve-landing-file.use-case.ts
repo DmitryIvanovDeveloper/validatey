@@ -68,20 +68,25 @@ export class ServeLandingFileUseCase {
       // Inject waitlist widget into index.html (external script to avoid CSP blocking inline scripts)
       const isIndexHtml = /^index\.html?$/i.test(request.filepath);
       if (isIndexHtml && landing && /text\/html/i.test(contentType)) {
-        const html = buffer.toString('utf8');
+        let html = buffer.toString('utf8');
+        // Remove inline scripts to avoid CSP violation (script-src 'self'); keep external <script src="...">
+        html = html.replace(/<script\b[\s\S]*?<\/script>/gi, (match) =>
+          /\bsrc\s*=\s*["']/i.test(match) ? match : ''
+        );
         const closeBody = '</body>';
-        const idx = html.lastIndexOf(closeBody);
+        const idx = html.indexOf(closeBody);
         if (idx !== -1) {
           const pid = landing.projectId.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
           const snippet = [
-            '<section class="validatey-waitlist-section" aria-label="Join waitlist" style="margin-top:2rem;padding:1.5rem;border-top:1px solid #e5e7eb;">',
+            '<section id="validatey-waitlist-section" class="validatey-waitlist-section" aria-label="Join waitlist" style="margin-top:2rem;padding:1.5rem;border-top:1px solid #e5e7eb;">',
             '<h2 style="font-size:1.25rem;margin-bottom:1rem;">Get notified when we launch</h2>',
             '<div id="validatey-waitlist"></div>',
             '<script src="/embed/waitlist.js" data-project-id="' + pid + '" data-target="validatey-waitlist"><\/script>',
             '</section>',
             closeBody
           ].join('\n');
-          buffer = Buffer.from(html.slice(0, idx) + '\n' + snippet + html.slice(idx + closeBody.length), 'utf8');
+          html = html.slice(0, idx) + '\n' + snippet + html.slice(idx + closeBody.length);
+          buffer = Buffer.from(html, 'utf8');
         }
       }
 

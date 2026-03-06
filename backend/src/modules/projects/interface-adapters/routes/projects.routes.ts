@@ -2,30 +2,10 @@ import { Router, Request, Response } from 'express';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { ProjectController } from '../controllers/project.controller';
-import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
 
 const router = Router();
 const controller = container.get<ProjectController>(TYPES.ProjectController);
 const presenter = controller;
-
-// Assess project risk (stateless — no projectId needed)
-router.post('/assess-risk', async (req: Request, res: Response) => {
-  try {
-    const hypothesis = typeof req.body?.hypothesis === 'string' ? req.body.hypothesis.trim() : '';
-    const segment = typeof req.body?.segment === 'string' ? req.body.segment.trim() : '';
-    const assumptions = Array.isArray(req.body?.assumptions) ? req.body.assumptions.filter((a: unknown) => typeof a === 'string') : [];
-
-    const result = await controller.assessProjectRisk({ hypothesis, segment, assumptions });
-
-    if (!result.isSuccess) {
-      return res.status(400).json({ error: result.error.message });
-    }
-
-    return res.status(200).json(result.data.assessment);
-  } catch (error) {
-    return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
-  }
-});
 
 // Create project
 router.post('/', async (req: Request, res: Response) => {
@@ -38,20 +18,11 @@ router.post('/', async (req: Request, res: Response) => {
       });
     }
 
-    const workspaceId = typeof req.body?.workspaceId === 'string' ? req.body.workspaceId.trim() || undefined : undefined;
-
-    // Normalize hypothesis - convert string to object if needed
-    let hypothesis = req.body?.hypothesis;
-    if (typeof hypothesis === 'string') {
-      hypothesis = { description: hypothesis, assumptions: [] };
-    }
-
     const result = await presenter.createProject({
       userId,
-      workspaceId,
       name: req.body?.name,
       segment: req.body?.segment,
-      hypothesis,
+      hypothesis: req.body?.hypothesis,
       marketContext: req.body?.marketContext,
       targetAudience: req.body?.targetAudience,
       cost: req.body?.cost,
@@ -89,35 +60,22 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const rawUserId = (req.body?.userId ?? req.headers['x-user-id']) as string | undefined;
     const userId = typeof rawUserId === 'string' ? rawUserId.trim() : '';
-    const workspaceId = typeof req.query.workspaceId === 'string' ? req.query.workspaceId.trim() : undefined;
-    const listAll = process.env.NODE_ENV === 'development' && req.query.list === 'all';
+    const workspaceId = req.query.workspaceId as string | undefined;
+    // SECURITY FIX: Remove dangerous listAll flag that exposes all projects
+    // const listAll = process.env.NODE_ENV === 'development' && req.query.list === 'all';
+    const listAll = false;
 
-    console.log('[Projects Route] GET / - Diagnostics:', {
-      rawUserId,
-      userId,
-      workspaceId,
-      listAll,
-      nodeEnv: process.env.NODE_ENV,
-      queryList: req.query.list,
-      queryWorkspaceId: req.query.workspaceId,
-      headers: {
-        'x-user-id': req.headers['x-user-id'],
-        'user-agent': req.headers['user-agent']?.substring(0, 50)
-      }
-    });
-
-    if (!listAll && !userId && !workspaceId) {
-      console.log('[Projects Route] Returning 400: userId or workspaceId required');
+    if (!listAll && !userId) {
       return res.status(400).json({
-        error: 'userId or workspaceId is required',
-        hint: 'Provide x-user-id header, userId in request body, or workspaceId query parameter'
+        error: 'userId is required',
+        hint: 'Provide x-user-id header or userId in request body'
       });
     }
 
     const result = await presenter.listProjects({
       userId,
-      listAll,
       workspaceId,
+      listAll,
     });
 
     if (!result.isSuccess) {
@@ -137,13 +95,6 @@ router.get('/', async (req: Request, res: Response) => {
       return { id: p.id, name: p.name, status: p.status, createdAt, updatedAt };
     });
 
-    console.log('[Projects Route] Returning projects:', {
-      count: projects.length,
-      listAll,
-      userId: listAll ? 'N/A (listAll=true)' : userId,
-      projects: projects.map(p => ({ id: p.id, name: p.name, status: p.status }))
-    });
-
     return res.status(200).json(projects);
   } catch (error) {
     console.error('List projects exception:', error);
@@ -157,24 +108,20 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// Get project by ID. Auth: x-user-id header OR guestSlug (query or x-guest-slug header) for guest view.
+// Get project by ID
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const guestSlug = (req.query.guestSlug || req.headers['x-guest-slug']) as string | undefined;
-    const trimmedGuestSlug = typeof guestSlug === 'string' ? guestSlug.trim() || undefined : undefined;
     const userId = (req.body?.userId || req.headers['x-user-id']) as string | undefined;
-
-    if (!trimmedGuestSlug && !userId) {
+    if (!userId) {
       return res.status(400).json({
-        error: 'userId or guestSlug is required',
-        hint: 'Provide x-user-id header or guestSlug query / x-guest-slug header'
+        error: 'userId is required',
+        hint: 'Provide x-user-id header or userId in request body'
       });
     }
 
     const result = await presenter.getProject({
       projectId: req.params.id,
-      userId: trimmedGuestSlug ? undefined : userId,
-      guestSlug: trimmedGuestSlug,
+      userId,
     });
 
     if (!result.isSuccess) {
@@ -311,68 +258,6 @@ router.delete('/:id', async (req: Request, res: Response) => {
     return res.status(204).send();
   } catch (error) {
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
-  }
-});
-
-// Diagnostic route for debugging
-router.get('/diagnostic', async (req: Request, res: Response) => {
-  try {
-    console.log('[Diagnostic] Starting database diagnostic...');
-
-    const supabase = getSupabaseClient();
-    console.log('[Diagnostic] Supabase client created');
-
-    // Test basic connection
-    const { data: connectionTest, error: connectionError } = await supabase
-      .from('projects')
-      .select('count', { count: 'exact', head: true });
-
-    if (connectionError) {
-      console.error('[Diagnostic] Connection test failed:', connectionError);
-      return res.status(500).json({
-        status: 'error',
-        message: 'Database connection failed',
-        error: connectionError.message
-      });
-    }
-
-    console.log('[Diagnostic] Connection successful, total projects:', connectionTest);
-
-    // Get all projects (for debugging)
-    const { data: allProjects, error: allError } = await supabase
-      .from('projects')
-      .select('id, name, user_id, status, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (allError) {
-      console.error('[Diagnostic] Failed to fetch projects:', allError);
-      return res.status(500).json({
-        status: 'error',
-        message: 'Failed to fetch projects',
-        error: allError.message
-      });
-    }
-
-    console.log('[Diagnostic] Sample projects:', allProjects);
-
-    return res.json({
-      status: 'success',
-      totalProjects: connectionTest,
-      sampleProjects: allProjects,
-      userIdFromHeader: req.headers['x-user-id'],
-      environment: {
-        nodeEnv: process.env.NODE_ENV,
-        supabaseUrl: process.env.SUPABASE_URL?.replace(/https?:\/\/[^@]+@/, 'https://[REDACTED]@')
-      }
-    });
-  } catch (error) {
-    console.error('[Diagnostic] Exception:', error);
-    return res.status(500).json({
-      status: 'error',
-      message: 'Diagnostic failed',
-      error: error instanceof Error ? error.message : String(error)
-    });
   }
 });
 

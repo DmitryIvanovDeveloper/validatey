@@ -2,7 +2,7 @@
   <div class="app-layout">
     <header v-if="showNavbar" class="header" role="banner">
       <div class="header-inner">
-        <router-link to="/workspaces" class="brand" aria-label="Validatey home">
+        <router-link to="/projects" class="brand" aria-label="Validatey home">
           <span class="brand-icon" aria-hidden="true">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L2 7l10 5 10-5L12 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -11,28 +11,23 @@
           </span>
           <span class="brand-text">Validatey</span>
         </router-link>
-        <nav v-if="currentUser" class="header-nav" aria-label="Main">
-          <router-link v-if="currentRole === 'admin'" to="/admin/users" class="nav-link">Users</router-link>
+        <nav v-if="authViewModel.user.value" class="header-nav" aria-label="Main">
+          <router-link v-if="authViewModel.role.value === 'admin'" to="/admin/users" class="nav-link">Users</router-link>
         </nav>
         <div class="header-actions">
-          <template v-if="currentUser">
-            <div class="user-badge" :title="currentUser.email ?? undefined">
+          <template v-if="authViewModel.user.value">
+            <div class="user-badge" :title="authViewModel.user.value.email ?? undefined">
               <span class="user-avatar" aria-hidden="true">{{ userInitial }}</span>
               <span class="user-name">{{ userDisplayName }}</span>
             </div>
-            <button type="button" class="btn btn-ghost btn-sm" @click="handleSignOut">Sign out</button>
+            <button type="button" class="btn btn-ghost btn-sm" :disabled="authViewModel.loading.value" @click="handleSignOut">Sign out</button>
           </template>
         </div>
       </div>
     </header>
-    <div class="body-wrap">
-      <aside v-if="showNavbar && currentUser" class="sidebar" aria-label="Workspaces">
-        <WorkspaceSidebar />
-      </aside>
-      <main class="main-content">
-        <slot />
-      </main>
-    </div>
+    <main class="main-content">
+      <slot />
+    </main>
   </div>
 </template>
 
@@ -42,26 +37,18 @@ import { useRoute, useRouter } from 'vue-router';
 import { container } from '../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
 import type { AuthPresenter } from '../../../modules/auth/interface-adapters/presenters/auth.presenter';
-import type { AuthSession } from '../../../modules/auth/application/ports/auth-service.port';
-import { sessionManager } from '../../services/session-manager';
-import WorkspaceSidebar from '../../../modules/workspaces/interface-adapters/ui/components/WorkspaceSidebar.vue';
+import { AuthViewModel } from '../../../modules/auth/interface-adapters/view-models/auth.view-model';
+import { userContextService } from '../../services/user-context.service';
 
 const route = useRoute();
 const router = useRouter();
+const authViewModel = new AuthViewModel();
 const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
 
-// Reactive session state using SessionManager
-const session = ref<AuthSession | null>(null);
-
-// Computed properties for template
-const isAuthenticated = computed(() => !!session.value);
-const currentUser = computed(() => session.value?.user || null);
-const currentRole = computed(() => session.value?.role ?? 'user');
-
 const userDisplayName = computed(() => {
-  const user = currentUser.value;
-  if (!user) return '';
-  return user.email ?? user.displayName ?? 'User';
+  const u = authViewModel.user.value;
+  if (!u) return '';
+  return u.email ?? u.displayName ?? 'User';
 });
 
 const userInitial = computed(() => {
@@ -70,13 +57,41 @@ const userInitial = computed(() => {
   const part = name.trim().split(/[\s@]/).find(Boolean) ?? '';
   return part.charAt(0).toUpperCase() || '?';
 });
+let unsubscribeAuth: (() => void) | null = null;
+
+/** True after loadSession() has completed. Prevents clearing userId on initial run (user is null before session loads). */
+const sessionLoaded = ref(false);
 
 const showNavbar = computed(() => {
   return route.meta.hideNavbar !== true;
 });
 
-// Subscribe to session changes from SessionManager
-let unsubscribeSession: (() => void) | null = null;
+watch(
+  () => authViewModel.user.value,
+  async (user) => {
+    if (user) {
+      const previousId = userContextService.getUserId();
+      if (previousId && previousId !== user.id) {
+        try {
+          await authPresenter.linkPreviousUser(previousId);
+        } catch (_) {
+          // Non-blocking: projects stay under old id; user can retry or continue
+        }
+      }
+      userContextService.setUserId(user.id);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('validatey-user-id-synced'));
+      }
+    } else {
+      // Only clear when we know session was loaded and user is null (e.g. sign out).
+      // Do NOT clear on first run: user is null before loadSession, and clearing would wipe stored Google id, so list projects would use a new anonymous id and show empty.
+      if (sessionLoaded.value) {
+        userContextService.clearUserId();
+      }
+    }
+  },
+  { immediate: true }
+);
 
 // Session refresh interval
 let sessionRefreshInterval: NodeJS.Timeout | null = null;
@@ -85,10 +100,10 @@ let lastActivityTime = Date.now();
 // User activity handler
 const handleUserActivity = () => {
   const now = Date.now();
-  if (now - lastActivityTime > 10 * 60 * 1000 && sessionManager.isAuthenticated) { // 10 minutes
+  if (now - lastActivityTime > 10 * 60 * 1000 && authViewModel.user.value) { // 10 minutes
     console.log('🔄 Refreshing session due to user activity...');
     lastActivityTime = now;
-    sessionManager.refreshSession().catch(error => {
+    authPresenter.loadSession(authViewModel).catch(error => {
       console.warn('❌ Failed to refresh session on activity:', error);
     });
   } else {
@@ -97,30 +112,21 @@ const handleUserActivity = () => {
 };
 
 onMounted(async () => {
-  console.log('🔍 APP LAYOUT: onMounted called');
-
-  // Session manager is already initialized in main.ts
-  console.log('🔍 APP LAYOUT: Session manager should already be initialized');
-
-  // Subscribe to session changes
-  unsubscribeSession = sessionManager.subscribe((newSession) => {
-    session.value = newSession;
-
-    // Dispatch event for other components
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('validatey-user-id-synced'));
-    }
-  });
-
-  console.log('🔍 APP LAYOUT: onMounted completed');
+  await authPresenter.loadSession(authViewModel);
+  sessionLoaded.value = true;
+  userContextService.setSessionReady(true);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('validatey-session-ready'));
+  }
+  unsubscribeAuth = authPresenter.subscribeToAuthState(authViewModel);
 
   // Refresh session every 5 minutes to prevent expiration
   console.log('🚀 Starting session refresh interval');
   sessionRefreshInterval = setInterval(async () => {
-    if (sessionManager.isAuthenticated) {
+    if (authViewModel.user.value) {
       console.log('🔄 Refreshing session...');
       try {
-        await sessionManager.refreshSession();
+        await authPresenter.loadSession(authViewModel);
         console.log('✅ Session refreshed successfully');
       } catch (error) {
         console.warn('❌ Failed to refresh session:', error);
@@ -138,7 +144,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  unsubscribeSession?.();
+  unsubscribeAuth?.();
   if (sessionRefreshInterval) {
     clearInterval(sessionRefreshInterval);
     sessionRefreshInterval = null;
@@ -150,17 +156,12 @@ onUnmounted(() => {
     window.removeEventListener('scroll', handleUserActivity);
     window.removeEventListener('touchstart', handleUserActivity);
   }
-
 });
 
 async function handleSignOut() {
-  // Clear session using SessionManager
-  sessionManager.clearSession();
-
-  // Sign out via auth presenter (clears cookies)
-  await authPresenter.signOut();
-
-  await router.replace('/login?signedOut=true');
+  await authPresenter.signOut(authViewModel);
+  userContextService.clearUserId();
+  await router.replace('/login');
 }
 </script>
 
@@ -169,17 +170,16 @@ async function handleSignOut() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-page, #fbf7eb);
-  max-width: 1440px;
-  width: 100%;
-  margin: 0 auto;
+  background: var(--color-bg, #fafafa);
 }
 
 .header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--color-bg-page);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border, #e5e7eb);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -328,13 +328,6 @@ async function handleSignOut() {
   cursor: not-allowed;
 }
 
-/* Responsive: hide sidebar on small screens */
-@media (max-width: 900px) {
-  .sidebar {
-    display: none;
-  }
-}
-
 /* Responsive header layout */
 @media (max-width: 768px) {
   .header-inner {
@@ -348,27 +341,9 @@ async function handleSignOut() {
   }
 }
 
-.body-wrap {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-  max-width: 1440px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.sidebar {
-  width: 14rem;
-  flex-shrink: 0;
-  background: var(--color-bg-page);
-  border-right: 1px solid var(--color-border, #e5e7eb);
-  overflow-y: auto;
-}
-
 .main-content {
   flex: 1;
-  min-width: 0;
-  max-width: min(1120px, 95vw);
+  max-width: min(1120px, 95vw); /* Responsive: 95% viewport width or 1120px, whichever is smaller */
   width: 100%;
   margin: 0 auto;
   padding: 1.5rem;

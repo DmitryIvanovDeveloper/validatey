@@ -8,35 +8,9 @@ import type { AuthServicePort } from '../../application/ports/auth-service.port'
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import type { AuthViewModel } from '../view-models/auth.view-model';
 import type { AuthSignInError } from '../../domain/errors/auth.error';
-import { sessionManager } from '../../../../shared/services/session-manager';
 
 @injectable()
 export class AuthPresenter {
-  readonly labels = {
-    // LoginView
-    loginTitle: 'Validatey',
-    loginSubtitle: 'Sign in to create and manage validation projects',
-    emailLabel: 'Email',
-    emailPlaceholder: 'you@example.com',
-    passwordLabel: 'Password',
-    passwordPlaceholder: '••••••••',
-    togglePasswordAria: 'Toggle password',
-    showPassword: 'Show',
-    hidePassword: 'Hide',
-    passwordHint: 'Minimum 8 characters',
-    signIn: 'Sign in',
-    createAccount: 'Create account',
-    alreadyHaveAccount: 'Already have an account? Sign in',
-    dontHaveAccount: "Don't have an account? Create one",
-    orDivider: 'or',
-    signInWithGoogle: 'Sign in with Google',
-    registrationSuccessMessage: 'Check your email to confirm your account, then sign in.',
-    // AuthCallbackView
-    callbackTitle: 'Validatey',
-    callbackSigningIn: 'Signing you in…',
-    callbackRedirecting: 'Redirecting…',
-  };
-
   constructor(
     @inject(TYPES.SignInWithGoogleUseCase)
     private readonly _signInWithGoogleUseCase: SignInWithGoogleUseCase,
@@ -109,13 +83,6 @@ export class AuthPresenter {
     viewModel.error.value = null;
     const result = await this._signInWithEmailUseCase.execute({ email, password });
     if ('session' in result && result.session?.user) {
-      // Set session in SessionManager (add missing fields)
-      const fullSession = {
-        ...result.session,
-        accessToken: '',
-        expiresAt: 0
-      };
-      sessionManager.setSession(fullSession);
       viewModel.user.value = result.session.user;
       viewModel.role.value = result.session.role ?? 'user';
       return true;
@@ -124,17 +91,37 @@ export class AuthPresenter {
     return false;
   }
 
-  async signOut(viewModel?: AuthViewModel): Promise<void> {
-    if (viewModel) {
-      viewModel.error.value = null;
-    }
+  async signOut(viewModel: AuthViewModel): Promise<void> {
+    viewModel.error.value = null;
     await this._signOutUseCase.execute();
-    // Clear session in SessionManager
-    sessionManager.clearSession();
-    if (viewModel) {
-      viewModel.user.value = null;
-      viewModel.role.value = null;
-    }
+    viewModel.user.value = null;
+    viewModel.role.value = null;
   }
 
+  /** Call after login to reassign projects from anonymous userId to current user. */
+  async linkPreviousUser(previousUserId: string): Promise<{ linked: number }> {
+    return this._authService.linkPreviousUser(previousUserId);
+  }
+
+  /** UI labels for the auth interface. */
+  get labels() {
+    return {
+      loginTitle: 'Welcome to Validatey',
+      loginSubtitle: 'Sign in to your account or create a new one',
+      emailLabel: 'Email',
+      emailPlaceholder: 'Enter your email address',
+      passwordLabel: 'Password',
+      passwordPlaceholder: 'Enter your password',
+      togglePasswordAria: 'Toggle password visibility',
+      showPassword: 'Show',
+      hidePassword: 'Hide',
+      passwordHint: 'Password must be at least 6 characters long',
+      createAccount: 'Create Account',
+      signIn: 'Sign In',
+      alreadyHaveAccount: 'Already have an account? Sign in',
+      dontHaveAccount: "Don't have an account? Create one",
+      orDivider: 'or',
+      signInWithGoogle: 'Continue with Google'
+    };
+  }
 }

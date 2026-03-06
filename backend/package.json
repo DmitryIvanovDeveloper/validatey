@@ -40,6 +40,7 @@
     "google-auth-library": "^10.3.0",
     "helmet": "^8.1.0",
     "inversify": "^7.9.1",
+    "jszip": "^3.10.1",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "nodemailer": "^6.9.16",

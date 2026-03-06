@@ -14,7 +14,7 @@
 
   var form = document.createElement('form');
   form.className = 'validatey-waitlist-embed';
-  form.innerHTML = '<input type="email" placeholder="Enter your email to join the waitlist" required class="validatey-waitlist-input">' +
+  form.innerHTML = '<input id="validatey-waitlist-email" name="email" type="email" placeholder="Enter your email to join the waitlist" required class="validatey-waitlist-input">' +
     '<button type="submit" class="validatey-waitlist-btn">Join waitlist</button>' +
     '<div class="validatey-waitlist-msg" role="status" aria-live="polite"></div>';
 
@@ -79,6 +79,21 @@
   };
 
   container.appendChild(form);
+  }
+
+  // Scroll landing CTA buttons/links (e.g. "Join the Waitlist") to this section; skip our own form button
+  var section = document.getElementById('validatey-waitlist-section');
+  if (section) {
+    var joinPattern = /join\s*(the\s*)?waitlist/i;
+    document.querySelectorAll('button, a[href="#"], a[href="#validatey-waitlist-section"]').forEach(function (el) {
+      if (el.closest && el.closest('.validatey-waitlist-embed')) return;
+      if (!joinPattern.test(el.textContent || '')) return;
+      el.addEventListener('click', function (e) {
+        if (el.tagName === 'A' && el.getAttribute('href') === '#validatey-waitlist-section') return;
+        e.preventDefault();
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
   }
 
   if (document.readyState === 'loading') {

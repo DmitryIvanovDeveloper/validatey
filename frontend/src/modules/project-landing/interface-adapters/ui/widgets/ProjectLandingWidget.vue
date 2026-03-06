@@ -14,6 +14,37 @@
     </div>
 
     <div v-else-if="!hasLanding" class="no-landing-state">
+      <!-- AI Generation Section -->
+      <div class="ai-generation-section">
+        <div class="ai-generation-header">
+          <h3 class="section-title">Generate Landing with AI</h3>
+          <p class="section-subtitle">Create a professional landing page based on your project hypothesis</p>
+        </div>
+
+        <div class="custom-prompt-section">
+          <label for="custom-prompt" class="custom-prompt-label">Customize generation (optional)</label>
+          <textarea
+            id="custom-prompt"
+            v-model="customPrompt"
+            placeholder="e.g. “Make it colorful and modern”, “Focus on B2B”, “Add testimonials section”"
+            rows="3"
+            class="custom-prompt-input"
+            :disabled="uploading"
+          ></textarea>
+        </div>
+
+        <button
+          @click="generateLandingWithAI"
+          :disabled="uploading"
+          class="generate-ai-button"
+          type="button"
+        >
+          <span v-if="uploading">Generating…</span>
+          <span v-else>Generate Landing</span>
+        </button>
+      </div>
+
+      <!-- Manual Upload Section -->
       <div class="upload-section">
         <div class="upload-info">
           <h4>{{ presenter.labels.uploadButton }}</h4>
@@ -122,6 +153,7 @@ try {
     hasLanding: computed(() => false),
     loadLanding: () => Promise.resolve(),
     uploadLanding: () => Promise.resolve(false),
+    generateLandingWithAI: (projectId: string, customPrompt?: string) => Promise.resolve(false),
     deleteLanding: () => Promise.resolve(false),
     clearError: () => {},
     labels: {
@@ -146,6 +178,7 @@ try {
 const fileInput = ref<HTMLInputElement>();
 const showDeleteConfirm = ref(false);
 const showEmbed = ref(false);
+const customPrompt = ref('');
 
 const apiBaseForEmbed = computed(() => API_CONFIG.BASE_URL.replace(/\/api\/?$/, ''));
 const embedSnippet = computed(() => {
@@ -158,6 +191,14 @@ async function copyEmbedSnippet() {
   try {
     await navigator.clipboard.writeText(embedSnippet.value);
   } catch (_) {}
+}
+
+async function generateLandingWithAI() {
+  const success = await presenter.generateLandingWithAI(props.projectId, customPrompt.value);
+  if (success) {
+    // Очистить промпт после успешной генерации
+    customPrompt.value = '';
+  }
 }
 
 // Reactive bindings
@@ -230,9 +271,6 @@ watch(() => props.projectId, () => {
 
 <style scoped>
 .project-landing-widget {
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  padding: 24px;
 }
 
 .landing-header {
@@ -535,6 +573,96 @@ watch(() => props.projectId, () => {
 
 .copy-button:hover {
   background: #f9fafb;
+}
+
+/* AI Generation section – aligned with app (SectionCard, vars, primary button) */
+.ai-generation-section {
+  background: var(--color-bg-page, #f9fafb);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.ai-generation-header {
+  margin-bottom: 1rem;
+}
+
+.ai-generation-header .section-title {
+  font-size: var(--text-xl, 1.25rem);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--color-text, #111827);
+  margin: 0 0 0.25rem;
+}
+
+.ai-generation-header .section-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted, #6b7280);
+  margin: 0 0 1rem;
+}
+
+.custom-prompt-section {
+  margin-bottom: 1rem;
+}
+
+.custom-prompt-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text, #374151);
+  margin-bottom: 0.5rem;
+}
+
+.custom-prompt-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  resize: vertical;
+  min-height: 5rem;
+  background: var(--color-bg, #fff);
+  color: var(--color-text, #111827);
+}
+
+.custom-prompt-input::placeholder {
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.custom-prompt-input:focus {
+  outline: none;
+  border-color: var(--color-accent, #0d9488);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.custom-prompt-input:disabled {
+  background: var(--color-bg-subtle, #f9fafb);
+  color: var(--color-text-muted, #6b7280);
+  cursor: not-allowed;
+}
+
+.generate-ai-button {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.generate-ai-button {
+  background: var(--color-accent, #0d9488);
+  color: #fff;
+}
+
+.generate-ai-button:hover:not(:disabled) {
+  background: var(--color-accent-hover, #0f766e);
+}
+
+.generate-ai-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Modal styles */

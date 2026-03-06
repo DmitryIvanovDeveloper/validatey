@@ -95,8 +95,36 @@ import type { AuthPresenter } from '../../presenters/auth.presenter';
 import { AuthViewModel } from '../../view-models/auth.view-model';
 
 const router = useRouter();
-const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
-const labels = authPresenter.labels;
+
+let authPresenter: AuthPresenter;
+let labels: any;
+
+try {
+  authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
+  labels = authPresenter.labels;
+  console.log('AuthPresenter initialized successfully:', authPresenter);
+} catch (error) {
+  console.error('Failed to get AuthPresenter from container:', error);
+  // Fallback labels
+  labels = {
+    loginTitle: 'Welcome to Validatey',
+    loginSubtitle: 'Sign in to your account or create a new one',
+    emailLabel: 'Email',
+    emailPlaceholder: 'Enter your email address',
+    passwordLabel: 'Password',
+    passwordPlaceholder: 'Enter your password',
+    togglePasswordAria: 'Toggle password visibility',
+    showPassword: 'Show',
+    hidePassword: 'Hide',
+    passwordHint: 'Password must be at least 6 characters long',
+    createAccount: 'Create Account',
+    signIn: 'Sign In',
+    alreadyHaveAccount: 'Already have an account? Sign in',
+    dontHaveAccount: "Don't have an account? Create one",
+    orDivider: 'or',
+    signInWithGoogle: 'Continue with Google'
+  };
+}
 const authViewModel = new AuthViewModel();
 
 const envEmail = typeof import.meta.env.VITE_AUTH_EMAIL === 'string' ? import.meta.env.VITE_AUTH_EMAIL.trim() : '';

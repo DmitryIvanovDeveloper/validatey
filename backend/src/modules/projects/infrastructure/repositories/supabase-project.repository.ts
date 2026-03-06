@@ -3,7 +3,7 @@ import { TYPES as ROOT_TYPES } from '../../../../infrastructure/bootstrap/types'
 import { LoggerPort } from '../../../../infrastructure/logging/ports/logger.port';
 import ResultEx from '../../../../infrastructure/result/result';
 import { getSupabaseClient } from '../../../../infrastructure/database/supabase-client';
-import { Project, normalizeAssumptions } from '../../domain/entities/project.entity';
+import { Project } from '../../domain/entities/project.entity';
 import { ProjectNotFoundError, InvalidProjectDataError } from '../../domain/errors/project.error';
 import { ProjectRepositoryPort } from '../../application/ports/project-repository.port';
 
@@ -31,7 +31,6 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         .insert({
           id: project.id,
           user_id: project.userId,
-          workspace_id: project.workspaceId ?? null,
           name: project.name,
           status: project.status,
           segment: project.segment,
@@ -160,58 +159,6 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     }
   }
 
-  async findByWorkspaceId(workspaceId: string): Promise<ResultEx<Project[], Error>> {
-    try {
-      console.log('[Repository] findByWorkspaceId start', { workspaceId });
-      const supabase = getSupabaseClient();
-
-      const { data, error } = await supabase.from('projects').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false });
-
-      console.log('[Repository] Query executed', { hasError: !!error, dataCount: data?.length || 0 });
-
-      if (error) {
-        console.error('[Repository] Supabase error', { error: error.message, code: error.code, details: error });
-        this._logger.error('supabase-project-repository.find-by-workspace-id-error', { workspaceId, error: error.message, code: error.code });
-        return ResultEx.failure(new Error(`Database error: ${error.message} (code: ${error.code})`));
-      }
-
-      if (!data || !Array.isArray(data)) {
-        console.log('[Repository] Empty result');
-        this._logger.info('supabase-project-repository.find-by-workspace-id.empty-result', { workspaceId });
-        return ResultEx.success([]);
-      }
-
-      try {
-        console.log('[Repository] Mapping data', { count: data.length });
-        const projects = data.map((item, index) => {
-          try {
-            console.log(`[Repository] Mapping item ${index}`, { id: item?.id, name: item?.name });
-            return this.mapToDomain(item);
-          } catch (mapError) {
-            console.error(`[Repository] Map error for item ${index}`, { item, error: mapError });
-            this._logger.error('supabase-project-repository.find-by-workspace-id.map-error', {
-              workspaceId,
-              itemId: item?.id,
-              error: mapError instanceof Error ? mapError.message : String(mapError)
-            });
-            throw mapError;
-          }
-        });
-        console.log('[Repository] Mapping successful', { count: projects.length });
-        this._logger.info('supabase-project-repository.find-by-workspace-id.success', { workspaceId, count: projects.length });
-        return ResultEx.success(projects);
-      } catch (mapError) {
-        console.error('[Repository] Mapping failed', { error: mapError });
-        this._logger.error('supabase-project-repository.find-by-workspace-id.mapping-failed', { workspaceId, error: mapError });
-        return ResultEx.failure(mapError instanceof Error ? mapError : new Error('Failed to map data to domain'));
-      }
-    } catch (error) {
-      console.error('[Repository] Exception', { error, stack: error instanceof Error ? error.stack : undefined });
-      this._logger.error('supabase-project-repository.find-by-workspace-id-exception', { workspaceId, error });
-      return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
-    }
-  }
-
   async findByUserId(userId: string): Promise<ResultEx<Project[], Error>> {
     try {
       console.log('[Repository] findByUserId start', { userId });
@@ -270,34 +217,20 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
 
   async findAll(): Promise<ResultEx<Project[], Error>> {
     try {
-      console.log('[Repository] findAll start');
       const supabase = getSupabaseClient();
-      console.log('[Repository] Supabase client obtained for findAll');
-
       const { data, error } = await supabase
         .from('projects')
         .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('[Repository] findAll query executed', { hasError: !!error, dataCount: data?.length || 0 });
-
       if (error) {
-        console.error('[Repository] findAll Supabase error', { error: error.message, code: error.code });
         this._logger.error('supabase-project-repository.find-all-error', { error: error.message });
         return ResultEx.failure(new Error(error.message));
       }
       if (!data || !Array.isArray(data)) {
-        console.log('[Repository] findAll: empty result');
         return ResultEx.success([]);
       }
-
-      console.log('[Repository] findAll: mapping data', { count: data.length });
-      const projects = data.map((item, index) => {
-        console.log(`[Repository] findAll mapping item ${index}`, { id: item?.id, name: item?.name, userId: item?.user_id });
-        return this.mapToDomain(item);
-      });
-
-      console.log('[Repository] findAll: success', { count: projects.length });
+      const projects = data.map((item) => this.mapToDomain(item));
       return ResultEx.success(projects);
     } catch (error) {
       this._logger.error('supabase-project-repository.find-all-exception', { error });
@@ -386,7 +319,6 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
 
       // Prepare update data with sanitization
       const updateData = {
-        workspace_id: project.workspaceId ?? null,
         name: sanitizeValue(project.name),
         status: sanitizeValue(project.status),
         segment: sanitizeValue(project.segment),
@@ -610,62 +542,29 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     }
   }
 
-  async userHasAccessToProject(projectId: string, userId: string): Promise<ResultEx<boolean, ProjectNotFoundError>> {
-    try {
-      const findResult = await this.findById(projectId);
-      if (!findResult.isSuccess) {
-        return ResultEx.failure(findResult.error);
-      }
-      const project = findResult.data;
-      if (project.userId === userId) {
-        return ResultEx.success(true);
-      }
-      if (!project.workspaceId) {
-        return ResultEx.success(false);
-      }
-      const supabase = getSupabaseClient();
-      const { data: workspace, error } = await supabase
-        .from('workspaces')
-        .select('user_id')
-        .eq('id', project.workspaceId)
-        .maybeSingle();
-      if (error) {
-        this._logger.error('supabase-project-repository.user-has-access-workspace-query-error', {
-          projectId,
-          workspaceId: project.workspaceId,
-          error: error.message
-        });
-        return ResultEx.success(false);
-      }
-      const hasAccess = workspace != null && String(workspace.user_id) === userId;
-      return ResultEx.success(hasAccess);
-    } catch (error) {
-      this._logger.error('supabase-project-repository.user-has-access-exception', { projectId, userId, error });
-      return ResultEx.success(false);
-    }
-  }
-
-  async deleteByWorkspaceId(workspaceId: string): Promise<ResultEx<number, Error>> {
+  async reassignUserId(fromUserId: string, toUserId: string): Promise<ResultEx<number, Error>> {
     try {
       const supabase = getSupabaseClient();
+      const nowIso = new Date().toISOString();
 
-      const { data, error } = await supabase.from('projects').delete().eq('workspace_id', workspaceId);
+      const { data, error } = await supabase
+        .from('projects')
+        .update({ user_id: toUserId, updated_at: nowIso })
+        .eq('user_id', fromUserId)
+        .select('id');
 
       if (error) {
-        this._logger.error('supabase-project-repository.delete-by-workspace-id-error', { workspaceId, error });
-        return ResultEx.failure(new Error(`Failed to delete projects for workspace ${workspaceId}: ${error.message}`));
+        this._logger.error('supabase-project-repository.reassign-user-id-error', { fromUserId, toUserId, error: error.message });
+        return ResultEx.failure(new Error(error.message));
       }
-
-      const deletedCount = (data as any)?.length || 0;
-      this._logger.info('supabase-project-repository.delete-by-workspace-id-success', { workspaceId, deletedCount });
-
-      return ResultEx.success(deletedCount);
+      const count = Array.isArray(data) ? data.length : 0;
+      this._logger.info('supabase-project-repository.reassign-user-id-success', { fromUserId, toUserId, count });
+      return ResultEx.success(count);
     } catch (error) {
-      this._logger.error('supabase-project-repository.delete-by-workspace-id-exception', { workspaceId, error });
+      this._logger.error('supabase-project-repository.reassign-user-id-exception', { fromUserId, toUserId, error });
       return ResultEx.failure(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
-
 
   private mapToDomain(data: Record<string, unknown>): Project {
     if (!data) {
@@ -705,8 +604,8 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
         workspaceId: (data.workspace_id ?? null) as string | null,
         name: String(data.name),
         status: String(data.status) as 'draft' | 'active' | 'completed' | 'archived',
-        segment: this.mapSegment(data.segment),
-        hypothesis: this.mapHypothesis(data.hypothesis),
+        segment: (data.segment || null) as Project['segment'],
+        hypothesis: (data.hypothesis || null) as Project['hypothesis'],
         marketContext: (data.market_context || null) as Project['marketContext'],
         targetAudience: (data.target_audience ?? null) as string | null,
         cost,
@@ -734,77 +633,63 @@ export class SupabaseProjectRepository implements ProjectRepositoryPort {
     }
   }
 
-  private mapSegment(segmentData: unknown): Project['segment'] {
-    if (!segmentData || typeof segmentData !== 'object') {
-      return null;
+  async findByWorkspaceId(workspaceId: string): Promise<ResultEx<Project[], Error>> {
+    try {
+      this._logger.info('supabase-project-repository.find-by-workspace-id.start', { workspaceId });
+
+      const { data, error } = await getSupabaseClient()
+        .from('projects')
+        .select('*')
+        .eq('workspace_id', workspaceId);
+
+      this._logger.info('supabase-project-repository.find-by-workspace-id.query', {
+        workspaceId,
+        queryResult: { data: data?.length || 0, error: error?.message }
+      });
+
+      if (error) {
+        this._logger.error('supabase-project-repository.find-by-workspace-id.error', { workspaceId, error });
+        return ResultEx.failure(new Error(`Database error: ${error.message}`));
+      }
+
+      const projects = data.map(item => this.mapToDomain(item));
+      this._logger.info('supabase-project-repository.find-by-workspace-id.success', {
+        workspaceId,
+        count: projects.length,
+        projectIds: projects.map(p => p.id)
+      });
+
+      return ResultEx.success(projects);
+    } catch (error) {
+      this._logger.error('supabase-project-repository.find-by-workspace-id.exception', { workspaceId, error });
+      return ResultEx.failure(new Error(error instanceof Error ? error.message : 'Unknown error'));
     }
-
-    const segment = segmentData as Record<string, unknown>;
-
-    // If it already has the expected format (description + demographics)
-    if (segment.description && typeof segment.description === 'string') {
-      return {
-        description: segment.description,
-        demographics: (segment.demographics as Record<string, any>) || {},
-      };
-    }
-
-    // If it has the new format (industry, company_size, target_market, business_model)
-    if (segment.industry || segment.company_size || segment.target_market || segment.business_model) {
-      const description = [
-        segment.industry && `Industry: ${segment.industry}`,
-        segment.company_size && `Company size: ${segment.company_size}`,
-        segment.target_market && `Target market: ${segment.target_market}`,
-        segment.business_model && `Business model: ${segment.business_model}`,
-      ].filter(Boolean).join(' | ') || 'Not specified';
-
-      return {
-        description,
-        demographics: {
-          industry: segment.industry,
-          company_size: segment.company_size,
-          target_market: segment.target_market,
-          business_model: segment.business_model,
-        },
-      };
-    }
-
-    return null;
   }
 
-  private mapHypothesis(hypothesisData: unknown): Project['hypothesis'] {
-    if (!hypothesisData || typeof hypothesisData !== 'object') {
-      return null;
+  async userHasAccessToProject(projectId: string, userId: string): Promise<ResultEx<boolean, Error>> {
+    try {
+      this._logger.info('supabase-project-repository.user-has-access-to-project.start', { projectId, userId });
+
+      const { data, error } = await getSupabaseClient()
+        .from('projects')
+        .select('id')
+        .eq('id', projectId)
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        this._logger.error('supabase-project-repository.user-has-access-to-project.error', { projectId, userId, error });
+        return ResultEx.failure(new Error(`Database error: ${error.message}`));
+      }
+
+      const hasAccess = !!data;
+      this._logger.info('supabase-project-repository.user-has-access-to-project.success', { projectId, userId, hasAccess });
+
+      return ResultEx.success(hasAccess);
+    } catch (error) {
+      this._logger.error('supabase-project-repository.user-has-access-to-project.exception', { projectId, userId, error });
+      return ResultEx.failure(new Error(error instanceof Error ? error.message : 'Unknown error'));
     }
-
-    const hypothesis = hypothesisData as Record<string, unknown>;
-
-    // If it already has the expected format (description + assumptions)
-    if (hypothesis.description && typeof hypothesis.description === 'string') {
-      return {
-        description: hypothesis.description,
-        assumptions: normalizeAssumptions(hypothesis.assumptions as any),
-      };
-    }
-
-    // If it has the new format (problem, solution, risks, key_metrics)
-    if (hypothesis.problem || hypothesis.solution || hypothesis.risks || hypothesis.key_metrics) {
-      const description = [
-        hypothesis.problem && `Problem: ${hypothesis.problem}`,
-        hypothesis.solution && `Solution: ${hypothesis.solution}`,
-      ].filter(Boolean).join('\n\n') || 'Not specified';
-
-      const assumptions = Array.isArray(hypothesis.risks)
-        ? hypothesis.risks.map((risk: string) => risk)
-        : [];
-
-      return {
-        description,
-        assumptions: normalizeAssumptions(assumptions),
-      };
-    }
-
-    return null;
   }
 }
 

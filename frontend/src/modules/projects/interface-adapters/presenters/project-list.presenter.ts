@@ -68,6 +68,7 @@ export class ProjectListPresenter {
   ) {}
 
   async loadProjects(viewModel: ProjectListViewModel, workspaceId?: string): Promise<void> {
+    console.log('ProjectListPresenter: loadProjects called with workspaceId:', workspaceId);
     viewModel.loading.value = true;
     viewModel.error.value = null;
 
@@ -79,6 +80,7 @@ export class ProjectListPresenter {
       return;
     }
 
+    console.log('ProjectListPresenter: executing listProjectsUseCase with workspaceId:', workspaceId);
     const result = await this._listProjectsUseCase.execute({ workspaceId });
 
     if (result.isSuccess) {

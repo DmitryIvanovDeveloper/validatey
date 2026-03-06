@@ -1,0 +1,1 @@
+// Optional JavaScript for interactivity (forms, animations, etc.)

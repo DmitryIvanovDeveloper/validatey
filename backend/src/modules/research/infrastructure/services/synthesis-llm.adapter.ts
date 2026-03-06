@@ -69,6 +69,9 @@ COMMENT PATTERN ANALYSIS:
 - For each pattern include exactly ONE short example (max 120 chars). Do NOT include more than one example per pattern.
 - CRITICAL u{2014} examples must be verbatim: the "content" in each example MUST be a direct substring copied from one of the numbered comments provided. DO NOT invent, paraphrase, or fabricate quotes. If no comment text matches this pattern, set "examples": []. The server validates every example against the comment list and discards any that do not match.
 - Focus on patterns that are relevant to the hypothesis validation
+- Hypothesis-scoped keywords: keywords must relate to the hypothesis domain (e.g. for app discovery: discovery, recommendations, tools, finding software). Avoid generic phrases that appear in unrelated posts (e.g. "looking for an app" as a generic request, "feedback on my app" when the post is about promoting one's own product, or "problem"/"issue" without the context of the stated problem in the hypothesis).
+- Contradictory patterns (supportsHypothesis: false): keywords must indicate actual contradiction to the hypothesis (e.g. prefer manual search, don't trust recommendations, no time for tools), not generic negative or off-topic content (e.g. technical support, "feedback on my first app", unrelated tech issues).
+- problem_statement: use only for the problem stated in the hypothesis (e.g. time spent searching, lack of recommendations). Do not group generic technical issues or unrelated pain under problem_statement.
 
 ADDITIONAL ANALYTICS:
 - Calculate overall sentiment (-1 to +1) and distribution (positive/neutral/negative percentages)

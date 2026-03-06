@@ -213,14 +213,21 @@ function formatDate(d: Date | string): string {
 
 const router = useRouter();
 const route = useRoute();
+console.log('ProjectsListView: Initial route object:', JSON.stringify(route.params), route.path, route.fullPath);
 const viewModel = new ProjectListViewModel();
 const presenter = container.get<ProjectListPresenter>(TYPES.ProjectListPresenter);
 
 // Get workspaceId from route params
-const workspaceId = computed(() => route.params.workspaceId as string);
+const workspaceId = computed(() => {
+  const wid = route.params.workspaceId as string;
+  console.log('ProjectsListView: route.params:', JSON.stringify(route.params));
+  console.log('ProjectsListView: workspaceId from route:', wid, 'type:', typeof wid);
+  return wid;
+});
 
 // Redirect to workspaces if no workspaceId; load projects when workspaceId changes
 watch(workspaceId, (newWorkspaceId) => {
+  console.log('ProjectsListView: workspaceId changed to:', newWorkspaceId);
   if (!newWorkspaceId) {
     console.log('No workspaceId, redirecting to workspaces');
     router.replace('/workspaces');
@@ -300,8 +307,11 @@ const goToProjectEdit = (projectId: string) => {
 };
 
 function refetchProjects() {
+  console.log('ProjectsListView: refetchProjects called, workspaceId:', workspaceId.value);
   if (workspaceId.value) {
     presenter.loadProjects(viewModel, workspaceId.value);
+  } else {
+    console.warn('ProjectsListView: refetchProjects called but no workspaceId');
   }
 }
 

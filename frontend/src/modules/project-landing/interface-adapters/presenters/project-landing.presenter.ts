@@ -4,6 +4,7 @@ import { TYPES } from '../../infrastructure/bootstrap/types';
 import { UploadLandingUseCase } from '../../application/use-cases/upload-landing.use-case';
 import { GetProjectLandingUseCase } from '../../application/use-cases/get-project-landing.use-case';
 import { DeleteLandingUseCase } from '../../application/use-cases/delete-landing.use-case';
+import { GenerateLandingUseCase } from '../../application/use-cases/generate-landing.use-case';
 import { ProjectLandingEntity } from '../../domain/entities/project-landing.entity';
 
 @injectable()
@@ -20,7 +21,9 @@ export class ProjectLandingPresenter {
     @inject(TYPES.GetProjectLandingUseCase)
     private readonly _getUseCase: GetProjectLandingUseCase,
     @inject(TYPES.DeleteLandingUseCase)
-    private readonly _deleteUseCase: DeleteLandingUseCase
+    private readonly _deleteUseCase: DeleteLandingUseCase,
+    @inject(TYPES.GenerateLandingUseCase)
+    private readonly _generateUseCase: GenerateLandingUseCase
   ) {}
 
   // Reactive getters
@@ -94,6 +97,36 @@ export class ProjectLandingPresenter {
     }
   }
 
+  async generateLandingWithAI(projectId: string, customPrompt?: string): Promise<boolean> {
+    this._uploading.value = true; // Используем uploading для состояния генерации
+    this._error.value = null;
+
+    try {
+      const result = await this._generateUseCase.execute({
+        projectId,
+        customPrompt: customPrompt?.trim()
+      });
+
+      if (!result.isSuccess) {
+        this._error.value = result.error.message;
+        return false;
+      }
+
+      // Обновляем landing только если бэкенд вернул лендинг для запрошенного проекта
+      if (result.data.projectId !== projectId) {
+        this._error.value = `Landing was created for another project. Reload the page.`;
+        return false;
+      }
+      this._landing.value = result.data;
+      return true;
+    } catch (error) {
+      this._error.value = error instanceof Error ? error.message : 'Generation failed';
+      return false;
+    } finally {
+      this._uploading.value = false;
+    }
+  }
+
   async deleteLanding(projectId: string): Promise<boolean> {
     this._loading.value = true;
     this._error.value = null;
@@ -123,7 +156,7 @@ export class ProjectLandingPresenter {
   // Labels for UI
   get labels() {
     return {
-      title: 'Landing Page',
+      title: 'Landing',
       description: 'Host your custom landing page on a subdomain',
       uploadButton: 'Upload Landing',
       deleteButton: 'Remove Landing',
