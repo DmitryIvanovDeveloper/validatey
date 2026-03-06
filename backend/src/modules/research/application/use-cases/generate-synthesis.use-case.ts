@@ -1014,6 +1014,8 @@ export class GenerateSynthesisUseCase {
   /**
    * Extract pain points from comments.
    * Uses pattern analysis if available, otherwise falls back to keyword matching.
+   * Includes 1–2 "problem validation" insights (supporting patterns that describe the problem the product solves)
+   * so Top Pain Points reflect both the core problem and risks/objections.
    */
   private extractPainPointsFromComments(
     comments: CommentEntity[],
@@ -1025,26 +1027,43 @@ export class GenerateSynthesisUseCase {
 
     const extractedPains: string[] = [];
 
-    // PRIORITY: Use pattern analysis — prefer contradicting patterns (supportsHypothesis === false) or negative sentiment.
-    // Use pattern.insight (LLM-synthesized text) as the pain point label — more meaningful than raw quotes.
     if (patternAnalysis) {
       const allPatterns = patternAnalysis.patterns;
 
-      // Score: contradicting > negative sentiment; tiebreak by confidenceScore
+      // 1) Add up to 2 "problem validation" insights — supporting patterns that describe the problem the product solves
+      // (e.g. struggle to discover tools, frustration with discovery) so the widget shows the core pain, not only objections.
+      const problemTypes = ['problem_statement', 'frustration', 'pain_points'];
+      const problemLower = (s: string) => s.toLowerCase();
+      const problemKeywords = ['struggle', 'discover', 'frustrat', 'finding', 'find the right', 'inefficient', 'difficult', 'need for'];
+      const problemValidation = allPatterns
+        .filter(
+          (p) =>
+            p.supportsHypothesis === true &&
+            (problemTypes.includes(p.type) || problemKeywords.some((kw) => p.insight && problemLower(p.insight).includes(kw)))
+        )
+        .slice(0, 2);
+      for (const p of problemValidation) {
+        if (p.insight && p.insight.length > 20 && p.insight.length < 300 && !extractedPains.includes(p.insight)) {
+          extractedPains.push(p.insight);
+        }
+      }
+
+      // 2) Add contradicting or negative-sentiment patterns (risks/objections). Score: contradicting > negative; tiebreak by confidenceScore
       const scored = allPatterns
-        .map(p => {
+        .map((p) => {
           let typeScore = 0;
           if (p.supportsHypothesis === false) typeScore = 3;
           else if (p.sentimentScore < -0.1) typeScore = 2;
           else if (p.sentimentScore < 0.2) typeScore = 1;
           return { pattern: p, score: typeScore * (p.confidenceScore ?? 1) };
         })
-        .filter(x => x.score > 0)
+        .filter((x) => x.score > 0)
         .sort((a, b) => b.score - a.score);
 
-      for (const { pattern } of scored.slice(0, 5)) {
-        // Use insight (LLM-synthesized summary) as the pain point text
-        if (pattern.insight && pattern.insight.length > 20 && pattern.insight.length < 300) {
+      const maxTotal = 6;
+      for (const { pattern } of scored) {
+        if (extractedPains.length >= maxTotal) break;
+        if (pattern.insight && pattern.insight.length > 20 && pattern.insight.length < 300 && !extractedPains.includes(pattern.insight)) {
           extractedPains.push(pattern.insight);
         }
       }
@@ -1072,7 +1091,7 @@ export class GenerateSynthesisUseCase {
       }
     }
 
-    return extractedPains.slice(0, 5); // Limit to 5
+    return extractedPains.slice(0, 6); // Up to 6: 1–2 problem validation + up to 4 risks/objections
   }
 
   /**

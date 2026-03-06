@@ -63,10 +63,10 @@
             @show="showPatternInSidebar(pattern, allPatterns.indexOf(pattern))"
           />
         </div>
-        <div v-if="directPatterns.length > PREVIEW_PATTERNS_COUNT && !directExpanded" class="cpw-show-more-wrap">
-          <button type="button" class="cpw-show-more-btn" @click="directExpanded = true">
-            Show more ({{ directPatterns.length - PREVIEW_PATTERNS_COUNT }} more)
-            <svg class="cpw-show-more-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <div v-if="directPatterns.length > PREVIEW_PATTERNS_COUNT" class="cpw-show-more-wrap">
+          <button type="button" class="cpw-show-more-btn" @click="directExpanded = !directExpanded">
+            {{ directExpanded ? 'Show less' : `Show more (${directPatterns.length - PREVIEW_PATTERNS_COUNT} more)` }}
+            <svg class="cpw-show-more-icon" :class="{ 'cpw-show-more-icon--expanded': directExpanded }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -81,7 +81,7 @@
         </div>
         <p class="cpw-section-subtitle cpw-section-subtitle--alternative">Ways users solve the problem without your product.</p>
         <div
-          v-for="(pattern, idx) in alternativePatterns"
+          v-for="(pattern, idx) in visibleAlternativePatterns"
           :key="`alt-${idx}`"
           class="cpw-pattern-card"
         >
@@ -91,6 +91,14 @@
             :presenter="presenter"
             @show="showPatternInSidebar(pattern, allPatterns.indexOf(pattern))"
           />
+        </div>
+        <div v-if="alternativePatterns.length > PREVIEW_PATTERNS_COUNT" class="cpw-show-more-wrap">
+          <button type="button" class="cpw-show-more-btn" @click="alternativeExpanded = !alternativeExpanded">
+            {{ alternativeExpanded ? 'Show less' : `Show more (${alternativePatterns.length - PREVIEW_PATTERNS_COUNT} more)` }}
+            <svg class="cpw-show-more-icon" :class="{ 'cpw-show-more-icon--expanded': alternativeExpanded }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
       </template>
 
@@ -102,7 +110,7 @@
         </div>
         <p v-if="contradictoryPatterns.length === 0" class="cpw-section-subtitle cpw-section-subtitle--contradictory">No contradictory patterns identified in this sample.</p>
         <div
-          v-for="(pattern, idx) in contradictoryPatterns"
+          v-for="(pattern, idx) in visibleContradictoryPatterns"
           :key="`contra-${idx}`"
           class="cpw-pattern-card"
         >
@@ -112,6 +120,14 @@
             :presenter="presenter"
             @show="showPatternInSidebar(pattern, allPatterns.indexOf(pattern))"
           />
+        </div>
+        <div v-if="contradictoryPatterns.length > PREVIEW_PATTERNS_COUNT" class="cpw-show-more-wrap">
+          <button type="button" class="cpw-show-more-btn" @click="contradictoryExpanded = !contradictoryExpanded">
+            {{ contradictoryExpanded ? 'Show less' : `Show more (${contradictoryPatterns.length - PREVIEW_PATTERNS_COUNT} more)` }}
+            <svg class="cpw-show-more-icon" :class="{ 'cpw-show-more-icon--expanded': contradictoryExpanded }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
       </template>
 
@@ -133,10 +149,10 @@
             @show="showPatternInSidebar(pattern, allPatterns.indexOf(pattern))"
           />
         </div>
-        <div v-if="neutralPatterns.length > PREVIEW_PATTERNS_COUNT && !neutralExpanded" class="cpw-show-more-wrap">
-          <button type="button" class="cpw-show-more-btn" @click="neutralExpanded = true">
-            Show more ({{ neutralPatterns.length - PREVIEW_PATTERNS_COUNT }} more)
-            <svg class="cpw-show-more-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <div v-if="neutralPatterns.length > PREVIEW_PATTERNS_COUNT" class="cpw-show-more-wrap">
+          <button type="button" class="cpw-show-more-btn" @click="neutralExpanded = !neutralExpanded">
+            {{ neutralExpanded ? 'Show less' : `Show more (${neutralPatterns.length - PREVIEW_PATTERNS_COUNT} more)` }}
+            <svg class="cpw-show-more-icon" :class="{ 'cpw-show-more-icon--expanded': neutralExpanded }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -196,6 +212,8 @@ const showingOnlyExamples = ref(false);
 const PREVIEW_PATTERNS_COUNT = 3;
 const patternsExpanded = ref(false);
 const directExpanded = ref(false);
+const alternativeExpanded = ref(false);
+const contradictoryExpanded = ref(false);
 const neutralExpanded = ref(false);
 
 const allPatterns = computed(() => analysis.value?.patterns ?? []);
@@ -215,6 +233,12 @@ const neutralPatterns = computed(() =>
 
 const visibleDirectPatterns = computed(() =>
   directExpanded.value ? directPatterns.value : directPatterns.value.slice(0, PREVIEW_PATTERNS_COUNT)
+);
+const visibleAlternativePatterns = computed(() =>
+  alternativeExpanded.value ? alternativePatterns.value : alternativePatterns.value.slice(0, PREVIEW_PATTERNS_COUNT)
+);
+const visibleContradictoryPatterns = computed(() =>
+  contradictoryExpanded.value ? contradictoryPatterns.value : contradictoryPatterns.value.slice(0, PREVIEW_PATTERNS_COUNT)
 );
 const visibleNeutralPatterns = computed(() =>
   neutralExpanded.value ? neutralPatterns.value : neutralPatterns.value.slice(0, PREVIEW_PATTERNS_COUNT)
@@ -614,7 +638,8 @@ defineExpose({
   transition: transform 0.2s;
 }
 
-.cpw-show-more-icon.expanded {
+.cpw-show-more-icon.expanded,
+.cpw-show-more-icon--expanded {
   transform: rotate(180deg);
 }
 
