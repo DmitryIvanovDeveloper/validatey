@@ -64,6 +64,9 @@ let unsubscribeSession: (() => void) | null = null;
 /** True after loadSession() has completed. Prevents clearing userId on initial run (user is null before session loads). */
 const sessionLoaded = ref(false);
 
+/** Handle browser/tab close to clear session */
+let handleBeforeUnload: (() => void) | null = null;
+
 const showNavbar = computed(() => {
   return route.meta.hideNavbar !== true;
 });
@@ -153,7 +156,7 @@ onMounted(async () => {
   }, 5 * 60 * 1000); // 5 minutes
 
   // Clear session on page unload (browser/tab close)
-  const handleBeforeUnload = () => {
+  handleBeforeUnload = () => {
     if (authViewModel.user.value) {
       // Clear session data on browser close for security
       console.log('🔐 Clearing session on browser close');
@@ -184,7 +187,9 @@ onUnmounted(() => {
     window.removeEventListener('keydown', handleUserActivity);
     window.removeEventListener('scroll', handleUserActivity);
     window.removeEventListener('touchstart', handleUserActivity);
-    window.removeEventListener('beforeunload', handleBeforeUnload);
+    if (handleBeforeUnload) {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    }
   }
 });
 
