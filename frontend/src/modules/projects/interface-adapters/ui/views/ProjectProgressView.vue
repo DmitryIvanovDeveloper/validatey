@@ -3,11 +3,7 @@
     <PageHeader
       title="Project Progress"
       subtitle="Response metrics and early signals"
-      :breadcrumbs="[
-        { label: 'Projects', path: workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces' },
-        { label: project?.name || 'Project', path: projectBase },
-        { label: 'Progress' }
-      ]"
+      :breadcrumbs="breadcrumbItems"
     >
       <template #actions>
         <router-link :to="`${projectBase}/invitations`" class="btn btn-secondary">Manage Invitations</router-link>
@@ -528,6 +524,13 @@ const exportLoading = ref(false);
 const consentExportLoading = ref(false);
 
 const project = ref<{ consentText: string | null; dataUsageText: string | null; privacyPolicyUrl: string | null; termsOfServiceUrl: string | null; name: string } | null>(null);
+
+// Reactive breadcrumb that updates when project loads
+const breadcrumbItems = computed(() => [
+  { label: 'Projects', path: workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces' },
+  { label: project.value?.name || 'Loading...', path: projectBase },
+  { label: 'Progress' }
+]);
 const consentTemplateId = ref<'' | ConsentTemplateId>('');
 const consentText = ref('');
 const dataUsageText = ref('');

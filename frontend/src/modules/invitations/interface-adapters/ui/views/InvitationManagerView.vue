@@ -3,11 +3,7 @@
     <PageHeader
       title="Invitations"
       subtitle="Send and track survey invitations by email or share a single link."
-      :breadcrumbs="[
-        { label: 'Projects', path: workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces' },
-        { label: project?.name || 'Project', path: projectBase },
-        { label: 'Invitations' }
-      ]"
+      :breadcrumbs="breadcrumbItems"
     >
       <template #actions>
         <router-link :to="projectBase" class="btn btn-ghost">
@@ -674,6 +670,13 @@ let copyFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
 // Public link (project settings)
 const projectLoadError = ref<string | null>(null);
 const project = ref<{ name: string } | null>(null);
+
+// Reactive breadcrumb that updates when project loads
+const breadcrumbItems = computed(() => [
+  { label: 'Projects', path: workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces' },
+  { label: project.value?.name || 'Loading...', path: projectBase },
+  { label: 'Invitations' }
+]);
 const publicAccessEnabled = ref(false);
 const publicSlug = ref<string | null>(null);
 const maxPublicResponsesInput = ref<number | ''>('');

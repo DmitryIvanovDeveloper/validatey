@@ -3,11 +3,7 @@
     <PageHeader
       title="Respondent panel"
       subtitle="Buy audience for your survey"
-      :breadcrumbs="[
-        { label: 'Projects', path: '/projects' },
-        { label: project?.name || 'Project', path: `/projects/${projectId}` },
-        { label: 'Panel' }
-      ]"
+      :breadcrumbs="breadcrumbItems"
     />
     <Card title="Buy audience" class="panel-stub-card">
       <p class="stub-message">Order respondents by budget and segment. You will be directed to our partner panel to complete the order.</p>
@@ -53,6 +49,13 @@ const projectBase = computed(() => `/workspaces/${workspaceId.value}/projects/${
 
 const projectRepository = container.get<ProjectRepositoryPort>(PROJECT_TYPES.ProjectRepository);
 const project = ref<{ name: string } | null>(null);
+
+// Reactive breadcrumb that updates when project loads
+const breadcrumbItems = computed(() => [
+  { label: 'Projects', path: '/projects' },
+  { label: project.value?.name || 'Loading...', path: `/projects/${projectId}` },
+  { label: 'Panel' }
+]);
 
 const budget = ref('300');
 const segment = ref('product-managers');
