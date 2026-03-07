@@ -144,7 +144,8 @@ watch(() => props.projectId, () => {
 }
 
 .setting-textarea {
-  @apply resize-vertical min-h-[80px];
+  @apply min-h-[80px];
+  resize: vertical;
 }
 
 .loading-indicator {

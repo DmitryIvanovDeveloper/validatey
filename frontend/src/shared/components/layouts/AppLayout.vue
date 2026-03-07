@@ -39,6 +39,7 @@ import { TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
 import type { AuthPresenter } from '../../../modules/auth/interface-adapters/presenters/auth.presenter';
 import { AuthViewModel } from '../../../modules/auth/interface-adapters/view-models/auth.view-model';
 import { userContextService } from '../../services/user-context.service';
+import { sessionManager } from '../../services/session-manager';
 
 const route = useRoute();
 const router = useRouter();
@@ -58,6 +59,7 @@ const userInitial = computed(() => {
   return part.charAt(0).toUpperCase() || '?';
 });
 let unsubscribeAuth: (() => void) | null = null;
+let unsubscribeSession: (() => void) | null = null;
 
 /** True after loadSession() has completed. Prevents clearing userId on initial run (user is null before session loads). */
 const sessionLoaded = ref(false);
@@ -112,13 +114,29 @@ const handleUserActivity = () => {
 };
 
 onMounted(async () => {
-  await authPresenter.loadSession(authViewModel);
+  // Sync authViewModel with sessionManager
+  if (sessionManager.isSessionReady && sessionManager.currentSession) {
+    console.log('🔐 AppLayout: Syncing with existing sessionManager session');
+    authViewModel.user.value = sessionManager.currentSession.user;
+    authViewModel.role.value = sessionManager.currentSession.role;
+  } else {
+    console.log('🔐 AppLayout: Loading session via authPresenter');
+    await authPresenter.loadSession(authViewModel);
+  }
+
   sessionLoaded.value = true;
   userContextService.setSessionReady(true);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('validatey-session-ready'));
   }
   unsubscribeAuth = authPresenter.subscribeToAuthState(authViewModel);
+
+  // Subscribe to sessionManager changes
+  unsubscribeSession = sessionManager.subscribe((session) => {
+    console.log('🔐 AppLayout: SessionManager updated:', session?.user?.id || null);
+    authViewModel.user.value = session?.user ?? null;
+    authViewModel.role.value = session?.role ?? null;
+  });
 
   // Refresh session every 5 minutes to prevent expiration
   console.log('🚀 Starting session refresh interval');
@@ -145,6 +163,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   unsubscribeAuth?.();
+  unsubscribeSession?.();
   if (sessionRefreshInterval) {
     clearInterval(sessionRefreshInterval);
     sessionRefreshInterval = null;
