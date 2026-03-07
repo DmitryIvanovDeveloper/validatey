@@ -5,7 +5,7 @@
       subtitle="Send and track survey invitations by email or share a single link."
       :breadcrumbs="[
         { label: 'Projects', path: workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces' },
-        { label: 'Project', path: projectBase },
+        { label: project?.name || 'Project', path: projectBase },
         { label: 'Invitations' }
       ]"
     >
@@ -673,6 +673,7 @@ let copyFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Public link (project settings)
 const projectLoadError = ref<string | null>(null);
+const project = ref<{ name: string } | null>(null);
 const publicAccessEnabled = ref(false);
 const publicSlug = ref<string | null>(null);
 const maxPublicResponsesInput = ref<number | ''>('');
@@ -971,17 +972,18 @@ const copyShareLink = async () => {
 
 const loadProject = async () => {
   if (!projectId) return;
-  const { project, error } = await projectPresenter.getProject(projectId);
-  if (error || !project) {
+  const { project: projectData, error } = await projectPresenter.getProject(projectId);
+  if (error || !projectData) {
     projectLoadError.value = error ?? 'Failed to load project';
     return;
   }
   projectLoadError.value = null;
-  publicAccessEnabled.value = project.publicAccessEnabled ?? false;
-  publicSlug.value = project.publicSlug ?? null;
-  maxPublicResponsesInput.value = project.maxPublicResponses ?? '';
-  requirePublicEmail.value = project.requirePublicEmail ?? false;
-  captchaEnabled.value = project.captchaEnabled ?? false;
+  project.value = { name: projectData.name };
+  publicAccessEnabled.value = projectData.publicAccessEnabled ?? false;
+  publicSlug.value = projectData.publicSlug ?? null;
+  maxPublicResponsesInput.value = projectData.maxPublicResponses ?? '';
+  requirePublicEmail.value = projectData.requirePublicEmail ?? false;
+  captchaEnabled.value = projectData.captchaEnabled ?? false;
 };
 
 const savePublicSettings = async () => {

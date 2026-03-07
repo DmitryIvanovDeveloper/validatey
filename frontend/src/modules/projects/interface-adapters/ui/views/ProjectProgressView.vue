@@ -5,7 +5,7 @@
       subtitle="Response metrics and early signals"
       :breadcrumbs="[
         { label: 'Projects', path: workspaceId ? `/workspaces/${workspaceId}/projects` : '/workspaces' },
-        { label: 'Project', path: projectBase },
+        { label: project?.name || 'Project', path: projectBase },
         { label: 'Progress' }
       ]"
     >
@@ -527,7 +527,7 @@ const expandedResponses = ref<Set<string>>(new Set());
 const exportLoading = ref(false);
 const consentExportLoading = ref(false);
 
-const project = ref<{ consentText: string | null; dataUsageText: string | null; privacyPolicyUrl: string | null; termsOfServiceUrl: string | null } | null>(null);
+const project = ref<{ consentText: string | null; dataUsageText: string | null; privacyPolicyUrl: string | null; termsOfServiceUrl: string | null; name: string } | null>(null);
 const consentTemplateId = ref<'' | ConsentTemplateId>('');
 const consentText = ref('');
 const dataUsageText = ref('');
@@ -1030,6 +1030,7 @@ onMounted(async () => {
       project.value = {
         consentText: p.consentText ?? null,
         dataUsageText: p.dataUsageText ?? null,
+        name: p.name,
         privacyPolicyUrl: p.privacyPolicyUrl ?? null,
         termsOfServiceUrl: p.termsOfServiceUrl ?? null,
       };

@@ -5,7 +5,7 @@
       subtitle="Buy audience for your survey"
       :breadcrumbs="[
         { label: 'Projects', path: '/projects' },
-        { label: 'Project', path: `/projects/${projectId}` },
+        { label: project?.name || 'Project', path: `/projects/${projectId}` },
         { label: 'Panel' }
       ]"
     />
@@ -36,10 +36,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import PageHeader from '../../../../../shared/components/PageHeader.vue';
 import Card from '../../../../../shared/components/Card.vue';
+import { container } from '../../../../../infrastructure/bootstrap/container';
+import { TYPES as PROJECT_TYPES } from '../../../infrastructure/bootstrap/types';
+import type { ProjectRepositoryPort } from '../../../application/ports/project-repository.port';
 
 const RESPONDENT_IO_BASE = 'https://www.respondent.io';
 
@@ -48,8 +51,18 @@ const workspaceId = computed(() => (route.params.workspaceId as string) || '');
 const projectId = route.params.projectId as string;
 const projectBase = computed(() => `/workspaces/${workspaceId.value}/projects/${projectId}`);
 
+const projectRepository = container.get<ProjectRepositoryPort>(PROJECT_TYPES.ProjectRepository);
+const project = ref<{ name: string } | null>(null);
+
 const budget = ref('300');
 const segment = ref('product-managers');
+
+onMounted(async () => {
+  const projectResult = await projectRepository.getById(projectId);
+  if (projectResult.isSuccess) {
+    project.value = { name: projectResult.data.name };
+  }
+});
 
 function goToOrder() {
   const params = new URLSearchParams({
