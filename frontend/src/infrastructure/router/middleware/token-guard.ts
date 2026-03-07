@@ -36,6 +36,7 @@ export async function tokenGuard(
   next: NavigationGuardNext
 ): Promise<void> {
   console.log('🔐 Token guard called for:', to.name, to.path);
+  console.log('🔐 Route requires auth?', typeof to.name === 'string' && USER_APP_ROUTE_NAMES.has(to.name));
   console.log('🔐 SessionManager state:', {
     isSessionReady: sessionManager.isSessionReady,
     isAuthenticated: sessionManager.isAuthenticated,

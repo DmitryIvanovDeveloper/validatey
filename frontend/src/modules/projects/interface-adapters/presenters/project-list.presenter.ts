@@ -69,11 +69,14 @@ export class ProjectListPresenter {
 
   async loadProjects(viewModel: ProjectListViewModel, workspaceId?: string): Promise<void> {
     console.log('ProjectListPresenter: loadProjects called with workspaceId:', workspaceId);
+    console.log('ProjectListPresenter: sessionManager.isSessionReady:', sessionManager.isSessionReady);
+    console.log('ProjectListPresenter: sessionManager.currentUserId:', sessionManager.currentUserId);
     viewModel.loading.value = true;
     viewModel.error.value = null;
 
     const userId = sessionManager.currentUserId;
     if (!userId) {
+      console.error('ProjectListPresenter: No userId available!');
       viewModel.error.value = 'User not authenticated';
       viewModel.loading.value = false;
       this._logger.error('Failed to load projects: no user ID');

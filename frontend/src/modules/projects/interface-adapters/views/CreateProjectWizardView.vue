@@ -327,6 +327,14 @@ import type { Project } from '../../domain/entities/project.entity';
 
 const route = useRoute();
 const router = useRouter();
+
+// Get workspaceId from route params
+const workspaceId = computed(() => {
+  const wid = route.params.workspaceId as string;
+  console.log('CreateProjectWizardView: workspaceId from route:', wid);
+  return wid;
+});
+
 const projectPresenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 
 const ONBOARDING_STORAGE_KEY = 'validatey_onboarding_completed';
@@ -615,7 +623,8 @@ async function ensureProjectCreated(): Promise<void> {
     formData.value.hypothesisDescription,
     formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
     marketContext ?? undefined,
-    selectedTemplateSlug.value || undefined
+    selectedTemplateSlug.value || undefined,
+    workspaceId.value
   );
   if (createResult.projectId) currentProjectId.value = createResult.projectId;
 }
@@ -713,7 +722,8 @@ const generateScenario = async () => {
         formData.value.hypothesisDescription,
         formData.value.hypothesisAssumptions.filter(a => a.trim().length > 0),
         marketContext,
-        selectedTemplateSlug.value || undefined
+        selectedTemplateSlug.value || undefined,
+        workspaceId.value
       );
 
       if (!createResult.projectId) {
