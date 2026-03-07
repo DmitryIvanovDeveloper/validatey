@@ -180,6 +180,7 @@ onUnmounted(() => {
 async function handleSignOut() {
   await authPresenter.signOut(authViewModel);
   userContextService.clearUserId();
+  sessionManager.clearSession();
   await router.replace('/login');
 }
 </script>
