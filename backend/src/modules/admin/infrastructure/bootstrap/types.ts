@@ -3,4 +3,5 @@ export const TYPES = {
   ListUsers: Symbol.for('ListUsers'),
   ListUsersUseCase: Symbol.for('ListUsersUseCase'),
   ListWishlist: Symbol.for('ListWishlist'),
+  AdminController: Symbol.for('AdminController'),
 } as const;

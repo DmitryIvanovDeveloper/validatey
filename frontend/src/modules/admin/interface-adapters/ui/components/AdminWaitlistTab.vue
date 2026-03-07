@@ -36,6 +36,9 @@ import { ref, onMounted } from 'vue';
 import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import ErrorDisplay from '../../../../../shared/components/ErrorDisplay.vue';
 import { API_CONFIG } from '../../../../../infrastructure/config/api.config';
+import { container } from '../../../../../infrastructure/bootstrap/container';
+import { TYPES as HTTP_TYPES } from '../../../../../infrastructure/bootstrap/types';
+import type { HttpClientPort } from '../../../../../infrastructure/http/ports/http-client.port';
 
 interface WishlistEntry {
   id: string;
@@ -47,6 +50,7 @@ interface WishlistEntry {
 const wishlist = ref<WishlistEntry[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
+const httpClient = container.get<HttpClientPort>(HTTP_TYPES.HttpClient);
 
 function idShort(id: string): string {
   if (id.length <= 8) return id;
@@ -70,15 +74,7 @@ function formatDate(dateString: string): string {
 
 onMounted(async () => {
   try {
-    const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ADMIN_WISHLIST}`, {
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      error.value = data?.error ?? `Request failed: ${res.status}`;
-      return;
-    }
-    const data = await res.json().catch(() => ({ wishlist: [] }));
+    const data = await httpClient.get<{ wishlist: WishlistEntry[] }>(API_CONFIG.ENDPOINTS.ADMIN_WISHLIST);
     wishlist.value = Array.isArray(data?.wishlist) ? data.wishlist : [];
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load waitlist';

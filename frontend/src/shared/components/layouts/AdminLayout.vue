@@ -49,6 +49,8 @@ import { container } from '../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../../modules/auth/infrastructure/bootstrap/types';
 import type { AuthPresenter } from '../../../modules/auth/interface-adapters/presenters/auth.presenter';
 import { AuthViewModel } from '../../../modules/auth/interface-adapters/view-models/auth.view-model';
+import { userContextService } from '../../../shared/services/user-context.service';
+import { sessionManager } from '../../../shared/services/session-manager';
 
 const router = useRouter();
 const authViewModel = new AuthViewModel();
@@ -56,6 +58,13 @@ const authPresenter = container.get<AuthPresenter>(TYPES.AuthPresenter);
 
 async function handleSignOut() {
   await authPresenter.signOut(authViewModel);
+  userContextService.clearUserId();
+  sessionManager.clearSession();
+  // Clear all stored session data to prevent auto-restoration
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.removeItem('validatey_user_id');
+    localStorage.removeItem('validatey_session_ready');
+  }
   await router.replace('/login?signedOut=true');
 }
 </script>

@@ -178,10 +178,19 @@ router.post('/link-previous-user', async (req: Request, res: Response) => {
   }
 });
 
-/** POST /api/auth/sign-out → clear cookies */
-router.post('/sign-out', (_req: Request, res: Response) => {
-  clearSessionCookies(res);
-  return res.status(204).send();
+/** POST /api/auth/sign-out → sign out from Supabase and clear cookies */
+router.post('/sign-out', async (_req: Request, res: Response) => {
+  try {
+    // Sign out from Supabase to invalidate the session
+    await authProvider.signOut();
+    clearSessionCookies(res);
+    return res.status(204).send();
+  } catch (error) {
+    console.error('Sign-out error:', error);
+    // Even if Supabase sign-out fails, clear cookies
+    clearSessionCookies(res);
+    return res.status(204).send();
+  }
 });
 
 export default router;

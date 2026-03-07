@@ -34,6 +34,9 @@ import { ref, onMounted } from 'vue';
 import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import ErrorDisplay from '../../../../../shared/components/ErrorDisplay.vue';
 import { API_CONFIG } from '../../../../../infrastructure/config/api.config';
+import { container } from '../../../../../infrastructure/bootstrap/container';
+import { TYPES as HTTP_TYPES } from '../../../../../infrastructure/bootstrap/types';
+import type { HttpClientPort } from '../../../../../infrastructure/http/ports/http-client.port';
 
 interface WishlistEntry {
   id: string;
@@ -44,6 +47,7 @@ interface WishlistEntry {
 const wishlist = ref<WishlistEntry[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
+const httpClient = container.get<HttpClientPort>(HTTP_TYPES.HttpClient);
 
 function idShort(id: string): string {
   if (id.length <= 8) return id;

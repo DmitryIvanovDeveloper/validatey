@@ -44,6 +44,7 @@ interface WishlistEntry {
 const wishlist = ref<WishlistEntry[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
+const httpClient = container.get<HttpClientPort>(HTTP_TYPES.HttpClient);
 
 function idShort(id: string): string {
   if (id.length <= 8) return id;

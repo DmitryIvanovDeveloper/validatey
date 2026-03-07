@@ -33,6 +33,9 @@ import { ref, onMounted } from 'vue';
 import LoadingSpots from '../../../../shared/components/LoadingSpots.vue';
 import ErrorDisplay from '../../../../shared/components/ErrorDisplay.vue';
 import { API_CONFIG } from '../../../../infrastructure/config/api.config';
+import { container } from '../../../../infrastructure/bootstrap/container';
+import { TYPES as HTTP_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { HttpClientPort } from '../../../../infrastructure/http/ports/http-client.port';
 
 interface UserRow {
   id: string;
@@ -43,6 +46,7 @@ interface UserRow {
 const users = ref<UserRow[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
+const httpClient = container.get<HttpClientPort>(HTTP_TYPES.HttpClient);
 
 function idShort(id: string): string {
   if (id.length <= 8) return id;
@@ -51,15 +55,7 @@ function idShort(id: string): string {
 
 onMounted(async () => {
   try {
-    const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ADMIN_USERS}`, {
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      error.value = data?.error ?? `Request failed: ${res.status}`;
-      return;
-    }
-    const data = await res.json().catch(() => ({ users: [] }));
+    const data = await httpClient.get<{ users: UserRow[] }>(API_CONFIG.ENDPOINTS.ADMIN_USERS);
     users.value = Array.isArray(data?.users) ? data.users : [];
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load users';

@@ -70,9 +70,17 @@ export class HttpClient implements HttpClientPort {
             credentials: 'include',
             body: body ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined
           });
+        } else {
+          // Session refresh failed - redirect to login
+          console.log('🚪 Session refresh failed, redirecting to login...');
+          this.redirectToLogin();
+          throw new Error('Authentication required');
         }
       } catch (error) {
         console.warn('❌ Failed to refresh session:', error);
+        // If refresh failed, also redirect to login
+        this.redirectToLogin();
+        throw error;
       }
     }
 
@@ -167,5 +175,17 @@ export class HttpClient implements HttpClientPort {
     const result = await this.requestWithAuthRetry('DELETE', url, undefined, headers);
     console.log('📥 HTTP DELETE Response:', result);
     return result;
+  }
+
+  private redirectToLogin(): void {
+    // Only redirect if we're not already on login/auth page
+    const currentPath = window.location.pathname;
+    if (!currentPath.startsWith('/login') && !currentPath.startsWith('/auth')) {
+      console.log('🔄 Redirecting to login due to authentication failure');
+      // Use Vue Router if available, otherwise direct navigation
+      if (window.location) {
+        window.location.href = '/auth';
+      }
+    }
   }
 }

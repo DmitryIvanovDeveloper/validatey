@@ -8,6 +8,7 @@ import type { AuthServicePort } from '../../application/ports/auth-service.port'
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import type { AuthViewModel } from '../view-models/auth.view-model';
 import type { AuthSignInError } from '../../domain/errors/auth.error';
+import { sessionManager } from '../../../../shared/services/session-manager';
 
 @injectable()
 export class AuthPresenter {
@@ -94,6 +95,8 @@ export class AuthPresenter {
   async signOut(viewModel: AuthViewModel): Promise<void> {
     viewModel.error.value = null;
     await this._signOutUseCase.execute();
+    // Clear session in sessionManager
+    sessionManager.clearSession();
     viewModel.user.value = null;
     viewModel.role.value = null;
   }

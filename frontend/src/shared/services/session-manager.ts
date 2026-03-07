@@ -79,21 +79,10 @@ class SessionManager {
           this.markSessionReady();
           return;
         } else {
-          console.log('🔐 SESSION: Backend validation failed, creating temp session from localStorage');
-          // Create a temporary session from stored data (without access token)
-          // This allows UI to show user info even if backend validation fails
-          const tempSession: AuthSession = {
-            user: {
-              id: storedSessionData.userId,
-              email: storedSessionData.email ?? null,
-              displayName: storedSessionData.displayName ?? null
-            },
-            accessToken: '',
-            expiresAt: 0,
-            role: (storedSessionData.role as 'user' | 'admin') || 'user'
-          };
-          console.log('🔐 SESSION: Setting temp session:', tempSession.user.id);
-          this.setSession(tempSession);
+          console.log('🔐 SESSION: Backend validation failed - session expired, clearing stored data');
+          // Clear expired session data to prevent confusion and force re-authentication
+          this.clearStoredSession();
+          this.setSession(null);
           this.markSessionReady();
           return;
         }

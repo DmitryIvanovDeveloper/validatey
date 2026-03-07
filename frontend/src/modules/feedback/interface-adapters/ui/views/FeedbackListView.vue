@@ -28,10 +28,18 @@
           type="button"
           class="feedback-list-view__analyze-btn"
           :disabled="analyzing"
-          @click="runAnalysis"
+          @click="handleRunAnalysis"
         >
           <span v-if="analyzing" class="feedback-list-view__analyze-spinner" aria-hidden="true" />
           {{ analyzing ? 'Analyzing…' : 'Analyze with AI' }}
+        </button>
+        <button
+          v-if="analysis"
+          type="button"
+          class="feedback-list-view__clear-analysis-btn"
+          @click="handleClearAnalysis"
+        >
+          Clear Analysis
         </button>
         </div>
       </div>
@@ -52,9 +60,9 @@
         </div>
       </div>
       <div v-if="analysisError" class="feedback-list-view__analysis-error">
-        {{ analysisError }}
+        <p class="feedback-list-view__analysis-error-text">{{ analysisError }}</p>
       </div>
-      <div v-if="filteredAndSortedFeedback.length === 0" class="feedback-list-view__empty">
+      <div v-if="filteredFeedback.length === 0" class="feedback-list-view__empty">
         <div class="feedback-list-view__empty-icon" aria-hidden="true">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -64,7 +72,7 @@
         <p class="feedback-list-view__empty-hint">Users can submit feedback via the "Share feedback" widget on app pages.</p>
       </div>
       <ul v-else class="feedback-list-view__list" role="list">
-        <li v-for="f in filteredAndSortedFeedback" :key="f.id" class="feedback-card">
+        <li v-for="f in filteredFeedback" :key="f.id" class="feedback-card">
           <div class="feedback-card__header">
             <span class="feedback-card__badge" :class="`feedback-card__badge--${f.type}`">
               {{ typeLabel(f.type) }}
@@ -99,144 +107,64 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import ErrorDisplay from '../../../../../shared/components/ErrorDisplay.vue';
-import { API_CONFIG } from '../../../../../infrastructure/config/api.config';
+import { createFeedbackPresenter, type FeedbackViewModel } from '../../presenters/feedback.presenter';
 
-interface FeedbackRow {
-  id: string;
-  type: string;
-  text: string;
-  screenshotUrl: string | null;
-  userId: string;
-  authorEmail: string | null;
-  authorDisplayName: string | null;
-  pageUrl: string | null;
-  createdAt: string;
-}
+const presenter = createFeedbackPresenter();
+const viewModel = ref<FeedbackViewModel>(presenter.getViewModel());
 
-interface FeedbackAnalysis {
-  summary: string;
-  themes: string[];
-  suggestedActions: string[];
-}
-
-const feedback = ref<FeedbackRow[]>([]);
-const typeFilter = ref<string>('');
-const loading = ref(true);
-
-const TYPE_ORDER: Record<string, number> = {
-  feature_request: 0,
-  bug_report: 1,
-  what_is_missing: 2,
-  other: 3,
-};
-
-const filteredAndSortedFeedback = computed(() => {
-  let list = feedback.value;
-  if (typeFilter.value) {
-    list = list.filter((f) => f.type === typeFilter.value);
-  }
-  return [...list].sort((a, b) => {
-    const typeA = TYPE_ORDER[a.type] ?? 4;
-    const typeB = TYPE_ORDER[b.type] ?? 4;
-    if (typeA !== typeB) return typeA - typeB;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-});
-const error = ref<string | null>(null);
-const analyzing = ref(false);
-const analysis = ref<FeedbackAnalysis | null>(null);
-const analysisError = ref<string | null>(null);
-
-async function runAnalysis() {
-  analyzing.value = true;
-  analysisError.value = null;
-  analysis.value = null;
-  try {
-    const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ADMIN_FEEDBACK_ANALYZE}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      analysisError.value = data?.error ?? `Error: ${res.status}`;
-      return;
-    }
-    const data = await res.json().catch(() => ({}));
-    if (data?.analysis) {
-      analysis.value = {
-        summary: data.analysis.summary ?? '',
-        themes: Array.isArray(data.analysis.themes) ? data.analysis.themes : [],
-        suggestedActions: Array.isArray(data.analysis.suggestedActions) ? data.analysis.suggestedActions : [],
-      };
-    }
-  } catch (e) {
-    analysisError.value = e instanceof Error ? e.message : 'Analysis request failed';
-  } finally {
-    analyzing.value = false;
-  }
-}
-
-function idShort(id: string): string {
-  if (id.length <= 8) return id;
-  return `${id.slice(0, 4)}…${id.slice(-4)}`;
-}
-
-function authorLabel(f: FeedbackRow): string {
-  if (f.authorDisplayName?.trim()) return f.authorDisplayName.trim();
-  if (f.authorEmail?.trim()) return f.authorEmail.trim();
-  return idShort(f.userId);
-}
-
-function typeLabel(type: string): string {
-  const labels: Record<string, string> = {
-    feature_request: 'New feature',
-    bug_report: 'Bug report',
-    what_is_missing: "What's missing",
-    other: 'Other',
-  };
-  return labels[type] ?? type;
-}
-
-function formatDate(iso: string): string {
-  try {
-    const d = new Date(iso);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins} min ago`;
-    if (diffHours < 24) return `${diffHours} hr ago`;
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  } catch {
-    return iso;
-  }
-}
+let unsubscribe: (() => void) | null = null;
 
 onMounted(async () => {
-  try {
-    const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ADMIN_FEEDBACK}`, {
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      error.value = data?.error ?? `Error: ${res.status}`;
-      return;
-    }
-    const data = await res.json().catch(() => ({ feedback: [] }));
-    feedback.value = Array.isArray(data?.feedback) ? data.feedback : [];
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to load feedback';
-  } finally {
-    loading.value = false;
+  // Subscribe to presenter updates
+  unsubscribe = presenter.subscribe((newViewModel) => {
+    viewModel.value = newViewModel;
+  });
+
+  // Load feedback
+  await presenter.loadFeedback();
+});
+
+onUnmounted(() => {
+  if (unsubscribe) {
+    unsubscribe();
   }
 });
+
+const handleTypeFilterChange = (value: string) => {
+  presenter.setTypeFilter(value);
+};
+
+const handleRunAnalysis = async () => {
+  await presenter.runAnalysis();
+};
+
+const handleClearAnalysis = () => {
+  // This would be added to presenter if needed
+  // For now, just reload the page or clear locally
+  window.location.reload();
+};
+
+// Computed properties for template
+const feedback = computed(() => viewModel.value.feedback);
+const filteredFeedback = computed(() => viewModel.value.filteredFeedback);
+const loading = computed(() => viewModel.value.loading);
+const error = computed(() => viewModel.value.error);
+const analyzing = computed(() => viewModel.value.analyzing);
+const analysis = computed(() => viewModel.value.analysis);
+const analysisError = computed(() => viewModel.value.analysisError);
+const typeFilter = computed({
+  get: () => viewModel.value.typeFilter,
+  set: (value: string) => presenter.setTypeFilter(value)
+});
+
+// Helper functions
+const authorLabel = (f: any) => presenter.getAuthorLabel(f);
+const typeLabel = (type: string) => presenter.getTypeLabel(type);
+const formatDate = (iso: string) => presenter.formatDate(iso);
+const idShort = (id: string) => presenter.idShort(id);
 </script>
 
 <style scoped>

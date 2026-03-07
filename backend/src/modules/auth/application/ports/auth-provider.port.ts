@@ -27,4 +27,6 @@ export interface AuthProviderPort {
   signUpWithEmailPassword(email: string, password: string): Promise<AuthSessionResult>;
   /** Sign in with email/password. Returns session or throws. */
   signInWithEmailPassword(email: string, password: string): Promise<AuthSessionResult>;
+  /** Sign out from Supabase, invalidating the session. */
+  signOut(): Promise<void>;
 }

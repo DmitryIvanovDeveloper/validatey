@@ -46,6 +46,13 @@ export class SupabaseAuthProvider implements AuthProviderPort {
     };
   }
 
+  async signOut(): Promise<void> {
+    const { error } = await getAuthClient().auth.signOut();
+    if (error) {
+      throw new Error(`Supabase signOut failed: ${error.message}`);
+    }
+  }
+
   async signUpWithEmailPassword(email: string, password: string): Promise<AuthSessionResult> {
     const { data, error } = await getAuthClient().auth.signUp({
       email: email.trim(),

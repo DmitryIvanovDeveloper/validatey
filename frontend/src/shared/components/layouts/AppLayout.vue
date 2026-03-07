@@ -102,14 +102,14 @@ let lastActivityTime = Date.now();
 // User activity handler
 const handleUserActivity = () => {
   const now = Date.now();
-  if (now - lastActivityTime > 10 * 60 * 1000 && authViewModel.user.value) { // 10 minutes
+  lastActivityTime = now;
+
+  // Refresh session every 5 minutes of activity if user is logged in
+  if (authViewModel.user.value && now - lastActivityTime > 5 * 60 * 1000) {
     console.log('🔄 Refreshing session due to user activity...');
-    lastActivityTime = now;
     authPresenter.loadSession(authViewModel).catch(error => {
       console.warn('❌ Failed to refresh session on activity:', error);
     });
-  } else {
-    lastActivityTime = now;
   }
 };
 
@@ -118,7 +118,7 @@ onMounted(async () => {
   if (sessionManager.isSessionReady && sessionManager.currentSession) {
     console.log('🔐 AppLayout: Syncing with existing sessionManager session');
     authViewModel.user.value = sessionManager.currentSession.user;
-    authViewModel.role.value = sessionManager.currentSession.role;
+    authViewModel.role.value = sessionManager.currentSession.role ?? null;
   } else {
     console.log('🔐 AppLayout: Loading session via authPresenter');
     await authPresenter.loadSession(authViewModel);
@@ -152,6 +152,16 @@ onMounted(async () => {
     }
   }, 5 * 60 * 1000); // 5 minutes
 
+  // Clear session on page unload (browser/tab close)
+  const handleBeforeUnload = () => {
+    if (authViewModel.user.value) {
+      // Clear session data on browser close for security
+      console.log('🔐 Clearing session on browser close');
+      sessionManager.clearSession();
+    }
+  };
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
   // Listen for user activity
   if (typeof window !== 'undefined') {
     window.addEventListener('mousedown', handleUserActivity);
@@ -174,6 +184,7 @@ onUnmounted(() => {
     window.removeEventListener('keydown', handleUserActivity);
     window.removeEventListener('scroll', handleUserActivity);
     window.removeEventListener('touchstart', handleUserActivity);
+    window.removeEventListener('beforeunload', handleBeforeUnload);
   }
 });
 

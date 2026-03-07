@@ -22,6 +22,7 @@ import { bindResponses } from '../../modules/responses/infrastructure/bootstrap/
 import { bindComments } from '../../modules/comments/infrastructure/bootstrap/bind.comments';
 import { bindWorkspaces } from '../../modules/workspaces/infrastructure/bootstrap/bind.workspaces';
 import { bindWishlist } from '../../modules/wishlist/infrastructure/bootstrap/bind.wishlist';
+import { bindFeedback } from '../../modules/feedback/infrastructure/bootstrap/bind.feedback';
 import { bindProjectLanding } from '../../modules/project-landing/infrastructure/bootstrap/bind.project-landing';
 const container = new Container();
 
@@ -47,6 +48,7 @@ bindResponses(container);
 bindComments(container);
 bindWorkspaces(container);
 bindWishlist(container);
+bindFeedback(container);
 bindProjectLanding(container);
 
 export { container, TYPES };
