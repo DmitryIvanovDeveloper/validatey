@@ -4,7 +4,7 @@
  *
  * Set BACKEND_ORIGIN in Vercel (e.g. https://api.validatey.com) to your backend URL.
  */
-import { next } from '@vercel/functions';
+import { NextResponse } from 'next/server';
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|assets/).*)'],
@@ -22,7 +22,7 @@ export default async function middleware(request) {
     host.split('.')[0]?.startsWith('project-');
 
   if (!isLandingSubdomain) {
-    return next();
+    return NextResponse.next();
   }
 
   const backendOrigin = process.env.BACKEND_ORIGIN || process.env.VITE_API_BASE_URL?.replace(/\/api\/?$/, '') || '';
