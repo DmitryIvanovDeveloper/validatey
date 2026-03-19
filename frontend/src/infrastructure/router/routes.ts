@@ -111,6 +111,11 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/modules/project-landing/interface-adapters/ui/views/ProjectLandingView.vue'),
       },
       {
+        path: 'audio-transcription',
+        name: 'project-audio-transcription',
+        component: () => import('@/modules/audio-transcription/interface-adapters/ui/views/AudioTranscriptionView.vue'),
+      },
+      {
         path: 'rounds/:roundId',
         name: 'round-detail',
         component: () => import('@/modules/rounds/interface-adapters/ui/views/RoundDetailView.vue'),

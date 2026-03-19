@@ -9,11 +9,14 @@ import { TYPES as RESEARCH_TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES as RESPONSES_TYPES } from '../../../responses/infrastructure/bootstrap/types';
 import { COMMENT_TYPES } from '../../../comments/types';
 import { TYPES as WISHLIST_TYPES } from '../../../wishlist/application/types';
+import { TYPES as PROJECT_TRANSCRIPTION_TYPES } from '../../../project-transcription/infrastructure/bootstrap/types';
 import type { ProjectRepositoryPort } from '../../../projects/application/ports/project-repository.port';
 import type { WishlistRepositoryPort } from '../../../wishlist/application/ports/wishlist-repository.port';
 import type { EarlySignalsRepositoryPort } from '../../../signals/application/ports/early-signals-repository.port';
 import type { ResearchDataRepositoryPort } from '../ports/research-data-repository.port';
 import type { SynthesisLlmPort } from '../ports/synthesis-llm.port';
+import type { ProjectTranscriptionRepositoryPort } from '../../../project-transcription/application/ports/project-transcription-repository.port';
+import type { TranscriptionInsightsLlmPort } from '../../../project-transcription/application/ports/transcription-insights-llm.port';
 import { GenerateAssumptionAssessmentsUseCase } from './generate-assumption-assessments.use-case';
 import type { ResponseRepositoryPort } from '../../../responses/application/ports/response-repository.port';
 import type { CommentRepositoryPort } from '../../../comments/application/ports/comment-repository.port';
@@ -31,6 +34,7 @@ import type { CommentPatternAnalysis, EvidenceType, DataConfidence } from '../..
 import type { AcademicPapersBlock } from '../../domain/value-objects/academic-papers-block.vo';
 import type { ProductHuntBlock, ProductHuntPost } from '../../domain/value-objects/product-hunt-block.vo';
 import type { CommentMetrics } from '../ports/synthesis-llm.port';
+import type { TranscriptionInsightsOutput } from '../../../project-transcription/application/ports/transcription-insights-llm.port';
 
 @injectable()
 export class GenerateSynthesisUseCase {
@@ -55,6 +59,10 @@ export class GenerateSynthesisUseCase {
     private readonly _generateAssumptionAssessmentsUseCase: GenerateAssumptionAssessmentsUseCase,
     @inject(WISHLIST_TYPES.WishlistRepository)
     private readonly _wishlistRepository: WishlistRepositoryPort,
+    @inject(PROJECT_TRANSCRIPTION_TYPES.ProjectTranscriptionRepository)
+    private readonly _projectTranscriptionRepository: ProjectTranscriptionRepositoryPort,
+    @inject(PROJECT_TRANSCRIPTION_TYPES.TranscriptionInsightsLlmPort)
+    private readonly _transcriptionInsightsLlm: TranscriptionInsightsLlmPort,
   ) {}
 
   async execute(
@@ -109,6 +117,8 @@ export class GenerateSynthesisUseCase {
         : 'No early signals yet';
       const academicPapersSummary = this.summarizeAcademicPapers(stored?.academicPapers ?? null);
       const productHuntSummary = this.summarizeProductHunt(stored?.productHunt ?? null);
+      await this.refreshTranscriptionInsights(projectId, project.userId);
+      const transcriptionInsightsSummary = await this.loadTranscriptionInsightsSummary(projectId);
 
       const SYNTHESIS_BATCH_SIZE = 40;
       const useBatchSynthesis = comments.length > SYNTHESIS_BATCH_SIZE;
@@ -142,6 +152,7 @@ export class GenerateSynthesisUseCase {
             productHuntSummary,
             commentMetrics: { totalCount: comments.length, bySource: commentMetrics.bySource },
             waitlistSubscribersCount,
+            transcriptionInsightsSummary,
           });
           if (batchResult.isSuccess && batchResult.data.commentPatternAnalysis) {
             const validated = this.validatePatternExamples(batchResult.data.commentPatternAnalysis, batch);
@@ -173,6 +184,7 @@ export class GenerateSynthesisUseCase {
             productHuntSummary,
             commentMetrics,
             waitlistSubscribersCount,
+            transcriptionInsightsSummary,
           });
           if (!fallbackResult.isSuccess) {
             return ResultEx.failure(fallbackResult.error);
@@ -202,6 +214,7 @@ export class GenerateSynthesisUseCase {
             productHuntSummary,
             commentMetrics,
             waitlistSubscribersCount,
+            transcriptionInsightsSummary,
           });
           if (!finalResult.isSuccess) return ResultEx.failure(finalResult.error);
           report = {
@@ -230,6 +243,7 @@ export class GenerateSynthesisUseCase {
           productHuntSummary: productHuntSummary || undefined,
           commentMetrics,
           waitlistSubscribersCount,
+          transcriptionInsightsSummary,
         });
         if (!llmResult.isSuccess) return ResultEx.failure(llmResult.error);
         report = llmResult.data;
@@ -306,6 +320,78 @@ export class GenerateSynthesisUseCase {
     } finally {
       await this._researchDataRepository.updateResearchStatus(projectId, 'idle');
     }
+  }
+
+  private async loadTranscriptionInsightsSummary(projectId: string): Promise<string | undefined> {
+    const insightsResult = await this._projectTranscriptionRepository.getInsightsByProjectId(projectId);
+    if (!insightsResult.isSuccess || !insightsResult.data) {
+      return undefined;
+    }
+    return this.formatTranscriptionInsights(insightsResult.data);
+  }
+
+  private async refreshTranscriptionInsights(projectId: string, userId: string): Promise<void> {
+    const listResult = await this._projectTranscriptionRepository.listByProjectId(projectId, 500, 0);
+    if (!listResult.isSuccess) {
+      this._logger.warn('generate-synthesis.transcription-insights-list-failed', {
+        projectId,
+        error: listResult.error,
+      });
+      return;
+    }
+    if (listResult.data.length === 0) {
+      return;
+    }
+
+    const llmResult = await this._transcriptionInsightsLlm.generateInsights({
+      projectId,
+      history: listResult.data.map((t) => ({
+        id: t.id,
+        originalFilename: t.originalFilename,
+        createdAtIso: t.createdAt.toISOString(),
+        transcript: t.transcript,
+        language: t.language,
+      })),
+    });
+    if (!llmResult.isSuccess) {
+      this._logger.warn('generate-synthesis.transcription-insights-llm-failed', {
+        projectId,
+        error: llmResult.error,
+      });
+      return;
+    }
+
+    const saveResult = await this._projectTranscriptionRepository.saveInsights({
+      projectId,
+      userId,
+      payload: llmResult.data,
+    });
+    if (!saveResult.isSuccess) {
+      this._logger.warn('generate-synthesis.transcription-insights-save-failed', {
+        projectId,
+        error: saveResult.error,
+      });
+    }
+  }
+
+  private formatTranscriptionInsights(insights: TranscriptionInsightsOutput): string {
+    const lines: string[] = [];
+    if (insights.summary?.trim()) {
+      lines.push(`Summary: ${insights.summary.trim()}`);
+    }
+    if (insights.insights.length) {
+      lines.push(`Insights: ${insights.insights.join('; ')}`);
+    }
+    if (insights.themes.length) {
+      lines.push(`Themes: ${insights.themes.join('; ')}`);
+    }
+    if (insights.risks.length) {
+      lines.push(`Risks: ${insights.risks.join('; ')}`);
+    }
+    if (insights.nextActions.length) {
+      lines.push(`Next actions: ${insights.nextActions.join('; ')}`);
+    }
+    return lines.length ? lines.join('\n') : 'No transcription insights yet';
   }
 
   /**

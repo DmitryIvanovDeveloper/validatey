@@ -12,6 +12,7 @@ import roundsNestedRoutes from '../../../rounds/interface-adapters/routes/rounds
 import overviewNestedRoutes from '../../../overview/interface-adapters/routes/overview-nested.routes';
 import commentsNestedRoutes from '../../../comments/interface-adapters/routes/comments-nested.routes';
 import wishlistNestedRoutes from '../../../wishlist/interface-adapters/routes/wishlist-nested.routes';
+import transcriptionNestedRoutes from '../../../project-transcription/interface-adapters/routes/transcription-nested.routes';
 
 const router = Router({ mergeParams: true });
 
@@ -53,6 +54,9 @@ router.use('/:projectId/comments', commentsNestedRoutes);
 
 // Nested routes: /projects/:projectId/wishlist
 router.use('/:projectId/wishlist', wishlistNestedRoutes);
+
+// Nested routes: /projects/:projectId/transcription (audio → text, history)
+router.use('/:projectId/transcription', transcriptionNestedRoutes);
 
 export default router;
 

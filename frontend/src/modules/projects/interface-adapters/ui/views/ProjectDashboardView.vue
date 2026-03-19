@@ -57,6 +57,14 @@
           Landing Page
         </router-link>
         <router-link
+          :to="`${projectBase}/audio-transcription`"
+          class="tab-link"
+          :class="{ active: isTabActive('audio-transcription') }"
+          role="tab"
+        >
+          Audio Transcription
+        </router-link>
+        <router-link
           v-if="false"
           :to="`${projectBase}/report`"
           class="tab-link"
@@ -104,6 +112,7 @@ const isTabActive = (tab: string): boolean => {
   if (tab === 'responses') return name === 'project-responses';
   if (tab === 'comments') return name === 'project-comments';
   if (tab === 'landing') return name === 'project-landing';
+  if (tab === 'audio-transcription') return name === 'project-audio-transcription';
   if (tab === 'round') return name === 'round-detail';
   return false;
 };

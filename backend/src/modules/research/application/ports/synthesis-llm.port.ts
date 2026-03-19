@@ -29,6 +29,8 @@ export interface SynthesisInput {
   commentMetrics?: CommentMetrics;
   /** Number of waitlist/landing signups for this project (optional). Use for verdict and recommendations. */
   waitlistSubscribersCount?: number;
+  /** Optional summary of project transcription insights (AI-generated from interview transcripts). */
+  transcriptionInsightsSummary?: string;
 }
 
 export interface SynthesisLlmPort {

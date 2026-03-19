@@ -92,6 +92,12 @@ export const API_CONFIG = {
     // Project Landings
     PROJECT_LANDINGS: '/project-landings',
 
+    /** POST multipart (field audio) / GET list — nested under /api/projects/:projectId */
+    PROJECT_TRANSCRIPTIONS: (projectId: string) => `/projects/${projectId}/transcription`,
+    PROJECT_TRANSCRIPTION_BY_ID: (projectId: string, transcriptionId: string) =>
+      `/projects/${projectId}/transcription/${transcriptionId}`,
+    PROJECT_TRANSCRIPTION_INSIGHTS: (projectId: string) => `/projects/${projectId}/transcription/insights`,
+
     // Survey (Respondent UI) - Note: /survey route is mounted directly, not under /api
     SURVEY_BY_TOKEN: (token: string) => `${getSurveyBaseUrl()}/survey/${token}`,
     SURVEY_PUBLIC: (slug: string) => `${getSurveyBaseUrl()}/survey/public/${slug}`,

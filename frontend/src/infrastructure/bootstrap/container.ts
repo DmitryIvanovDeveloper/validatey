@@ -24,6 +24,7 @@ import { bindWorkspaces } from '../../modules/workspaces/infrastructure/bootstra
 import { bindWishlist } from '../../modules/wishlist/infrastructure/bootstrap/bind.wishlist';
 import { bindFeedback } from '../../modules/feedback/infrastructure/bootstrap/bind.feedback';
 import { bindProjectLanding } from '../../modules/project-landing/infrastructure/bootstrap/bind.project-landing';
+import { bindAudioTranscription } from '../../modules/audio-transcription/infrastructure/bootstrap/bind.audio-transcription';
 const container = new Container();
 
 // Infrastructure bindings
@@ -50,5 +51,6 @@ bindWorkspaces(container);
 bindWishlist(container);
 bindFeedback(container);
 bindProjectLanding(container);
+bindAudioTranscription(container);
 
 export { container, TYPES };

@@ -31,6 +31,7 @@ import { bindComments } from '../../modules/comments/infrastructure/bootstrap/bi
 import { bindWorkspaces } from '../../modules/workspaces/infrastructure/bootstrap/bind.workspaces';
 import { bindWishlist } from '../../modules/wishlist/infrastructure/bootstrap/bind.wishlist';
 import { bindProjectLanding } from '../../modules/project-landing/infrastructure/bootstrap/bind.project-landing';
+import { bindProjectTranscription } from '../../modules/project-transcription/infrastructure/bootstrap/bind.project-transcription';
 
 const container = new Container();
 
@@ -64,6 +65,7 @@ bindComments(container);
 bindWorkspaces(container);
 bindWishlist(container);
 bindProjectLanding(container);
+bindProjectTranscription(container);
 
 export { container, TYPES };
 

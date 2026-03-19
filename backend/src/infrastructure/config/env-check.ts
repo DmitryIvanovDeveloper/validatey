@@ -4,7 +4,22 @@
  */
 
 const REQUIRED = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'] as const;
-const OPTIONAL = ['SUPABASE_SERVICE_ROLE_KEY', 'CEREBRAS_API_KEY', 'CEREBRAS_MODEL', 'LLM_SERVICE_URL', 'SYNTHESIS_LLM_URL'] as const;
+const OPTIONAL = [
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'CEREBRAS_API_KEY',
+  'CEREBRAS_MODEL',
+  'LLM_SERVICE_URL',
+  'SYNTHESIS_LLM_URL',
+  'OPENAI_API_KEY',
+  'OPENAI_WHISPER_MODEL',
+  'SPEECH_TO_TEXT_PROVIDER',
+  'GOOGLE_APPLICATION_CREDENTIALS',
+  'GOOGLE_SPEECH_CREDENTIALS_JSON',
+  'GOOGLE_SPEECH_LANGUAGE_CODE',
+  'GOOGLE_SPEECH_MODEL',
+  'GOOGLE_SPEECH_SAMPLE_RATE_HERTZ',
+  'GOOGLE_SPEECH_CHANNELS',
+] as const;
 
 function hasValue(name: string): boolean {
   const v = process.env[name];
@@ -49,6 +64,18 @@ export function logEnvStatus(): void {
   console.log('   CEREBRAS_API_KEY:', status.optional.CEREBRAS_API_KEY ? '✓ set' : '– not set');
   console.log('   LLM_SERVICE_URL:', status.optional.LLM_SERVICE_URL ? '✓ set' : '– not set');
   console.log('   SYNTHESIS_LLM_URL:', status.optional.SYNTHESIS_LLM_URL ? '✓ set' : '– not set');
+  console.log('   OPENAI_API_KEY:', status.optional.OPENAI_API_KEY ? '✓ set' : '– not set');
+  console.log('   OPENAI_WHISPER_MODEL:', status.optional.OPENAI_WHISPER_MODEL ? '✓ set' : '– not set');
+  const stt = (process.env.SPEECH_TO_TEXT_PROVIDER || 'openai').toLowerCase().trim();
+  const hasGoogleCreds =
+    hasValue('GOOGLE_APPLICATION_CREDENTIALS') || hasValue('GOOGLE_SPEECH_CREDENTIALS_JSON');
+  let sttEffective = 'openai';
+  if (stt === 'google' || stt === 'gcp') sttEffective = 'google';
+  else if (stt === 'auto' && hasGoogleCreds) sttEffective = 'google (auto)';
+  else if (stt === 'auto') sttEffective = 'openai (auto)';
+  console.log('   SPEECH_TO_TEXT_PROVIDER:', stt || 'openai', '→ effective:', sttEffective);
+  console.log('   GOOGLE_APPLICATION_CREDENTIALS:', status.optional.GOOGLE_APPLICATION_CREDENTIALS ? '✓ set' : '– not set');
+  console.log('   GOOGLE_SPEECH_CREDENTIALS_JSON:', status.optional.GOOGLE_SPEECH_CREDENTIALS_JSON ? '✓ set' : '– not set');
   if (status.missing.length > 0) {
     console.warn('⚠️  Missing required:', status.missing.join(', '), '→ set them in .env');
   }

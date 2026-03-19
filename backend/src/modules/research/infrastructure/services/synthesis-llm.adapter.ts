@@ -15,6 +15,7 @@ const SYSTEM_PROMPT = `You are a research analyst specializing in product valida
 
 TASK:
 1. Synthesize all provided context: hypothesis, market, competitors, search intents, user insights, comments, early signals.
+   Also use "Transcription insights" when present: these are AI-structured summaries from interview transcripts and should be treated as high-value qualitative evidence.
 2. Analyze comment patterns from the provided comments to identify themes, validation signals, myths, and user feedback patterns. Include platform insights (dominant platforms, sentiment distribution, subreddit analysis if applicable).
 3. SEPARATE Problem Validation from Solution Validation:
    - Problem Validation: Evidence that the stated problem exists and users suffer from it
@@ -169,6 +170,7 @@ export class SynthesisLlmAdapter implements SynthesisLlmPort {
       `Competitors: ${input.competitorSummary}`,
       `Search intents (Google Autocomplete): ${input.autocompleteSummary}`,
       `User insights: ${input.userInsightsSummary}`,
+      input.transcriptionInsightsSummary ? `Transcription insights:\n${input.transcriptionInsightsSummary}` : '',
       `Comments: ${input.commentsSummary}`,
       input.commentsNumberedWithIds
         ? `Comments numbered list (provide specific keywords per pattern so the server can match relevant comments):\n${input.commentsNumberedWithIds}`
