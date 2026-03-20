@@ -418,6 +418,10 @@ const slug = computed(() => (route.params.slug as string) || '');
 const isGuest = computed(() => !!slug.value);
 const projectId = computed(() => (route.params.projectId as string) || viewModel.project.value?.id || '');
 const viewModel = new ProjectViewModel();
+// Prevent first-render guest flash where widgets mount with empty projectId.
+if (isGuest.value) {
+  viewModel.loading.value = true;
+}
 const presenter = container.get<ProjectPresenter>(TYPES.ProjectPresenter);
 const invitationPresenter = container.get<InvitationPresenter>(INVITATION_TYPES.InvitationPresenter);
 const httpClient = container.get<HttpClientPort>(ROOT_TYPES.HttpClient);

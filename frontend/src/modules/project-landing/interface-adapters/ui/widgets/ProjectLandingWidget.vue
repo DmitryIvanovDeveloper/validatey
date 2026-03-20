@@ -4,8 +4,7 @@
   
 
     <div v-if="loading" class="loading-state">
-      <div class="loading-spinner"></div>
-      <span>{{ presenter.labels.loading }}</span>
+      <LoadingSpots :message="presenter.labels.loading" size="lg" />
     </div>
 
     <div v-else-if="error" class="error-state">
@@ -56,13 +55,14 @@
         </div>
 
         <div class="upload-controls">
-          <input
+          <FileInputField
+            id="landing-zip-file"
             ref="fileInput"
-            type="file"
             accept=".zip"
-            @change="onFileSelected"
             :disabled="uploading"
-            class="file-input"
+            button-label="Choose ZIP"
+            empty-label="No file selected"
+            @select="onFileSelected"
           />
           <div class="upload-hint">
             {{ presenter.labels.uploadHint }}
@@ -72,6 +72,35 @@
     </div>
 
     <div v-else class="landing-info">
+      <div class="ai-generation-section ai-regenerate-section">
+        <div class="ai-generation-header">
+          <h3 class="section-title">Edit Prompt and Regenerate</h3>
+          <p class="section-subtitle">Update instructions and regenerate this landing page. The current landing will be replaced.</p>
+        </div>
+
+        <div class="custom-prompt-section">
+          <label for="custom-prompt-existing" class="custom-prompt-label">Prompt edits (optional)</label>
+          <textarea
+            id="custom-prompt-existing"
+            v-model="customPrompt"
+            placeholder="e.g. “Use a darker style”, “Focus on pricing clarity”, “Add social proof section”"
+            rows="3"
+            class="custom-prompt-input"
+            :disabled="uploading"
+          ></textarea>
+        </div>
+
+        <button
+          @click="generateLandingWithAI"
+          :disabled="uploading"
+          class="generate-ai-button"
+          type="button"
+        >
+          <span v-if="uploading">Regenerating…</span>
+          <span v-else>Regenerate Landing</span>
+        </button>
+      </div>
+
       <header class="preview-header">
         <div class="landing-details">
           <a :href="landing?.url" target="_blank" class="landing-url">{{ landing?.url }}</a>
@@ -132,6 +161,8 @@ import { container } from '../../../../../infrastructure/bootstrap/container';
 import { ProjectLandingPresenter } from '../../presenters/project-landing.presenter';
 import { TYPES } from '../../../infrastructure/bootstrap/types';
 import { API_CONFIG } from '../../../../../infrastructure/config/api.config';
+import FileInputField from '@/shared/components/inputs/FileInputField.vue';
+import LoadingSpots from '@/shared/components/LoadingSpots.vue';
 
 interface Props {
   projectId: string;
@@ -175,7 +206,7 @@ try {
   } as any;
 }
 
-const fileInput = ref<HTMLInputElement>();
+const fileInput = ref<InstanceType<typeof FileInputField> | null>(null);
 const showDeleteConfirm = ref(false);
 const showEmbed = ref(false);
 const customPrompt = ref('');
@@ -205,10 +236,13 @@ async function generateLandingWithAI() {
 const landing = computed(() => presenter.landing.value);
 /** Preview URL: same host as API so iframe works when backend is on localhost. */
 const previewUrl = computed(() => {
-  const slug = landing.value?.slug;
-  if (!slug) return '';
+  const currentLanding = landing.value;
+  const slug = currentLanding?.slug;
+  if (!slug || !currentLanding) return '';
   const base = apiBaseForEmbed.value;
-  return `${base.replace(/\/$/, '')}/l/${encodeURIComponent(slug)}/`;
+  const uploadedAtTs = Date.parse(currentLanding.uploadedAt || '');
+  const cacheKey = Number.isFinite(uploadedAtTs) ? String(uploadedAtTs) : currentLanding.id;
+  return `${base.replace(/\/$/, '')}/l/${encodeURIComponent(slug)}/?v=${encodeURIComponent(cacheKey)}`;
 });
 const loading = computed(() => presenter.loading.value);
 const uploading = computed(() => presenter.uploading.value);
@@ -219,14 +253,11 @@ const loadLanding = async () => {
   await presenter.loadLanding(props.projectId);
 };
 
-const onFileSelected = async (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-
+const onFileSelected = async (file: File | null) => {
   if (file) {
     const success = await presenter.uploadLanding(props.projectId, file);
     if (success) {
-      target.value = ''; // Clear input
+      fileInput.value?.clear();
     }
   }
 };
@@ -270,9 +301,6 @@ watch(() => props.projectId, () => {
 </script>
 
 <style scoped>
-.project-landing-widget {
-}
-
 .landing-header {
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 16px;
@@ -293,23 +321,6 @@ watch(() => props.projectId, () => {
 
 .loading-state, .error-state, .no-landing-state, .landing-info {
   margin-top: 16px;
-}
-
-.loading-spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid #2563eb;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-right: 8px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .error-state {
@@ -403,7 +414,6 @@ watch(() => props.projectId, () => {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
-  background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   margin-bottom: 16px;
@@ -584,6 +594,10 @@ watch(() => props.projectId, () => {
   margin-bottom: 1.5rem;
 }
 
+.ai-regenerate-section {
+  margin-top: 0;
+}
+
 .ai-generation-header {
   margin-bottom: 1rem;
 }
@@ -727,24 +741,4 @@ watch(() => props.projectId, () => {
   background: #b91c1c;
 }
 
-.file-input {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  background: #f9fafb;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.file-input:hover {
-  border-color: #9ca3af;
-  background: #f3f4f6;
-}
-
-.file-input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 </style>

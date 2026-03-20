@@ -79,6 +79,39 @@ export class SupabaseProjectTranscriptionRepository implements ProjectTranscript
     }
   }
 
+  async existsByProjectAndFile(
+    projectId: string,
+    originalFilename: string,
+    sizeBytes?: number
+  ): Promise<ResultEx<boolean, TranscriptionPersistenceError>> {
+    try {
+      const normalizedFilename = (originalFilename || '').trim();
+      if (!normalizedFilename) return ResultEx.success(false);
+
+      let query = getSupabaseClient()
+        .from('project_transcriptions')
+        .select('id', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+        .ilike('original_filename', normalizedFilename);
+
+      if (typeof sizeBytes === 'number' && sizeBytes > 0) {
+        query = query.eq('size_bytes', sizeBytes);
+      }
+
+      const { count, error } = await query;
+      if (error) {
+        this._logger.error('supabase-project-transcription.exists-error', { error, projectId, originalFilename, sizeBytes });
+        return ResultEx.failure(new TranscriptionPersistenceError(error.message));
+      }
+      return ResultEx.success((count || 0) > 0);
+    } catch (e) {
+      this._logger.error('supabase-project-transcription.exists-exception', { error: e, projectId, originalFilename, sizeBytes });
+      return ResultEx.failure(
+        new TranscriptionPersistenceError(e instanceof Error ? e.message : 'Unknown error')
+      );
+    }
+  }
+
   async listByProjectId(
     projectId: string,
     limit = 50,

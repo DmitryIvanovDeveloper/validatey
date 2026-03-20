@@ -33,6 +33,13 @@ export class TranscriptionPersistenceError extends TranscriptionError {
   }
 }
 
+export class DuplicateTranscriptionFileError extends TranscriptionError {
+  constructor(filename: string) {
+    super(`This audio file is already in history: ${filename}`);
+    this.name = 'DuplicateTranscriptionFileError';
+  }
+}
+
 export class ProjectTranscriptionNotFoundError extends TranscriptionError {
   constructor(public readonly transcriptionId: string) {
     super(`Transcription not found: ${transcriptionId}`);

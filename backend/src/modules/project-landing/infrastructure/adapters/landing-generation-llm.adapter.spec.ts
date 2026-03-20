@@ -180,4 +180,21 @@ describe('LandingGenerationLLMAdapter', () => {
       expect(result.data.css).toContain('body {}');
     }
   });
+
+  it('recovers when JSON boundary cannot be found but field keys exist', async () => {
+    // Missing closing quote for js causes scanner to fail finding object end.
+    // Adapter should still recover html/css via key-boundary extraction.
+    const malformed =
+      '{"html":"<!DOCTYPE html><html><body><h1>Hi</h1></body></html>","css":"body{margin:0;}","js":"console.log(1)';
+    (httpClient.post as ReturnType<typeof vi.fn>).mockResolvedValue({
+      response: malformed,
+    });
+    const result = await adapter.generateLanding({ prompt: 'Generate' });
+    expect(result.isSuccess).toBe(true);
+    if (result.isSuccess) {
+      expect(result.data.html).toContain('<html');
+      expect(result.data.html).toContain('<body');
+      expect(result.data.css).toContain('margin:0');
+    }
+  });
 });

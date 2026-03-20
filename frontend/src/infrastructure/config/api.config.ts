@@ -20,6 +20,10 @@ export const API_CONFIG = {
     // Projects
     PROJECTS: '/projects',
     PROJECT: (id: string) => `/projects/${id}`,
+    PROJECT_WITH_GUEST: (id: string, guestSlug: string) =>
+      `/projects/${id}?guestSlug=${encodeURIComponent(guestSlug)}`,
+    PUBLIC_PROJECT_BY_SLUG: (slug: string) =>
+      `/public/projects/by-slug/${encodeURIComponent(slug)}`,
     
     // Scenarios
     SCENARIOS: (projectId: string) => `/projects/${projectId}/scenarios`,
@@ -84,6 +88,8 @@ export const API_CONFIG = {
 
     // Overview (command center: executive summary, pulse, smart actions, research context, decision pathway)
     OVERVIEW: (projectId: string) => `/projects/${projectId}/overview`,
+    OVERVIEW_WITH_GUEST: (projectId: string, guestSlug: string) =>
+      `/projects/${projectId}/overview?guestSlug=${encodeURIComponent(guestSlug)}`,
 
     // Comments (patterns, suggested outreach, etc.)
     COMMENTS_PATTERNS: (projectId: string) => `/projects/${projectId}/comments/patterns`,

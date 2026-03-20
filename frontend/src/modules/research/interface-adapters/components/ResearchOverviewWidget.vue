@@ -1,13 +1,7 @@
 <template>
   <div class="research-overview-widget">
     <div v-if="loading" class="loading-state">
-      <div class="loading-spinner">
-        <svg class="animate-spin w-6 h-6" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
-      <p class="loading-text">Loading research data...</p>
+      <LoadingSpots message="Loading research data..." size="md" />
     </div>
 
     <div v-else-if="error" class="error-state">
@@ -22,31 +16,31 @@
       </button>
     </div>
 
-    <div v-else-if="canvas" class="research-content">
+    <div v-else-if="resolvedCanvas" class="research-content">
       <div class="research-header">
         <h3 class="research-title">Research Overview</h3>
         <div class="research-stats">
           <div class="stat-item">
             <span class="stat-label">Market Data</span>
-            <span class="stat-value">{{ Object.keys(canvas.marketData || {}).length }}</span>
+            <span class="stat-value">{{ Object.keys(resolvedCanvas.marketData || {}).length }}</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Competitors</span>
-            <span class="stat-value">{{ canvas.competitorInfo?.competitors?.length || 0 }}</span>
+            <span class="stat-value">{{ resolvedCanvas.competitorInfo?.competitors?.length || 0 }}</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Signals</span>
-            <span class="stat-value">{{ Object.keys(canvas.userInsights || {}).length }}</span>
+            <span class="stat-value">{{ Object.keys(resolvedCanvas.userInsights || {}).length }}</span>
           </div>
         </div>
       </div>
 
-      <div v-if="canvas.canvas && Object.keys(canvas.canvas).length > 0" class="canvas-preview">
+      <div v-if="resolvedCanvas && Object.keys(resolvedCanvas).length > 0" class="canvas-preview">
         <div class="canvas-section">
           <h4>Market Analysis</h4>
           <div class="canvas-content">
-            <div v-if="canvas.canvas.marketData && Object.keys(canvas.canvas.marketData).length > 0">
-              <div class="data-item" v-for="(value, key) in canvas.canvas.marketData" :key="key">
+            <div v-if="resolvedCanvas.marketData && Object.keys(resolvedCanvas.marketData).length > 0">
+              <div class="data-item" v-for="(value, key) in resolvedCanvas.marketData" :key="key">
                 <span class="data-key">{{ key }}:</span>
                 <span class="data-value">{{ typeof value === 'object' ? JSON.stringify(value) : value }}</span>
               </div>
@@ -66,15 +60,27 @@
         <p class="no-research-text">Start your first research to see insights and analysis here.</p>
       </div>
     </div>
+
+    <div v-else class="no-research">
+      <div class="no-research-icon">
+        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+        </svg>
+      </div>
+      <h4 class="no-research-title">No Research Data Yet</h4>
+      <p class="no-research-text">Start your first research to see insights and analysis here.</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../presenters/research.presenter';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import type { GetResearchCanvasResponse } from '../../domain/types/research.types';
+import type { ResearchCanvas } from '../../domain/entities/research-canvas.entity';
+import LoadingSpots from '@/shared/components/LoadingSpots.vue';
 
 interface Props {
   projectId: string;
@@ -87,6 +93,12 @@ const researchPresenter = container.get<ResearchPresenter>(TYPES.ResearchPresent
 const loading = ref(true);
 const error = ref<string | null>(null);
 const canvas = ref<GetResearchCanvasResponse | null>(null);
+const resolvedCanvas = computed<ResearchCanvas | null>(() => {
+  const data = canvas.value;
+  if (!data) return null;
+  if ('canvas' in data && data.canvas) return data.canvas;
+  return data as unknown as ResearchCanvas;
+});
 
 const loadData = async () => {
   try {
@@ -121,10 +133,6 @@ defineExpose({
 
 .loading-state, .error-state, .no-research {
   @apply flex flex-col items-center justify-center py-12 text-center;
-}
-
-.loading-spinner {
-  @apply text-blue-600 mb-4;
 }
 
 .loading-text, .error-text, .no-research-text {

@@ -111,6 +111,9 @@ router.post('/', upload.single('audio'), async (req: Request, res: Response) => 
       if (err.name === 'AudioFileTooLargeError' || err.name === 'InvalidAudioFileError') {
         return res.status(400).json({ error: err.message });
       }
+      if (err.name === 'DuplicateTranscriptionFileError') {
+        return res.status(409).json({ error: err.message });
+      }
       if (err.name === 'SpeechToTextProviderError') {
         return res.status(502).json({ error: err.message });
       }

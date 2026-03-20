@@ -25,5 +25,5 @@ export function bindProjectLanding(container: Container): void {
   container.bind<GenerateLandingUseCase>(TYPES.GenerateLandingUseCase).to(GenerateLandingUseCase);
 
   // Presenters
-  container.bind<ProjectLandingPresenter>(TYPES.ProjectLandingPresenter).to(ProjectLandingPresenter);
+  container.bind<ProjectLandingPresenter>(TYPES.ProjectLandingPresenter).to(ProjectLandingPresenter).inSingletonScope();
 }

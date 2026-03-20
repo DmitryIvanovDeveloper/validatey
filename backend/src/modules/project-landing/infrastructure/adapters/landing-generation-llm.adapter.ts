@@ -85,6 +85,18 @@ export class LandingGenerationLLMAdapter implements LandingGenerationLLMPort {
     // Извлекаем границы первого JSON-объекта с учётом строк (чтобы } внутри HTML/CSS/JS не обрывали разбор)
     const jsonEnd = this.findJsonObjectEnd(cleanContent);
     if (jsonEnd === -1) {
+      this._logger.warn('landing-generation-llm.json-boundary-not-found', {
+        contentLength: cleanContent.length,
+      });
+      const extracted = this.extractFieldsFromMalformedJson(cleanContent);
+      if (extracted) {
+        return {
+          html: extracted.html.trim(),
+          css: extracted.css && typeof extracted.css === 'string' ? extracted.css.trim() : undefined,
+          js: extracted.js && typeof extracted.js === 'string' ? extracted.js.trim() : undefined,
+          metadata: extracted.metadata && typeof extracted.metadata === 'object' ? extracted.metadata : undefined,
+        };
+      }
       throw new Error('Could not find end of JSON object (unbalanced braces or invalid string escaping)');
     }
     cleanContent = cleanContent.substring(0, jsonEnd + 1);

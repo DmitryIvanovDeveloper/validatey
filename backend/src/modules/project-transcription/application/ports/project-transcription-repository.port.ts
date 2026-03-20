@@ -31,6 +31,11 @@ export interface SaveProjectTranscriptionInsightsInput {
 
 export interface ProjectTranscriptionRepositoryPort {
   create(input: CreateProjectTranscriptionInput): Promise<ResultEx<ProjectTranscriptionEntity, TranscriptionPersistenceError>>;
+  existsByProjectAndFile(
+    projectId: string,
+    originalFilename: string,
+    sizeBytes?: number
+  ): Promise<ResultEx<boolean, TranscriptionPersistenceError>>;
   listByProjectId(projectId: string, limit?: number, offset?: number): Promise<ResultEx<ProjectTranscriptionEntity[], TranscriptionPersistenceError>>;
   deleteById(
     input: DeleteProjectTranscriptionInput

@@ -38,6 +38,7 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import SectionHintButton from '../../../../../shared/components/SectionHintButton.vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../../presenters/research.presenter';
 import { TYPES } from '../../../infrastructure/bootstrap/types';

@@ -7,6 +7,7 @@ import type { ProjectTranscriptionRepositoryPort } from '../ports/project-transc
 import ResultEx from '../../../../infrastructure/result/result';
 import { ProjectAccessDeniedError, ProjectNotFoundError } from '../../../projects/domain/errors/project.error';
 import { ProjectTranscriptionEntity } from '../../domain/entities/project-transcription.entity';
+import { DuplicateTranscriptionFileError } from '../../domain/errors/transcription.error';
 
 const logger: LoggerPort = {
   info: vi.fn(),
@@ -36,6 +37,7 @@ describe('TranscribeProjectAudioUseCase', () => {
         .mockResolvedValue(ResultEx.success({ text: '  hello world  ', language: 'en' })),
     } as unknown as SpeechToTextPort;
     transcriptionRepository = {
+      existsByProjectAndFile: vi.fn().mockResolvedValue(ResultEx.success(false)),
       create: vi.fn().mockResolvedValue(
         ResultEx.success(
           new ProjectTranscriptionEntity(
@@ -92,6 +94,26 @@ describe('TranscribeProjectAudioUseCase', () => {
         transcript: 'hello world',
       })
     );
+  });
+
+  it('fails when the same audio file already exists in history', async () => {
+    (transcriptionRepository.existsByProjectAndFile as ReturnType<typeof vi.fn>).mockResolvedValue(
+      ResultEx.success(true)
+    );
+
+    const result = await useCase.execute({
+      projectId: 'pid-1',
+      userId: 'user-1',
+      buffer: Buffer.from('fake'),
+      mimeType: 'audio/webm',
+      originalFilename: 'a.webm',
+    });
+
+    expect(result.isSuccess).toBe(false);
+    if (result.isSuccess) return;
+    expect(result.error).toBeInstanceOf(DuplicateTranscriptionFileError);
+    expect(speechToText.transcribeFromBuffer).not.toHaveBeenCalled();
+    expect(transcriptionRepository.create).not.toHaveBeenCalled();
   });
 
   it('fails with ProjectAccessDeniedError when userId does not match', async () => {

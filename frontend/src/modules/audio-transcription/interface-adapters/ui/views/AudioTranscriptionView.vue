@@ -6,49 +6,32 @@
     </header>
 
     <section class="card upload-card">
-      <label class="field-label" for="audio-file">Audio file</label>
-      <div class="file-picker">
-        <input
-          id="audio-file"
-          ref="fileInputRef"
-          type="file"
-          accept="audio/*"
-          class="file-input"
-          :disabled="loading"
-          @change="onFileChange"
-        />
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          :disabled="loading"
-          @click="fileInputRef?.click()"
-        >
-          Choose file
-        </Button>
-        <span class="file-name" :title="selectedFileName">{{ selectedFileName }}</span>
+      <div class="upload-row">
+        <div class="upload-field upload-file-field">
+          <FileInputField id="audio-file" accept="audio/*" :disabled="loading" @select="onFileSelected" />
+        </div>
+
+        <div class="upload-field upload-language-field">
+          <select id="lang-optional" v-model="languageHint" class="text-input language-select" :disabled="loading">
+            <option value="">Auto-detect</option>
+            <option v-for="option in languageOptions" :key="option.code" :value="option.code">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="upload-actions">
+          <Button
+            type="button"
+            variant="primary"
+            :loading="loading"
+            :disabled="!selectedFile"
+            @click="runTranscribe"
+          >
+            Transcribe
+          </Button>
+        </div>
       </div>
-
-      <label class="field-label" for="lang-optional">Language (optional, ISO-639-1)</label>
-      <input
-        id="lang-optional"
-        v-model="languageHint"
-        type="text"
-        class="text-input"
-        placeholder="e.g. en"
-        maxlength="8"
-        :disabled="loading"
-      />
-
-      <Button
-        type="button"
-        variant="primary"
-        :loading="loading"
-        :disabled="!selectedFile"
-        @click="runTranscribe"
-      >
-        Transcribe
-      </Button>
 
       <p v-if="listing" class="muted">Refreshing history…</p>
     </section>
@@ -74,16 +57,6 @@
       @confirm="handleConfirmDelete"
       @cancel="handleCancelDelete"
     />
-
-    <section v-if="lastResult" class="card result-card">
-      <h2 class="section-title">Latest result</h2>
-      <p class="meta muted">
-        <span v-if="lastResult.originalFilename" class="history-filename-inline">{{ lastResult.originalFilename }}</span>
-        <span v-if="lastResult.originalFilename"> · </span>
-        {{ formatDate(lastResult.createdAt) }}
-      </p>
-      <textarea class="transcript-area" readonly :value="lastResult.transcript" rows="8" />
-    </section>
 
       <h2 class="section-title">History</h2>
       <div class="history-actions">
@@ -229,14 +202,26 @@ import type {
 import Modal from '@/shared/components/Modal.vue';
 import ConfirmDialog from '@/shared/components/ConfirmDialog.vue';
 import Button from '@/shared/components/atoms/Button.vue';
+import FileInputField from '@/shared/components/inputs/FileInputField.vue';
 
 const route = useRoute();
 const projectId = computed(() => route.params.projectId as string);
 const presenter = container.get<AudioTranscriptionPresenter>(TYPES.AudioTranscriptionPresenter);
 
-const fileInputRef = ref<HTMLInputElement | null>(null);
 const selectedFile = ref<File | null>(null);
 const languageHint = ref('');
+const languageOptions = [
+  { code: 'en', label: 'English (en)' },
+  { code: 'ru', label: 'Russian (ru)' },
+  { code: 'es', label: 'Spanish (es)' },
+  { code: 'de', label: 'German (de)' },
+  { code: 'fr', label: 'French (fr)' },
+  { code: 'it', label: 'Italian (it)' },
+  { code: 'pt', label: 'Portuguese (pt)' },
+  { code: 'tr', label: 'Turkish (tr)' },
+  { code: 'pl', label: 'Polish (pl)' },
+  { code: 'uk', label: 'Ukrainian (uk)' },
+];
 
 const loading = computed(() => presenter.loading.value);
 const listing = computed(() => presenter.listing.value);
@@ -268,13 +253,9 @@ function formatDate(iso: string): string {
   }
 }
 
-function onFileChange(e: Event): void {
-  const input = e.target as HTMLInputElement;
-  const f = input.files?.[0];
-  selectedFile.value = f ?? null;
+function onFileSelected(file: File | null): void {
+  selectedFile.value = file;
 }
-
-const selectedFileName = computed(() => selectedFile.value?.name || 'No file selected');
 
 async function runTranscribe(): Promise<void> {
   const f = selectedFile.value;
@@ -320,7 +301,6 @@ onMounted(() => {
 
 <style scoped>
 .audio-transcription-view {
-  max-width: 720px;
   margin: 0 auto;
 }
 
@@ -353,6 +333,29 @@ onMounted(() => {
   background: transparent;
 }
 
+.upload-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.9rem;
+  flex-wrap: nowrap;
+}
+
+.upload-field {
+  min-width: 0;
+}
+
+.upload-file-field {
+  flex: 1 1 auto;
+}
+
+.upload-language-field {
+  flex: 0 0 12.5rem;
+}
+
+.upload-actions {
+  flex: 0 0 auto;
+}
+
 .field-label {
   display: block;
   font-size: 0.8125rem;
@@ -366,24 +369,18 @@ onMounted(() => {
   width: 100%;
   margin-bottom: 1rem;
   font-size: 0.875rem;
+  background: transparent;
 }
 
 .file-picker {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 
 .file-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
+  display: none !important;
+  background: transparent;
 }
 
 .file-name {
@@ -402,12 +399,45 @@ onMounted(() => {
   border-radius: 0.5rem;
 }
 
+.language-select {
+  margin-bottom: 0;
+  min-height: 2.25rem;
+  background: transparent;
+}
+
+#lang-optional {
+  background: transparent;
+}
+
+:deep(.file-choose-btn) {
+  background: transparent;
+}
+
+:deep(.file-choose-btn:hover:not(.btn-disabled)) {
+  background: transparent;
+}
+
 .error-popup-message {
   color: var(--color-error, #b91c1c);
   font-size: 0.925rem;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+:deep(.modal-container) {
+  background: var(--color-bg, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-lg, 0 20px 25px -5px rgba(0, 0, 0, 0.1));
+}
+
+:deep(.modal-header) {
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+}
+
+:deep(.modal-title) {
+  color: var(--color-text, #0f172a);
 }
 
 .section-title {
@@ -724,6 +754,22 @@ tr.row-selected:hover {
 }
 
 @media (max-width: 640px) {
+  .upload-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .upload-file-field,
+  .upload-language-field,
+  .upload-actions {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .upload-actions :deep(.btn) {
+    width: 100%;
+  }
+
   .detail-overlay {
     padding: 0.5rem;
   }

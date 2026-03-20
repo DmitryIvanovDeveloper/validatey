@@ -14,6 +14,8 @@ export class ProjectLandingPresenter {
   private _loading = ref(false);
   private _uploading = ref(false);
   private _error = ref<string | null>(null);
+  private _activeGenerationProjectId: string | null = null;
+  private _activeGenerationPromise: Promise<boolean> | null = null;
 
   constructor(
     @inject(TYPES.UploadLandingUseCase)
@@ -98,33 +100,50 @@ export class ProjectLandingPresenter {
   }
 
   async generateLandingWithAI(projectId: string, customPrompt?: string): Promise<boolean> {
+    // Keep one in-flight generation per project so tab switches/remounts
+    // don't accidentally start duplicate jobs or "lose" running state.
+    if (
+      this._activeGenerationPromise &&
+      this._activeGenerationProjectId === projectId
+    ) {
+      return this._activeGenerationPromise;
+    }
+
     this._uploading.value = true; // Используем uploading для состояния генерации
     this._error.value = null;
+    this._activeGenerationProjectId = projectId;
 
-    try {
-      const result = await this._generateUseCase.execute({
-        projectId,
-        customPrompt: customPrompt?.trim()
-      });
+    const generationTask = (async () => {
+      try {
+        const result = await this._generateUseCase.execute({
+          projectId,
+          customPrompt: customPrompt?.trim()
+        });
 
-      if (!result.isSuccess) {
-        this._error.value = result.error.message;
+        if (!result.isSuccess) {
+          this._error.value = result.error.message;
+          return false;
+        }
+
+        // Обновляем landing только если бэкенд вернул лендинг для запрошенного проекта
+        if (result.data.projectId !== projectId) {
+          this._error.value = `Landing was created for another project. Reload the page.`;
+          return false;
+        }
+        this._landing.value = result.data;
+        return true;
+      } catch (error) {
+        this._error.value = error instanceof Error ? error.message : 'Generation failed';
         return false;
+      } finally {
+        this._uploading.value = false;
+        this._activeGenerationPromise = null;
+        this._activeGenerationProjectId = null;
       }
+    })();
 
-      // Обновляем landing только если бэкенд вернул лендинг для запрошенного проекта
-      if (result.data.projectId !== projectId) {
-        this._error.value = `Landing was created for another project. Reload the page.`;
-        return false;
-      }
-      this._landing.value = result.data;
-      return true;
-    } catch (error) {
-      this._error.value = error instanceof Error ? error.message : 'Generation failed';
-      return false;
-    } finally {
-      this._uploading.value = false;
-    }
+    this._activeGenerationPromise = generationTask;
+    return generationTask;
   }
 
   async deleteLanding(projectId: string): Promise<boolean> {

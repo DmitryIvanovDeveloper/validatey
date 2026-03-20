@@ -6,8 +6,7 @@
     </div>
 
     <div v-if="loading" class="waitlist-widget__loading">
-      <div class="waitlist-widget__spinner" aria-hidden="true"></div>
-      <p class="waitlist-widget__loading-text">Loading...</p>
+      <LoadingSpots message="Loading..." size="md" />
     </div>
 
     <div v-else-if="error" class="waitlist-widget__error">
@@ -56,6 +55,7 @@ import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '@/modules/wishlist/infrastructure/bootstrap/types';
 import type { WishlistPresenter } from '@/modules/wishlist/interface-adapters/presenters/wishlist.presenter';
 import type { WishlistEntry } from '@/modules/wishlist/domain/entities/wishlist.entity';
+import LoadingSpots from '@/shared/components/LoadingSpots.vue';
 
 const PREVIEW_COUNT = 8;
 
@@ -121,20 +121,6 @@ watch(() => props.projectId, () => load(), { immediate: false });
 .waitlist-widget__error {
   padding: 1rem 0;
   text-align: center;
-}
-
-.waitlist-widget__spinner {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin: 0 auto 0.5rem;
-  border: 2px solid var(--color-border, #e5e7eb);
-  border-top-color: var(--color-primary, #0d9488);
-  border-radius: 50%;
-  animation: waitlist-spin 0.7s linear infinite;
-}
-
-@keyframes waitlist-spin {
-  to { transform: rotate(360deg); }
 }
 
 .waitlist-widget__loading-text {

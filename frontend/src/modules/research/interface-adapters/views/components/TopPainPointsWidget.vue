@@ -31,6 +31,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { ResearchPresenter } from '../../presenters/research.presenter';
 import { TYPES } from '../../../infrastructure/bootstrap/types';

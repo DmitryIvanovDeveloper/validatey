@@ -11,6 +11,7 @@ import type { ProjectTranscriptionRepositoryPort } from '../ports/project-transc
 import {
   InvalidAudioFileError,
   AudioFileTooLargeError,
+  DuplicateTranscriptionFileError,
   SpeechToTextProviderError,
   TranscriptionPersistenceError,
 } from '../../domain/errors/transcription.error';
@@ -66,6 +67,7 @@ export class TranscribeProjectAudioUseCase {
       | ProjectAccessDeniedError
       | InvalidAudioFileError
       | AudioFileTooLargeError
+      | DuplicateTranscriptionFileError
       | SpeechToTextProviderError
       | TranscriptionPersistenceError
     >
@@ -90,6 +92,18 @@ export class TranscribeProjectAudioUseCase {
     if (project.userId !== userId) {
       this._logger.warn('transcribe-project-audio.access-denied', { projectId, userId });
       return ResultEx.failure(new ProjectAccessDeniedError(projectId, userId));
+    }
+
+    const duplicateCheck = await this._transcriptionRepository.existsByProjectAndFile(
+      projectId,
+      originalFilename,
+      buffer.length
+    );
+    if (!duplicateCheck.isSuccess) {
+      return ResultEx.failure(duplicateCheck.error);
+    }
+    if (duplicateCheck.data) {
+      return ResultEx.failure(new DuplicateTranscriptionFileError(originalFilename));
     }
 
     const sttResult = await this._speechToText.transcribeFromBuffer({
