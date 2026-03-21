@@ -1,9 +1,10 @@
 <template>
   <div class="audio-transcription-view">
-    <header class="view-header">
-      <h1 class="title">Audio to text</h1>
-      <p class="subtitle">Upload an audio file to generate a transcript. History is saved for this project.</p>
-    </header>
+    <div class="top-nav">
+      <Button type="button" variant="ghost" size="sm" @click="goBack">
+        Back
+      </Button>
+    </div>
 
     <section class="card upload-card">
       <div class="upload-row">
@@ -190,7 +191,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { TYPES } from '../../../infrastructure/bootstrap/types';
 import { AudioTranscriptionPresenter } from '../../presenters/audio-transcription.presenter';
@@ -205,7 +206,9 @@ import Button from '@/shared/components/atoms/Button.vue';
 import FileInputField from '@/shared/components/inputs/FileInputField.vue';
 
 const route = useRoute();
+const router = useRouter();
 const projectId = computed(() => route.params.projectId as string);
+const workspaceId = computed(() => route.params.workspaceId as string | undefined);
 const presenter = container.get<AudioTranscriptionPresenter>(TYPES.AudioTranscriptionPresenter);
 
 const selectedFile = ref<File | null>(null);
@@ -257,6 +260,14 @@ function onFileSelected(file: File | null): void {
   selectedFile.value = file;
 }
 
+function goBack(): void {
+  if (workspaceId.value && projectId.value) {
+    router.push(`/workspaces/${workspaceId.value}/projects/${projectId.value}`);
+    return;
+  }
+  router.back();
+}
+
 async function runTranscribe(): Promise<void> {
   const f = selectedFile.value;
   if (!f) return;
@@ -302,6 +313,12 @@ onMounted(() => {
 <style scoped>
 .audio-transcription-view {
   margin: 0 auto;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
 .view-header {

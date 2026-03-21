@@ -56,10 +56,23 @@
         <TipsWidget />
 
         <!-- AI-Generated User Stories -->
-        <UserStoriesWidget :project-id="projectId" />
+        <SectionCard v-if="overviewBlocksLoading">
+          <template #header>
+            <h3 class="section-title">AI-Generated User Stories</h3>
+          </template>
+          <LoadingSpots size="md" />
+        </SectionCard>
+        <UserStoriesWidget v-else :project-id="projectId" />
 
         <!-- Executive Summary -->
+        <SectionCard v-if="overviewBlocksLoading || executiveSummaryLoading">
+          <template #header>
+            <h3 class="section-title">Executive Summary</h3>
+          </template>
+          <LoadingSpots size="md" />
+        </SectionCard>
         <ExecutiveSummaryWidget
+          v-else
           :summary="researchData?.synthesisReport?.summary || null"
           :recommendations="researchData?.synthesisReport?.recommendations"
           :loading="executiveSummaryLoading"
@@ -67,7 +80,13 @@
         />
 
         <!-- Segment -->
-        <SectionCard v-if="getSegmentDescription() && getSegmentDescription() !== 'Not specified'">
+        <SectionCard v-if="overviewBlocksLoading">
+          <template #header>
+            <h3 class="section-title">Segment</h3>
+          </template>
+          <LoadingSpots size="md" />
+        </SectionCard>
+        <SectionCard v-else-if="getSegmentDescription() && getSegmentDescription() !== 'Not specified'">
           <template #header>
             <div class="section-title-row">
               <h3 class="section-title">Segment</h3>
@@ -81,7 +100,13 @@
         </SectionCard>
 
         <!-- Demographics -->
-        <SectionCard v-if="getDemographicsText() && getDemographicsText() !== 'Not specified'">
+        <SectionCard v-if="overviewBlocksLoading">
+          <template #header>
+            <h3 class="section-title">Demographics</h3>
+          </template>
+          <LoadingSpots size="md" />
+        </SectionCard>
+        <SectionCard v-else-if="getDemographicsText() && getDemographicsText() !== 'Not specified'">
           <template #header>
             <h3 class="section-title">Demographics</h3>
           </template>
@@ -89,7 +114,13 @@
         </SectionCard>
 
         <!-- Hypothesis -->
-        <SectionCard v-if="getHypothesisText() && getHypothesisText() !== 'Not specified'">
+        <SectionCard v-if="overviewBlocksLoading">
+          <template #header>
+            <h3 class="section-title">Hypothesis</h3>
+          </template>
+          <LoadingSpots size="md" />
+        </SectionCard>
+        <SectionCard v-else-if="getHypothesisText() && getHypothesisText() !== 'Not specified'">
           <template #header>
             <div class="hypothesis-header">
               <div class="section-title-row">
@@ -106,7 +137,13 @@
         </SectionCard>
 
         <!-- Key Assumptions -->
-        <SectionCard v-if="getHypothesisAssumptions().length > 0">
+        <SectionCard v-if="overviewBlocksLoading">
+          <template #header>
+            <h3 class="section-title">{{ presenter.labels.detailsSectionKeyAssumptions }}</h3>
+          </template>
+          <LoadingSpots size="md" />
+        </SectionCard>
+        <SectionCard v-else-if="getHypothesisAssumptions().length > 0">
           <template #header>
             <h3 class="section-title">{{ presenter.labels.detailsSectionKeyAssumptions }}</h3>
           </template>
@@ -157,7 +194,13 @@
           </SectionCard>
 
           <!-- Market -->
-        <SectionCard v-if="hasMarketData()">
+        <SectionCard v-if="overviewBlocksLoading">
+          <template #header>
+            <h3 class="section-title">Market</h3>
+          </template>
+          <LoadingSpots size="md" />
+        </SectionCard>
+        <SectionCard v-else-if="hasMarketData()">
           <template #header>
             <div class="section-title-row">
               <h3 class="section-title">Market</h3>
@@ -421,6 +464,7 @@ import UserStoriesWidget from '../../../../research/interface-adapters/component
 import SectionCard from '../../../../../shared/components/SectionCard.vue';
 import SectionHintButton from '../../../../../shared/components/SectionHintButton.vue';
 import TipsWidget from '../../../../../shared/components/TipsWidget.vue';
+import LoadingSpots from '../../../../../shared/components/LoadingSpots.vue';
 import Badge from '../../../../../shared/components/atoms/Badge.vue';
 import { normalizeAssumptions } from '../../../domain/value-objects/hypothesis.vo';
 import type { OverviewPayload } from '../../../application/use-cases/input-output/get-project-overview.io';
@@ -447,6 +491,8 @@ const commentsActivityRef = ref<{ reload?: () => void } | null>(null);
 
 /** Overview data from presenter (viewModel.overview). Loaded via presenter.loadOverview(). */
 const overviewData = viewModel.overview;
+const overviewLoaded = ref(false);
+const overviewBlocksLoading = computed(() => viewModel.loading.value || !overviewLoaded.value);
 
 /** Research slice for Key Assumptions / Executive Summary. Derived from overview (backend-aggregated). */
 interface ResearchDataSlice {
@@ -853,7 +899,11 @@ async function loadOverviewInvitations() {
 
 async function loadOverview() {
   if (!projectId) return;
-  await presenter.loadOverview(projectId, viewModel);
+  try {
+    await presenter.loadOverview(projectId, viewModel);
+  } finally {
+    overviewLoaded.value = true;
+  }
 }
 
 // Research data loading is now handled by ResearchOverviewWidget
@@ -2144,7 +2194,6 @@ watch(project, (p) => {
 }
 
 /* Key Assumptions — simplified UI */
-.key-assumptions-section { }
 .key-assumptions-title { margin-bottom: 0.5rem; }
 
 .key-assumptions-list {
@@ -2168,18 +2217,6 @@ watch(project, (p) => {
 .assumption-card:last-child {
   border-bottom: none;
   padding-bottom: 0;
-}
-.assumption-card--confirmed {
-  /* No border */
-}
-.assumption-card--need_more {
-  /* No border */
-}
-.assumption-card--not_supported {
-  /* No border */
-}
-.assumption-card--pending {
-  /* No border */
 }
 
 .assumption-card-inner {

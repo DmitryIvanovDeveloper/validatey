@@ -422,7 +422,7 @@ onMounted(() => {
 .survey-container {
   max-width: 700px;
   width: 100%;
-  background: var(--color-bg);
+  background: #ffffff;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   border: var(--border-width) var(--border-style) var(--color-border);
@@ -431,7 +431,7 @@ onMounted(() => {
 
 .survey-progress {
   padding: 1.5rem;
-  background: var(--color-bg-page);
+  background: #ffffff;
   border-bottom: var(--border-width) var(--border-style) var(--color-border);
 }
 
