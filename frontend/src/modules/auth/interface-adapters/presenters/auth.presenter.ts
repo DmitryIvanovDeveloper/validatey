@@ -50,46 +50,63 @@ export class AuthPresenter {
 
   async signInWithGoogle(viewModel: AuthViewModel, _redirectPath?: string): Promise<boolean> {
     viewModel.error.value = null;
+    viewModel.loading.value = true;
     const redirectTo = `${window.location.origin}/auth/callback`;
-    const result = await this._signInWithGoogleUseCase.execute({ redirectTo });
-    if ('redirectUrl' in result) {
-      window.location.href = result.redirectUrl;
-      return true;
+    try {
+      const result = await this._signInWithGoogleUseCase.execute({ redirectTo });
+      if ('redirectUrl' in result) {
+        // Stop loading before navigation (the button will disappear with page change anyway).
+        viewModel.loading.value = false;
+        window.location.href = result.redirectUrl;
+        return true;
+      }
+      const err = result as AuthSignInError;
+      viewModel.error.value = err.message;
+      return false;
+    } finally {
+      viewModel.loading.value = false;
     }
-    const err = result as AuthSignInError;
-    viewModel.error.value = err.message;
-    return false;
   }
 
   async registerWithEmail(viewModel: AuthViewModel, email: string, password: string): Promise<boolean> {
     viewModel.error.value = null;
+    viewModel.loading.value = true;
     viewModel.registrationSuccessMessage.value = null;
-    const result = await this._registerWithEmailUseCase.execute({ email, password });
-    if ('session' in result && result.session?.user) {
-      if (result.requiresEmailConfirmation) {
-        viewModel.registrationSuccessMessage.value = 'Check your email to confirm your account, then sign in.';
-        viewModel.user.value = null;
-        viewModel.role.value = null;
-      } else {
-        viewModel.user.value = result.session.user;
-        viewModel.role.value = result.session.role ?? 'user';
+    try {
+      const result = await this._registerWithEmailUseCase.execute({ email, password });
+      if ('session' in result && result.session?.user) {
+        if (result.requiresEmailConfirmation) {
+          viewModel.registrationSuccessMessage.value = 'Check your email to confirm your account, then sign in.';
+          viewModel.user.value = null;
+          viewModel.role.value = null;
+        } else {
+          viewModel.user.value = result.session.user;
+          viewModel.role.value = result.session.role ?? 'user';
+        }
+        return true;
       }
-      return true;
+      viewModel.error.value = (result as AuthSignInError).message;
+      return false;
+    } finally {
+      viewModel.loading.value = false;
     }
-    viewModel.error.value = (result as AuthSignInError).message;
-    return false;
   }
 
   async signInWithEmail(viewModel: AuthViewModel, email: string, password: string): Promise<boolean> {
     viewModel.error.value = null;
-    const result = await this._signInWithEmailUseCase.execute({ email, password });
-    if ('session' in result && result.session?.user) {
-      viewModel.user.value = result.session.user;
-      viewModel.role.value = result.session.role ?? 'user';
-      return true;
+    viewModel.loading.value = true;
+    try {
+      const result = await this._signInWithEmailUseCase.execute({ email, password });
+      if ('session' in result && result.session?.user) {
+        viewModel.user.value = result.session.user;
+        viewModel.role.value = result.session.role ?? 'user';
+        return true;
+      }
+      viewModel.error.value = (result as AuthSignInError).message;
+      return false;
+    } finally {
+      viewModel.loading.value = false;
     }
-    viewModel.error.value = (result as AuthSignInError).message;
-    return false;
   }
 
   async signOut(viewModel: AuthViewModel): Promise<void> {
