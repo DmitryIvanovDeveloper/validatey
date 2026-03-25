@@ -72,8 +72,11 @@ export async function tokenGuard(
     if (!session) {
       console.log('🔐 Checking API session');
       const sessionPromise = authService.getSession();
+      // Prod can be a bit slow (Supabase role/user lookup); if we time out too aggressively
+      // the user will be redirected back to login even though cookies are valid.
+      const AUTH_GUARD_TIMEOUT_MS = 8000;
       const timeoutPromise = new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Auth timeout')), 2000) // Reduced timeout
+        setTimeout(() => reject(new Error('Auth timeout')), AUTH_GUARD_TIMEOUT_MS)
       );
 
       session = await Promise.race([sessionPromise, timeoutPromise]).catch((error: unknown) => {
