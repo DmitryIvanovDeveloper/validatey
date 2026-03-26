@@ -1,17 +1,28 @@
-/** Ensure base URL is always absolute (has protocol). Prevents relative URLs and 404 on production. */
+/**
+ * Normalizes VITE_API_BASE_URL for browser usage.
+ * - Supports absolute URLs (https://...) for cases without rewrites
+ * - Supports relative paths like `/api` for Vercel rewrites + same-origin cookies
+ */
 const normalizeBaseUrl = (raw: string): string => {
   const value = (raw || '').trim();
-  if (!value) return 'http://localhost:8080/api';
+  if (!value) return '/api';
+  // Allow relative base paths (e.g. `/api`), works with Vercel rewrites and Vite proxy.
+  if (value.startsWith('/')) return value;
+  // Force same-origin usage: even if an absolute backend URL is provided,
+  // we want cookies/session to be set for the current frontend host via /api rewrite.
+  const trimmed = value.replace(/\/+$/, '');
+  if (/\/api$/i.test(trimmed)) return '/api';
   if (/^https?:\/\//i.test(value)) return value;
   // Host without protocol (e.g. "verity-gamma.vercel.app/api") → add https://
   const hostPath = value.replace(/^\//, '');
-  return hostPath ? `https://${hostPath}` : 'http://localhost:8080/api';
+  return hostPath ? `https://${hostPath}` : '/api';
 };
 
 const rawBase = import.meta.env.VITE_API_BASE_URL ?? '';
-const apiBaseUrl = normalizeBaseUrl(rawBase || 'http://localhost:8080/api');
+// Default to same-origin relative `/api` (Vercel rewrites / Vite proxy).
+const apiBaseUrl = normalizeBaseUrl(rawBase || '/api');
 
-// Helper to get survey base URL (without /api)
+// Helper to get survey base URL (without `/api`)
 const getSurveyBaseUrl = (): string => apiBaseUrl.replace(/\/api\/?$/, '');
 
 export const API_CONFIG = {

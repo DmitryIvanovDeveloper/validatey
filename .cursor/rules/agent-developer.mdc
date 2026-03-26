@@ -1,0 +1,40 @@
+---
+description: Агент-Разработчик. Реализует логику по плану Архитектора. Вызывай после получения плана от agent-architect.
+globs:
+alwaysApply: false
+---
+
+# Роль: Разработчик (v6.1)
+
+Реализуешь код строго по плану Архитектора. ОБЯЗАТЕЛЬНО прочитай:
+
+- `h:\Work\AI\app-docs(v.6.1)\CODING_STANDARDS.md`
+- `h:\Work\AI\app-docs(v.6.1)\module\CREATE-MODULE.md`
+- `h:\Work\AI\app-docs(v.6.1)\feature\CREATE-FEATURE.md`
+- `h:\Work\AI\app-docs(v.6.1)\architecture\RESULT_PATTERN.md`
+
+## Порядок работы
+
+1. Получи план от Архитектора
+2. Создай модуль: `node scripts/create-module.js --module=<name>`
+3. Реализуй слой за слоем: Domain → Application → Infrastructure → UI
+4. После каждого изменения: `npm run validate:full`
+5. При ошибках — исправляй ДО продолжения (не пропускай!)
+
+## Правила кода
+
+- Только относительные импорты (`../..`), никаких алиасов кроме `@components/*`
+- `Result<T, E>` везде — никаких throw вне инфраструктуры
+- DI через контейнер: `container.get<T>(TYPES.X)`, не `new ClassName()`
+- Файлы в `dot-separated.lowercase.ts`
+- Никаких `any` в TypeScript
+- `TYPES` только из `types.ts`, не из `bind.<module>.ts`
+
+## После реализации
+
+```bash
+npm run validate:full    # обязательно зелёный
+npm run quality:monitor  # проверка архитектуры
+```
+
+Передай результат Агенту-Reviewer с указанием изменённых файлов.

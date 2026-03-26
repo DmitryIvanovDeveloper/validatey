@@ -1,0 +1,40 @@
+---
+description: Агент-QA. Пишет тесты по документации v6.1. Вызывай после успешного review от agent-reviewer.
+globs:
+alwaysApply: false
+---
+
+# Роль: QA Engineer (v6.1)
+
+Пишешь тесты строго по стратегии. ОБЯЗАТЕЛЬНО прочитай:
+
+- `h:\Work\AI\app-docs(v.6.1)\testing\TESTING_STRATEGY.md`
+- `h:\Work\AI\app-docs(v.6.1)\testing\TESTING-STRATEGY.md`
+- `h:\Work\AI\app-docs(v.6.1)\AI_DECISION_RULES.md`
+
+## Обязательные типы тестов
+
+1. **Unit** — каждый слой изолированно, зависимости вручную (без DI контейнера)
+2. **Integration** — реальный DI через `bind.<module>.ts`
+3. **Integration + Logging** — проверяешь `logger.error` вызовы
+4. **Data Flow** — `View → Presenter → UseCase → Repository → Result`
+5. **Negative paths** — ОБЯЗАТЕЛЬНО для каждого error-path
+
+## Правила тестов
+
+- `import 'reflect-metadata'` в `setup.ts` обязателен
+- Только относительные импорты в тестах
+- НЕ импортировать файлы с `@injectable` / DI декораторами в unit тестах
+- Проверять `result.isSuccess` / `result.isFailure`
+- Каждый негативный тест проверяет `logger.error`
+- Тесты в `__tests__/` рядом с кодом (в каждом слое)
+
+## После написания тестов
+
+```bash
+npm run test:coverage   # обязательно 100%
+npm run test:run        # все тесты зелёные
+npm run validate:full   # финальная проверка
+```
+
+100% coverage — блокер. Нет исключений без обоснования.

@@ -1,5 +1,5 @@
 <template>
-      <ProjectLandingWidget v-if="projectId" :key="projectId" :project-id="projectId" />
+  <ProjectLandingWidget v-if="projectId" :key="projectId" :project-id="projectId" />
 </template>
 
 <script setup lang="ts">

@@ -50,6 +50,7 @@ export class AuthPresenter {
 
   async signInWithGoogle(viewModel: AuthViewModel, _redirectPath?: string): Promise<boolean> {
     viewModel.error.value = null;
+    viewModel.googleLoading.value = true;
     viewModel.loading.value = true;
     const redirectTo = `${window.location.origin}/auth/callback`;
     try {
@@ -64,12 +65,14 @@ export class AuthPresenter {
       viewModel.error.value = err.message;
       return false;
     } finally {
+      viewModel.googleLoading.value = false;
       viewModel.loading.value = false;
     }
   }
 
   async registerWithEmail(viewModel: AuthViewModel, email: string, password: string): Promise<boolean> {
     viewModel.error.value = null;
+    viewModel.emailLoading.value = true;
     viewModel.loading.value = true;
     viewModel.registrationSuccessMessage.value = null;
     try {
@@ -88,12 +91,14 @@ export class AuthPresenter {
       viewModel.error.value = (result as AuthSignInError).message;
       return false;
     } finally {
+      viewModel.emailLoading.value = false;
       viewModel.loading.value = false;
     }
   }
 
   async signInWithEmail(viewModel: AuthViewModel, email: string, password: string): Promise<boolean> {
     viewModel.error.value = null;
+    viewModel.emailLoading.value = true;
     viewModel.loading.value = true;
     try {
       const result = await this._signInWithEmailUseCase.execute({ email, password });
@@ -105,6 +110,7 @@ export class AuthPresenter {
       viewModel.error.value = (result as AuthSignInError).message;
       return false;
     } finally {
+      viewModel.emailLoading.value = false;
       viewModel.loading.value = false;
     }
   }

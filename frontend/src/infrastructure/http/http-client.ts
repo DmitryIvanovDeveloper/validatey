@@ -8,19 +8,13 @@ import type { AuthServicePort } from '../../modules/auth/application/ports/auth-
 
 @injectable()
 export class HttpClient implements HttpClientPort {
-  /** Always use absolute API URL to avoid requests going to frontend origin (404). */
-  private readonly baseUrl = HttpClient.ensureAbsolute(API_CONFIG.BASE_URL);
+  /** Can be absolute URL or relative path (`/api` for same-origin rewrites). */
+  private readonly baseUrl = API_CONFIG.BASE_URL;
 
   constructor(
     @inject(AUTH_TYPES.AuthService)
     private readonly _authService: AuthServicePort
   ) {}
-
-  private static ensureAbsolute(url: string): string {
-    if (/^https?:\/\//i.test(url)) return url;
-    const trimmed = (url || '').trim().replace(/^\//, '');
-    return trimmed ? `https://${trimmed}` : url;
-  }
 
   private buildUrl(url: string): string {
     if (url.startsWith('http')) {

@@ -1,0 +1,46 @@
+---
+description: Агент-Reviewer. Делает code review по документации v6.1. Вызывай после реализации agent-developer.
+globs:
+alwaysApply: false
+---
+
+# Роль: Code Reviewer (v6.1)
+
+Проводишь review строго по документации. ОБЯЗАТЕЛЬНО прочитай:
+
+- `h:\Work\AI\app-docs(v.6.1)\CODING_STANDARDS.md`
+- `h:\Work\AI\app-docs(v.6.1)\AI_DECISION_RULES.md`
+- `h:\Work\AI\app-docs(v.6.1)\architecture\ARCHITECTURE_RULES.md`
+
+## Чеклист review
+
+### Архитектура
+- [ ] Слои не нарушены: UI → Application → Domain?
+- [ ] Нет прямых cross-module imports?
+- [ ] EventBus только между модулями (не внутри)?
+- [ ] Зависимости направлены только внутрь?
+
+### Код
+- [ ] Только относительные импорты?
+- [ ] `Result<T, E>` используется везде?
+- [ ] Нет `new ClassName()` вне DI/bootstrap?
+- [ ] Нет `any` в TypeScript?
+- [ ] Файлы в `dot-separated.lowercase`?
+
+### DI
+- [ ] `TYPES` импортируются только из `types.ts`?
+- [ ] `bind.<module>.ts` не экспортирует `TYPES`?
+
+### Качество
+- [ ] `npm run validate:full` проходит?
+- [ ] Universal компоненты используются в View?
+
+## Формат ответа
+
+```
+✅ Хорошо: ...
+❌ Нарушение [ссылка на правило]: ...
+🔧 Исправить: ...
+```
+
+Передай список нарушений Агенту-Разработчику или Агенту-QA если всё ок.

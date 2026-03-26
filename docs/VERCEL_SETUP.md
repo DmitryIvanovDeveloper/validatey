@@ -11,7 +11,8 @@
 
 - **Root Directory:** обязательно **`frontend`** (при деплое из Git без этого будет `vite: command not found`, т.к. сборка пойдёт из корня репо, где нет frontend-зависимостей).
 - **Environment Variables** (Production / Preview / Development):
-  - `VITE_API_BASE_URL` = `https://validatey-backend.vercel.app/api` (или ваш URL бэкенда)
+  - Рекомендуется: `VITE_API_BASE_URL` = `/api`
+  - Можно также указать полный URL бэкенда (если по какой-то причине rewrite не используется)
 
 ## validatey-backend (backend)
 

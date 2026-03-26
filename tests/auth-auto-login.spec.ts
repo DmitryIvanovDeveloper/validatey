@@ -29,4 +29,3 @@ test('auto-login does not redirect back to auth', async ({ page }) => {
 
   expect(isAuthRoute, `Expected /workspaces, got ${finalPath}`).toBe(false);
 });
-
