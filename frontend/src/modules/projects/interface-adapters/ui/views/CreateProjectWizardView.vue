@@ -389,7 +389,17 @@ const scenarioViewModel = new ScenarioViewModel();
 const showContextSection = ref(false);
 const scenarioSource = ref<'template' | 'ai'>('template');
 const selectedTemplateSlugs = ref<string[]>([]);
-const scenarioTemplates = ref<Array<{ slug: string; name: string; significanceTarget: number; content?: string }>>([]);
+type ScenarioTemplateOption = { slug: string; name: string; significanceTarget: number; content?: string };
+
+const FALLBACK_SCENARIO_TEMPLATES: ScenarioTemplateOption[] = [
+  { slug: 'problem-validation', name: 'Problem Validation', significanceTarget: 8 },
+  { slug: 'solution-validation', name: 'Solution Validation', significanceTarget: 8 },
+  { slug: 'pricing-validation', name: 'Pricing Validation', significanceTarget: 20 },
+  { slug: 'survey', name: 'Survey', significanceTarget: 40 },
+  { slug: 'statistical-analysis', name: 'Classic Statistical Analysis', significanceTarget: 400 },
+];
+
+const scenarioTemplates = ref<ScenarioTemplateOption[]>([]);
 const audienceChoice = ref<'email' | 'panel' | 'share'>('share');
 
 
@@ -543,19 +553,24 @@ const canCompleteWizard = (): boolean => {
   return true;
 };
 
+async function loadScenarioTemplates(): Promise<void> {
+  if (scenarioTemplates.value.length > 0) return;
+
+  const { templates, error } = await scenarioPresenter.getTemplates();
+  scenarioTemplates.value = !error && templates.length > 0
+    ? templates
+    : [...FALLBACK_SCENARIO_TEMPLATES];
+}
+
 const handleStepChange = async (step: number) => {
   // Update current step
   currentStep.value = step;
 
   // When entering step 1 (How?): ensure project exists; load templates if needed; trigger AI generate for AI path
   if (step === 1) {
+    // Always load templates first so user can select validation types even if project auto-save fails.
+    await loadScenarioTemplates();
     await ensureProjectCreated();
-
-    // Always load templates so user can select validation types
-    if (scenarioTemplates.value.length === 0) {
-      const { templates, error } = await scenarioPresenter.getTemplates();
-      if (!error) scenarioTemplates.value = templates;
-    }
 
     if (scenarioSource.value === 'ai' && !scenarioContent.value) {
       await generateScenario();
@@ -984,10 +999,7 @@ async function loadProjectForEditing(projectId: string) {
       editingProjectId.value = projectId;
 
       // Load templates and restore selected validation types
-      if (scenarioTemplates.value.length === 0) {
-        const { templates, error } = await scenarioPresenter.getTemplates();
-        if (!error) scenarioTemplates.value = templates;
-      }
+      await loadScenarioTemplates();
 
       if (project.scenarioTemplateSlug) {
         try {
