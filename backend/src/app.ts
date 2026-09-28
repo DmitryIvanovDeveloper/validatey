@@ -109,6 +109,7 @@ import feedbackRoutes from './modules/feedback/interface-adapters/routes/feedbac
 import deletionRequestsRoutes from './modules/deletion-requests/interface-adapters/routes/deletion-requests.routes';
 import hubspotRoutes from './modules/integrations/interface-adapters/routes/hubspot.routes';
 import commentsRoutes from './modules/comments/interface-adapters/routes/comments.routes';
+import { maybeProxyToInsightsFlat } from './infrastructure/http/insights-service-proxy.middleware';
 import workspacesRoutes from './modules/workspaces/interface-adapters/routes/workspaces.routes';
 import wishlistRoutes from './modules/wishlist/interface-adapters/routes/wishlist.routes';
 import publicProjectsRoutes from './modules/projects/interface-adapters/routes/public-projects.routes';
@@ -134,7 +135,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/deletion-requests', deletionRequestsRoutes);
 app.use('/api/integrations/hubspot', hubspotRoutes);
-app.use('/api/comments', commentsRoutes);
+app.use('/api/comments', maybeProxyToInsightsFlat('/internal/insights/comments'), commentsRoutes);
 app.use('/api/workspaces', workspacesRoutes); // Flat routes: /comments/:id
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/public/projects', publicProjectsRoutes);

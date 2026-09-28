@@ -1,0 +1,15 @@
+export const TYPES = {
+  ScraperSourceRepository: Symbol.for("ScraperSourceRepository"),
+  AddScraperSourceUseCase: Symbol.for("AddScraperSourceUseCase"),
+  UpdateScraperSourceUseCase: Symbol.for("UpdateScraperSourceUseCase"),
+  DeleteScraperSourceUseCase: Symbol.for("DeleteScraperSourceUseCase"),
+  ListScraperSourcesUseCase: Symbol.for("ListScraperSourcesUseCase"),
+  ScraperRunRepository: Symbol.for("ScraperRunRepository"),
+  RunScraperUseCase: Symbol.for("RunScraperUseCase"),
+  GetScraperResultsUseCase: Symbol.for("GetScraperResultsUseCase"),
+  SuggestScraperUseCase: Symbol.for("SuggestScraperUseCase"),
+  GenerateRunInsightsUseCase: Symbol.for("GenerateRunInsightsUseCase"),
+  GetScraperStatsUseCase: Symbol.for("GetScraperStatsUseCase"),
+  GetScraperDashboardMetricsUseCase: Symbol.for("GetScraperDashboardMetricsUseCase"),
+  ScraperController: Symbol.for("ScraperController"),
+} as const;

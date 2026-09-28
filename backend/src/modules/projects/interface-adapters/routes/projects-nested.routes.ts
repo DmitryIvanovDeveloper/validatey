@@ -13,6 +13,7 @@ import overviewNestedRoutes from '../../../overview/interface-adapters/routes/ov
 import commentsNestedRoutes from '../../../comments/interface-adapters/routes/comments-nested.routes';
 import wishlistNestedRoutes from '../../../wishlist/interface-adapters/routes/wishlist-nested.routes';
 import transcriptionNestedRoutes from '../../../project-transcription/interface-adapters/routes/transcription-nested.routes';
+import { maybeProxyToInsights } from '../../../../infrastructure/http/insights-service-proxy.middleware';
 
 const router = Router({ mergeParams: true });
 
@@ -29,13 +30,13 @@ router.use('/:projectId/report', reportsNestedRoutes);
 router.use('/:projectId/responses', responsesNestedRoutes);
 
 // Nested routes: /projects/:projectId/early-signals
-router.use('/:projectId/early-signals', earlySignalsNestedRoutes);
+router.use('/:projectId/early-signals', maybeProxyToInsights('early-signals'), earlySignalsNestedRoutes);
 
 // Nested routes: /projects/:projectId/research
-router.use('/:projectId/research', researchNestedRoutes);
+router.use('/:projectId/research', maybeProxyToInsights('research'), researchNestedRoutes);
 
 // Nested routes: /projects/:projectId/scraper
-router.use('/:projectId/scraper', scraperNestedRoutes);
+router.use('/:projectId/scraper', maybeProxyToInsights('scraper'), scraperNestedRoutes);
 
 // Nested routes: /projects/:projectId/deletion-requests
 router.use('/:projectId/deletion-requests', deletionRequestsNestedRoutes);
@@ -50,7 +51,7 @@ router.use('/:projectId/rounds', roundsNestedRoutes);
 router.use('/:projectId/overview', overviewNestedRoutes);
 
 // Nested routes: /projects/:projectId/comments
-router.use('/:projectId/comments', commentsNestedRoutes);
+router.use('/:projectId/comments', maybeProxyToInsights('comments'), commentsNestedRoutes);
 
 // Nested routes: /projects/:projectId/wishlist
 router.use('/:projectId/wishlist', wishlistNestedRoutes);

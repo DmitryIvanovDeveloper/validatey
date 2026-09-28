@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://validatey-backend.vercel.app/api/$1"
+      "destination": "https://validatey-65pv.vercel.app/api/$1"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

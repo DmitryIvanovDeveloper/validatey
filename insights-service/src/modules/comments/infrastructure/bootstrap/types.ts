@@ -1,0 +1,16 @@
+export const TYPES = {
+  CommentsQueryRepository: Symbol.for("CommentsQueryRepository"),
+  GetCommentByIdUseCase: Symbol.for("GetCommentByIdUseCase"),
+  GetCommentsUseCase: Symbol.for("GetCommentsUseCase"),
+  GetCommentsActivityUseCase: Symbol.for("GetCommentsActivityUseCase"),
+  GetCommentsFreshnessUseCase: Symbol.for("GetCommentsFreshnessUseCase"),
+  GetPatternAnalysisUseCase: Symbol.for("GetPatternAnalysisUseCase"),
+  GetSuggestedOutreachUseCase: Symbol.for("GetSuggestedOutreachUseCase"),
+  GetCommentsByAuthorUseCase: Symbol.for("GetCommentsByAuthorUseCase"),
+  CreateCommentSourceUseCase: Symbol.for("CreateCommentSourceUseCase"),
+  ListCommentSourcesUseCase: Symbol.for("ListCommentSourcesUseCase"),
+  DeleteCommentSourceUseCase: Symbol.for("DeleteCommentSourceUseCase"),
+  GetPatternCommentsUseCase: Symbol.for("GetPatternCommentsUseCase"),
+  StartCommentsFetchUseCase: Symbol.for("StartCommentsFetchUseCase"),
+  CommentsController: Symbol.for("CommentsController"),
+} as const;
